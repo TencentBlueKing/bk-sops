@@ -15,11 +15,11 @@ import logging
 
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
 
 from api import BKGseKitClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 
 logger = logging.getLogger("celery")
 
@@ -27,11 +27,11 @@ __group_name__ = _("GSEKit(GSEKit)")
 VERSION = "1.0"
 
 
-class GsekitFlushProcessService(Service):
+class GsekitFlushProcessService(BasePluginService):
     def inputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         client = BKGseKitClient(executor)

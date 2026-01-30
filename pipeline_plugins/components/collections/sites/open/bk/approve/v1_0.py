@@ -15,21 +15,20 @@ import logging
 import traceback
 
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import StringItemSchema
 
 from api.collections.itsm import BKItsmClient
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema
-from pipeline.component_framework.component import Component
-
-from gcloud.utils.handlers import handle_api_error
 from gcloud.conf import settings
+from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.utils import get_node_callback_url
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 
 
-class ApproveService(Service):
+class ApproveService(BasePluginService):
     __need_schedule__ = True
 
     def inputs_format(self):
@@ -56,7 +55,7 @@ class ApproveService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = BKItsmClient(username=executor)
 
@@ -85,7 +84,7 @@ class ApproveService(Service):
         data.outputs.sn = result["data"]["sn"]
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         try:
             rejected_block = data.get_one_of_inputs("rejected_block", True)
             approve_result = callback_data["approve_result"]

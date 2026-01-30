@@ -17,10 +17,10 @@ import requests
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.conf import settings
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.core.models import EnvironmentVariables
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("企业微信(WechatWork)")
 
@@ -28,7 +28,7 @@ from gcloud.utils import crypto
 from pipeline_plugins.components.utils import parse_passwd_value
 
 
-class WechatWorkSendMessageService(Service):
+class WechatWorkSendMessageService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -57,7 +57,7 @@ class WechatWorkSendMessageService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         chat_id = data.inputs.wechat_work_chat_id
         content = data.inputs.message_content
         mentioned_members = data.inputs.wechat_work_mentioned_members

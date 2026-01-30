@@ -20,23 +20,24 @@ from django.conf import settings
 from django.utils import timezone, translation
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
 from gcloud.core.models import Project
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("蓝鲸服务(BK)")
 
 LOGGER = logging.getLogger("celery")
 
 
-class PauseService(Service):
+class PauseService(BasePluginService):
     __need_schedule__ = True
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if callback_data is not None:
             data.outputs.callback_data = callback_data
             self.finish_schedule()
@@ -74,7 +75,7 @@ class PauseComponent(Component):
     desc = _("该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据")
 
 
-class SleepTimerService(Service):
+class SleepTimerService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(0)
     BK_TIMEMING_TICK_INTERVAL = int(os.getenv("BK_TIMEMING_TICK_INTERVAL", 60 * 60 * 24))
@@ -102,7 +103,7 @@ class SleepTimerService(Service):
     def outputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         if parent_data.get_one_of_inputs("language"):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
@@ -136,7 +137,7 @@ class SleepTimerService(Service):
 
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         timing_time = data.outputs.timing_time
 
         business_tz = data.outputs.business_tz
