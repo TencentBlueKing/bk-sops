@@ -33,6 +33,7 @@ from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 
 import env
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
+from gcloud.utils.json import safe_for_json
 from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
 from gcloud.taskflow3.models import (
     AutoRetryNodeStrategy,
@@ -96,6 +97,12 @@ def send_task_message(pipeline_id, node_id, msg_type):
             pipeline_instance=taskflow.pipeline_instance,
             project_id=taskflow.project_id,
         ).render_current_constants()
+
+        if resp_data["result"]:
+            for var in resp_data["data"]:
+                if safe_for_json(var["value"]):
+                    continue
+                var["value"] = str(var["value"].__dict__) if hasattr(var["value"], "__dict__") else str(var["value"])
 
         scopes = [(WebhookScopeType.TEMPLATE.value, str(taskflow.template_id))]
         extra_info = {
