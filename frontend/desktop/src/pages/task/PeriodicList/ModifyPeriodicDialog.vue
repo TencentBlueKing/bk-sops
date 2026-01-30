@@ -165,10 +165,17 @@
                                 :show-word-limit="true">
                             </bk-input>
                         </bk-form-item>
+                        <bk-form-item :label="$t('任务时区')" :required="true" property="taskTimezone" data-test-id="periodicEdit_form_taskTimezone">
+                            <TimezonePicker
+                                v-model="localSelectTimezone"
+                                @update:value="handleTimezoneChange"
+                            />
+                        </bk-form-item>
                         <bk-form-item :label="$t('周期表达式')" :required="true" property="loop" data-test-id="periodicEdit_form_loop">
                             <CronRuleSelect
                                 ref="cronRuleSelect"
                                 class="loop-rule"
+                                :timezone="localSelectTimezone"
                                 v-model="cronExpression" />
                         </bk-form-item>
                     </bk-form>
@@ -250,6 +257,8 @@
     import permission from '@/mixins/permission.js'
     import NodePreview from '@/pages/task/NodePreview.vue'
     import { formatCanvasData } from '@/utils/checkDataType'
+    import { TimezonePicker } from '@blueking/date-picker/vue2'
+    import '@blueking/date-picker/vue2/vue2.css'
 
     export default {
         name: 'ModifyPeriodicDialog',
@@ -258,7 +267,8 @@
             NoData,
             CronRuleSelect,
             NotifyTypeConfig,
-            NodePreview
+            NodePreview,
+            TimezonePicker
         },
         mixins: [permission],
         props: [
@@ -367,7 +377,8 @@
                 flowName: '',
                 isTplDeleted: false, // 旧数据模板是否被删除
                 hasDeleteScheme: false, // 是否存在执行方案被删除
-                cronExpression: this.cron // 周期表达式
+                cronExpression: this.cron, // 周期表达式
+                localSelectTimezone: window.TIMEZONE
             }
         },
         computed: {
@@ -869,7 +880,8 @@
                         'hour': cronArray[1],
                         'day_of_week': cronArray[4],
                         'day_of_month': cronArray[2],
-                        'month_of_year': cronArray[3]
+                        'month_of_year': cronArray[3],
+                        'timezone': this.localSelectTimezone
                     }
                     const pipelineData = {
                         ...this.previewData,
@@ -972,6 +984,9 @@
                         }
                     })
                 }
+            },
+            handleTimezoneChange (value) {
+                this.localSelectTimezone = value
             }
         }
     }
