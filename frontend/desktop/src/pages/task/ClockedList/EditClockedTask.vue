@@ -369,8 +369,7 @@
         },
         computed: {
             ...mapState('project', {
-                'projectName': state => state.projectName,
-                'timeZone': state => state.timezone
+                'projectName': state => state.projectName
             }),
             ...mapState({
                 'infoBasicConfig': state => state.infoBasicConfig
