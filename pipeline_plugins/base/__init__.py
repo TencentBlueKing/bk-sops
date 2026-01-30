@@ -11,4 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-# base module for components and variables
+# Import BasePluginService from core module to maintain backward compatibility
+from .core import BasePluginService  # noqa
+
+__all__ = ['BasePluginService']
