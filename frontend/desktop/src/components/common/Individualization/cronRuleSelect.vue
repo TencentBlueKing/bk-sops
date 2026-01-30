@@ -68,7 +68,7 @@
     import Translate from '@/utils/cron.js'
     import tools from '@/utils/tools.js'
     import moment from 'moment-timezone'
-    import { mapState } from 'vuex'
+
     const labelIndexMap = {
         minute: 0,
         hour: 1,
@@ -87,6 +87,10 @@
             value: {
                 type: String,
                 default: '*/5 * * * *'
+            },
+            timezone: {
+                type: String,
+                default: 'Asia/Shanghai'
             }
         },
         data () {
@@ -108,13 +112,9 @@
                     content: '#periodic-cron-tips-html',
                     placement: 'top-start'
                 },
-                shortestTime: window.PERIODIC_TASK_SHORTEST_TIME
+                shortestTime: window.PERIODIC_TASK_SHORTEST_TIME,
+                curTimezone: window.TIMEZONE
             }
-        },
-        computed: {
-            ...mapState('project', {
-                'timeZone': state => state.timezone
-            })
         },
         watch: {
             nativeValue (val) {
@@ -124,6 +124,13 @@
                     this.nextTime = []
                     this.isError = true
                 }
+            },
+            timezone: {
+                handler (val) {
+                    this.curTimezone = val
+                    this.checkAndTranslate(this.nativeValue)
+                },
+                immediate: true
             }
         },
         mounted () {
@@ -146,8 +153,8 @@
                     const nextDate = interval.next()
                     // 根据时区转换时间显示
                     let formattedTime
-                    if (window.TIMEZONE) {
-                        formattedTime = moment(nextDate.toDate()).tz(window.TIMEZONE).format('YYYY-MM-DD HH:mm:ss')
+                    if (this.curTimezone) {
+                        formattedTime = moment(nextDate.toDate()).tz(this.curTimezone).format('YYYY-MM-DD HH:mm:ss')
                     } else {
                         formattedTime = tools.prettyDateTimeFormat(nextDate.toString())
                     }

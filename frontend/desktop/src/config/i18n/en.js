@@ -1911,7 +1911,8 @@ const en = {
     '检测到【n】代码框没有使用变量，保存该节点代码框将自动改为免渲染模式。届时所有标准运维变量将不会被渲染。请确定是否保存': 'Detected that [{n}] code boxes do not use variables. Saving this node will automatically switch the code box to no-render mode, and all standard operations variables will not be rendered. Please confirm whether to save',
     '即将废弃': 'About to be deprecated',
     '个人中心': 'Personal Center',
-    '是否需要时区': 'Whether to need timezone'
+    '是否需要时区': 'Whether to need timezone',
+    '任务时区': 'Task Timezone'
 }
 
 export default en
