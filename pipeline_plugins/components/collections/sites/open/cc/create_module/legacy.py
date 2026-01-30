@@ -10,30 +10,28 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import logging
 import copy
+import logging
 from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, IntItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
-
-from pipeline_plugins.components.collections.sites.open.cc.base import (
-    BkObjType,
-    SelectMethod,
-    ModuleCreateMethod,
-    cc_format_tree_mode_id,
-    cc_list_select_node_inst_id,
-    cc_format_prop_data,
-    cc_get_name_id_from_combine_value,
-)
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from pipeline_plugins.components.collections.sites.open.cc.base import (
+    BkObjType,
+    ModuleCreateMethod,
+    SelectMethod,
+    cc_format_prop_data,
+    cc_format_tree_mode_id,
+    cc_get_name_id_from_combine_value,
+    cc_list_select_node_inst_id,
+)
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -43,7 +41,7 @@ __group_name__ = _("配置平台(CMDB)")
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCCreateModuleService(Service):
+class CCCreateModuleService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -101,7 +99,7 @@ class CCCreateModuleService(Service):
     def outputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):

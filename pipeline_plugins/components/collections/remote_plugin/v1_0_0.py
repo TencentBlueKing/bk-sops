@@ -18,10 +18,11 @@ from dateutil import tz
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow import AbstractIntervalGenerator, Service
+from pipeline.core.flow import AbstractIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
 from pipeline.eri.runtime import BambooDjangoRuntime
 
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 from plugin_service.conf import PLUGIN_LOGGER
 from plugin_service.exceptions import PluginServiceException
@@ -52,9 +53,21 @@ class StepIntervalGenerator(AbstractIntervalGenerator):
         return self.fix_interval or (10 if self.count < 30 else min((self.count - 25) ** 2, 600))
 
 
-class RemotePluginService(Service):
+class RemotePluginService(BasePluginService):
     interval = StepIntervalGenerator()
     runtime = BambooDjangoRuntime()
+
+    def _get_span_attributes(self, data, parent_data):
+        """
+        获取 Span 属性，第三方插件类型为 bk_plugin
+
+        :param data: 插件数据对象
+        :param parent_data: 父级数据对象
+        :return: 属性字典
+        """
+        attributes = super()._get_span_attributes(data, parent_data)
+        attributes["plugin_type"] = "bk_plugin"  # 第三方插件
+        return attributes
 
     def outputs_format(self):
         return [
@@ -63,7 +76,7 @@ class RemotePluginService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         plugin_code = data.get_one_of_inputs("plugin_code")
         plugin_version = data.get_one_of_inputs("plugin_version")
 
@@ -121,7 +134,7 @@ class RemotePluginService(Service):
             setattr(self, "__need_schedule__", True)
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         plugin_code = data.get_one_of_inputs("plugin_code")
         trace_id = data.get_one_of_outputs("trace_id")
 

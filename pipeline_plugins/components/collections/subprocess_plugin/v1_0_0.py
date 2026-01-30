@@ -22,7 +22,6 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow import Service
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.models import PipelineTemplate
@@ -37,6 +36,7 @@ from gcloud.core.models import EngineConfig, Project
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, TaskFlowRelation, TimeoutNodeConfig
 from gcloud.tasktmpl3.models import TaskTemplate
+from pipeline_plugins.base import BasePluginService
 
 
 class Subprocess(BaseModel):
@@ -48,7 +48,7 @@ class Subprocess(BaseModel):
     scheme_id_list: List[int] = []
 
 
-class SubprocessPluginService(Service):
+class SubprocessPluginService(BasePluginService):
     __need_schedule__ = True
     runtime = BambooDjangoRuntime()
 
@@ -63,7 +63,7 @@ class SubprocessPluginService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         parent_task_id = parent_data.get_one_of_inputs("task_id")
         try:
             parent_task = TaskFlowInstance.objects.get(id=parent_task_id)
@@ -224,7 +224,7 @@ class SubprocessPluginService(Service):
         )
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         task_success = callback_data.get("task_success", False)
         task_id = data.get_one_of_outputs("task_id")
         self.finish_schedule()

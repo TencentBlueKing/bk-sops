@@ -15,16 +15,13 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    IntItemSchema,
-)
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import IntItemSchema, StringItemSchema
+
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -33,7 +30,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobCronTaskService(Service):
+class JobCronTaskService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -78,7 +75,7 @@ class JobCronTaskService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
         job_cron_job_id = data.get_one_of_inputs("job_cron_job_id")

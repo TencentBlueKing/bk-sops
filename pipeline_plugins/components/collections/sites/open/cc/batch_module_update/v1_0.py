@@ -13,19 +13,20 @@ specific language governing permissions and limitations under the License.
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
+
 from gcloud.conf import settings
 
 __group_name__ = _("配置平台(CMDB)")
 
-from gcloud.utils.handlers import handle_api_error
-
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
-from pipeline.core.flow.activity import Service
+
+from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
-    cc_list_select_node_inst_id,
     BkObjType,
+    cc_list_select_node_inst_id,
     get_module_set_id,
 )
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
@@ -37,11 +38,14 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-class CCBatchModuleUpdateService(Service):
+class CCBatchModuleUpdateService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("填参方式"), key="cc_tag_method", type="string", schema=StringItemSchema(description=_("填参方式")),
+                name=_("填参方式"),
+                key="cc_tag_method",
+                type="string",
+                schema=StringItemSchema(description=_("填参方式")),
             ),
             self.InputItem(
                 name=_("拓扑模块属性修改"),
@@ -60,7 +64,7 @@ class CCBatchModuleUpdateService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
@@ -151,9 +155,7 @@ class CCBatchModuleUpdateService(Service):
             )
             if not cc_list_select_node_inst_id_return["result"]:
 
-                message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}"
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}")
                 failed_update.append(message)
                 self.logger.error(message)
                 continue

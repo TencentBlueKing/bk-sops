@@ -4,18 +4,18 @@ from functools import partial
 
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.core.models import Business
 from gcloud.utils import cmdb
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("监控平台(Monitor)")
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class MonitorBaseService(Service):
+class MonitorBaseService(BasePluginService):
     """
     监控基类，封装request_body构建与send_request这些通用逻辑
     """

@@ -14,21 +14,20 @@ import logging
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import get_ip_by_regex
-
-from pipeline_plugins.components.utils import convert_num_to_str
-from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
     cc_get_host_id_by_innerip,
     cc_list_select_node_inst_id,
 )
+from pipeline_plugins.components.utils import convert_num_to_str
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -39,7 +38,7 @@ VERSION = "1.1"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCBatchTransferHostModule(Service):
+class CCBatchTransferHostModule(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -92,7 +91,7 @@ class CCBatchTransferHostModule(Service):
             cc_module_select.extend(cc_list_select_node_inst_id_return["data"])
         return True, cc_module_select, ""
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
@@ -141,9 +140,7 @@ class CCBatchTransferHostModule(Service):
                 self.logger.info("主机所属业务模块更新成功, data={}".format(cc_kwargs))
                 success_update.append(attr)
             else:
-                message = _(
-                    f"主机所属业务模块更新失败: 主机属性={attr}, kwargs: {cc_kwargs}, 错误信息: {update_result['message']}"
-                )
+                message = _(f"主机所属业务模块更新失败: 主机属性={attr}, kwargs: {cc_kwargs}, 错误信息: {update_result['message']}")
                 self.logger.info(message)
                 failed_update.append(message)
 

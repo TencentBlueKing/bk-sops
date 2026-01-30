@@ -16,13 +16,14 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
 
 from api import BKGseKitClient
 from env import BK_GSE_KIT_PAGE_URL_TEMPLATE
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -48,11 +49,11 @@ JOB_STATUS_CHOICES = (
 )
 
 
-class GsekitJobExecService(Service):
+class GsekitJobExecService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)  # 每隔5秒钟进行重启结果状态轮询
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         """
         gsekit-轮询服务重启结果
         """
@@ -86,7 +87,10 @@ class GsekitJobExecService(Service):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("环境类型"), key="gsekit_bk_env", type="string", schema=StringItemSchema(description=_("当前业务的环境类型")),
+                name=_("环境类型"),
+                key="gsekit_bk_env",
+                type="string",
+                schema=StringItemSchema(description=_("当前业务的环境类型")),
             ),
             self.InputItem(
                 name=_("操作对象"),
@@ -101,35 +105,54 @@ class GsekitJobExecService(Service):
                 schema=StringItemSchema(description=_("操作类型")),
             ),
             self.InputItem(
-                name=_("集群ID"), key="gsekit_set", type="string", schema=StringItemSchema(description=_("集群ID")),
+                name=_("集群ID"),
+                key="gsekit_set",
+                type="string",
+                schema=StringItemSchema(description=_("集群ID")),
             ),
             self.InputItem(
-                name=_("模块ID"), key="gsekit_module", type="string", schema=StringItemSchema(description=_("模块ID"),),
+                name=_("模块ID"),
+                key="gsekit_module",
+                type="string",
+                schema=StringItemSchema(
+                    description=_("模块ID"),
+                ),
             ),
             self.InputItem(
                 name=_("服务实例"),
                 key="gsekit_service_id",
                 type="string",
-                schema=StringItemSchema(description=_("服务实例ID"),),
+                schema=StringItemSchema(
+                    description=_("服务实例ID"),
+                ),
             ),
             self.InputItem(
-                name=_("进程"), key="gsekit_process_name", type="string", schema=StringItemSchema(description=_("进程ID"),),
+                name=_("进程"),
+                key="gsekit_process_name",
+                type="string",
+                schema=StringItemSchema(
+                    description=_("进程ID"),
+                ),
             ),
             self.InputItem(
                 name=_("进程实例"),
                 key="gsekit_process_id",
                 type="string",
-                schema=StringItemSchema(description=_("进程实例ID"),),
+                schema=StringItemSchema(
+                    description=_("进程实例ID"),
+                ),
             ),
             self.InputItem(
                 name=_("配置文件模版"),
                 key="gsekit_config_template",
                 type="list",
-                schema=StringItemSchema(description=_("配置文件模版名"),),
+                schema=StringItemSchema(
+                    description=_("配置文件模版名"),
+                ),
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
 

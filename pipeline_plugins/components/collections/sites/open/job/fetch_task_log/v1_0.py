@@ -15,13 +15,13 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
-from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
-from pipeline.core.flow.activity import Service
+from pipeline.core.flow.io import StringItemSchema
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
+from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -30,7 +30,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFetchTaskLogService(Service):
+class JobFetchTaskLogService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -54,7 +54,7 @@ class JobFetchTaskLogService(Service):
             )
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")

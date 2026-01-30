@@ -18,17 +18,17 @@ from bkcrypto.asymmetric.interceptors import BaseAsymmetricInterceptor
 from bkcrypto.constants import AsymmetricCipherType
 from bkcrypto.contrib.django.ciphers import get_asymmetric_cipher
 from django.utils.translation import ugettext_lazy as _
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
+from pipeline_plugins.base import BasePluginService
+from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
 __group_name__ = _("节点管理(Nodeman)")
-
-from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
-from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
 
 class NodeManAsymmetricInterceptor(BaseAsymmetricInterceptor):
@@ -110,7 +110,7 @@ def get_nodeman_public_key(executor, logger):
     }
 
 
-class NodeManBaseService(Service):
+class NodeManBaseService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 

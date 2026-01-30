@@ -13,17 +13,16 @@ specific language governing permissions and limitations under the License.
 
 
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("蓝鲸服务(BK)")
 
 
-class DisplayService(Service):
+class DisplayService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -34,7 +33,7 @@ class DisplayService(Service):
     def outputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         return True
 
 
