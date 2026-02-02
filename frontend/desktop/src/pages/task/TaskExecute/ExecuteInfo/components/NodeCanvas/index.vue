@@ -310,11 +310,7 @@
     .sub-flow {
         height: 100%;
         border: 0;
-<<<<<<< HEAD
-       ::v-deep .canvas-wrapper {
-=======
         ::v-deep .canvas-wrapper {
->>>>>>> release_humming_bird
             background: #f5f7fa;
         }
         ::v-deep .canvas-flow {

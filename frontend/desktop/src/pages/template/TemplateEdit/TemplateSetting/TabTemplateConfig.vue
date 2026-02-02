@@ -336,13 +336,8 @@
                 executor_proxy, template_labels, default_flow_type, project_scope, template_id, webhook_configs, enable_webhook
             } = this.$store.state.template
             const { success, fail, pending_processing = [] } = notify_type
-<<<<<<< HEAD
-            const notifyType = [success.slice(0), fail.slice(0), pending_processing.slice(0)]
-            const { extra_info: extraInfo = {} } = notify_receivers
-=======
             const { extra_info: extraInfo = {} } = notify_receivers
             const notifyType = [success.slice(0), fail.slice(0), pending_processing.slice(0)]
->>>>>>> release_humming_bird
 
             return {
                 formData: {
@@ -485,7 +480,7 @@
                 }
             }
         },
-      
+
         mounted () {
             // 模板没有设置执行代理人时，默认使用项目下的执行代理人
             if (!this.formData.executorProxy) {
@@ -655,14 +650,10 @@
                     receiver_group: receiverGroup,
                     notify_type: { success: notifyType[0], fail: notifyType[1], pending_processing: notifyType[2] },
                     notify_type_extra_info: notifyTypeExtraInfo,
-<<<<<<< HEAD
-                    default_flow_type: defaultFlowType
-=======
                     default_flow_type: defaultFlowType,
                     project_scope: localProjectList,
                     webhookConfigs: webhookConfigs,
                     enable_webhook: this.enable_webhook
->>>>>>> release_humming_bird
                 }
             },
             onSelectedExecutorProxy (val) {

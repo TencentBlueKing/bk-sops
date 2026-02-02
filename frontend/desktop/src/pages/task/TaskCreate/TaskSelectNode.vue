@@ -571,11 +571,7 @@
     height: calc(100% - 72px);
     min-height: 500px;
     overflow: hidden;
-<<<<<<< HEAD
-    v::deep .jsflow {
-=======
     ::v-deep .jsflow {
->>>>>>> release_humming_bird
         background: #f5f7fa;
         .tool-panel-wrap {
             left: 40px;

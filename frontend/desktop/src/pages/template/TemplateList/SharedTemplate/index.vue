@@ -35,22 +35,12 @@
             }
         },
         methods: {
-<<<<<<< HEAD
-            closeShowSlider () {
-                this.isShowSlider = false
-            },
-            openShowSlider () {
-                this.isShowSlider = true
-            }
-            
-=======
             openShowSlider () {
                 this.isShowSlider = true
             },
             closeShowSlider () {
                 this.isShowSlider = false
             }
->>>>>>> release_humming_bird
         }
     }
 </script>

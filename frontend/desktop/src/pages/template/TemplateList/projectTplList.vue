@@ -727,12 +727,8 @@
                 templateLabelLoading: false,
                 tableMaxHeight: window.innerHeight - 246,
                 isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET,
-<<<<<<< HEAD
-                isBatchUpdateDialogShow: false
-=======
                 isBatchUpdateDialogShow: false,
                 pipelineTree: {}
->>>>>>> release_humming_bird
             }
         },
         computed: {
