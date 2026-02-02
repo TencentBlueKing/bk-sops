@@ -1,306 +1,306 @@
 spec_version: 2
-app_version: "3.35.1-alpha.1"
+app_version: "3.35.2-alpha.1"
 app:
-    region: default
-    bk_app_code: bk_sops
-    bk_app_name: 标准运维
-    bk_app_name_en: Standard OPS
-    market:
-        category: 运维工具
-        introduction: 标准运维是通过一套成熟稳定的任务调度引擎，把在多系统间的工作整合到一个流程，助力运维实现跨系统调度自动化的SaaS应用。
-        introduction_en: SOPS is a SaaS application that utilizes a set of mature and stable task scheduling engines to help realize cross-system scheduling automation, and integrates the work among multiple systems into a single process.
-        display_options:
-            width: 1280
-            height: 720
-            is_win_maximize: True
-            open_mode: "new_tab"
+  region: default
+  bk_app_code: bk_sops
+  bk_app_name: 标准运维
+  bk_app_name_en: Standard OPS
+  market:
+    category: 运维工具
+    introduction: 标准运维是通过一套成熟稳定的任务调度引擎，把在多系统间的工作整合到一个流程，助力运维实现跨系统调度自动化的SaaS应用。
+    introduction_en: SOPS is a SaaS application that utilizes a set of mature and stable task scheduling engines to help realize cross-system scheduling automation, and integrates the work among multiple systems into a single process.
+    display_options:
+      width: 1280
+      height: 720
+      is_win_maximize: True
+      open_mode: "new_tab"
 modules:
-    default:
-        is_default: True
-        language: Python
-        source_dir: ./src
-        services:
-            - name: mysql
-            - name: rabbitmq
-            - name: redis
-              spec: reusable
-            - name: bkrepo
-            - name: otel
-        env_variables:
-            - key: PIP_VERSION
-              value: 20.2.3
-              description: PIP版本
-            - key: BKAPP_FILE_MANAGER_TYPE
-              value: job_repo
-              description: 文件管理类型
-            - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
-              value: 0
-              description: 是否自动更新变量模型
-            - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
-              value: 0
-              description: 是否自动更新插件模型
-            - key: GUNICORN_WORKER_NUM
-              value: 1
-              description: GunicornWorker数量
-            - key: GUNICORN_THREAD_NUM
-              value: 10
-              description: GunicornThread数量
-            - key: C_FORCE_ROOT
-              value: 1
-              description: celery5 fit
-            - key: ENABLE_METRICS
-              value: 1
-              description: 是否启动 metrics server
-        processes:
-            web:
-                command: bin/start_web.sh
-                plan: 4C2G5R
-                replicas: 5
-            beat:
-                command: python manage.py celery beat -l info
-                plan: 4C1G5R
-                replicas: 1
-            dworker:
-                command: python manage.py celery worker -Q default -n default@%h -P threads -c 10 -l info
-                plan: 4C2G5R
-                replicas: 5
-        svc_discovery:
-            bk_saas:
-                - bk_app_code: "bk_iam"
-                - bk_app_code: "bk_user_manage"
-                - bk_app_code: "bk_nodeman"
-                - bk_app_code: "bk_gsekit"
-                - bk_app_code: "bk_sops"
-                - bk_app_code: "bk_sops"
-                  module_name: "callback"
-                - bk_app_code: "bk_sops"
-                  module_name: "api"
-        scripts:
-            pre_release_hook: bash bin/pre_release
-        bkmonitor:
-            port: 5001
-    callback:
-        is_default: False
-        language: Python
-        source_dir: ./src
-        services:
-            - name: mysql
-              shared_from: default
-            - name: rabbitmq
-              shared_from: default
-            - name: redis
-              shared_from: default
-            - name: bkrepo
-              shared_from: default
-            - name: otel
-              shared_from: default
-        env_variables:
-            - key: PIP_VERSION
-              value: 20.2.3
-              description: PIP版本
-            - key: BKAPP_FILE_MANAGER_TYPE
-              value: job_repo
-              description: 文件管理类型
-            - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
-              value: 0
-              description: 是否自动更新变量模型
-            - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
-              value: 0
-              description: 是否自动更新插件模型
-            - key: GUNICORN_WORKER_NUM
-              value: 1
-              description: GunicornWorker数量
-            - key: GUNICORN_THREAD_NUM
-              value: 10
-              description: GunicornThread数量
-            - key: C_FORCE_ROOT
-              value: 1
-              description: celery5 fit
-            - key: ENABLE_METRICS
-              value: 1
-              description: 是否启动 metrics server
-        processes:
-            web:
-                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
-                plan: 4C5G5R
-                replicas: 5
-        svc_discovery:
-            bk_saas:
-                - bk_app_code: "bk_iam"
-                - bk_app_code: "bk_user_manage"
-                - bk_app_code: "bk_nodeman"
-                - bk_app_code: "bk_gsekit"
-                - bk_app_code: "bk_sops"
-                - bk_app_code: "bk_sops"
-                  module_name: "callback"
-                - bk_app_code: "bk_sops"
-                  module_name: "api"
-        bkmonitor:
-            port: 5001
-    pipeline:
-        is_default: False
-        language: Python
-        source_dir: ./src
-        services:
-            - name: mysql
-              shared_from: default
-            - name: rabbitmq
-              shared_from: default
-            - name: redis
-              shared_from: default
-            - name: bkrepo
-              shared_from: default
-            - name: otel
-              shared_from: default
-        env_variables:
-            - key: PIP_VERSION
-              value: 20.2.3
-              description: PIP版本
-            - key: BKAPP_FILE_MANAGER_TYPE
-              value: job_repo
-              description: 文件管理类型
-            - key: DEFAULT_MAX_TASKS_IN_MEMORY
-              value: 100000
-              description: celery exporter 存储任务最大值
-            - key: CELERY_EXPORTER_QUEUE
-              value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api er_execute er_execute_api er_execute_periodic_task er_schedule er_schedule_api er_schedule_periodic_task node_auto_retry timeout_node_execute timeout_nodes_record task_callback
-              description: celery exporter 队列
-            - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
-              value: 0
-              description: 是否自动更新变量模型
-            - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
-              value: 0
-              description: 是否自动更新插件模型
-            - key: CELERY_EXPORTER_PORT
-              value: 5000
-              description: celery-exporter 监听端口
-            - key: C_FORCE_ROOT
-              value: 1
-              description: celery5 fit
-            - key: ENABLE_METRICS
-              value: 1
-              description: 是否启动 metrics server
-        processes:
-            v1-engine:
-                command: celery -A blueapps.core.celery worker -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 2
-            api-er-e:
-                command: celery -A blueapps.core.celery worker -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 4
-            api-er-s:
-                command: celery -A blueapps.core.celery worker -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 4
-            api-task:
-                command: celery -A blueapps.core.celery worker -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
-                plan: 4C1G5R
-                replicas: 2
-            cworker:
-                command: python manage.py celery worker -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -P threads -c 6 -l info
-                plan: 4C1G5R
-                replicas: 2
-            er-e:
-                command: celery -A blueapps.core.celery worker -P threads -Q er_execute -n er_e_worker@%h -c 100 -l info
-                plan: 4C2G5R
-                replicas: 2
-            er-s:
-                command: celery -A blueapps.core.celery worker -P threads -Q er_schedule -n er_s_worker@%h -c 100 -l info
-                plan: 4C2G5R
-                replicas: 2
-            peri-er-e:
-                command: celery -A blueapps.core.celery worker -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 2
-            peri-er-s:
-                command: celery -A blueapps.core.celery worker -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 2
-            stats-worker:
-                command: celery -A blueapps.core.celery worker -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 2
-            cleaner:
-                command: celery -A blueapps.core.celery worker -P threads -Q task_data_clean -n cleaner_worker@%h -c 100 -l info
-                plan: 4C1G5R
-                replicas: 2
-            web:
-                command: celery-prometheus-exporter --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr 0.0.0.0:$CELERY_EXPORTER_PORT --queue-list $CELERY_EXPORTER_QUEUE
-                plan: 4C1G5R
-                replicas: 1
-            node-timeout:
-                command: python manage.py node_timeout_process
-                plan: 4C1G5R
-                replicas: 1
-        svc_discovery:
-            bk_saas:
-              - bk_app_code: "bk_iam"
-              - bk_app_code: "bk_user_manage"
-              - bk_app_code: "bk_nodeman"
-              - bk_app_code: "bk_gsekit"
-              - bk_app_code: "bk_sops"
-              - bk_app_code: "bk_sops"
-                module_name: "callback"
-              - bk_app_code: "bk_sops"
-                module_name: "api"
-        bkmonitor:
-            port: 5001
-    api:
-        is_default: False
-        language: Python
-        source_dir: ./src
-        services:
-            - name: mysql
-              shared_from: default
-            - name: rabbitmq
-              shared_from: default
-            - name: redis
-              shared_from: default
-            - name: bkrepo
-              shared_from: default
-            - name: otel
-              shared_from: default
-        env_variables:
-            - key: PIP_VERSION
-              value: 20.2.3
-              description: PIP版本
-            - key: BKAPP_FILE_MANAGER_TYPE
-              value: job_repo
-              description: 文件管理类型
-            - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
-              value: 0
-              description: 是否自动更新变量模型
-            - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
-              value: 0
-              description: 是否自动更新插件模型
-            - key: GUNICORN_WORKER_NUM
-              value: 1
-              description: GunicornWorker数量
-            - key: GUNICORN_THREAD_NUM
-              value: 10
-              description: GunicornThread数量
-            - key: C_FORCE_ROOT
-              value: 1
-              description: celery5 fit
-            - key: ENABLE_METRICS
-              value: 1
-              description: 是否启动 metrics server
-        processes:
-            web:
-                command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
-                plan: 4C2G5R
-                replicas: 5
-        svc_discovery:
-            bk_saas:
-              - bk_app_code: "bk_iam"
-              - bk_app_code: "bk_user_manage"
-              - bk_app_code: "bk_nodeman"
-              - bk_app_code: "bk_gsekit"
-              - bk_app_code: "bk_sops"
-              - bk_app_code: "bk_sops"
-                module_name: "callback"
-              - bk_app_code: "bk_sops"
-                module_name: "api"
-        bkmonitor:
-            port: 5001
+  default:
+    is_default: True
+    language: Python
+    source_dir: ./src
+    services:
+      - name: mysql
+      - name: rabbitmq
+      - name: redis
+        spec: reusable
+      - name: bkrepo
+      - name: otel
+    env_variables:
+      - key: PIP_VERSION
+        value: 20.2.3
+        description: PIP版本
+      - key: BKAPP_FILE_MANAGER_TYPE
+        value: job_repo
+        description: 文件管理类型
+      - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
+        value: 0
+        description: 是否自动更新变量模型
+      - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
+        value: 0
+        description: 是否自动更新插件模型
+      - key: GUNICORN_WORKER_NUM
+        value: 1
+        description: GunicornWorker数量
+      - key: GUNICORN_THREAD_NUM
+        value: 10
+        description: GunicornThread数量
+      - key: C_FORCE_ROOT
+        value: 1
+        description: celery5 fit
+      - key: ENABLE_METRICS
+        value: 1
+        description: 是否启动 metrics server
+    processes:
+      web:
+        command: bin/start_web.sh
+        plan: 4C2G5R
+        replicas: 5
+      beat:
+        command: python manage.py celery beat -l info
+        plan: 4C1G5R
+        replicas: 1
+      dworker:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -Q default -n default@%h -P threads -c 20 -l info
+        plan: 4C2G5R
+        replicas: 5
+    svc_discovery:
+      bk_saas:
+        - bk_app_code: "bk_iam"
+        - bk_app_code: "bk_user_manage"
+        - bk_app_code: "bk_nodeman"
+        - bk_app_code: "bk_gsekit"
+        - bk_app_code: "bk_sops"
+        - bk_app_code: "bk_sops"
+          module_name: "callback"
+        - bk_app_code: "bk_sops"
+          module_name: "api"
+    scripts:
+      pre_release_hook: bash bin/pre_release
+    bkmonitor:
+      port: 5001
+  callback:
+    is_default: False
+    language: Python
+    source_dir: ./src
+    services:
+      - name: mysql
+        shared_from: default
+      - name: rabbitmq
+        shared_from: default
+      - name: redis
+        shared_from: default
+      - name: bkrepo
+        shared_from: default
+      - name: otel
+        shared_from: default
+    env_variables:
+      - key: PIP_VERSION
+        value: 20.2.3
+        description: PIP版本
+      - key: BKAPP_FILE_MANAGER_TYPE
+        value: job_repo
+        description: 文件管理类型
+      - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
+        value: 0
+        description: 是否自动更新变量模型
+      - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
+        value: 0
+        description: 是否自动更新插件模型
+      - key: GUNICORN_WORKER_NUM
+        value: 1
+        description: GunicornWorker数量
+      - key: GUNICORN_THREAD_NUM
+        value: 10
+        description: GunicornThread数量
+      - key: C_FORCE_ROOT
+        value: 1
+        description: celery5 fit
+      - key: ENABLE_METRICS
+        value: 1
+        description: 是否启动 metrics server
+    processes:
+      web:
+        command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
+        plan: 4C5G5R
+        replicas: 5
+    svc_discovery:
+      bk_saas:
+        - bk_app_code: "bk_iam"
+        - bk_app_code: "bk_user_manage"
+        - bk_app_code: "bk_nodeman"
+        - bk_app_code: "bk_gsekit"
+        - bk_app_code: "bk_sops"
+        - bk_app_code: "bk_sops"
+          module_name: "callback"
+        - bk_app_code: "bk_sops"
+          module_name: "api"
+    bkmonitor:
+      port: 5001
+  pipeline:
+    is_default: False
+    language: Python
+    source_dir: ./src
+    services:
+      - name: mysql
+        shared_from: default
+      - name: rabbitmq
+        shared_from: default
+      - name: redis
+        shared_from: default
+      - name: bkrepo
+        shared_from: default
+      - name: otel
+        shared_from: default
+    env_variables:
+      - key: PIP_VERSION
+        value: 20.2.3
+        description: PIP版本
+      - key: BKAPP_FILE_MANAGER_TYPE
+        value: job_repo
+        description: 文件管理类型
+      - key: DEFAULT_MAX_TASKS_IN_MEMORY
+        value: 100000
+        description: celery exporter 存储任务最大值
+      - key: CELERY_EXPORTER_QUEUE
+        value: default api_task_queue_pipeline_priority api_task_queue_service_schedule_priority periodic_task_queue_pipeline_priority periodic_task_queue_service_schedule_priority pipeline pipeline_additional_task pipeline_additional_task_priority pipeline_priority pipeline_statistics_priority service_schedule service_schedule_priority task_prepare_api er_execute er_execute_api er_execute_periodic_task er_schedule er_schedule_api er_schedule_periodic_task node_auto_retry timeout_node_execute timeout_nodes_record task_callback
+        description: celery exporter 队列
+      - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
+        value: 0
+        description: 是否自动更新变量模型
+      - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
+        value: 0
+        description: 是否自动更新插件模型
+      - key: CELERY_EXPORTER_PORT
+        value: 5000
+        description: celery-exporter 监听端口
+      - key: C_FORCE_ROOT
+        value: 1
+        description: celery5 fit
+      - key: ENABLE_METRICS
+        value: 1
+        description: 是否启动 metrics server
+    processes:
+      v1-engine:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
+        plan: 4C1G5R
+        replicas: 2
+      api-er-e:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
+        plan: 4C1G5R
+        replicas: 4
+      api-er-s:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
+        plan: 4C1G5R
+        replicas: 4
+      api-task:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
+        plan: 4C1G5R
+        replicas: 2
+      cworker:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q pipeline_additional_task,pipeline_additional_task_priority,node_auto_retry,timeout_node_execute,timeout_nodes_record,task_callback -n common_worker@%h -c 6 -l info
+        plan: 4C1G5R
+        replicas: 2
+      er-e:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_execute -n er_e_worker@%h -c 100 -l info
+        plan: 4C2G5R
+        replicas: 2
+      er-s:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_schedule -n er_s_worker@%h -c 100 -l info
+        plan: 4C2G5R
+        replicas: 2
+      peri-er-e:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
+        plan: 4C1G5R
+        replicas: 2
+      peri-er-s:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
+        plan: 4C1G5R
+        replicas: 2
+      stats-worker:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
+        plan: 4C1G5R
+        replicas: 2
+      cleaner:
+        command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q task_data_clean -n cleaner_worker@%h -c 3 -l info
+        plan: 4C1G5R
+        replicas: 2
+      web:
+        command: bash bin/exporter_auto_restart.sh --broker amqp://$RABBITMQ_USER:$RABBITMQ_PASSWORD@$RABBITMQ_HOST:$RABBITMQ_PORT/$RABBITMQ_VHOST --addr 0.0.0.0:$CELERY_EXPORTER_PORT --queue-list $CELERY_EXPORTER_QUEUE
+        plan: 4C1G5R
+        replicas: 1
+      node-timeout:
+        command: python manage.py node_timeout_process
+        plan: 4C1G5R
+        replicas: 1
+    svc_discovery:
+      bk_saas:
+        - bk_app_code: "bk_iam"
+        - bk_app_code: "bk_user_manage"
+        - bk_app_code: "bk_nodeman"
+        - bk_app_code: "bk_gsekit"
+        - bk_app_code: "bk_sops"
+        - bk_app_code: "bk_sops"
+          module_name: "callback"
+        - bk_app_code: "bk_sops"
+          module_name: "api"
+    bkmonitor:
+      port: 5001
+  api:
+    is_default: False
+    language: Python
+    source_dir: ./src
+    services:
+      - name: mysql
+        shared_from: default
+      - name: rabbitmq
+        shared_from: default
+      - name: redis
+        shared_from: default
+      - name: bkrepo
+        shared_from: default
+      - name: otel
+        shared_from: default
+    env_variables:
+      - key: PIP_VERSION
+        value: 20.2.3
+        description: PIP版本
+      - key: BKAPP_FILE_MANAGER_TYPE
+        value: job_repo
+        description: 文件管理类型
+      - key: BKAPP_AUTO_UPDATE_VARIABLE_MODELS
+        value: 0
+        description: 是否自动更新变量模型
+      - key: BKAPP_AUTO_UPDATE_COMPONENT_MODELS
+        value: 0
+        description: 是否自动更新插件模型
+      - key: GUNICORN_WORKER_NUM
+        value: 1
+        description: GunicornWorker数量
+      - key: GUNICORN_THREAD_NUM
+        value: 10
+        description: GunicornThread数量
+      - key: C_FORCE_ROOT
+        value: 1
+        description: celery5 fit
+      - key: ENABLE_METRICS
+        value: 1
+        description: 是否启动 metrics server
+    processes:
+      web:
+        command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
+        plan: 4C2G5R
+        replicas: 5
+    svc_discovery:
+      bk_saas:
+        - bk_app_code: "bk_iam"
+        - bk_app_code: "bk_user_manage"
+        - bk_app_code: "bk_nodeman"
+        - bk_app_code: "bk_gsekit"
+        - bk_app_code: "bk_sops"
+        - bk_app_code: "bk_sops"
+          module_name: "callback"
+        - bk_app_code: "bk_sops"
+          module_name: "api"
+    bkmonitor:
+      port: 5001

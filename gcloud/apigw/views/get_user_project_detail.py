@@ -18,8 +18,11 @@ from iam import Resource
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.serializers import IncludeProjectSerializer
 from gcloud.apigw.utils import api_hash_key
 from gcloud.apigw.views.utils import logger
+from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
+from gcloud.core.models import ProjectConfig, StaffGroupSet
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.iam_auth.conf import PROJECT_ACTIONS, IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
@@ -36,6 +39,11 @@ from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 @iam_intercept(ProjectViewInterceptor())
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
 def get_user_project_detail(request, project_id):
+    serializer = IncludeProjectSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
+    include_staff_groups = serializer.validated_data["include_staff_groups"]
     try:
         biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id, request.user.tenant_id)
     except Exception as e:
@@ -61,24 +69,35 @@ def get_user_project_detail(request, project_id):
         ],
         tenant_id=request.user.tenant_id,
     )
+    data = {
+        "project_id": request.project.id,
+        "project_name": request.project.name,
+        "from_cmdb": request.project.from_cmdb,
+        "bk_biz_id": biz_detail["bk_biz_id"],
+        "bk_biz_name": biz_detail["bk_biz_name"],
+        "bk_biz_developer": biz_detail["bk_biz_developer"],
+        "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
+        "bk_biz_tester": biz_detail["bk_biz_tester"],
+        "bk_biz_productor": biz_detail["bk_biz_productor"],
+        "auth_actions": [
+            action for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items() if allowed
+        ],
+    }
+    if include_executor_proxy:
+        data.update(
+            {
+                "executor_proxy": ProjectConfig.objects.task_executor_for_project(
+                    str(request.project.id), request.user.username
+                )
+            }
+        )
+    if include_staff_groups:
+        staff_groups = StaffGroupSet.objects.filter(project_id=request.project.id, is_deleted=False)
+        staff_data = StaffGroupSetSerializer(staff_groups, many=True).data
+        data.update({"staff_groups": staff_data})
 
     return {
         "result": True,
-        "data": {
-            "project_id": request.project.id,
-            "project_name": request.project.name,
-            "from_cmdb": request.project.from_cmdb,
-            "bk_biz_id": biz_detail["bk_biz_id"],
-            "bk_biz_name": biz_detail["bk_biz_name"],
-            "bk_biz_developer": biz_detail["bk_biz_developer"],
-            "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
-            "bk_biz_tester": biz_detail["bk_biz_tester"],
-            "bk_biz_productor": biz_detail["bk_biz_productor"],
-            "auth_actions": [
-                action
-                for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items()
-                if allowed
-            ],
-        },
+        "data": data,
         "code": err_code.SUCCESS.code,
     }

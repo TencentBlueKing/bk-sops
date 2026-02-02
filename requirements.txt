@@ -1,5 +1,5 @@
 # Base
-Django==4.2
+Django==4.2.20
 pymysql==1.1.1
 requests==2.31.0
 httplib2==0.22.0
@@ -51,7 +51,7 @@ django-timezone-field==5.1
 importlib-metadata==6.11.0
 
 # otel
-protobuf==5.26.0
+protobuf==5.29.5
 
 # blueapps
 blueapps[opentelemetry,bkcrypto]==4.16.rc3
@@ -70,6 +70,7 @@ django-test-toolkit==1.1.0
 
 # apigw
 apigw-manager[cryptography]==4.1.0
+tldextract==3.1.2
 
 # rsa
 pyCryptodome==3.20.0
@@ -94,3 +95,6 @@ opentelemetry-instrumentation-requests==0.50b0
 
 bk-notice-sdk==1.4.2
 croniter==1.4.1
+
+# bkflow feel
+bkflow-django-webhook==2.0.0

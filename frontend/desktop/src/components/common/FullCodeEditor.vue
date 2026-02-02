@@ -12,6 +12,10 @@
 <template>
     <div class="full-code-editor" :class="{ 'full-status': isFullScreen }">
         <div class="tool-area">
+            <ScriptCodeDrownList
+                ref="ScriptCodeDrownList"
+                :read-only="options.readOnly"
+                :input-data="inputData" />
             <i
                 class="bk-icon icon-copy mr20"
                 v-bk-tooltips="{
@@ -42,11 +46,13 @@
 <script>
     import i18n from '@/config/i18n/index.js'
     import CodeEditor from './CodeEditor.vue'
+    import ScriptCodeDrownList from '@/components/common/aiBluekingComp/ScriptCodeDrownList.vue'
 
     export default {
         name: 'FullCodeEditor',
         components: {
-            CodeEditor
+            CodeEditor,
+            ScriptCodeDrownList
         },
         props: {
             value: String,
@@ -61,7 +67,8 @@
         data () {
             return {
                 copyText: '',
-                isFullScreen: false
+                isFullScreen: false,
+                inputData: this.value || ''
             }
         },
         watch: {
@@ -114,6 +121,7 @@
                 }
             },
             onDataChange (val) {
+                this.inputData = val
                 this.$emit('input', val)
             }
         }
@@ -139,6 +147,14 @@
             line-height: 38px;
             text-align: right;
             background: #202024;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+
+            .assistant-icon {
+                width: 18px;
+                height: 18px;
+            }
             .zoom-icon {
                 font-size: 14px;
                 color: #ffffff;

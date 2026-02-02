@@ -90,7 +90,7 @@ class PeriodicTaskManager(models.Manager):
                 name=kwargs["name"],
                 cron=kwargs["cron"],
                 pipeline_tree=kwargs["pipeline_tree"],
-                creator=pipeline_periodic_task.creator,
+                creator=kwargs["editor"],
                 template_source=template_source,
                 is_create=False,
                 instance=pipeline_periodic_task,
@@ -157,6 +157,7 @@ class PeriodicTaskManager(models.Manager):
         instance = kwargs["instance"]
         snapshot = Snapshot.objects.create_snapshot(pipeline_tree)
         instance.name = name
+        instance.creator = creator
         instance.template = template.pipeline_template
         instance.snapshot = snapshot
         instance.extra_info = extra_info

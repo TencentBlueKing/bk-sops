@@ -12,21 +12,22 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_POST
 
-from gcloud.utils.decorators import request_validate
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.apis.django.validators import NodeActionV2Validator
-from gcloud.iam_auth.view_interceptors.taskflow import NodeActionV2Inpterceptor
+from gcloud.contrib.operate_record.constants import OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.contrib.operate_record.constants import RecordType, OperateType
+from gcloud.core.trace import CallFrom, trace_view
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.taskflow import NodeActionV2Inpterceptor
+from gcloud.taskflow3.apis.django.validators import NodeActionV2Validator
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.utils.decorators import request_validate
 
 
 @require_POST
 @request_validate(NodeActionV2Validator)
+@trace_view(attr_keys=["project_id", "task_id"], call_from=CallFrom.WEB.value)
 @iam_intercept(NodeActionV2Inpterceptor())
 @record_operation(RecordType.task.name, OperateType.nodes_action.name)
 def node_action(request, project_id, task_id, node_id):

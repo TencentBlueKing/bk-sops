@@ -1,17 +1,17 @@
-swagger: '2.0'
-basePath: /
+openapi: 3.0.1
+servers:
+- url: /
 info:
   version: '0.1'
   title: API Gateway Resources
   description: ''
-schemes:
-- http
 paths:
   /callback/{token}/:
     post:
       operationId: callback
       description: 节点回调入口
       tags:
+        - 限制接口
         - callback
       responses:
         default:
@@ -43,6 +43,7 @@ paths:
       operationId: create_periodic_task
       description: 创建周期任务
       tags:
+        - 限制接口
         - periodic_task
       responses:
         default:
@@ -70,8 +71,112 @@ paths:
       tags:
         - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: integer
+                        description: 任务实例ID
+                      task_url:
+                        type: string
+                        description: 任务实例链接
+                      pipeline_tree:
+                        type: object
+                        description: 任务实例树
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: 任务名称
+                constants:
+                  type: object
+                  description: 任务全局参数，key为变量KEY（${key}格式），value为变量值
+                  additionalProperties: true
+                flow_type:
+                  type: string
+                  default: common
+                  description: '任务流程类型，common: 常规流程，common_func：职能化流程'
+                description:
+                  type: string
+                  description: 任务描述
+                callback_url:
+                  type: string
+                  description: 任务执行完成后的回调地址
+                pipeline_tree:
+                  type: object
+                  description: 任务实例树，用于直接创建任务
+                  additionalProperties: true
+                simplify_vars:
+                  type: array
+                  items:
+                    type: string
+                  description: 需要进行类型简化的参数 key 列表
+                template_source:
+                  type: string
+                  default: business
+                  description: 流程模板来源，business:默认值，业务流程，common：公共流程
+                callback_version:
+                  type: string
+                  description: 回调版本
+                exclude_task_nodes_id:
+                  type: array
+                  items:
+                    type: string
+                  description: 跳过执行的节点ID列表（与execute_task_nodes_id同时存在时execute_task_nodes_id优先）
+                execute_task_nodes_id:
+                  type: array
+                  items:
+                    type: string
+                  description: 仅执行的节点ID列表（与exclude_task_nodes_id同时存在时execute_task_nodes_id优先）
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -93,7 +198,8 @@ paths:
       operationId: dispatch_plugin_query
       description: 插件请求转发
       tags:
-      - plugin
+        - 限制接口
+        - plugin
       responses:
         default:
           description: ''
@@ -120,8 +226,75 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: integer
+                        description: 任务实例ID
+                      task_url:
+                        type: string
+                        description: 任务实例链接
+                      pipeline_tree:
+                        type: object
+                        description: 任务实例树
+                        additionalProperties: true
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: integer
+        required: true
+        description: 项目ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - pipeline_tree
+              properties:
+                name:
+                  type: string
+                  description: 任务名称
+                category:
+                  type: string
+                  description: 任务分类
+                flow_type:
+                  type: string
+                  default: common
+                  description: '任务流程类型，common: 常规流程，common_func：职能化流程，默认值为common'
+                description:
+                  type: string
+                  description: 任务描述
+                pipeline_tree:
+                  type: object
+                  description: 任务实例树，详细信息请见下面说明
+                  additionalProperties: true
+                has_common_subprocess:
+                  type: boolean
+                  default: false
+                  description: 所包含的子流程来源，true：来自公共流程模版，false：来自项目流程模版，默认值为false
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: false
@@ -145,8 +318,58 @@ paths:
       tags:
       - template
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: 模板ID
+                      name:
+                        type: string
+                        description: 模板名称
+                      editor:
+                        type: string
+                        description: 模板编辑人
+                      creator:
+                        type: string
+                        description: 模板创建人
+                      category:
+                        type: string
+                        description: 模板分类，OpsTools：运维工具，MonitorAlarm：监控告警，ConfManage：配置管理，DevTools：开发工具，EnterpriseIT：企业IT，OfficeApp：办公应用，Other：其它，Default：默认
+                      edit_time:
+                        type: string
+                        description: 模板最新编辑时间
+                      create_time:
+                        type: string
+                        description: 模板创建时间
+                      pipeline_tree:
+                        type: object
+                        description: 模板任务树信息
+                        additionalProperties: true
+                    description: result=true 时模板详情，详细信息见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -170,8 +393,61 @@ paths:
       tags:
       - template
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: 模板ID
+                        name:
+                          type: string
+                          description: 模板名称
+                        editor:
+                          type: string
+                          description: 模板编辑人
+                        creator:
+                          type: string
+                          description: 模板创建人
+                        category:
+                          type: string
+                          description: 模板分类
+                        edit_time:
+                          type: string
+                          description: 模板最新编辑时间
+                        create_time:
+                          type: string
+                          description: 模板创建时间
+                        auth_actions:
+                          type: array
+                          items:
+                            type: string
+                          description: 用户对该资源有权限的操作
+                    description: result=true时模板列表，item 信息见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 任务时间相关字段期望返回的时区，形如Asia/Shanghai
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -193,7 +469,8 @@ paths:
       operationId: get_periodic_task_info
       description: 查询某个周期任务的详情
       tags:
-      - periodic_task
+        - 通用接口
+        - periodic_task
       responses:
         default:
           description: ''
@@ -218,7 +495,8 @@ paths:
       operationId: get_periodic_task_list
       description: 查询某个业务下所有的周期任务
       tags:
-      - periodic_task
+        - 通用接口
+        - periodic_task
       responses:
         default:
           description: ''
@@ -245,8 +523,71 @@ paths:
       tags:
       - plugin
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: 插件代码
+                        desc:
+                          type: string
+                          description: 插件描述
+                        form:
+                          type: string
+                          description: 插件表单静态资源链接
+                        name:
+                          type: string
+                          description: 插件名
+                        inputs:
+                          type: array
+                          items:
+                            type: object
+                          description: 插件输入参数列表
+                        outputs:
+                          type: array
+                          items:
+                            type: object
+                          description: 插件输出参数列表
+                        version:
+                          type: string
+                          description: 插件版本
+                        group_name:
+                          type: string
+                          description: 插件组名
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -268,7 +609,8 @@ paths:
       operationId: get_tasks_status
       description: 批量查询任务状态
       tags:
-      - task
+        - 通用接口
+        - task
       responses:
         default:
           description: ''
@@ -282,7 +624,7 @@ paths:
           method: post
           path: /{env.api_sub_path}apigw/get_tasks_status/{bk_biz_id}/
           matchSubpath: false
-          timeout: 0
+          timeout: 60
           upstreams: {}
           transformHeaders: {}
         authConfig:
@@ -295,8 +637,99 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: 任务 ID，即 task_id
+                      name:
+                        type: string
+                        description: 任务名称
+                      creator:
+                        type: string
+                        description: 任务创建人
+                      outputs:
+                        type: array
+                        items:
+                          type: object
+                        description: 任务输出参数
+                      executor:
+                        type: string
+                        description: 任务执行人
+                      task_url:
+                        type: string
+                        description: 任务实例链接
+                      constants:
+                        type: object
+                        description: 输入的全局变量
+                        additionalProperties: true
+                      project_id:
+                        type: integer
+                        description: 所属项目 ID
+                      start_time:
+                        type: string
+                        description: 任务执行时间
+                      create_time:
+                        type: string
+                        description: 任务创建时间
+                      finish_time:
+                        type: string
+                        description: 任务完成时间
+                      template_id:
+                        type: integer
+                        description: 创建任务所用的流程模板 ID
+                      elapsed_time:
+                        type: integer
+                        description: 任务执行耗时(秒）
+                      project_name:
+                        type: string
+                        description: 所属项目名称
+                      create_method:
+                        type: string
+                        description: 任务创建方式
+                      pipeline_tree:
+                        type: object
+                        description: 任务实例树
+                        additionalProperties: true
+                    description: result=true 时返回数据，详细信息见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 所属业务ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -320,8 +753,187 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: 任务ID
+                        name:
+                          type: string
+                          description: 任务名
+                        creator:
+                          type: string
+                          description: 任务创建者
+                        category:
+                          type: string
+                          description: 任务类型
+                        executor:
+                          type: string
+                          description: 任务执行者
+                        bk_biz_id:
+                          type: integer
+                          description: 业务ID
+                        is_started:
+                          type: boolean
+                          description: 任务是否已开始
+                        project_id:
+                          type: integer
+                          description: 项目ID
+                        start_time:
+                          type: string
+                          description: 任务开始时间
+                        bk_biz_name:
+                          type: string
+                          description: 业务名称
+                        finish_time:
+                          type: string
+                          description: 任务结束时间
+                        is_finished:
+                          type: boolean
+                          description: 任务是否已结束
+                        template_id:
+                          type: string
+                          description: 任务模版ID
+                        auth_actions:
+                          type: array
+                          items:
+                            type: string
+                          description: 用户对该资源有权限的操作
+                        project_name:
+                          type: string
+                          description: 项目名称
+                        create_method:
+                          type: string
+                          description: 任务创建方式
+                        template_source:
+                          type: string
+                          description: 任务模版来源，如项目模版project和公共模版common
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  count:
+                    type: integer
+                    description: data列表数量
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: keyword
+        schema:
+          type: string
+        required: false
+        description: 根据任务名关键词过滤任务列表，默认不过滤
+      - in: query
+        name: is_started
+        schema:
+          type: boolean
+        required: false
+        description: 根据任务是否已开始过滤任务列表，默认不过滤
+      - in: query
+        name: is_finished
+        schema:
+          type: boolean
+        required: false
+        description: 根据任务是否已结束过滤任务列表，默认不过滤
+      - in: query
+        name: executor
+        schema:
+          type: string
+        required: false
+        description: 根据任务执行人过滤任务列表，默认不过滤
+      - in: query
+        name: create_method
+        schema:
+          type: string
+        required: false
+        description: 根据任务创建方式过滤任务列表，可选值：app（手动）、api（API网关）、app_maker（轻应用）、periodic（周期任务）、clocked（计划任务）、mobile（移动端），默认不过滤
+      - in: query
+        name: template_id
+        schema:
+          type: string
+        required: false
+        description: 根据模板ID过滤任务列表（单个模板），默认不过滤
+      - in: query
+        name: template_ids
+        schema:
+          type: string
+        required: false
+        description: 根据模板ID列表过滤任务列表（多个模板，逗号分隔，如：1,2,3），默认不过滤
+      - in: query
+        name: is_child_taskflow
+        schema:
+          type: boolean
+        required: false
+        description: 根据是否为子任务过滤任务列表，默认不过滤
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 任务时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: create_time_start
+        schema:
+          type: string
+        required: false
+        description: 根据任务创建时间起始过滤任务列表，支持格式：YYYY-MM-DD HH:MM:SS、YYYY-MM-DD HH:MM:SS
+          +HHMM、YYYY-MM-DD HH:MM:SS+HHMM、YYYY-MM-DDTHH:MM:SSZ 或 YYYY-MM-DD，默认不过滤
+      - in: query
+        name: create_time_end
+        schema:
+          type: string
+        required: false
+        description: 根据任务创建时间结束过滤任务列表，支持格式：YYYY-MM-DD HH:MM:SS、YYYY-MM-DD HH:MM:SS
+          +HHMM、YYYY-MM-DD HH:MM:SS+HHMM、YYYY-MM-DDTHH:MM:SSZ 或 YYYY-MM-DD，默认不过滤
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 分页，返回任务列表任务数，默认为100
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 分页，返回任务列表起始任务下标，默认为0
+      - in: query
+        name: without_count
+        schema:
+          type: boolean
+        required: false
+        description: 有无count，默认返回count
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -345,8 +957,110 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      inputs:
+                        type: object
+                        description: 输入参数，key：value格式
+                        additionalProperties: true
+                      ex_data:
+                        type: string
+                        description: 节点执行失败详情，json字符串或者HTML字符串、普通字符串
+                      outputs:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                              description: 输出参数 KEY
+                            name:
+                              type: string
+                              description: 输出参数名称
+                            value:
+                              description: 输出参数值
+                            preset:
+                              type: boolean
+                              description: 是否是原子定义中预设输出变量
+                        description: 输出参数
+                      execution_time:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            elapsed_time:
+                              type: integer
+                              description: 节点执行耗时，单位为秒
+                            archived_time:
+                              type: string
+                              description: 节点执行时间
+                        description: 节点执行时间
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: path
+        name: task_id
+        schema:
+          type: integer
+        required: true
+        description: 任务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: true
+        description: 节点 ID
+      - in: query
+        name: component_code
+        schema:
+          type: string
+        required: true
+        description: 原子编码
+      - in: query
+        name: subprocess_stack
+        schema:
+          type: string
+        required: false
+        description: 子流程堆栈，json 格式的列表
+      - in: query
+        name: template_node_id
+        schema:
+          type: string
+        required: false
+        description: 模板节点 ID，传入后可返回节点历史执行时间
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -370,8 +1084,101 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: 节点 ID
+                      skip:
+                        type: boolean
+                        description: 是否手动跳过
+                      retry:
+                        type: integer
+                        description: 重试次数
+                      state:
+                        type: string
+                        description: 最后一次执行状态，CREATED：未执行，RUNNING：执行中，FAILED：失败，NODE_SUSPENDED：暂停，FINISHED：成功
+                      inputs:
+                        type: object
+                        description: 输入参数，key：value格式
+                        additionalProperties: true
+                      ex_data:
+                        type: string
+                        description: 节点执行失败详情，json字符串或者HTML字符串、普通字符串
+                      outputs:
+                        type: array
+                        items:
+                          type: object
+                        description: 输出参数
+                      histories:
+                        type: array
+                        items:
+                          type: object
+                        description: 重试记录详情
+                      start_time:
+                        type: string
+                        description: 最后一次执行开始时间
+                      finish_time:
+                        type: string
+                        description: 最后一次执行结束时间
+                      elapsed_time:
+                        type: integer
+                        description: 最后一次执行耗时，单位秒
+                    description: result=true 时返回数据，详细信息见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 所属业务ID
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: true
+        description: 节点 ID
+      - in: query
+        name: component_code
+        schema:
+          type: string
+        required: false
+        description: 标准插件编码，请求标准插件执行详情必填
+      - in: query
+        name: subprocess_stack
+        schema:
+          type: string
+        required: false
+        description: 子流程堆栈，json 格式的列表
+      - in: query
+        name: loop
+        schema:
+          type: integer
+        required: false
+        description: 节点循环次数
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -395,8 +1202,88 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: 任务或节点执行态ID，不等于 task_id
+                      name:
+                        type: string
+                        description: 节点名称
+                      skip:
+                        type: boolean
+                        description: 是否跳过执行
+                      retry:
+                        type: integer
+                        description: 重试和跳过总次数
+                      state:
+                        type: string
+                        description: 任务或节点状态，CREATED：未执行，RUNNING：执行中，FAILED：失败，SUSPENDED：暂停，REVOKED：已终止，FINISHED：已完成
+                      ex_data:
+                        type: object
+                        description: key为失败节点ID，value为失败节点错误数据
+                        additionalProperties: true
+                      children:
+                        type: object
+                        description: 任务节点执行详情
+                        additionalProperties: true
+                      start_time:
+                        type: string
+                        description: 任务或节点执行开始时间
+                      finish_time:
+                        type: string
+                        description: 任务或节点执行结束时间
+                    description: result=true 时返回数据，详细信息见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务或节点ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      - in: query
+        name: subprocess_id
+        schema:
+          type: string
+        required: false
+        description: 任务中的子流程节点 ID
+      - in: query
+        name: with_ex_data
+        schema:
+          type: boolean
+        required: false
+        description: 是否返回错误节点异常数据
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -407,7 +1294,7 @@ paths:
           method: get
           path: /{env.api_sub_path}apigw/get_task_status/{task_id}/{bk_biz_id}/
           matchSubpath: false
-          timeout: 0
+          timeout: 60
           upstreams: {}
           transformHeaders: {}
         authConfig:
@@ -420,8 +1307,94 @@ paths:
       tags:
       - template
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: 模板ID
+                      name:
+                        type: string
+                        description: 模板名称
+                      editor:
+                        type: string
+                        description: 模板编辑人
+                      creator:
+                        type: string
+                        description: 模板创建人
+                      category:
+                        type: string
+                        description: 模板分类，OpsTools：运维工具，MonitorAlarm：监控告警，ConfManage：配置管理，DevTools：开发工具，EnterpriseIT：企业IT，OfficeApp：办公应用，Other：其它
+                      bk_biz_id:
+                        type: string
+                        description: 模板所属业务ID
+                      edit_time:
+                        type: string
+                        description: 模板最新编辑时间
+                      project_id:
+                        type: string
+                        description: 模板所属项目ID
+                      bk_biz_name:
+                        type: string
+                        description: 模板所属业务名称
+                      create_time:
+                        type: string
+                        description: 模板创建时间
+                      project_name:
+                        type: string
+                        description: 模板所属项目名称
+                      pipeline_tree:
+                        type: object
+                        description: 模板任务树信息
+                        additionalProperties: true
+                    description: result=true 时模板详情，详细信息见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+                  request_id:
+                    type: string
+                    description: esb 请求 id
           description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      - in: query
+        name: template_source
+        schema:
+          type: string
+          default: business
+        required: false
+        description: 流程模板来源，business:默认值，业务流程，common：公共流程
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -445,8 +1418,109 @@ paths:
       tags:
       - template
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: 模板ID
+                        name:
+                          type: string
+                          description: 模板名称
+                        editor:
+                          type: string
+                          description: 模板编辑人
+                        creator:
+                          type: string
+                          description: 模板创建人
+                        category:
+                          type: string
+                          description: 模板分类
+                        bk_biz_id:
+                          type: string
+                          description: 模板所属业务ID
+                        edit_time:
+                          type: string
+                          description: 模板最新编辑时间
+                        project_id:
+                          type: string
+                          description: 模板所属项目ID
+                        bk_biz_name:
+                          type: string
+                          description: 模板所属业务名称
+                        create_time:
+                          type: string
+                          description: 模板创建时间
+                        auth_actions:
+                          type: array
+                          items:
+                            type: string
+                          description: 用户对该资源有权限的操作
+                        project_name:
+                          type: string
+                          description: 模板所属项目名称
+                    description: result=true时模板列表，item 信息见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+                  request_id:
+                    type: string
+                    description: esb 请求 id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      - in: query
+        name: template_source
+        schema:
+          type: string
+          default: business
+        required: false
+        description: 流程模板来源，business:默认值，业务流程，common：公共流程
+      - in: query
+        name: id_in
+        schema:
+          type: string
+        required: false
+        description: 流程模板id来源列表，以逗号`,`分隔
+      - in: query
+        name: name_keyword
+        schema:
+          type: string
+        required: false
+        description: 流程模板名称关键词，英文不区分大小写
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 任务时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -468,7 +1542,8 @@ paths:
       operationId: get_template_schemes
       description: 获取模板的执行方案列表
       tags:
-      - template
+        - 通用接口
+        - template
       responses:
         default:
           description: ''
@@ -495,8 +1570,76 @@ paths:
       tags:
       - project
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      bk_biz_id:
+                        type: integer
+                        description: 绑定的 CMDB 业务 ID
+                      from_cmdb:
+                        type: boolean
+                        description: 该项目是否是从 CMDB 业务同步的
+                      project_id:
+                        type: integer
+                        description: 项目 ID
+                      bk_biz_name:
+                        type: string
+                        description: 项目名
+                      auth_actions:
+                        type: array
+                        items:
+                          type: string
+                        description: 当前用户对该项目对象拥有的操作权限
+                      project_name:
+                        type: string
+                        description: 项目名
+                      bk_biz_tester:
+                        type: string
+                        description: 业务测试人员列表
+                      bk_biz_developer:
+                        type: string
+                        description: 业务开发人员列表
+                      bk_biz_productor:
+                        type: string
+                        description: 业务产品人员列表
+                      bk_biz_maintainer:
+                        type: string
+                        description: 业务运维人员列表
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -520,7 +1663,27 @@ paths:
       tags:
       - project
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误码
+                  data:
+                    type: array
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
@@ -543,7 +1706,8 @@ paths:
       operationId: import_project_template
       description: 导入项目模板
       tags:
-      - template
+        - 限制接口
+        - template
       responses:
         default:
           description: ''
@@ -568,7 +1732,8 @@ paths:
       operationId: modify_constants_for_periodic_task
       description: 修改周期任务的全局参数
       tags:
-      - periodic_task
+        - 通用接口
+        - periodic_task
       responses:
         default:
           description: ''
@@ -593,7 +1758,8 @@ paths:
       operationId: modify_cron_for_periodic_task
       description: 修改周期任务的调度策略
       tags:
-      - periodic_task
+        - 通用接口
+        - periodic_task
       responses:
         default:
           description: ''
@@ -618,7 +1784,8 @@ paths:
       operationId: node_callback
       description: 回调任务的节点
       tags:
-      - callback
+        - 通用接口
+        - callback
       responses:
         default:
           description: ''
@@ -645,8 +1812,77 @@ paths:
       tags:
       - node
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: string
+                    description: result=true 时返回的信息
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: path
+        name: task_id
+        schema:
+          type: integer
+        required: true
+        description: 任务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - node_id
+              - action
+              properties:
+                data:
+                  type: object
+                  description: action 为 callback 时传入的数据
+                  additionalProperties: true
+                action:
+                  type: string
+                  description: 操作类型，callback：节点回调，skip_exg：跳过执行失败的分支网关，retry：重试失败节点，skip：跳过失败的节点，pause_subproc：暂停正在执行的子流程，resume_subproc：继续暂停的子流程
+                inputs:
+                  type: object
+                  description: action 为 retry 时重试节点时节点的输入数据
+                  additionalProperties: true
+                flow_id:
+                  type: string
+                  description: action 为 skip_exg 时选择执行的分支 id
+                node_id:
+                  type: string
+                  description: 节点 ID
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -670,8 +1906,60 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: result=true 时返回数据
+                    additionalProperties: true
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - action
+              properties:
+                action:
+                  type: string
+                  description: 操作类型，start：开始任务，pause：暂停任务，resume：继续任务，revoke：终止任务
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -695,8 +1983,74 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      pipeline_tree:
+                        type: object
+                        description: 模板任务树信息
+                        additionalProperties: true
+                      constants_not_referred:
+                        type: object
+                        description: 流程模板中未引用的全局变量，数据结构同pipeline_tree.constants
+                        additionalProperties: true
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: path
+        name: template_id
+        schema:
+          type: integer
+        required: true
+        description: 模板 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  description: 模板的版本，不填时默认为最新版本
+                exclude_task_nodes_id:
+                  type: array
+                  items:
+                    type: integer
+                  description: 需要移除的可选节点 ID 列表，不填时默认为 []
+        required: false
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -718,7 +2072,8 @@ paths:
       operationId: register_project
       description: 项目信息同步注册到标准运维
       tags:
-      - project
+        - 限制接口
+        - project
       responses:
         default:
           description: ''
@@ -743,7 +2098,8 @@ paths:
       operationId: set_periodic_task_enabled
       description: 设置某个周期任务是否激活
       tags:
-      - periodic_task
+        - 通用接口
+        - periodic_task
       responses:
         default:
           description: ''
@@ -770,8 +2126,63 @@ paths:
       tags:
       - task
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      task_url:
+                        type: string
+                        description: 任务对应的url
+                    description: result=true 时返回数据
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  task_url:
+                    type: string
+                    description: 任务对应的url
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+        required: false
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -788,10 +2199,10 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /copy_template_across_project/{project_id}/:
+  /copy_template_across_project/{bk_biz_id}/:
     post:
       operationId: copy_template_across_project
-      description: 跨业务复制模板
+      description: copy_template_across_project
       tags:
         - template
       responses:
@@ -1579,11 +2990,463 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/copy_template_across_project/{project_id}/
+          path: /{env.api_sub_path}apigw/copy_template_across_project/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: { }
           transformHeaders: { }
         authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /get_task_operate_record/{task_id}/{project_id}/:
+    get:
+      operationId: get_task_operate_record
+      description: 获取任务操作记录
+      tags:
+      - 通用接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /apply_webhook_configs/{project_id}/:
+    post:
+      operationId: apply_webhook_configs
+      description: 应用模板的webhook配置
+      tags:
+      - 限制接口
+      responses:
+        default:
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/apply_webhook_configs/{project_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /get_task_effective_time/{task_id}/{bk_biz_id}/:
+    get:
+      operationId: get_task_effective_time
+      description: 统计任务的有效执行时间
+      tags:
+      - 通用接口
+      responses:
+        default:
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: ''
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_effective_time/{task_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /get_mini_app_list/{bk_biz_id}/:
+    get:
+      operationId: get_mini_app_list
+      description: 获取轻应用列表
+      tags:
+      - 通用接口
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_mini_app_list/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /get_functionalization_task_list/:
+    get:
+      operationId: get_functionalization_task_list
+      description: 获取职能化任务列表
+      tags:
+      - 通用接口
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_functionalization_task_list/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /create_clocked_task/{template_id}/{bk_biz_id}/:
+    post:
+      operationId: create_clocked_task
+      description: 创建计划任务
+      tags:
+      - 限制接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: 计划任务 ID
+                      creator:
+                        type: string
+                        description: 创建者
+                      task_id:
+                        type: integer
+                        description: 任务 ID，任务未创建时为 null
+                      task_name:
+                        type: string
+                        description: 任务名
+                      project_id:
+                        type: integer
+                        description: 项目 ID
+                      template_id:
+                        type: integer
+                        description: 模板 ID
+                      template_name:
+                        type: string
+                        description: 模板名称
+                      clocked_task_id:
+                        type: integer
+                        description: 计划任务ID
+                      plan_start_time:
+                        type: string
+                        description: 计划任务开始时间
+                      task_parameters:
+                        type: object
+                        properties:
+                          constants:
+                            type: object
+                            description: 计划任务参数，对应变量key和value
+                            additionalProperties: true
+                          template_schemes_id:
+                            type: array
+                            items:
+                              type: integer
+                            description: 计划任务使用的执行方案列表
+                        description: 任务参数
+                      template_source:
+                        type: string
+                        description: 模板来源
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 用于创建任务的模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 任务所属业务ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - task_name
+              - plan_start_time
+              properties:
+                task_name:
+                  type: string
+                  description: 要创建的计划任务名称
+                plan_start_time:
+                  type: string
+                  description: 计划任务开始时间，推荐带上时区信息，格式如 2022-05-16 20:26:40+0800
+                task_parameters:
+                  type: object
+                  properties:
+                    constants:
+                      type: object
+                      description: 计划任务参数，对应变量key和value，默认为 {}
+                      additionalProperties: true
+                    template_schemes_id:
+                      type: array
+                      items:
+                        type: integer
+                      description: 计划任务使用的执行方案列表，默认为 []，代表执行所有流程节点
+                  description: 任务参数
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/create_clocked_task/{template_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /apply_job_file_upload_ticket/:
+    get:
+      operationId: apply_job_file_upload_ticket
+      description: ''
+      tags:
+      - 限制接口
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/apply_job_file_upload_ticket/
+          matchSubpath: false
+          timeout: 10
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /job_file_upload/{bk_biz_id}/:
+    post:
+      operationId: job_file_upload
+      description: ''
+      tags:
+      - 限制接口
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/job_file_upload/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /get_task_node_log/:
+    get:
+      operationId: get_task_node_log
+      description: 获取某个节点的执行日志
+      tags: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+                    description: 日志内容
+                  page:
+                    type: object
+                    description: 分页信息
+                  result:
+                    type: boolean
+                    description: true/false查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+          description: ''
+      parameters:
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: true
+        description: 任务中节点ID
+      - in: query
+        name: version
+        schema:
+          type: string
+        required: true
+        description: 版本
+      - in: query
+        name: page
+        schema:
+          type: number
+        description: 页码
+      - in: query
+        name: page_size
+        schema:
+          type: number
+        description: 每页条目数
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_node_log/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /get_task_plugin_log/:
+    get:
+      operationId: get_task_plugin_log
+      description: 查询插件日志
+      tags: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      logs:
+                        type: string
+                        description: 日志内容
+                      total:
+                        type: number
+                        description: 日志总数
+                      scroll_id:
+                        type: string
+                        description: 翻页标识符，获取下一页时传入该值
+                  result:
+                    type: boolean
+                    description: true/false查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+          description: ''
+      parameters:
+      - in: query
+        name: plugin_code
+        schema:
+          type: string
+        required: true
+        description: 插件服务编码
+      - in: query
+        name: trace_id
+        schema:
+          type: string
+        required: true
+        description: Trace ID
+      - in: query
+        name: scroll_id
+        schema:
+          type: string
+        description: 翻页标识字段
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_plugin_log/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []

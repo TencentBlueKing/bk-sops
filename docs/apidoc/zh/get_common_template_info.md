@@ -9,6 +9,10 @@
 | 字段          |  类型       | 必选   |  描述          |
 |---------------|------------|--------|---------------|
 | template_id   | string     |   是   |  模板ID        |
+| include_executor_proxy | bool | 否 | 是否包含执行人代理信息，默认 false |
+| include_subprocess | bool | 否 | 是否包含子流程信息，默认 false |
+| include_constants | bool | 否 | 是否包含全局变量信息，默认 false |
+| include_notify | bool | 否 | 是否包含通知信息，默认 false |
 
 ### 请求参数示例
 
@@ -236,3 +240,10 @@
 |  custom_type  | string   |      source_type=custom 时有效，自定义变量类型， 取值范围 input: 输入框，textarea: 文本框，datetime: 日期时间，int: 整数|
 |  source_tag   | string   |      source_type=component_inputs或component_outputs 时有效，变量的来源标准插件   |
 |   source_info | dict    |  source_type=component_inputs或component_outputs 时有效，变量的来源节点信息  |
+
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.pipeline_tree` - 流程树信息
+- `data.template_constants` - 模板常量

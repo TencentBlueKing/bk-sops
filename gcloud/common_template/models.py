@@ -18,10 +18,16 @@ from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
 from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
+from gcloud.exceptions import FlowExportError
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
 from gcloud.template_base.utils import fill_default_version_to_service_activities
 
 logger = logging.getLogger("root")
+
+
+def get_default_project_scope():
+    """获取默认的项目范围配置"""
+    return {"project_scope": ["*"]}
 
 
 class CommonTemplateManager(BaseTemplateManager):
@@ -38,6 +44,14 @@ class CommonTemplateManager(BaseTemplateManager):
         return data
 
     def export_templates(self, template_id_list, **kwargs):
+        restricted_templates = [
+            str(t["id"])
+            for t in self.filter(id__in=template_id_list).values("id", "extra_info")
+            if t.get("extra_info", {}).get("project_scope") != ["*"]
+        ]
+
+        if restricted_templates:
+            raise FlowExportError(f"禁止导出设置了可见范围的公共流程: {', '.join(restricted_templates)}")
         if kwargs.get("is_full"):
             template_id_list = list(self.all().values_list("id", flat=True))
         return super().export_templates(template_id_list, **kwargs)
@@ -73,6 +87,15 @@ class CommonTemplateManager(BaseTemplateManager):
             operator=operator,
         )
 
+    def check_template_project_scope(self, project_id, template):
+        if not isinstance(template, CommonTemplate):
+            template = self.get(id=template)
+
+        project_scope = template.extra_info.get("project_scope")
+        if not ("*" in project_scope or project_id in project_scope):
+            return {"result": False, "message": f"项目{project_id}不在公共流程{template.id}的使用范围内"}
+        return {"result": True}
+
 
 class CommonTemplate(BaseTemplate):
     """
@@ -80,6 +103,7 @@ class CommonTemplate(BaseTemplate):
     """
 
     tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
+    extra_info = models.JSONField(_("额外信息"), default=get_default_project_scope)
 
     objects = CommonTemplateManager()
 

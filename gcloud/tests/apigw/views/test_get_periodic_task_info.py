@@ -14,14 +14,12 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
-from gcloud.utils.dates import format_datetime
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+from gcloud.utils.dates import format_datetime
 
 from .utils import APITest
-
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
@@ -37,7 +35,10 @@ class GetPeriodicTaskInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -71,7 +72,10 @@ class GetPeriodicTaskInfoAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )

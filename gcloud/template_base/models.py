@@ -402,22 +402,29 @@ class BaseTemplate(models.Model):
         task_template_cls = apps.get_model("tasktmpl3", "TaskTemplate")
         task_template_qs = task_template_cls.objects.filter(
             pipeline_template_id__in=pipeline_template_referencer, is_deleted=False
-        ).values("id", "pipeline_template__name")
+        ).values("id", "pipeline_template__name", "project__id", "project__name")
         result = [
-            {"template_type": PROJECT, "id": template_info["id"], "name": template_info["pipeline_template__name"]}
+            {
+                "template_type": PROJECT,
+                "id": template_info["id"],
+                "name": template_info["pipeline_template__name"],
+                "project_id": template_info["project__id"],
+                "project_name": template_info["project__name"],
+            }
             for template_info in task_template_qs
         ]
 
         if self.__class__.__name__ == "CommonTemplate":
             common_template_qs = self.__class__.objects.filter(
                 pipeline_template_id__in=pipeline_template_referencer, is_deleted=False
-            ).values("id", "pipeline_template__name")
+            ).values("id", "pipeline_template__name", "extra_info")
             result.extend(
                 [
                     {
                         "template_type": COMMON,
                         "id": template_info["id"],
                         "name": template_info["pipeline_template__name"],
+                        "project_scope": template_info["extra_info"]["project_scope"],
                     }
                     for template_info in common_template_qs
                 ]

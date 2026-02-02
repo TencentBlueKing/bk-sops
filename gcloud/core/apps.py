@@ -11,8 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
 import logging
+import os
 import traceback
 
 from django.apps import AppConfig
@@ -79,16 +79,20 @@ class CoreConfig(AppConfig):
                 if not env.BKAPP_REDIS_CA:
                     return
 
-                settings.REDIS.update({
-                    "ssl_ca_certs": env.BKAPP_REDIS_CA,
-                    "ssl_certfile": env.BKAPP_REDIS_CERT,
-                    "ssl_keyfile": env.BKAPP_REDIS_CERT_KEY,
-                })
+                settings.REDIS.update(
+                    {
+                        "ssl_ca_certs": env.BKAPP_REDIS_CA,
+                        "ssl_certfile": env.BKAPP_REDIS_CERT,
+                        "ssl_keyfile": env.BKAPP_REDIS_CERT_KEY,
+                    }
+                )
 
                 if not bool(env.BKAPP_REDIS_INSECURE_SKIP_VERIFY):
                     return
 
-                settings.REDIS.update({
-                    "ssl_cert_reqs": env.BKAPP_REDIS_CERT_REQS or "none",
-                    "ssl_check_hostname": bool(env.BKAPP_REDIS_CHECK_HOSTNAME) or False,
-                })
+                settings.REDIS.update(
+                    {
+                        "ssl_cert_reqs": env.BKAPP_REDIS_CERT_REQS or "none",
+                        "ssl_check_hostname": bool(env.BKAPP_REDIS_CHECK_HOSTNAME) or False,
+                    }
+                )

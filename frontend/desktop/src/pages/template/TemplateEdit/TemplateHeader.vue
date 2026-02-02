@@ -154,7 +154,8 @@
             }),
             ...mapState('project', {
                 'authActions': state => state.authActions,
-                'projectName': state => state.projectName
+                'projectName': state => state.projectName,
+                'fromPageSource': state => state.fromPageSource
             }),
             title () {
                 return this.isViewMode ? i18n.t('查看流程') : this.$route.query.template_id === undefined ? i18n.t('新建流程') : i18n.t('编辑流程')
@@ -334,6 +335,19 @@
                 } else if (this.$parent.isRouterPush) {
                     this.$router.go(-2)
                 } else {
+                    const { name } = this.$route
+                    if (this.fromPageSource === 'taskCreate') {
+                        const routeMappings = {
+                            'templatePanel': { name: 'processHome', params: { project_id: this.project_id } },
+                            'projectCommonTemplatePanel': { name: 'processCommon', params: { project_id: this.project_id } },
+                            'commonTemplatePanel': { name: 'commonProcessList' }
+                        }
+                        const targetRoute = routeMappings[name]
+                        if (targetRoute) {
+                            this.$router.push(targetRoute)
+                            return
+                        }
+                    }
                     this.$router.back() // 由模板页跳转进入需要保留分页参数
                 }
             },

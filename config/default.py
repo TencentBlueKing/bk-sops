@@ -103,8 +103,6 @@ INSTALLED_APPS += (
     "pipeline_web.label",
     "pipeline_web.plugin_management",
     "data_migration",
-    "weixin.core",
-    "weixin",
     "version_log",
     "files",
     "corsheaders",
@@ -120,6 +118,7 @@ INSTALLED_APPS += (
     "apigw_manager.apigw",
     "bk_notice_sdk",
     "bk_audit.contrib.bk_audit",
+    "webhook",
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -148,8 +147,6 @@ INSTALLED_APPS += (
 
 # 自定义中间件
 MIDDLEWARE += (
-    "weixin.core.middlewares.WeixinAuthenticationMiddleware",
-    "weixin.core.middlewares.WeixinLoginMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "gcloud.core.middlewares.TimezoneMiddleware",
     "gcloud.core.middlewares.TenantMiddleware",
@@ -210,7 +207,6 @@ if env.BKAPP_PYINSTRUMENT_ENABLE:
 MIDDLEWARE = (
     "gcloud.core.middlewares.HttpRedirectMiddleware",
     "gcloud.core.middlewares.TraceIDInjectMiddleware",
-    "weixin.core.middlewares.WeixinProxyPatchMiddleware",
 ) + MIDDLEWARE
 
 # 所有环境的日志级别可以在这里配置
@@ -225,7 +221,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.35.1-alpha.1"
+STATIC_VERSION = "3.35.2-alpha.1"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 APIGW_DOCS_VERSION = STATIC_VERSION + "+" + str(DEPLOY_DATETIME)
 
@@ -477,7 +473,7 @@ MAKO_SANDBOX_IMPORT_MODULES = {
     "random": "random",
     "time": "time",
     "os.path": "os.path",
-    "json": "json",
+    "config.mock.mock_json": "json",
 }
 
 if env.SOPS_MAKO_IMPORT_MODULES:
@@ -943,14 +939,16 @@ CLEAN_EXPIRED_V2_TASK_DATA_CONFIG = env.CLEAN_EXPIRED_V2_TASK_DATA_CONFIG
 ARCHIVE_EXPIRED_V2_TASK_DATA_CONFIG = env.ARCHIVE_EXPIRED_V2_TASK_DATA_CONFIG
 CLEAR_STATISTICS_INFO_CONFIG = env.CLEAR_STATISTICS_INFO_CONFIG
 
-# 多租户相当配置
+# 多租户相关配置
 ENABLE_MULTI_TENANT_MODE = env.ENABLE_MULTI_TENANT_MODE
-
 IS_GLOBAL_TENANT = True
 
+# 允许的HTTP插件域名
+ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = env.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK
+ALLOWED_HTTP_PLUGIN_DOMAINS = env.ALLOWED_HTTP_PLUGIN_DOMAINS
+
+
 # 定义一个补丁来兼容 MySQL 5.7
-
-
 class PatchFeatures:
     @cached_property
     def minimum_database_version(self):
@@ -964,3 +962,19 @@ class PatchFeatures:
 DatabaseFeatures.minimum_database_version = PatchFeatures.minimum_database_version
 
 SECURE_SSL_REDIRECT = False
+SCHEME_HTTPS = "https"
+SCHEME_HTTP = "http"
+BKPAAS_BK_DOMAIN = env.BKPAAS_BK_DOMAIN
+CSRF_TRUSTED_ORIGINS = [f"{SCHEME_HTTPS}://*.{BKPAAS_BK_DOMAIN}", f"{SCHEME_HTTP}://*.{BKPAAS_BK_DOMAIN}"]
+BK_DATA_REPORT_API_URL = env.BK_DATA_REPORT_API_URL
+
+# webhook配置
+MAX_WEBHOOK_RETRY_TIMES = env.MAX_WEBHOOK_RETRY_TIMES
+MAX_WEBHOOK_RETRY_INTERVAL = env.MAX_WEBHOOK_RETRY_INTERVAL
+MAX_WEBHOOK_TIMEOUT = env.MAX_WEBHOOK_TIMEOUT
+
+# APIGW MCP app_code前缀配置
+APIGW_MCP_APP_CODE_PREFIX = env.APIGW_MCP_APP_CODE_PREFIX
+
+# APIGW MCP Server ID HTTP Header 配置
+APIGW_MCP_SERVER_ID_HEADER = env.APIGW_MCP_SERVER_ID_HEADER

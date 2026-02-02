@@ -17,7 +17,7 @@ from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.utils import BucketTTLCache, api_bucket_and_key, bucket_cached
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
@@ -40,6 +40,7 @@ def cache_decisioner(key, value):
 @login_exempt
 @require_GET
 @apigw_require
+@mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

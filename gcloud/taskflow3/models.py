@@ -447,11 +447,11 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
         #  按起始时间、业务（可选）、类型（可选）、图表类型（日视图，月视图），查询每一天或每一月的执行数量
         task_instance_id_list = taskflow.values_list("id", flat=True)
         group_type = filters.get("type", "day")
-        time_sql, _ = connection.ops.date_trunc_sql(group_type, "create_time", params="")  # ('DATE(create_time)', '')
+        time_sql, params = connection.ops.date_trunc_sql(group_type, "create_time", params=[])
         select = {"time": time_sql}
         results = (
             TaskflowStatistics.objects.filter(task_instance_id__in=task_instance_id_list)
-            .extra(select=select)
+            .extra(select=select, select_params=params)
             .values("time", "create_method")
             .annotate(value=Count("id"))
         ).order_by("time")
@@ -655,7 +655,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         # change constants
         for key, constant in pipeline_tree[PE.constants].items():
             # set meta field for meta var, so frontend can render meta form
-            if constant.get("is_meta"):
+            if constant.get("is_meta") and "meta" not in constant:
                 constant["meta"] = deepcopy(constant)
                 # 下拉框类型默认值字段为default，表格类型为default_text, 父流程勾选时类型为str
                 if isinstance(constant["value"], dict):
@@ -1189,7 +1189,7 @@ class TaskFlowInstance(models.Model):
             "create_time": format_datetime(self.create_time),
             "creator": self.creator,
             "create_method": self.create_method,
-            "template_id": int(self.template_id),
+            "template_id": int(self.template_id) if self.template_id else self.template_id,
             "start_time": format_datetime(self.start_time),
             "finish_time": format_datetime(self.finish_time),
             "executor": self.executor,

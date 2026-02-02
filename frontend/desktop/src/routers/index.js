@@ -553,6 +553,11 @@ routers.beforeEach((to, from, next) => {
     if (to.params.project_id) {
         store.commit('project/setProjectId', to.params.project_id)
     }
+    // 设置组件页面来源
+    if (from.name) {
+        const fromPageSource = from.name
+        store.commit('project/setFromPageSource', fromPageSource)
+    }
     if (store.state.viewMode === 'appmaker' && !APPMAKER.routes.includes(to.name)) {
         next(APPMAKER.getIndex())
     } else {

@@ -452,9 +452,9 @@ def jobv3_get_instance_list(request, biz_cc_id, type, status):
         check_and_raise_raw_auth_fail_exception(job_result, message)
         logger.error(message)
         return JsonResponse({"result": False, "message": message})
-    result_data = job_result["data"]["data"]
-    if not result_data:
+    if not job_result["data"]["total"]:
         return JsonResponse({"result": True, "data": []})
+    result_data = job_result["data"]["data"]
     data = [{"text": job["name"], "value": job["job_instance_id"]} for job in result_data]
     return JsonResponse({"result": True, "data": data})
 

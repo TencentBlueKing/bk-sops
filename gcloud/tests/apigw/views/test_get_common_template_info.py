@@ -15,13 +15,11 @@ import copy
 
 import ujson as json
 
-
-from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+from gcloud.utils.dates import format_datetime
 
 from .utils import APITest
-
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
@@ -38,7 +36,8 @@ class GetCommonTemplateInfoAPITest(APITest):
         tmpl = MockCommonTemplate(id=TEST_TEMPLATE_ID, pipeline_template=pt1)
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            COMMONTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
             pipeline_tree.pop("line")
@@ -52,6 +51,7 @@ class GetCommonTemplateInfoAPITest(APITest):
                 "edit_time": format_datetime(tmpl.pipeline_template.edit_time),
                 "category": tmpl.category,
                 "pipeline_tree": pipeline_tree,
+                "description": tmpl.pipeline_template.description,
             }
 
             response = self.client.get(path=self.url().format(template_id=TEST_TEMPLATE_ID))

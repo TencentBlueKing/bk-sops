@@ -141,6 +141,12 @@
             },
             searchValue: {
                 handler (val) {
+                    val.forEach(item => {
+                        if (item.type !== 'dateRange' && !item.multiable && !item.values[0].id) {
+                            item.values[0] = item.values[0].replace(/\u00A0/g, ' ')
+                        }
+                        return item
+                    })
                     this.$emit('change', val)
                 },
                 deep: true

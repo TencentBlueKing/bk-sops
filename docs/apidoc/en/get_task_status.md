@@ -12,6 +12,7 @@ Query a task or task node execution status
 |   task_id     |   string   |   YES   |  the task ID or a task node ID  |
 |   subprocess_id |   string   |   NO   |  the subprocess ID   |
 |   with_ex_data     |   bool   |   NO   |  with exception data of failed nodes or not|
+|   with_failed_node_info | bool | NO | whether to include detailed information of failed nodes, default false |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
@@ -116,15 +117,19 @@ Query a task or task node execution status
 
 | value    | Description      |
 |----------|-----------|
-| CREATED   | cerated but not executed   |  
+| CREATED   | cerated but not executed   |
 | RUNNING   | running   |
 | FAILED    | failed    |
 | SUSPENDED | suspended |
 | REVOKED   | revoked   |
-| FINISHED  | finished  |  
+| FINISHED  | finished  |
 
 #### data.children KEY
 the unique ID of a task node
 
 #### data.children VALUE
 the detail of a task node, the format is same with data
+
+### MCP Request Notice
+
+When the request comes from gateway MCP, no fields will be filtered from the response.

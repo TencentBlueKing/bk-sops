@@ -18,3 +18,13 @@ def _default_func(data, *args, **kwargs):
 
 def chunk_data(data, chunk_size, func=None, *args, **kwargs):
     return [(func or _default_func)(data[i : i + chunk_size], *args, **kwargs) for i in range(0, len(data), chunk_size)]
+
+
+def deduplicate_keep_order(lst):
+    seen = set()
+    unique_list = []
+    for item in lst:
+        if item not in seen:
+            seen.add(item)
+            unique_list.append(item)
+    return unique_list

@@ -35,6 +35,7 @@
             }
         },
         methods: {
+<<<<<<< HEAD
             closeShowSlider () {
                 this.isShowSlider = false
             },
@@ -42,6 +43,14 @@
                 this.isShowSlider = true
             }
             
+=======
+            openShowSlider () {
+                this.isShowSlider = true
+            },
+            closeShowSlider () {
+                this.isShowSlider = false
+            }
+>>>>>>> release_humming_bird
         }
     }
 </script>

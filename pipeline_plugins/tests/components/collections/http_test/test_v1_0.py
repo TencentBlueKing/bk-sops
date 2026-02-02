@@ -11,23 +11,26 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.test import TestCase
-
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
+    Call,
+    CallAssertion,
     ComponentTestCase,
     ComponentTestMixin,
-    CallAssertion,
     ExecuteAssertion,
-    ScheduleAssertion,
-    Call,
     Patcher,
+    ScheduleAssertion,
 )
+
 from pipeline_plugins.components.collections.http.v1_0 import HttpComponent
 
 
 class HttpComponentTest(TestCase, ComponentTestMixin):
+    def setUp(self):
+        settings.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = False
+
     def cases(self):
         return [
             HTTP_CALL_REQUEST_ERR_CASE,
@@ -61,7 +64,7 @@ HTTP_CALL_REQUEST_ERR_CASE = ComponentTestCase(
     },
     parent_data={},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
-    schedule_assertion=ScheduleAssertion(success=False, outputs={"ex_data": u"请求异常，详细信息: exc_token1"}),
+    schedule_assertion=ScheduleAssertion(success=False, outputs={"ex_data": "请求异常，详细信息: exc_token1"}),
     schedule_call_assertion=[
         CallAssertion(
             func=HTTP_REQUEST,
@@ -99,7 +102,7 @@ HTTP_CALL_RESP_NOT_JSON_CASE = ComponentTestCase(
     parent_data={},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=ScheduleAssertion(
-        success=False, outputs={"ex_data": u"请求响应数据格式非 JSON", "status_code": NOT_JSON_RESPONSE.status_code}
+        success=False, outputs={"ex_data": "请求响应数据格式非 JSON", "status_code": NOT_JSON_RESPONSE.status_code}
     ),
     schedule_call_assertion=[
         CallAssertion(
@@ -140,7 +143,7 @@ HTTP_CALL_RESP_STATUS_CODE_ERR_CASE = ComponentTestCase(
     schedule_assertion=ScheduleAssertion(
         success=False,
         outputs={
-            "ex_data": u"请求失败，状态码: {}，响应: {}".format(STAUS_500_RESPONSE.status_code, STAUS_500_RESPONSE.json()),
+            "ex_data": "请求失败，状态码: {}，响应: {}".format(STAUS_500_RESPONSE.status_code, STAUS_500_RESPONSE.json()),
             "data": STAUS_500_RESPONSE.json(),
             "status_code": STAUS_500_RESPONSE.status_code,
         },
@@ -189,7 +192,7 @@ HTTP_CALL_EXP_TEST_ERR_CASE = ComponentTestCase(
         outputs={
             "data": EXP_TEST_ERR_RESPONSE.json(),
             "status_code": EXP_TEST_ERR_RESPONSE.status_code,
-            "ex_data": u"请求成功条件判定出错: exc_token3",
+            "ex_data": "请求成功条件判定出错: exc_token3",
         },
     ),
     schedule_call_assertion=[
@@ -337,7 +340,7 @@ HTTP_CALL_EXP_FAIL_CASE = ComponentTestCase(
         outputs={
             "data": HTTP_CALL_EXP_FAIL_RESPONSE.json(),
             "status_code": HTTP_CALL_EXP_FAIL_RESPONSE.status_code,
-            "ex_data": u"请求成功判定失败",
+            "ex_data": "请求成功判定失败",
         },
     ),
     schedule_call_assertion=[
@@ -401,4 +404,31 @@ HTTP_CALL_EXP_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=HTTP_REQUEST, return_value=HTTP_CALL_EXP_SUCCESS_RESPONSE),
         Patcher(target=HTTP_BOOLRULE, return_value=HTTP_CALL_EXP_SUCCESS_BOOLRULE),
     ],
+)
+
+
+class HttpComponentValidateTestCase(TestCase, ComponentTestMixin):
+    def setUp(self):
+        settings.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = True
+
+    def cases(self):
+        return [HTTP_CALL_REQUEST_VALIDATE_CASE]
+
+    def component_cls(self):
+        return HttpComponent
+
+
+HTTP_CALL_REQUEST_VALIDATE_CASE = ComponentTestCase(
+    name="http call request error case",
+    inputs={
+        "bk_http_request_method": "method_token",
+        "bk_http_request_url": "url_token",
+        "bk_http_request_body": "body_token",
+        "bk_http_request_header": [],
+        "bk_http_success_exp": "exp_token",
+        "bk_http_timeout": 0,
+    },
+    parent_data={},
+    execute_assertion=ExecuteAssertion(success=True, outputs={}),
+    schedule_assertion=ScheduleAssertion(success=False, outputs={"ex_data": "仅允许访问域名(.)下的URL"}),
 )

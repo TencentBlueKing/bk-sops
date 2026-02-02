@@ -12,13 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 from __future__ import absolute_import
+
 from datetime import datetime
 
-import ujson as json
 import mock  # noqa
-from mock import MagicMock, patch, call  # noqa
-
+import ujson as json
 from django.utils.timezone import now
+from mock import MagicMock, call, patch  # noqa
 
 from gcloud.tests.test_data import TEST_PIPELINE_TREE
 
@@ -67,6 +67,7 @@ class MockPipelineTemplate(object):
         self.editor = kwargs.get("editor", "editor")
         self.create_time = kwargs.get("create_time", now())
         self.data = kwargs.get("data", TEST_PIPELINE_TREE)
+        self.description = kwargs.get("description", "description")
 
 
 class MockBaseTemplate(object):
@@ -76,7 +77,7 @@ class MockBaseTemplate(object):
         self.category = kwargs.get("category", "category")
         self.pipeline_template = kwargs.get("pipeline_template", MockPipelineTemplate())
         self.pipeline_tree = kwargs.get(
-            "pipeline_tree", {"line": "line", "location": "location", "activities": [], "constants": {}}
+            "pipeline_tree", {"line": "line", "location": "location", "activities": {}, "constants": {}}
         )
         self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
 
@@ -155,6 +156,11 @@ class MockPeriodicTask(object):
                 "side_effect": kwargs.get("modify_constants_raise"),
             }
         )
+        self.editor = kwargs.get("editor", "editor")
+        self.edit_time = kwargs.get("edit_time", now())
+        self.template_version = kwargs.get("template_version", 1)
+        self.template = kwargs.get("template", MockPipelineTemplate())
+        self.template.version = kwargs.get("version", 1)
 
 
 class MockPipelinePeriodicTaskHistory(object):

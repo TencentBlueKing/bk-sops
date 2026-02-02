@@ -19,6 +19,7 @@ from iam.resource.provider import ListResult, ResourceProvider
 from gcloud.core.models import Project
 from gcloud.iam_auth.conf import SEARCH_INSTANCE_CACHE_TIME
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.data_handler import deduplicate_keep_order
 
 
 def flow_path_value_hook(value):
@@ -139,7 +140,12 @@ class FlowResourceProvider(ResourceProvider):
         count = queryset.count()
 
         results = [
-            {"id": str(flow.id), "display_name": flow.name, "_bk_iam_approver_": flow.creator} for flow in queryset
+            {
+                "id": str(flow.id),
+                "display_name": flow.name,
+                "_bk_iam_approver_": deduplicate_keep_order([flow.creator, flow.editor_name]),
+            }
+            for flow in queryset
         ]
         return ListResult(results=results, count=count)
 

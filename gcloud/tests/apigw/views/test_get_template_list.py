@@ -14,12 +14,11 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-from gcloud.utils.dates import format_datetime
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+from gcloud.utils.dates import format_datetime
 
-from .utils import APITest, TEST_USERNAME
-
+from .utils import TEST_USERNAME, APITest
 
 MOCK_GET_FLOW_ALLOWED_ACTIONS = "gcloud.apigw.views.get_template_list.get_flow_allowed_actions_for_user"
 
@@ -79,6 +78,7 @@ class GetTemplateListAPITest(APITest):
                         "bk_biz_id": TEST_PROJECT_ID,
                         "bk_biz_name": TEST_PROJECT_NAME,
                         "auth_actions": ["TEST_ACTION"],
+                        "description": tmpl.pipeline_template.description,
                     }
                     for tmpl in task_templates
                 ]
@@ -151,6 +151,7 @@ class GetTemplateListAPITest(APITest):
                     "bk_biz_id": TEST_PROJECT_ID,
                     "bk_biz_name": TEST_PROJECT_NAME,
                     "auth_actions": [],
+                    "description": tmpl.pipeline_template.description,
                 }
                 for tmpl in task_templates
             ]

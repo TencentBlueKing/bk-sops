@@ -21,7 +21,8 @@ const project = {
         timezone: window.TIMEZONE,
         config: {}, // 用户在项目下的配置
         commonConfig: {}, // 公共流程管理的配置
-        authActions: []
+        authActions: [],
+        fromPageSource: ''
     },
     mutations: {
         setUserProjectList (state, data) {
@@ -33,6 +34,9 @@ const project = {
                 projectId = isNaN(Number(id)) || id === '' ? '' : Number(id)
             }
             state.project_id = projectId
+        },
+        setFromPageSource (state, source) {
+            state.fromPageSource = source
         },
         setBizId (state, id) {
             state.bizId = id

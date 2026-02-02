@@ -73,7 +73,7 @@
                     <search-select
                         ref="searchSelect"
                         id="templateList"
-                        :placeholder="$t('ID/流程名称/标签/更新人/创建人/子流程更新/执行代理人')"
+                        :placeholder="$t('ID/流程名/标签/更新人/创建人/子流程更新/执行代理人')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -417,8 +417,9 @@
             :is-show="isBatchUpdateDialogShow"
             :project-id="project_id"
             :row="curSelectedRow"
+            :pipeline-tree="pipelineTree"
             @confirm="handleTplBatchUpdateConfirm"
-            @close="isBatchUpdateDialogShow = false">
+            @close="closeBatchUpdateDialogShow">
         </TemplateUpdateDialog>
     </div>
 </template>
@@ -726,7 +727,12 @@
                 templateLabelLoading: false,
                 tableMaxHeight: window.innerHeight - 246,
                 isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET,
+<<<<<<< HEAD
                 isBatchUpdateDialogShow: false
+=======
+                isBatchUpdateDialogShow: false,
+                pipelineTree: {}
+>>>>>>> release_humming_bird
             }
         },
         computed: {
@@ -792,13 +798,18 @@
             next()
         },
         methods: {
+            closeBatchUpdateDialogShow () {
+                this.isBatchUpdateDialogShow = false
+            },
             ...mapActions([
                 'addToCollectList',
                 'deleteCollect'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo',
-                'saveTemplateData'
+                'saveTemplateData',
+                'updateLabelIds',
+                'getPipelineTree'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -816,7 +827,8 @@
             ]),
             ...mapMutations('template/', [
                 'setProjectBaseInfo',
-                'setTemplateData'
+                'setTemplateData',
+                'setPipelineTree'
             ]),
             async initData () {
                 try {
@@ -994,19 +1006,15 @@
                 try {
                     const { id, labelIds: template_labels } = curRow
                     this.setTemplateData({ ...curRow, template_labels })
-                    const resp = await this.saveTemplateData({
-                        templateId: id,
-                        projectId: this.project_id,
-                        common: false
+                    const resp = await this.updateLabelIds({
+                        id: id,
+                        label_ids: template_labels
                     })
-                    if (!resp.result) {
-                        if ('errorId' in resp) {
-                            this.$bkMessage({
-                                message: resp.message,
-                                theme: 'error',
-                                delay: 10000
-                            })
-                        }
+                    if (!resp.data.result) {
+                        this.$bkMessage({
+                            message: resp.data.message,
+                            theme: 'error'
+                        })
                         return
                     }
                     // 前端修改对应模板的labels
@@ -1696,10 +1704,14 @@
                 }
                 return false
             },
-            openBatchUpdateDialog (row) {
+            async openBatchUpdateDialog (row) {
                 this.curSelectedRow = row
                 const { labelIds: template_labels } = row
+                // 获取子流程树pipelineTree
+                const res = await this.getPipelineTree({ templateId: row.id })
                 this.setTemplateData({ ...row, template_labels })
+                this.setPipelineTree(res.data.pipeline_tree)
+                this.pipelineTree = res.data.pipeline_tree
                 this.isBatchUpdateDialogShow = true
             },
             handleTplBatchUpdateConfirm () {
@@ -1848,11 +1860,6 @@
     .bk-table-row.hover-row {
         .icon-favorite {
             display: block;
-        }
-    }
-    ::v-deep .bk-table {
-        td, th {
-            height: 42px;
         }
     }
     .icon-favorite {

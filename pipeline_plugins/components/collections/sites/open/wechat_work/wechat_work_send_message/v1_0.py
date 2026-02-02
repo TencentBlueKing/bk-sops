@@ -121,6 +121,19 @@ class WechatWorkSendMessageService(Service):
                     },
                     timeout=5,
                 )
+            elif msgtype == "markdown_v2":
+                mentioned_str = " ".join(["<@{}>".format(mentioned) for mentioned in mentioned_list])
+                content = "{}\n{}\n".format(str(content), mentioned_str)
+                resp = requests.post(
+                    url=url,
+                    json={
+                        "chatid": "|".join(chat_id_list),
+                        "msgtype": msgtype,
+                        "markdown_v2": {"content": content},
+                        "at_short_name": True,
+                    },
+                    timeout=5,
+                )
 
             else:
                 err = _("msgtype 不存在")

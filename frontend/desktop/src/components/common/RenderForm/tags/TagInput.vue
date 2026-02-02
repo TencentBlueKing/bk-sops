@@ -155,7 +155,7 @@
                 }
             },
             isDisabled () {
-                return !this.editable || this.disable
+                return !this.editable || this.disabled
             }
         },
         watch: {
@@ -675,8 +675,12 @@
         }
         &.input-before::before {
             position: absolute;
+            left: 10px;
             content: attr(data-placeholder);
             color: #c4c6cc;
+            max-width: calc(100% - 20px);
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
     }
 }
