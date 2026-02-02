@@ -176,7 +176,7 @@ def start_plugin_span(
     :param attributes: Span 属性
     :return: 开始时间（纳秒）
     """
-    start_time_ns = time.time_ns()
+    start_time_ns = int(time.time() * 1e9)
 
     # 将span信息保存到data outputs中，以便在schedule中使用
     data.set_outputs(PLUGIN_SPAN_START_TIME_KEY, start_time_ns)
@@ -224,7 +224,7 @@ def end_plugin_span(
             return
 
         if end_time_ns is None:
-            end_time_ns = time.time_ns()
+            end_time_ns = int(time.time() * 1e9)
 
         tracer = trace.get_tracer(__name__)
 
@@ -316,7 +316,7 @@ def plugin_method_span(
         yield None
         return
 
-    start_time_ns = time.time_ns()
+    start_time_ns = int(time.time() * 1e9)
 
     plugin_name = attributes.get("plugin_name", "unknown")
 
@@ -340,7 +340,7 @@ def plugin_method_span(
         yield result
     finally:
         try:
-            end_time_ns = time.time_ns()
+            end_time_ns = int(time.time() * 1e9)
             tracer = trace.get_tracer(__name__)
 
             # 尝试重建 parent context
