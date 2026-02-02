@@ -162,6 +162,9 @@
             bus.$on('checkExecutedFailed', data => {
                 this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkExecutedFailed' })
             })
+            bus.$on('taskSummarize', data => {
+                this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'taskSummarize' })
+            })
 
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示

@@ -54,8 +54,12 @@
                         curCommond = tools.deepClone(shortcutsCommand.find(item => item.id === 'ai-scripting'))
                         curCommond.components[0].default = curPrompt
                     }
-                    if (operationName === 'checkExecutedFailed') {
-                        curCommond = tools.deepClone(shortcutsCommand.find(item => item.id === 'analyze_task_error'))
+                    if (['checkExecutedFailed', 'taskSummarize'].includes(operationName)) {
+                        if (operationName === 'checkExecutedFailed') {
+                            curCommond = tools.deepClone(shortcutsCommand.find(item => item.id === 'analyze_task_error'))
+                        } else if (operationName === 'taskSummarize') {
+                            curCommond = tools.deepClone(shortcutsCommand.find(item => item.id === 'summarize_task'))
+                        }
                         const { instance_id: instanceId, bk_biz_id: bkBizId } = this.requestOptions.context
                         curCommond.components.forEach(item => {
                             if (item.key === 'task_id') {
