@@ -322,7 +322,7 @@ def plugin_method_span(
 
     # 构建 span 名称
     platform_code = getattr(settings, "APP_CODE", "bk_sops")
-    span_name = f"{platform_code}.{plugin_name}.{method_name}"
+    span_name = f"{platform_code}.plugin.{plugin_name}.{method_name}"
 
     # 用于存储执行结果的容器
     class SpanResult:
