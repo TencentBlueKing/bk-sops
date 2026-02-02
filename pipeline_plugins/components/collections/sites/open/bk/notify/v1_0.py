@@ -16,17 +16,15 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, BooleanItemSchema, IntItemSchema
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, IntItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.core.models import StaffGroupSet
-from gcloud.utils.handlers import handle_api_error
-from gcloud.utils.cmdb import get_notify_receivers
 from gcloud.core.roles import CC_V2_ROLE_MAP
-
+from gcloud.utils.cmdb import get_notify_receivers
+from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -35,7 +33,7 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 bk_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class NotifyService(Service):
+class NotifyService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -89,7 +87,7 @@ class NotifyService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):
