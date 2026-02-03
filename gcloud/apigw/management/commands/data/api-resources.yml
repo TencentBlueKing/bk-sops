@@ -2199,7 +2199,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /copy_template_across_project/{bk_biz_id}/:
+  /copy_template_across_project/{project_id}/:
     post:
       operationId: copy_template_across_project
       description: copy_template_across_project
