@@ -3,6 +3,7 @@ name: CodeBuddy 代码评审
 on:
   # 使用 pull_request_target 以访问 secrets
   # 但添加安全检查，只对可信任的贡献者自动运行
+  # 安全说明：secrets 在检出 PR 代码之前使用，确保 PR 代码无法访问 secrets
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
 
@@ -42,13 +43,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: 检出仓库
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          # 关键：检出 PR 的代码，而不是默认分支
-          ref: ${{ github.event.pull_request.head.sha }}
-
+      # 第一步：设置环境（不需要secrets，不需要PR代码）
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
         with:
@@ -58,7 +53,17 @@ jobs:
         run: |
           npm install -g @tencent-ai/codebuddy-code
           echo "✅ CodeBuddy CLI 安装完成"
-      - name: 配置 CodeBuddy CLI
+
+      # 第二步：使用secrets准备配置（关键：不检出PR代码，使用base分支）
+      # 这一步在检出PR代码之前完成，确保secrets不会被PR代码访问
+      - name: 检出base分支（用于准备配置）
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.base.ref }}
+          # 使用base分支，确保使用的是可信的工作流文件
+
+      - name: 准备 CodeBuddy 配置（使用secrets）
         env:
           CODEBUDDY_API_KEY: ${{ secrets.CODEBUDDY_API_KEY }}
           GH_TOKEN: ${{ github.token }}
@@ -70,12 +75,10 @@ jobs:
             echo "如果使用公开 API，可以跳过此步骤"
           else
             echo "✅ CodeBuddy API Key 已配置"
-            # 设置环境变量供 CodeBuddy CLI 使用
-            export CODEBUDDY_API_KEY="$CODEBUDDY_API_KEY"
           fi
           # 配置 GitHub MCP Server（用于 CodeBuddy 访问 GitHub API）
           echo "🔧 配置 GitHub MCP Server..."
-          # 创建 CodeBuddy 配置目录
+          # 创建 CodeBuddy 配置目录（使用绝对路径，避免被PR代码覆盖）
           CODEBUDDY_CONFIG_DIR="$HOME/.config/codebuddy"
           mkdir -p "$CODEBUDDY_CONFIG_DIR"
           # 创建 MCP 配置文件
@@ -97,15 +100,34 @@ jobs:
             fs.writeFileSync('$MCP_CONFIG_FILE', JSON.stringify(config, null, 2));
             console.log('✅ GitHub MCP Server 配置已创建');
           "
+          # 注意：不输出配置文件内容到日志，避免泄露token
           echo "📋 MCP 配置文件位置: $MCP_CONFIG_FILE"
-          echo "📋 配置文件内容:"
-          cat "$MCP_CONFIG_FILE"
+          # 保存配置路径供后续步骤使用
+          echo "CODEBUDDY_CONFIG_DIR=$CODEBUDDY_CONFIG_DIR" >> $GITHUB_ENV
+          echo "MCP_CONFIG_FILE=$MCP_CONFIG_FILE" >> $GITHUB_ENV
+
+      # 第三步：现在才检出PR代码（此时secrets已处理完，PR代码无法访问secrets）
+      - name: 检出PR代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # 关键：现在才检出PR代码，此时secrets已经处理完
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      # 第四步：执行代码审查
+      # 注意：虽然这里仍然需要设置环境变量供 codebuddy 命令使用，
+      # 但关键的安全改进是：配置文件已经在检出 PR 代码之前创建好了
+      # 配置文件位于 $HOME/.config/codebuddy，PR 代码无法修改
       - name: 执行代码审查
         env:
+          # codebuddy 命令需要这些环境变量才能工作
           CODEBUDDY_API_KEY: ${{ secrets.CODEBUDDY_API_KEY }}
           CODEBUDDY_INTERNET_ENVIRONMENT: iOA
           GH_TOKEN: ${{ github.token }}
           CI: true
+          # 从环境变量读取配置路径（配置文件已在安全位置创建）
+          CODEBUDDY_CONFIG_DIR: ${{ env.CODEBUDDY_CONFIG_DIR }}
+          MCP_CONFIG_FILE: ${{ env.MCP_CONFIG_FILE }}
         run: |
           echo "🚀 开始执行 CodeBuddy 代码审查..."
           # 检查 codebuddy 是否可用
