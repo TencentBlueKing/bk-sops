@@ -237,7 +237,9 @@
                 options: this.$attrs.items ? this.$attrs.items.slice(0) : [],
                 loading: false,
                 loading_text: this.$t('加载中'),
-                selectInputDom: null
+                selectInputDom: null,
+                searchQuery: '', // 搜索关键词
+                isRestoring: false // 是否正在恢复搜索状态
             }
         },
         computed: {
@@ -248,6 +250,19 @@
                 set (val) {
                     if (!this.hook) {
                         this.updateForm(val)
+                        // 多选模式下，选中后恢复搜索关键词
+                        if (this.multiple && this.searchQuery) {
+                            this.isRestoring = true
+                            this.$nextTick(() => {
+                                const selectComp = this.$refs.selectComp
+                                if (selectComp) {
+                                    selectComp.query = this.searchQuery
+                                    const inputVal = this.searchQuery.split(',')
+                                    this.options = this.items.filter(option => inputVal.some(i => option.text.toLowerCase().includes(i.toLowerCase())))
+                                }
+                                this.isRestoring = false
+                            })
+                        }
                     }
                 }
             },
@@ -309,6 +324,11 @@
             },
             // 自定义搜索，支持以','符号分隔的多条数据搜索
             filterMethod (val) {
+                // 避免被组件自动调用清空
+                if (!this.isRestoring) {
+                    this.searchQuery = val
+                }
+                
                 if (!val) {
                     this.options = this.items.slice(0)
                     return
@@ -354,6 +374,7 @@
             onVisibleChange (val) {
                 if (!val) { // 下拉框隐藏后，还原搜索过滤掉的选项
                     this.options = this.items.slice(0)
+                    this.searchQuery = ''
                 }
             },
             onClear () {
