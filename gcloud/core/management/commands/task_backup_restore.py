@@ -124,6 +124,9 @@ class Command(BaseCommand):
                 DjangoCeleryBeatPeriodicTask.objects.filter(id__in=valid_clocked_task_ids).update(enabled=True)
             else:
                 self.stdout.write("没有找到符合条件的计划任务")
+                return False
+        self.stdout.write("任务数据已导入")
+        return True
 
     def handle(self, *args, **options):
         export_mode = options["export"]
@@ -171,5 +174,8 @@ class Command(BaseCommand):
                 self.stdout.write("=== 模拟运行模式 ===")
 
             # 导入任务
-            self._import_tasks(file_path, dry_run)
-            self.stdout.write(self.style.SUCCESS("任务导入操作完成"))
+            success = self._import_tasks(file_path, dry_run)
+            if success:
+                self.stdout.write(self.style.SUCCESS("任务导入操作完成"))
+            else:
+                self.stdout.write(self.style.ERROR("任务导入操作失败"))
