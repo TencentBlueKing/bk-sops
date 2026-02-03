@@ -190,6 +190,9 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
 
     @classmethod
     def process_meta_value(self, meta_data, info_value):
+        # 子流程变量传递过程中值被处理成字符串，如果是引用子流程变量时从元数据取出没有处理的前的值
+        if isinstance(meta_data["value"], str):
+            meta_data = meta_data["meta"]
         if meta_data["value"]["datasource"] == "1":
             # 远程数据源模式下需要记录拉取的数据而不是 URL
             meta_value = meta_data["value"]["remote_data"]
