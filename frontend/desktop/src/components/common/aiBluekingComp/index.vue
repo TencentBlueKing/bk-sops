@@ -37,11 +37,8 @@
                 immediate: true,
                 deep: true
             },
-            bizId: {
-                handler () {
-                    this.updateRequestOptions()
-                },
-                immediate: true
+            bizId () {
+                this.updateRequestOptions()
             }
         },
         methods: {
