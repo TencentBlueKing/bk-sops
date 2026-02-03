@@ -20,7 +20,7 @@
             <div class="code-wrapper">
                 <full-code-editor
                     :value="template"
-                    :options="{ readOnly: (isViewMode || !hasAdminPerm), language: 'json' }"
+                    :options="{ readOnly: (isViewMode || !hasAdminPerm), language: 'json', isNeedAiScriptCheck: false }"
                     @input="onDataChange">
                 </full-code-editor>
             </div>
