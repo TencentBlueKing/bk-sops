@@ -15,6 +15,7 @@ import json
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
+from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
@@ -69,6 +70,8 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     pipeline_tree = serializers.CharField()
     project = serializers.IntegerField(write_only=True)
     template_id = serializers.CharField(help_text="模板ID", source="id", read_only=True)
+    webhook_configs = serializers.JSONField(help_text="webhook配置", required=False)
+    enable_webhook = serializers.BooleanField(help_text="是否启用webhook", required=False)
 
     def validate_project(self, value):
         try:
@@ -83,6 +86,19 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
         if user.username != value and value:
             raise serializers.ValidationError(_("代理人仅可设置为本人"))
         return value
+
+    def validate(self, attrs):
+        pipeline_tree = json.loads(attrs["pipeline_tree"])
+        project_id = attrs["project"].id
+
+        for activity in pipeline_tree.get("activities").values():
+            if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
+                continue
+            common_template_id = activity.get("template_id")
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), common_template_id)
+            if not result["result"]:
+                raise serializers.ValidationError(f"保存流程失败，{result['message']}")
+        return attrs
 
     class Meta:
         model = TaskTemplate
@@ -99,6 +115,8 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "pipeline_tree",
             "project",
             "template_id",
+            "webhook_configs",
+            "enable_webhook",
         ]
 
 
@@ -108,3 +126,16 @@ class ProjectInfoQuerySerializer(serializers.Serializer):
 
 class ProjectFilterQuerySerializer(serializers.Serializer):
     project__id = serializers.IntegerField(help_text="项目ID")
+
+
+class TemplateLabelQuerySerializer(serializers.Serializer):
+    label_ids = serializers.ListField(
+        child=serializers.IntegerField(), allow_empty=True, required=True, help_text="标签ID列表"
+    )
+
+
+class WebhookConfigQuerySerializer(serializers.Serializer):
+    method = serializers.CharField(help_text=_("webhook method"), max_length=255, required=True)
+    endpoint = serializers.URLField(help_text=_("webhook endpoint"), max_length=255, required=True)
+    headers = serializers.JSONField(help_text=_("webhook headers"), required=False)
+    authorization = serializers.JSONField(help_text=_("webhook authorization"), required=False)

@@ -46,7 +46,7 @@ class MonitorAlarmShieldDisableService(Service):
         shield_id = data.get_one_of_inputs("bk_alarm_shield_id_input")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
-        request_body = {"id": shield_id}
+        request_body = {"id": shield_id.split(",") if isinstance(shield_id, str) else shield_id}
         response = client.api.disable_shield(request_body, headers={"X-Bk-Tenant-Id": tenant_id})
         if not response["result"]:
             message = monitor_handle_api_error("monitor.disable_shield", request_body, response)

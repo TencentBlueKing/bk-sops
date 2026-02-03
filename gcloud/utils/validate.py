@@ -10,14 +10,23 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
 import logging
 from abc import ABCMeta, abstractmethod
 
+import tldextract
 import ujson as json
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger("root")
+
+
+def get_top_level_domain(url):
+    # 提取域名部分
+    extracted = tldextract.extract(url)
+    # 拼合主域名和顶级域名，形成一级域名
+    top_level_domain = "{}.{}".format(extracted.domain, extracted.suffix)
+    return top_level_domain
 
 
 class RequestValidator(object, metaclass=ABCMeta):
@@ -45,3 +54,28 @@ class ObjectJsonBodyValidator(RequestValidator):
         self.data = data
 
         return True, ""
+
+
+class DomainValidator(object):
+    """域名校验."""
+
+    @staticmethod
+    def validate(url):
+        """
+        return is_valid(bool), err(str)
+        """
+        if not settings.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK:
+            return True, []
+
+        allowed_domains = []
+        if not settings.ALLOWED_HTTP_PLUGIN_DOMAINS:
+            # 默认只允许访问蓝鲸域名
+            allowed_domains = [get_top_level_domain(settings.BK_URL)]
+        else:
+            allowed_domains = settings.ALLOWED_HTTP_PLUGIN_DOMAINS.split(",")
+
+        for allowed_domain in allowed_domains:
+            if get_top_level_domain(url) == allowed_domain:
+                return True, []
+
+        return False, allowed_domains

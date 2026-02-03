@@ -408,7 +408,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
             return False, message, None, None
 
     def export_templates(self, template_id_list, **kwargs):
-        query_params = {"project_id": kwargs["project_id"]}
+        query_params = {"project_id": kwargs["project_id"], "is_deleted": False}
         if kwargs.get("is_full"):
             template_id_list = list(self.filter(**query_params).values_list("id", flat=True))
         else:
@@ -541,9 +541,7 @@ class TaskTemplateManager(BaseTemplateManager, ClassificationCountMixin):
 class TaskTemplate(BaseTemplate):
     project = models.ForeignKey(Project, verbose_name=_("所属项目"), null=True, blank=True, on_delete=models.SET_NULL)
     executor_proxy = models.CharField(_("任务执行人代理"), max_length=255, default="", blank=True)
-    default_flow_type = models.CharField(
-        _("偏好任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common"
-    )
+    default_flow_type = models.CharField(_("偏好任务流程类型"), max_length=255, choices=TASK_FLOW_TYPE, default="common")
 
     objects = TaskTemplateManager()
 

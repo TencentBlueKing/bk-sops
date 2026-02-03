@@ -195,6 +195,16 @@
                                                 </li>
                                                 <li class="opt-btn">
                                                     <a
+                                                        v-cursor="{ active: !hasPermission(['common_flow_edit'], props.row.auth_actions) }"
+                                                        :class="{
+                                                            'text-permission-disable': !hasPermission(['common_flow_edit'], props.row.auth_actions)
+                                                        }"
+                                                        @click="onVisibleRangCheck(props.row)">
+                                                        {{$t('可见范围')}}
+                                                    </a>
+                                                </li>
+                                                <li class="opt-btn">
+                                                    <a
                                                         v-cursor="{ active: !hasPermission(['common_flow_delete'], props.row.auth_actions) }"
                                                         href="javascript:void(0);"
                                                         :class="{
@@ -259,9 +269,21 @@
             :show="isSelectProjectShow"
             :confirm-loading="permissionLoading"
             :confirm-cursor="!hasCreateTaskPerm"
+            :is-set-project-visible="isSetVisible"
             @onChange="handleProjectChange"
             @onConfirm="handleCreateTaskConfirm"
             @onCancel="handleCreateTaskCancel">
+        </SelectProjectModal>
+        <SelectProjectModal
+            :title="$t('可见范围配置')"
+            :show="isProjectVisibleShow"
+            :confirm-loading="permissionLoading"
+            :confirm-cursor="!hasCreateTaskPerm"
+            :is-set-project-visible="isSetVisible"
+            :project-scope-list="projectScopeList"
+            @onVisibleChange="handleProjectVisibleChange"
+            @onVisibleConfirm="handleProjectVisibleConfirm"
+            @onVisibleCancel="handleProjectVisibleCancel">
         </SelectProjectModal>
     </div>
 </template>
@@ -359,6 +381,11 @@
             id: 'editor_name',
             label: i18n.t('更新人'),
             width: 160
+        },
+        {
+            id: 'project_scope_name',
+            label: i18n.t('可见范围'),
+            width: 200
         }
     ]
     export default {
@@ -492,7 +519,12 @@
                 categoryTips: i18n.t('模板分类即将下线，建议使用标签'),
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
                 searchSelectValue,
-                tableMaxHeight: window.innerHeight - 144
+                tableMaxHeight: window.innerHeight - 144,
+                isProjectVisibleShow: false,
+                isSetVisible: false,
+                projectScopeSelectList: [],
+                publicProcessId: undefined,
+                projectScopeList: []
             }
         },
         computed: {
@@ -558,6 +590,14 @@
             await this.getTemplateList()
             this.firstLoading = false
         },
+        destroyed () {
+            // 组件销毁时清空剪贴板数据
+            try {
+                localStorage.removeItem('project_scope_clipboard')
+            } catch (error) {
+                console.error(error)
+            }
+        },
         methods: {
             ...mapMutations('project', [
                 'setCommonConfig'
@@ -573,7 +613,10 @@
                 'setUserProjectConfig'
             ]),
             ...mapActions('template/', [
-                'loadProjectBaseInfo'
+                'loadProjectBaseInfo',
+                'loadTemplateData',
+                'saveTemplateData',
+                'updateCommonProjectScope'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -582,7 +625,9 @@
                 'batchDeleteTpl'
             ]),
             ...mapMutations('template/', [
-                'setProjectBaseInfo'
+                'setProjectBaseInfo',
+                'setProjectScope',
+                'setTemplateData'
             ]),
             async queryCreateCommonTplPerm () {
                 try {
@@ -602,6 +647,13 @@
                     data.cancelToken = source.token
                     const templateListData = await this.loadTemplateList(data)
                     this.templateList = templateListData.results
+                    this.templateList.forEach((item) => {
+                        if (item.project_scope_name.includes('*')) {
+                            item.project_scope_name = '所有项目'
+                        } else {
+                            item.project_scope_name = item.project_scope_name.join(',')
+                        }
+                    })
                     this.pagination.count = templateListData.count
                     const totalPage = Math.ceil(this.pagination.count / this.pagination.limit)
                     if (!totalPage) {
@@ -691,6 +743,7 @@
                 if (!this.hasCreateCommonTplPerm) {
                     this.applyForPermission(['common_flow_create'])
                 } else {
+                    this.setProjectScope([])
                     this.$router.push({
                         name: 'commonTemplatePanel',
                         params: { type: 'new' }
@@ -1189,7 +1242,7 @@
              * @param {string} name -类型
              * @param {Number} template_id -模版id(可选)
              */
-            getJumpUrl (name, template_id) {
+            getJumpUrl (name, template_id, row) {
                 const urlMap = {
                     'view': { name: 'commonTemplatePanel', params: { type: 'view' } },
                     'edit': { name: 'commonTemplatePanel', params: { type: 'edit' } },
@@ -1257,9 +1310,43 @@
                     this.collectingId = ''
                 }
             },
-
+            // 点击可见范围
+            async onVisibleRangCheck (row) {
+                if (!this.hasPermission(['common_flow_edit'], row.auth_actions)) {
+                    this.onTemplatePermissonCheck(['common_flow_edit'], row)
+                } else {
+                    if (row.project_scope[0] !== '*') {
+                        this.projectScopeList = row.project_scope.map(item => typeof item !== 'number' ? Number(item) : item)
+                    } else {
+                        this.projectScopeList = row.project_scope
+                    }
+                    this.projectScopeSelectList = row.project_scope
+                    this.publicProcessId = row.id
+                    this.isSetVisible = true
+                    this.isProjectVisibleShow = true
+                }
+            },
+            handleProjectVisibleChange ({ project_scope, isSelectAllProjectScope }) {
+                this.projectScopeSelectList = isSelectAllProjectScope ? ['*'] : project_scope.map(item => typeof item === 'number' ? String(item) : item)
+                this.setProjectScope(this.projectScopeSelectList)
+            },
+            handleProjectVisibleCancel () {
+                this.isProjectVisibleShow = false
+                this.isSetVisible = false
+            },
+            async handleProjectVisibleConfirm ({ isSelectAllProjectScope }) {
+                await this.updateCommonProjectScope({
+                    templateId: this.publicProcessId,
+                    project_scope: isSelectAllProjectScope ? ['*'] : this.projectScopeSelectList
+                })
+                this.projectScopeSelectList = []
+                this.isProjectVisibleShow = false
+                this.isSetVisible = false
+                this.getTemplateList()
+            },
             // 点击创建任务
             handleCreateTaskClick (tpl) {
+                this.isSetVisible = false
                 this.selectedTpl = tpl
                 this.isSelectProjectShow = true
                 this.permissionLoading = false
@@ -1322,6 +1409,7 @@
                 this.selectedTpl = {}
                 this.selectedProject = {}
                 this.isSelectProjectShow = false
+                this.isProjectVisibleShow = false
             },
             onTaskClone (row) {
                 const applyAuth = []

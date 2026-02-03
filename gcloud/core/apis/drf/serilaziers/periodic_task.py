@@ -13,22 +13,26 @@ specific language governing permissions and limitations under the License.
 import logging
 
 import ujson as json
+from croniter import croniter
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
 from django_celery_beat.models import PeriodicTask as CeleryTask
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
+from pipeline.exceptions import PipelineException
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework.validators import ValidationError
 
 import env
+from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
-from gcloud.constants import PROJECT
+from gcloud.constants import COMMON, PROJECT
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.models import EnvironmentVariables, Project, ProjectConfig
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.utils.drf.serializer import ReadWriteSerializerMethodField
+from gcloud.utils.pipeline import validate_pipeline_tree_constants
 from gcloud.utils.strings import inspect_time
 
 logger = logging.getLogger("root")
@@ -159,19 +163,28 @@ def check_cron_params(cron):
 class CronFieldSerializer(serializers.Serializer):
     cron = serializers.DictField(write_only=True)
 
+    def _build_cron_expression(self, cron_data):
+        """构建标准cron表达式"""
+        return (
+            f"{cron_data.get('minute', '*')} "
+            f"{cron_data.get('hour', '*')} "
+            f"{cron_data.get('day_of_month', '*')} "
+            f"{cron_data.get('month', '*')} "
+            f"{cron_data.get('day_of_week', '*')}"
+        )
+
     def inspect_cron(self, cron):
-        minute = cron.get("minute", "*")
-        hour = cron.get("hour", "*")
-        day_of_month = cron.get("day_of_month", "*")
-        month = cron.get("month", "*")
-        day_of_week = cron.get("day_of_week", "*")
-        cron_expression = f"{minute} {hour} {day_of_month} {month} {day_of_week}"
+        cron_expression = self._build_cron_expression(cron)
 
         result = inspect_time(cron_expression, settings.PERIODIC_TASK_SHORTEST_TIME, settings.PERIODIC_TASK_ITERATION)
         if not result:
-            raise serializers.ValidationError(
-                "The interval between tasks should be at least {} minutes".format(settings.PERIODIC_TASK_SHORTEST_TIME)
-            )
+            raise serializers.ValidationError("任务之间的间隔至少应为 {} 分钟".format(settings.PERIODIC_TASK_SHORTEST_TIME))
+
+    def validate_cron(self, data):
+        cron_str = self._build_cron_expression(data)
+        if not croniter.is_valid(cron_str):
+            raise serializers.ValidationError("无效的cron表达式")
+        return data
 
 
 class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSerializer):
@@ -213,11 +226,15 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
             raise serializers.ValidationError(_("project不存在"))
 
     def validate(self, attrs):
+        project_id = attrs.get("project").id
         check_cron_params(attrs.get("cron"))
+        if attrs.get("template_source") == COMMON:
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), attrs.get("template_id"))
+            if not result["result"]:
+                raise serializers.ValidationError(f"创建任务失败，{result['message']}")
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
-            project_id = attrs.get("project").id
             if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs
@@ -242,11 +259,22 @@ class PatchUpdatePeriodicTaskSerializer(CronFieldSerializer, serializers.Seriali
     name = serializers.CharField(help_text="任务名", required=False)
 
     def validate(self, attrs):
+        project_id = attrs.get("project")
         check_cron_params(attrs.get("cron"))
+        if attrs.get("template_source") == COMMON:
+            result = CommonTemplate.objects.check_template_project_scope(str(project_id), attrs.get("template_id"))
+            if not result["result"]:
+                raise serializers.ValidationError(f"创建任务失败，{result['message']}")
         if settings.PERIODIC_TASK_SHORTEST_TIME and not self.context["request"].user.is_superuser:
             exempt_project_ids = EnvironmentVariables.objects.get_var("PERIODIC_TASK_EXEMPT_PROJECTS") or "[]"
             exempt_project_ids = set(json.loads(exempt_project_ids))
-            project_id = attrs.get("project")
             if project_id not in exempt_project_ids:
                 self.inspect_cron(attrs.get("cron"))
         return attrs
+
+    def validate_constants(self, data):
+        try:
+            validate_pipeline_tree_constants(data)
+        except PipelineException as e:
+            raise serializers.ValidationError(e)
+        return data

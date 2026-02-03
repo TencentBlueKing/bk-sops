@@ -33,6 +33,17 @@
                     <dd v-else>{{ '--' }}</dd>
                 </dl>
             </bk-popover>
+            <div
+                v-if="state === 'FAILED'"
+                class="operation-assistant-icon"
+                @click="handleAssistantClick">
+                <img
+                    :title="$t('排查失败的原因')"
+                    src="@/assets/images/assistant-small.svg"
+                    class="assistant-icon"
+                    alt="assistant"
+                />
+            </div>
             <div class="task-operation-btns">
                 <div
                     v-for="operation in taskOperationBtns"
@@ -82,6 +93,9 @@
                     <p class="operate-item" @click="onTaskParamsClick('templateData', 'Code')">
                         {{ 'Code' }}
                     </p>
+                    <p class="operate-item" @click="onTaskParamsClick('webhook', $t('回调记录'))">
+                        {{ $t('回调记录') }}
+                    </p>
                     <p v-if="adminView && engineVer === 1" class="operate-item" @click="onTaskParamsClick('taskExecuteInfo')">
                         {{ $t('流程信息') }}
                     </p>
@@ -97,6 +111,7 @@
     import permission from '@/mixins/permission.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
     import { mapState } from 'vuex'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'TaskOperationHeader',
@@ -230,6 +245,9 @@
             },
             judgeTipsDisabled (operation) {
                 return operation.action !== 'pause' || this.state !== 'PENDING_PROCESSING'
+            },
+            handleAssistantClick () {
+                bus.$emit('checkExecutedFailed')
             }
         }
     }
@@ -249,6 +267,9 @@
             font-size: 28px;
             color: #3a84ff;
             cursor: pointer;
+        }
+        .operation-assistant-icon{
+            margin-left: 8px;
         }
     }
     .task-name {

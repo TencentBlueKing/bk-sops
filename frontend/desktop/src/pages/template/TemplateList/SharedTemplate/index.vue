@@ -35,13 +35,12 @@
             }
         },
         methods: {
-            closeShowSlider () {
-                this.isShowSlider = false
-            },
             openShowSlider () {
                 this.isShowSlider = true
+            },
+            closeShowSlider () {
+                this.isShowSlider = false
             }
-            
         }
     }
 </script>

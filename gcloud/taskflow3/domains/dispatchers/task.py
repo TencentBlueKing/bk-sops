@@ -28,7 +28,6 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from opentelemetry import trace
 from pipeline.core.data.var import Variable
 from pipeline.engine import api as pipeline_api
 from pipeline.engine import exceptions as pipeline_exceptions
@@ -43,6 +42,7 @@ from pipeline.service import task_service
 from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
 from gcloud.constants import TaskExtraStatus
+from gcloud.core.trace import start_trace
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_started
@@ -104,12 +104,15 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if command in self.OPERATION_TYPE_COMMANDS and not self.pipeline_instance.is_started:
             return {"result": False, "message": "task not started", "code": err_code.INVALID_OPERATION.code}
 
-        with trace.get_tracer(__name__).start_as_current_span("task_operate") as span:
-            span.set_attribute("bk_sops.task_id", self.taskflow_id)
-            span.set_attribute("bk_sops.pipeline_id", self.pipeline_instance.instance_id)
-            span.set_attribute("bk_sops.engine_ver", self.engine_ver)
-            span.set_attribute("bk_sops.task_command", command)
-
+        with start_trace(
+            span_name="task_operate",
+            propagate=False,
+            task_id=self.taskflow_id,
+            pipeline_id=self.pipeline_instance.instance_id,
+            executor=operator,
+            engine_ver=self.engine_ver,
+            task_command=command,
+        ):
             return getattr(self, "{}_v{}".format(command, self.engine_ver))(operator)
 
     def start_v1(self, executor: str) -> dict:
@@ -411,10 +414,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         f"update context values failed: pipeline instance state error, "
                         f"tree state is {status_result}"
                     )
-                    message = _(
-                        f"任务参数设置失败: 任务状态校验失败，"
-                        f"任务状态为{status_result['data']['state']}，不支持进行参数修改。"
-                    )
+                    message = _(f"任务参数设置失败: 任务状态校验失败，" f"任务状态为{status_result['data']['state']}，不支持进行参数修改。")
                     return {"result": False, "data": "", "message": message, "code": err_code.VALIDATION_ERROR.code}
 
                 bamboo_runtime = BambooDjangoRuntime()
@@ -425,9 +425,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 )
                 if not update_res.result:
                     logger.error("update context values failed: %s" % update_res.exc_trace)
-                    message = _(
-                        f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants"
-                    )
+                    message = _(f"任务参数设置失败: 更新引擎上下文发生异常: {update_res.message}. 请重试, 如持续失败可联系管理员处理 | set_task_constants")
                     logger.error(message)
                     return {
                         "result": False,
@@ -515,9 +513,7 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 # do not raise error when subprocess not exist or has not been executed
                 task_status = self.CREATED_STATUS
             except Exception:
-                message = _(
-                    f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1"
-                )
+                message = _(f"获取任务状态树数据失败: subprocess[ID: {subprocess_id}]请重试, 如持续失败可联系管理员处理 | get_task_status_v1")
                 logger.exception(message)
                 return {
                     "result": False,
@@ -596,10 +592,10 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         if with_new_status:
             # 遍历树，获取需要进行状态优化的节点，标记哪些节点具有独立子流程
             # 遍历状态树，hit -> 状态优化，独立子流程 -> 递归
-            node_infos_gby_code: typing.Dict[str, typing.List[typing.Dict[str, typing.Any]]] = (
-                find_nodes_from_pipeline_tree(
-                    self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
-                )
+            node_infos_gby_code: typing.Dict[
+                str, typing.List[typing.Dict[str, typing.Any]]
+            ] = find_nodes_from_pipeline_tree(
+                self.pipeline_instance.execution_data, codes=["pause_node", "bk_approve", "subprocess_plugin"]
             )
 
             node_ids_gby_code: typing.Dict[str, typing.Set[str]] = {}
@@ -612,9 +608,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             }
 
             status_tree, root_pipeline_id = task_status, task_status["id"]
-            node_id__auto_retry_info: typing.Dict[str, typing.Dict[str, typing.Any]] = (
-                fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
-            )
+            node_id__auto_retry_info: typing.Dict[
+                str, typing.Dict[str, typing.Any]
+            ] = fetch_node_id__auto_retry_info_map(root_pipeline_id, extract_nodes_by_statuses(status_tree))
 
             self.format_bamboo_engine_status(
                 task_status, node_ids_gby_code, code__status_map, node_id__auto_retry_info, False, is_subquery

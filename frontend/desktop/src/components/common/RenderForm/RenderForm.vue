@@ -332,24 +332,56 @@
             updateHook (field, val) {
                 this.$emit('onHookChange', field, val)
             },
-            // 设置变量隐藏逻辑
+            /**
+             * 设置变量隐藏逻辑
+             * 根据表单字段值的变化，动态控制其他相关字段的显示/隐藏状态
+             * @param {String} key 发生变化的表单字段的 tag_code
+             * @param {*} val 字段的新值
+             */
             setVariableHideLogic (key, val) {
+                // 检查当前字段是否在监听列表中（即是否有其他字段依赖于此字段的值）
                 if (key in this.watchVarInfo) {
                     const values = this.watchVarInfo[key]
+                    // 按目标字段分组，避免重复处理同一个目标字段
+                    const targetGroups = {}
                     values.forEach(item => {
-                        let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
-                        const index = this.scheme.findIndex(config => config.tag_code === item.target_key)
+                        if (!targetGroups[item.target_key]) {
+                            targetGroups[item.target_key] = []
+                        }
+                        targetGroups[item.target_key].push(item)
+                    })
+                    Object.keys(targetGroups).forEach(targetKey => {
+                        const targetItems = targetGroups[targetKey]
+                        // 根据目标字段的 tag_code 找到对应的 scheme 配置索引
+                        const index = this.scheme.findIndex(config => config.tag_code === targetKey)
+                        // 获取目标字段对应的子组件实例
                         const targetTag = this.$children[index]
-                        const relatedVarInfo = this.changeVarInfo[item.target_key]
-                        // 计算输入值是否匹配
-                        isEqual = (item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)
-                        relatedVarInfo[key] = isEqual
-                        // 相关运算逻辑
+                        // 获取目标字段的相关变量信息对象
+                        const relatedVarInfo = this.changeVarInfo[targetKey]
+                        
+                        // 检查当前字段值是否匹配任何一个条件
+                        let hasMatch = false
+                        targetItems.forEach(item => {
+                            // 通过 JSON 序列化比较当前值与配置的目标值是否相等
+                            let isEqual = JSON.stringify(val) === JSON.stringify(item.value)
+                            // 根据操作符计算输入值是否匹配隐藏条件
+                            // 支持 '=' (等于) 和 '!=' (不等于) 两种操作符
+                            isEqual = (item.operator === '=' && isEqual) || (item.operator === '!=' && !isEqual)
+                            if (isEqual) {
+                                hasMatch = true
+                            }
+                        })
+                        // 更新当前字段在目标字段隐藏条件中的匹配状态
+                        relatedVarInfo[key] = hasMatch
+                        // 计算目标字段是否应该被隐藏的最终逻辑
                         let isMatch = false
                         const relatedVarValues = Object.values(relatedVarInfo)
-                        if (item.isOr) {
+                        // 根据逻辑类型进行判断
+                        if (targetItems[0].isOr) {
+                            // 或逻辑：任意一个条件满足即隐藏
                             isMatch = relatedVarValues.some(option => option)
                         } else {
+                            // 与逻辑：所有条件都满足才隐藏
                             isMatch = relatedVarValues.every(option => option)
                         }
                         // 显示隐藏

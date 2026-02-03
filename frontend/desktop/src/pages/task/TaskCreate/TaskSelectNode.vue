@@ -571,7 +571,7 @@
     height: calc(100% - 72px);
     min-height: 500px;
     overflow: hidden;
-    v::deep .jsflow {
+    ::v-deep .jsflow {
         background: #f5f7fa;
         .tool-panel-wrap {
             left: 40px;

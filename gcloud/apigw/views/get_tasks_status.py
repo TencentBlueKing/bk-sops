@@ -20,6 +20,7 @@ from django.views.decorators.http import require_POST
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.utils import api_hash_key
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
@@ -59,8 +60,10 @@ def get_tasks_status(request, project_id):
             "message": "task_id_list is too long, maximum length is 50",
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
-
-    include_children_status = params.get("include_children_status", False)
+    serializer = IncludeTaskSerializer(data=params)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_children_status = serializer.validated_data["include_children_status"]
 
     tasks = TaskFlowInstance.objects.filter(
         id__in=task_ids, project__id=request.project.id, project__tenant_id=tenant_id

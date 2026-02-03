@@ -4,7 +4,16 @@
             <section class="info-section abnormal-section" data-test-id="taskExecute_form_exceptionInfo" v-if="abnormalShow">
                 <template v-if="executeInfo.ex_data">
                     <p class="hide-html-text" v-html="executeInfo.failInfo"></p>
-                    <div class="show-html-text" :class="{ 'is-fold': !isExpand }" v-html="executeInfo.failInfo"></div>
+                    <div class="show-html-text" :class="{ 'is-fold': !isExpand }">
+                        <span v-html="executeInfo.failInfo"></span>
+                        <img
+                            @click="handleAssistantClick"
+                            :title="$t('排查失败的原因')"
+                            src="@/assets/images/assistant-small.svg"
+                            class="execute-assistant-icon"
+                            alt="assistant"
+                        />
+                    </div>
                     <span class="expand-btn" v-if="isExpandTextShow" @click="isExpand = !isExpand">{{ isExpand ? $t('收起') : $t('显示全部') }}</span>
                 </template>
                 <i18n v-else tag="div" path="exFailedText" class="show-html-text">
@@ -59,6 +68,8 @@
     import OutputParams from './components/OutputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
     import { TASK_STATE_DICT } from '@/constants/index.js'
+    import bus from '@/utils/bus.js'
+
     export default {
         name: 'executeRecord',
         components: {
@@ -129,6 +140,9 @@
                 if (taskInfo) {
                     window.open(taskInfo.value, '_blank')
                 }
+            },
+            handleAssistantClick () {
+                bus.$emit('checkExecutedFailed')
             }
         }
     }
@@ -136,163 +150,171 @@
 
 <style lang="scss" scoped>
 .execute-record {
-  ::v-deep .abnormal-section {
-      position: relative;
-      font-size: 12px;
-      margin-bottom: 8px !important;
-      color: #313238;
-      background: #fff3e1;
-      border: 1px solid #ffb848;
-      border-radius: 2px;
-      word-break: break-all;
-      .hide-html-text {
-          position: absolute;
-          z-index: -1;
-      }
-      .hide-html-text,
-      .show-html-text {
-          margin: 8px 16px;
-      }
-      .is-fold {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: normal;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 10;
-      }
-      .expand-btn {
-          position: absolute;
-          right: 16px;
-          bottom: 8px;
-          padding-left: 5px;
-          color: #3a84ff;
-          background: #fff3e1;
-          cursor: pointer;
-      }
-      a {
-          color: #3a84ff;
-      }
-  }
-  .operation-table {
-      display: flex;
-      align-items: center;
-      padding: 12px 24px;
-      margin-bottom: 24px;
-      border: none;
-      border-radius: 2px;
-      background: #fafbfd;
-      li {
-          width: 30%;
-          font-size: 12px;
-          line-height: 26px;
-          .th {
-              font-weight: 400;
-              color: #979ba5;
-              margin-bottom: 2px;
-              background: #fafbfd;
-          }
-          .td {
-              color: #313238;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-          }
-          &:first-child,
-          &:last-child {
-              width: 20%;
-          }
-      }
-  }
-  .info-section {
-      position: relative;
-      .subprocee-link {
-          display: flex;
-          align-items: center;
-          position: absolute;
-          right: 0;
-          top: 0;
-          font-size: 12px;
-          color: #3a84ff;
-          cursor: pointer;
-          i {
-              margin-right: 6px;
-          }
-      }
-  }
-  ::v-deep .input-section,
-  ::v-deep .outputs-section {
-      font-size: 12px;
-      .origin-value {
-          position: absolute;
-          top: 0;
-          right: 0;
-          display: flex;
-          align-items: center;
-          font-size: 12px;
-          color: #63656e;
-          .bk-switcher {
-              top: 1px;
-              margin-right: 8px;
-          }
-      }
-  }
-  .full-code-editor {
-      flex: 1;
-      margin: 20px 0 0 48px;
-  }
-  ::v-deep .no-data-wrapper {
-      .no-data-wording {
-          font-size: 12px;
-          color: #63656e;
-      }
-  }
-  ::v-deep .exception-part {
-      margin-top: 20px;
-      .part-text {
-          font-size: 12px;
-          color: #979ba5;
-      }
-  }
-  .ex-data-wrap {
-      ::v-deep pre {
-          white-space: pre-wrap;
-      }
-  }
-  .perform-log {
-      width: 100%;
-  }
-  .info-section:not(:last-child) {
-      margin-bottom: 32px;
-  }
-  .no-data-wrapper {
-      height: 150px;
-      margin-top: 32px;
-  }
-  ::v-deep .section-title-wrap {
-      display: flex;
-      align-items: center;
-      position: relative;
-      color: #313238;
-      height: 24px;
-      font-weight: 600;
-      line-height: 18px;
-      padding: 0 8px;
-      background: #eaebf0;
-      .trigger {
-          margin-right: 10px;
-          color: #979ba5;
-          translate: all .2s;
-          cursor: pointer;
-      }
-      .is-expand {
-          transform: rotate(90deg);
-      }
-      .origin-value {
-          font-weight: normal;
-          top: 2px !important;
-          right: 12px !important;
-      }
-  }
+    ::v-deep .abnormal-section {
+        position: relative;
+        font-size: 12px;
+        margin-bottom: 8px !important;
+        color: #313238;
+        background: #fff3e1;
+        border: 1px solid #ffb848;
+        border-radius: 2px;
+        word-break: break-all;
+        .hide-html-text {
+            position: absolute;
+            z-index: -1;
+        }
+        .hide-html-text,
+        .show-html-text {
+            margin: 8px 16px;
+        }
+        .is-fold {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 10;
+        }
+        .expand-btn {
+            position: absolute;
+            right: 16px;
+            bottom: 8px;
+            padding-left: 5px;
+            color: #3a84ff;
+            background: #fff3e1;
+            cursor: pointer;
+        }
+        .execute-assistant-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 8px;
+            vertical-align: text-top;
+            cursor: pointer;
+        }
+        a {
+            color: #3a84ff;
+        }
+    }
+    .operation-table {
+        display: flex;
+        align-items: center;
+        padding: 12px 24px;
+        margin-bottom: 24px;
+        border: none;
+        border-radius: 2px;
+        background: #fafbfd;
+        li {
+            width: 30%;
+            font-size: 12px;
+            line-height: 26px;
+            .th {
+                font-weight: 400;
+                color: #979ba5;
+                margin-bottom: 2px;
+                background: #fafbfd;
+            }
+            .td {
+                color: #313238;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            &:first-child,
+            &:last-child {
+                width: 20%;
+            }
+        }
+    }
+    .info-section {
+        position: relative;
+        .subprocee-link {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 12px;
+            color: #3a84ff;
+            cursor: pointer;
+            i {
+                margin-right: 6px;
+            }
+        }
+    }
+    ::v-deep .input-section,
+    ::v-deep .outputs-section {
+        font-size: 12px;
+        .origin-value {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            color: #63656e;
+            .bk-switcher {
+                top: 1px;
+                margin-right: 8px;
+            }
+        }
+    }
+    .full-code-editor {
+        flex: 1;
+        margin: 20px 0 0 48px;
+    }
+    ::v-deep .no-data-wrapper {
+        .no-data-wording {
+            font-size: 12px;
+            color: #63656e;
+        }
+    }
+    ::v-deep .exception-part {
+        margin-top: 20px;
+        .part-text {
+            font-size: 12px;
+            color: #979ba5;
+        }
+    }
+    .ex-data-wrap {
+        ::v-deep pre {
+            white-space: pre-wrap;
+        }
+    }
+    .perform-log {
+        width: 100%;
+    }
+    .info-section:not(:last-child) {
+        margin-bottom: 32px;
+    }
+    .no-data-wrapper {
+        height: 150px;
+        margin-top: 32px;
+    }
+    ::v-deep .section-title-wrap {
+        display: flex;
+        align-items: center;
+        position: relative;
+        color: #313238;
+        height: 24px;
+        font-weight: 600;
+        line-height: 18px;
+        padding: 0 8px;
+        background: #eaebf0;
+        .trigger {
+            margin-right: 10px;
+            color: #979ba5;
+            translate: all .2s;
+            cursor: pointer;
+        }
+        .is-expand {
+            transform: rotate(90deg);
+        }
+        .origin-value {
+            font-weight: normal;
+            top: 2px !important;
+            right: 12px !important;
+        }
+    }
 }
 </style>

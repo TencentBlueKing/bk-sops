@@ -488,7 +488,7 @@
                         common: this.isCommon
                     }
                     const templateListData = this.isCommon
-                        ? await this.loadCommonTemplateList(params)
+                        ? await this.loadCommonTemplateList({ ...params, project_id: this.project_id })
                         : await this.loadTemplateList(params)
                     if (add) {
                         this.templateList.push(...templateListData.results)

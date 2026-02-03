@@ -22,6 +22,7 @@ import env
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_PERIODIC_TASK_PARAMS
+from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.validators import CreatePriodicTaskValidator
 from gcloud.apigw.views.utils import info_data_from_period_task, logger
 from gcloud.common_template.models import CommonTemplate
@@ -58,6 +59,10 @@ def create_periodic_task(request, template_id, project_id):
         return {"result": False, "message": message, "code": err_code.INVALID_OPERATION.code}
     tenant_id = request.user.tenant_id
     params = json.loads(request.body)
+    serializer = IncludeTaskSerializer(data=params)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_edit_info = serializer.validated_data["include_edit_info"]
     template_source = params.get("template_source", PROJECT)
     logger.info(
         "[API] apigw create_periodic_task info, "
@@ -137,5 +142,5 @@ def create_periodic_task(request, template_id, project_id):
         logger.exception("[API] create_periodic_task create error: {}".format(e))
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
-    data = info_data_from_period_task(task)
+    data = info_data_from_period_task(task, include_edit_info=include_edit_info)
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

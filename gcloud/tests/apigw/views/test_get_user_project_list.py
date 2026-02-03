@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-
 from pipeline.utils.collections import FancyDict
 
 from gcloud import err_code
@@ -28,7 +27,8 @@ class GetUserProjectListAPITest(APITest):
         return "/apigw/get_user_project_list/"
 
     @patch(
-        APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST, MagicMock(side_effect=Exception()),
+        APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST,
+        MagicMock(side_effect=Exception()),
     )
     def test_get_user_project_list__raise(self):
         response = self.client.get(path=self.url())
@@ -48,7 +48,8 @@ class GetUserProjectListAPITest(APITest):
         ]
 
         with patch(
-            APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST, MagicMock(return_value=project_list),
+            APIGW_GET_USER_PROJECT_LIST_GET_USER_PROJECT_LIST,
+            MagicMock(return_value=project_list),
         ):
             response = self.client.get(path=self.url(), data={"bk_username": "text"})
 

@@ -15,7 +15,14 @@ from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response, timezone_inject
+from gcloud.apigw.decorators import (
+    mark_request_whether_is_trust,
+    mcp_apigw,
+    project_inject,
+    return_json_response,
+    timezone_inject,
+)
+from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_list_data, logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
@@ -23,13 +30,14 @@ from gcloud.iam_auth.conf import FLOW_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.label.models import TemplateLabelRelation
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 @login_exempt
 @require_GET
 @apigw_require
+@mcp_apigw(exclude_responses=["data.[].auth_actions"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
@@ -40,7 +48,12 @@ def get_template_list(request, project_id):
     id_in = request.GET.get("id_in", None)
     name_keyword = request.GET.get("name_keyword", None)
     tenant_id = request.user.tenant_id
-    include_labels = request.GET.get("include_labels", None)
+    serializer = IncludeTemplateSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_labels = serializer.validated_data["include_labels"]
+    include_executor_proxy = serializer.validated_data["include_executor_proxy"]
+    include_notify = serializer.validated_data["include_notify"]
 
     if id_in:
         try:
@@ -63,7 +76,14 @@ def get_template_list(request, project_id):
         filter_kwargs["tenant_id"] = tenant_id
         templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
 
-    template_list, template_id_list = format_template_list_data(templates, project, return_id_list=True, tz=request.tz)
+    template_list, template_id_list = format_template_list_data(
+        templates,
+        project,
+        return_id_list=True,
+        tz=request.tz,
+        include_executor_proxy=include_executor_proxy,
+        include_notify=include_notify,
+    )
     template_labels = {}
     if include_labels:
         template_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
@@ -74,7 +94,7 @@ def get_template_list(request, project_id):
     for template_info in template_list:
         template_id = template_info["id"]
         template_info.setdefault("auth_actions", [])
-        if include_labels:
+        if include_labels and template_source in NON_COMMON_TEMPLATE_TYPES:
             template_info["labels"] = template_labels.get(template_id, [])
         for action, allowed in flow_allowed_actions.get(str(template_id), {}).items():
             if allowed:

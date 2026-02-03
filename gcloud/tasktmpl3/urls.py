@@ -24,6 +24,7 @@ urlpatterns = [
     # [deprecated] this api will be instead of batch_form_with_schemes
     re_path(r"^api/batch_form/(?P<project_id>\d+)/$", api.batch_form),
     re_path(r"^api/export/(?P<project_id>\d+)/$", api.export_templates),
+    re_path(r"^api/fetch_pipeline_tree/$", api.fetch_pipeline_tree),
     re_path(r"^api/import/(?P<project_id>\d+)/$", api.import_templates),
     re_path(r"^api/import_check/(?P<project_id>\d+)/$", api.check_before_import),
     re_path(r"^api/replace_node_id/$", api.replace_all_templates_tree_node_id),

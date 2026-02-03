@@ -10,8 +10,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from typing import Any
 import logging
+from typing import Any
+
 import yaml
 
 from gcloud.template_base.domains.schema_converter import YamlSchemaConverter
@@ -39,7 +40,7 @@ class YamlSchemaConverterHandler:
     def load_yaml_docs(stream: Any):
         """导入Yaml数据文件，返回Yaml字段格式流程列表"""
         try:
-            yaml_docs = list(yaml.load_all(stream, Loader=yaml.FullLoader))
+            yaml_docs = list(yaml.safe_load_all(stream))
         except yaml.YAMLError as e:
             logger.exception("[load_yaml_docs]: {}".format(e))
             return {"result": False, "data": None, "message": e}

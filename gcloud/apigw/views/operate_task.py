@@ -24,6 +24,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
@@ -39,6 +40,7 @@ from gcloud.utils.throttle import check_task_operation_throttle
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
+@trace_view(attr_keys=["project_id", "task_id", "action"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TaskOperateInterceptor())
 @record_operation(RecordType.task.name, OperateType.task_action.name, OperateSource.api.name)
 def operate_task(request, task_id, project_id):

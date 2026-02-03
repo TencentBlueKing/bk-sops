@@ -9,9 +9,14 @@
 | 字段          |  类型       | 必选   |  描述             |
 |---------------|------------|--------|-------------------|
 | bk_biz_id     |  string    | 是     | 模板所属业务ID     |
-| template_source | string   | 否     | 流程模板来源，business:默认值，业务流程，common：公共流程 |
+| template_source | string   | 否     | 流程模板来源，可选值：business（业务流程，默认值）、project（项目流程）、common（公共流程） |
 | id_in         |  string    | 否     | 流程模板id来源列表，以逗号`,`分隔 |
 | name_keyword  |  string    | 否     | 流程模板名称关键词，英文不区分大小写 |
+| include_executor_proxy | bool | 否 | 是否包含执行人代理信息，默认 false |
+| include_subprocess | bool | 否 | 是否包含子流程信息，默认 false |
+| include_constants | bool | 否 | 是否包含全局变量信息，默认 false |
+| include_notify | bool | 否 | 是否包含通知信息，默认 false |
+| include_labels | bool | 否 | 是否包含标签信息（仅对业务流程和项目流程有效），默认 false |
 | expected_timezone | string |   否   |  任务时间相关字段期望返回的时区，形如Asia/Shanghai |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
@@ -151,3 +156,9 @@
 | EnterpriseIT | 企业IT   |
 | OfficeApp    | 办公应用  |
 | Other        | 其它     |
+
+### MCP 请求说明
+
+当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+
+- `data.[].auth_actions` - 数组中每个模板项的权限操作列表

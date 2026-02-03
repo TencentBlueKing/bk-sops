@@ -26,12 +26,14 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ErrorDetail
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from webhook.api import verify_webhook_endpoint
 
 from gcloud import err_code
 from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.collection.models import Collection
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
+from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.filters import BooleanPropertyFilter
 from gcloud.core.apis.drf.filtersets import PropertyFilterSet
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
@@ -42,7 +44,9 @@ from gcloud.core.apis.drf.serilaziers.task_template import (
     ProjectInfoQuerySerializer,
     TaskTemplateListSerializer,
     TaskTemplateSerializer,
+    TemplateLabelQuerySerializer,
     TopCollectionTaskTemplateSerializer,
+    WebhookConfigQuerySerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudCommonMixin, GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
@@ -51,6 +55,7 @@ from gcloud.taskflow3.models import TaskConfig, TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
+from gcloud.utils.webhook import apply_webhook_configs, clear_scope_webhooks, get_webhook_configs
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -82,6 +87,12 @@ class TaskTemplatePermission(IamPermission):
         ),
         "common_info": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
+        "update_template_labels": IamPermissionInfo(
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+        ),
+        "verify_webhook_configuration": IamPermissionInfo(
+            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
     }
 
@@ -157,7 +168,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         return auth_result
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "list_with_top_collection"]:
             return TaskTemplateListSerializer
         return TaskTemplateSerializer
 
@@ -229,6 +240,9 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         data = self.injection_auth_actions(request, serializer.data, instance)
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
+        webhook_configs = get_webhook_configs(scope_code=str(instance.id))
+        data["webhook_configs"] = webhook_configs
+        data["enable_webhook"] = True if webhook_configs else False
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.FLOW_VIEW_ACTION,
@@ -244,6 +258,8 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         creator = request.user.username
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
+        webhook_configs = serializer.validated_data.pop("webhook_configs", {})
+        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
         with transaction.atomic():
             result = manager.create_pipeline(
                 name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
@@ -257,6 +273,12 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
             serializer.validated_data["pipeline_template_id"] = result["data"].template_id
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
+            if enable_webhook and webhook_configs:
+                apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
+                if not apply_result["result"]:
+                    message = apply_result["message"]
+                    logger.error(message)
+                    raise ValidationException(message)
             self._sync_template_lables(serializer.instance.id, template_labels)
             headers = self.get_success_headers(serializer.data)
         # 发送信号
@@ -297,6 +319,8 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         editor = request.user.username
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
+        webhook_configs = serializer.validated_data.pop("webhook_configs", {})
+        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
         with transaction.atomic():
             result = manager.update_pipeline(
                 pipeline_template=template.pipeline_template,
@@ -313,6 +337,15 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
+            if enable_webhook and webhook_configs:
+                apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
+                if not apply_result["result"]:
+                    message = apply_result["message"]
+                    logger.error(message)
+                    raise ValidationException(message)
+            elif not enable_webhook and get_webhook_configs(str(serializer.instance.id)):
+                clear_scope_webhooks([str(serializer.instance.id)])
+
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
         # 发送信号
@@ -352,6 +385,11 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         relation_queryset = TemplateRelationship.objects.filter(ancestor_template_id=pipeline_template_id)
         for relation in relation_queryset:
             relation.templatescheme_set.clear()
+        clear_result = clear_scope_webhooks([template.id])
+        if not clear_result["result"]:
+            message = clear_result["message"]
+            logger.error(message)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         # 删除流程模板
         template.is_deleted = True
         template.save()
@@ -391,3 +429,45 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})
+
+    @swagger_auto_schema(method="POST", operation_summary="修改流程模板标签", request_body=TemplateLabelQuerySerializer)
+    @action(methods=["POST"], detail=True)
+    def update_template_labels(self, request, *args, **kwargs):
+        label_ids = request.data.get("label_ids")
+        template = self.get_object()
+        try:
+            self._sync_template_lables(template.id, label_ids)
+        except Exception as e:
+            message = str(e)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        return Response({"name": template.name, "label_ids": label_ids})
+
+    @swagger_auto_schema(method="POST", operation_summary="验证Webhook配置", request_body=WebhookConfigQuerySerializer)
+    @action(methods=["POST"], detail=False)
+    def verify_webhook_configuration(self, request, *args, **kwargs):
+        serializer = WebhookConfigQuerySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        verify_data = serializer.validated_data.copy()
+        verify_data["url"] = verify_data.pop("endpoint")
+
+        try:
+            verify_result = verify_webhook_endpoint(verify_data)
+        except Exception as e:
+            message = str(e)
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        if verify_result.exe_data:
+            message = "HTTP请求处理失败：请求URL错误"
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+
+        if verify_result.ok:
+            return Response(status=status.HTTP_200_OK)
+        else:
+            verify_response = verify_result.json_response()
+            error_content = (
+                verify_response.get("message") if isinstance(verify_response, dict) else str(verify_response)
+            )
+            message = f"HTTP请求处理失败：status_code={verify_result.response_status_code}, content={error_content}"
+            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)

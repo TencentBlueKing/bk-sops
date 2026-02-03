@@ -77,6 +77,15 @@
                 <i class="common-icon-skip"></i>
                 {{ $t('跳过') }}
             </span>
+            <span v-if="isShowSkipBtn || isShowRetryBtn">
+                <img
+                    @click.stop="handleAssistantClick"
+                    :title="$t('排查失败的原因')"
+                    src="@/assets/images/assistant-small.svg"
+                    class="state-assistant-icon"
+                    alt="assistant"
+                />
+            </span>
             <template v-if="['RUNNING', 'PENDING_PROCESSING', 'PENDING_APPROVAL', 'PENDING_CONFIRMATION'].includes(node.status)">
                 <span v-if="node.code === 'pause_node'" @click.stop="$emit('onTaskNodeResumeClick', node.id)">
                     <i class="bk-icon icon-play-circle-shape"></i>
@@ -98,6 +107,7 @@
     import i18n from '@/config/i18n/index.js'
     import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
     import NodeRightIconStatus from './NodeRightIconStatus.vue'
+    import bus from '@/utils/bus.js'
 
     export default {
         name: 'TaskNode',
@@ -179,6 +189,9 @@
                     return
                 }
                 this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
+            },
+            handleAssistantClick () {
+                bus.$emit('checkExecutedFailed')
             }
         }
     }

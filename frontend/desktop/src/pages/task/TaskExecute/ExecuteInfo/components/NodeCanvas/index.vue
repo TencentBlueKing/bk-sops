@@ -310,7 +310,7 @@
     .sub-flow {
         height: 100%;
         border: 0;
-       ::v-deep .canvas-wrapper {
+        ::v-deep .canvas-wrapper {
             background: #f5f7fa;
         }
         ::v-deep .canvas-flow {

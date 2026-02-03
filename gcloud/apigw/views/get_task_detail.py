@@ -16,17 +16,20 @@ from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
+from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.utils import BucketTTLCache, api_bucket_and_key, bucket_cached
 from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_id
 
 
 @login_exempt
 @require_GET
 @apigw_require
+@mcp_apigw(exclude_responses=["data.pipeline_tree", "data.task_webhook_history"])
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
@@ -42,6 +45,10 @@ def get_task_detail(request, task_id, project_id):
     """
     project = request.project
     tenant_id = request.user.tenant_id
+    serializer = IncludeTaskSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_webhook_history = serializer.validated_data["include_webhook_history"]
     try:
         task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id, project__tenant_id=tenant_id)
     except TaskFlowInstance.DoesNotExist:
@@ -55,4 +62,6 @@ def get_task_detail(request, task_id, project_id):
         return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
 
     data = task.get_task_detail()
+    if include_webhook_history:
+        data["task_webhook_history"] = get_webhook_delivery_history_by_delivery_id(str(task_id))
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

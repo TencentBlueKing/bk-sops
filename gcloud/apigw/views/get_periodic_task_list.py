@@ -16,6 +16,7 @@ from django.views.decorators.http import require_GET
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response, timezone_inject
+from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.views.utils import info_data_from_period_task
 from gcloud.iam_auth.conf import PERIODIC_TASK_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
@@ -33,13 +34,17 @@ from gcloud.periodictask.models import PeriodicTask
 @timezone_inject
 @iam_intercept(ProjectViewInterceptor())
 def get_periodic_task_list(request, project_id):
+    serializer = IncludeTaskSerializer(data=request.GET)
+    if not serializer.is_valid():
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
+    include_edit_info = serializer.validated_data["include_edit_info"]
     project = request.project
     tenant_id = request.user.tenant_id
     task_list = PeriodicTask.objects.filter(project_id=project.id, project__tenant_id=tenant_id)
     data = []
     task_id_list = []
     for task in task_list:
-        task_info = info_data_from_period_task(task, detail=False, tz=request.tz)
+        task_info = info_data_from_period_task(task, detail=False, tz=request.tz, include_edit_info=include_edit_info)
         task_id_list.append(task_info["id"])
         data.append(task_info)
     # 注入用户有权限的actions

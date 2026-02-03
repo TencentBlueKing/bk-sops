@@ -77,6 +77,13 @@
                         <i class="common-icon-skip"></i>
                         {{ $t('跳过子流程') }}
                     </span>
+                    <img
+                        @click.stop="handleAssistantClick"
+                        :title="$t('排查失败的原因')"
+                        src="@/assets/images/assistant-small.svg"
+                        class="assistant-icon"
+                        alt="assistant"
+                    />
                 </template>
                 <!--如果状态状态版本为v1，独立子流程节点禁止操作-->
                 <template v-if="taskStatusDisplayVersion !== 'v1' || !isSubProcessNode">
@@ -99,6 +106,8 @@
 </template>
 <script>
     import NodeRightIconStatus from './NodeRightIconStatus.vue'
+    import bus from '@/utils/bus.js'
+
     export default {
         name: 'Subflow',
         components: {
@@ -179,6 +188,9 @@
                     return
                 }
                 this.$emit('onNodeCheckClick', this.node.id, !this.node.checked)
+            },
+            handleAssistantClick () {
+                bus.$emit('checkExecutedFailed')
             }
         }
     }
