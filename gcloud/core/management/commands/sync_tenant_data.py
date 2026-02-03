@@ -1,5 +1,6 @@
 import logging
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -35,6 +36,12 @@ class Command(BaseCommand):
 
         if dry_run:
             self.stdout.write("=== 模拟运行模式 ===")
+
+        self.stdout.write("执行数据库迁移命令...")
+        if not dry_run:
+            call_command("migrate", "core", interactive=False)
+            call_command("migrate", "external_plugins", interactive=False)
+            self.stdout.write("数据库迁移完成")
 
         # 定义需要更新的模型列表
         models_to_update = [

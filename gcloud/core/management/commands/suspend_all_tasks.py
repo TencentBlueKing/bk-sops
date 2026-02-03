@@ -21,21 +21,12 @@ class Command(BaseCommand):
             dest="dry_run",
             help="模拟运行，不实际执行关闭操作",
         )
-        parser.add_argument(
-            "--project-id",
-            type=int,
-            dest="project_id",
-            help="指定项目ID，只关闭该项目的任务",
-        )
 
-    def _close_periodic_tasks(self, dry_run, project_id):
+    def _close_periodic_tasks(self, dry_run):
         """关闭周期任务"""
         self.stdout.write("\n=== 处理周期任务 ===")
 
         tasks = PeriodicTask.objects.filter(task__celery_task__enabled=True)
-        if project_id:
-            tasks = tasks.filter(project_id=project_id)
-
         task_count = tasks.count()
         self.stdout.write(f"找到 {task_count} 个开启状态的周期任务")
 
@@ -61,14 +52,12 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f"✗ 批量关闭周期任务失败: {e}"))
                 logger.error(f"批量关闭周期任务失败: {e}")
 
-    def _close_clocked_tasks(self, dry_run, project_id):
+    def _close_clocked_tasks(self, dry_run):
         """关闭未执行的计划任务"""
         self.stdout.write("\n=== 处理计划任务 ===")
 
         # 查询未执行的计划任务（状态为未开始）
         tasks = ClockedTask.objects.filter(state=CLOCKED_TASK_NOT_STARTED)
-        if project_id:
-            tasks = tasks.filter(project_id=project_id)
 
         task_count = tasks.count()
         self.stdout.write(f"找到 {task_count} 个未执行的计划任务")
@@ -100,16 +89,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = options.get("dry_run", False)
-        project_id = options.get("project_id")
-
         self.stdout.write("开始执行任务关闭操作...")
 
         if dry_run:
             self.stdout.write("=== 模拟运行模式 ===")
 
         # 关闭周期任务
-        self._close_periodic_tasks(dry_run, project_id)
+        self._close_periodic_tasks(dry_run)
         # 关闭计划任务
-        self._close_clocked_tasks(dry_run, project_id)
+        self._close_clocked_tasks(dry_run)
 
         self.stdout.write(self.style.SUCCESS("任务关闭操作完成"))

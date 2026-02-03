@@ -24,7 +24,6 @@ from celery import current_app
 from celery.schedules import crontab
 from django.contrib.sessions.models import Session
 from django.core.cache import cache
-from django.core.management import call_command
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask as DjangoCeleryBeatPeriodicTask
@@ -247,20 +246,3 @@ def scan_periodic_task(is_send_notify: bool = True):
             except Exception as e:
                 logger.exception(f"send periodic task notify error: {e}")
     return data
-
-
-@periodic_task(run_every=(crontab(*settings.SYNC_INCREMENTAL_DATA_CRON)))
-def sync_task():
-    """
-    定时同步数据库数据
-    """
-    logger.info("Start sync database data...")
-    start_time = time.time()
-    try:
-        if not settings.SYNC_INCREMENTAL_DATA_SWITCH:
-            return
-
-        call_command("sync_incremental_data")
-        logger.info(f"Sync database data completed, cost time: {time.time() - start_time}")
-    except Exception as e:
-        logger.exception(f"Sync database data error: {e}")
