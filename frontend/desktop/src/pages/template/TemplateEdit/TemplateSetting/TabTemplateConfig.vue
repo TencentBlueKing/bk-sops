@@ -480,7 +480,6 @@
                 }
             }
         },
-
         mounted () {
             // 模板没有设置执行代理人时，默认使用项目下的执行代理人
             if (!this.formData.executorProxy) {
