@@ -35,13 +35,13 @@ from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
 from pipeline.core.flow import StaticIntervalGenerator
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
 from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
@@ -232,7 +232,12 @@ def get_job_tagged_ip_dict(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
         service_logger.warning(message)
         return False, message
 
@@ -332,7 +337,12 @@ def get_job_tagged_ip_dict_complex(
     result = client.jobv3.get_job_instance_status(kwargs)
 
     if not result["result"]:
-        message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", kwargs, result,)
+        message = handle_api_error(
+            __group_name__,
+            "jobv3.get_job_instance_status",
+            kwargs,
+            result,
+        )
         service_logger.warning(message)
         return False, message
 
@@ -417,7 +427,7 @@ def get_job_sops_var_dict(client, service_logger, job_instance_id, bk_biz_id, jo
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 
-class JobService(Service):
+class JobService(BasePluginService):
     __need_schedule__ = True
 
     reload_outputs = True
@@ -428,7 +438,7 @@ class JobService(Service):
 
     biz_scope_type = JobBizScopeType.BIZ.value
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         pass
 
     def is_need_log_outputs_even_fail(self, data):
@@ -444,7 +454,7 @@ class JobService(Service):
         )
         return result, tagged_ip_dict
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
 
         try:
             job_instance_id = callback_data.get("job_instance_id", None)
@@ -508,7 +518,9 @@ class JobService(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -591,7 +603,7 @@ class JobScheduleService(JobService):
 
     need_show_failure_inst_url = False
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         else:
@@ -658,7 +670,7 @@ class JobScheduleService(JobService):
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
 
 
-class Jobv3Service(Service):
+class Jobv3Service(BasePluginService):
     __need_schedule__ = True
 
     reload_outputs = True
@@ -670,7 +682,7 @@ class Jobv3Service(Service):
 
     biz_scope_type = JobBizScopeType.BIZ.value
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         pass
 
     def is_need_log_outputs_even_fail(self, data):
@@ -686,7 +698,7 @@ class Jobv3Service(Service):
         )
         return result, tagged_ip_dict
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
 
         try:
             job_instance_id = callback_data.get("job_instance_id", None)
@@ -748,7 +760,9 @@ class Jobv3Service(Service):
 
                 if not global_var_result["result"]:
                     message = job_handle_api_error(
-                        "jobv3.get_job_instance_global_var_value", get_var_kwargs, global_var_result,
+                        "jobv3.get_job_instance_global_var_value",
+                        get_var_kwargs,
+                        global_var_result,
                     )
                     self.logger.error(message)
                     data.outputs.ex_data = message
@@ -829,7 +843,7 @@ class Jobv3ScheduleService(Jobv3Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         else:
@@ -905,7 +919,12 @@ class GetJobHistoryResultMixin(object):
         job_result = client.jobv3.get_job_instance_status(job_kwargs)
 
         if not job_result["result"]:
-            message = handle_api_error(__group_name__, "jobv3.get_job_instance_status", job_kwargs, job_result,)
+            message = handle_api_error(
+                __group_name__,
+                "jobv3.get_job_instance_status",
+                job_kwargs,
+                job_result,
+            )
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
@@ -925,7 +944,10 @@ class GetJobHistoryResultMixin(object):
             return True
 
         get_job_sops_var_dict_return = get_job_sops_var_dict(
-            client, self.logger, job_success_id, data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
+            client,
+            self.logger,
+            job_success_id,
+            data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
         )
         if not get_job_sops_var_dict_return["result"]:
             self.logger.error(

@@ -1931,7 +1931,8 @@ const en = {
     '粘贴失败': 'Paste failed',
     '编写脚本': 'Write Script',
     '脚本检查': 'Script Check',
-    '排查失败的原因': 'Find out the reason for the failure'
+    '排查失败的原因': 'Find out the reason for the failure',
+    '任务总结': 'Task Summary'
 }
 
 export default en

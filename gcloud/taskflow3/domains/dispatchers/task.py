@@ -22,6 +22,7 @@ from bamboo_engine import exceptions as bamboo_engine_exceptions
 from bamboo_engine import states as bamboo_engine_states
 from bamboo_engine.context import Context
 from bamboo_engine.eri import ContextValue
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -44,6 +45,11 @@ from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_started
 from gcloud.taskflow3.utils import format_bamboo_engine_status, format_pipeline_status
 from pipeline_web.parser.format import classify_constants, format_web_data_to_pipeline
+
+try:
+    from opentelemetry import trace
+except ImportError:
+    trace = None
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
@@ -177,6 +183,19 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             root_pipeline_data = get_pipeline_context(
                 self.pipeline_instance, obj_type="instance", data_type="data", username=executor
             )
+
+            # 捕获当前 trace context 并注入到 root_pipeline_data
+            if settings.ENABLE_OTEL_TRACE and trace:
+                try:
+                    current_span = trace.get_current_span()
+                    if current_span and current_span.get_span_context().is_valid:
+                        span_context = current_span.get_span_context()
+                        # 将 trace_id 和 span_id 转换为十六进制字符串
+                        root_pipeline_data["_trace_id"] = format(span_context.trace_id, "032x")
+                        root_pipeline_data["_parent_span_id"] = format(span_context.span_id, "016x")
+                except Exception as e:
+                    logger.debug(f"[plugin_span] Failed to capture trace context: {e}")
+
             system_obj = SystemObject(root_pipeline_data)
             root_pipeline_context = {"${_system}": system_obj}
             root_pipeline_context.update(get_project_constants_context(self.project_id))
@@ -194,7 +213,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
         except Exception as e:
             logger.exception("run pipeline failed")
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             message = _(f"任务启动失败: 引擎启动失败, 请重试. 如持续失败可联系管理员处理. {e} | start_v2")
             logger.error(message)
@@ -206,7 +227,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
 
         if not result.result:
             PipelineInstance.objects.filter(instance_id=self.pipeline_instance.instance_id, is_started=True).update(
-                start_time=None, is_started=False, executor="",
+                start_time=None,
+                is_started=False,
+                executor="",
             )
             logger.error("run_pipeline fail: {}, exception: {}".format(result.message, result.exc_trace))
         else:

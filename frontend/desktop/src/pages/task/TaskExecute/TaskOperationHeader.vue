@@ -51,6 +51,21 @@
             </div>
         </div>
         <div class="operation-container" slot="expand">
+            <div class="task-summarize">
+                <bk-button
+                    class="mr10"
+                    ext-cls="task-summarize-btn-wrapper"
+                    @click="handleTaskSummarizeClick">
+                    <div class="task-summarize-btn">
+                        <img
+                            src="@/assets/images/assistant-small.svg"
+                            class="task-summarize-assistant-icon"
+                            alt="assistant"
+                        />
+                        <span>{{ $t('任务总结') }}</span>
+                    </div>
+                </bk-button>
+            </div>
             <div class="task-operation-btns" v-show="isTaskOperationBtnsShow">
                 <div
                     v-for="operation in taskOperationBtns"
@@ -247,6 +262,9 @@
             },
             handleAssistantClick () {
                 bus.$emit('checkExecutedFailed')
+            },
+            handleTaskSummarizeClick () {
+                bus.$emit('taskSummarize')
             }
         }
     }
@@ -451,6 +469,82 @@
                 cursor: pointer;
                 &:hover {
                     color: #63656e;
+                }
+            }
+        }
+        .task-summarize {
+            margin-top: 3px;
+            @keyframes glow-left-bottom {
+                0%, 100% {
+                    opacity: 0.4;
+                    transform: translate(-3px, 3px);
+                }
+                50% {
+                    opacity: 0.4;
+                    transform: translate(3px, -3px);
+                }
+            }
+            @keyframes glow-right-top {
+                0%, 100% {
+                    opacity: 0.4;
+                    transform: translate(3px, -3px);
+                }
+                50% {
+                    opacity: 0.4;
+                    transform: translate(-3px, 3px);
+                }
+            }
+            .task-summarize-btn-wrapper {
+                border: none !important;
+                border-radius: 4px;
+                position: relative;
+                overflow: hidden;
+                background: #e9f2ff;
+                color: #313238;
+                &::before {
+                    content: '';
+                    position: absolute;
+                    left: -15px;
+                    bottom: -15px;
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle, #e7cfff, transparent 65%);
+                    opacity: 0;
+                    pointer-events: none;
+                    z-index: 0;
+                    transition: opacity 0.3s;
+                }
+                &::after {
+                    content: '';
+                    position: absolute;
+                    right: -15px;
+                    top: -15px;
+                    width: 45px;
+                    height: 45px;
+                    border-radius: 50%;
+                    background: radial-gradient(circle, #d2fff0, transparent 65%);
+                    opacity: 0;
+                    pointer-events: none;
+                    z-index: 0;
+                    transition: opacity 0.3s;
+                }
+                &:hover::before {
+                    opacity: 1;
+                    animation: glow-left-bottom 1.5s ease-in-out infinite;
+                }
+                &:hover::after {
+                    opacity: 1;
+                    animation: glow-right-top 1.5s ease-in-out infinite;
+                }
+            }
+            .task-summarize-btn {
+                display: flex;
+                align-items: center;
+                position: relative;
+                z-index: 1;
+                .task-summarize-assistant-icon {
+                    margin-right: 8px;
                 }
             }
         }

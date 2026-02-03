@@ -16,13 +16,14 @@ import base64
 import rsa
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 from pipeline.utils.crypt import rsa_decrypt_password
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils.ip import get_ip_by_regex
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("节点管理(Nodeman)")
 
@@ -42,11 +43,11 @@ def nodeman_rsa_encrypt(message):
     return base64.b64encode(rsa.encrypt(message, rsa.PublicKey.load_pkcs1_openssl_pem(PUBLIC_KEY)))
 
 
-class NodemanCreateTaskService(Service):
+class NodemanCreateTaskService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
 
@@ -123,7 +124,7 @@ class NodemanCreateTaskService(Service):
             data.set_outputs("ex_data", message)
             return False
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         bk_biz_id = data.inputs.biz_cc_id
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
@@ -189,20 +190,32 @@ class NodemanCreateTaskService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务 ID"), key="job_id", type="int", schema=IntItemSchema(description=_("提交的任务的 job_id")),
+                name=_("任务 ID"),
+                key="job_id",
+                type="int",
+                schema=IntItemSchema(description=_("提交的任务的 job_id")),
             ),
             self.OutputItem(
-                name=_("安装成功个数"), key="success_num", type="int", schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
+                name=_("安装成功个数"),
+                key="success_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装成功的机器个数")),
             ),
             self.OutputItem(
-                name=_("安装失败个数"), key="fail_num", type="int", schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
+                name=_("安装失败个数"),
+                key="fail_num",
+                type="int",
+                schema=IntItemSchema(description=_("任务中安装失败的机器个数")),
             ),
         ]
 
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="biz_cc_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="biz_cc_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("管控区域 ID"),
