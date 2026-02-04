@@ -29,7 +29,10 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("业务 ID"), key="bk_biz_id", type="int", schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
+                name=_("业务 ID"),
+                key="bk_biz_id",
+                type="int",
+                schema=IntItemSchema(description=_("当前操作所属的 CMDB 业务 ID")),
             ),
             self.InputItem(
                 name=_("插件操作信息"),
@@ -74,7 +77,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
         outputs_format = super(NodemanPluginOperateService, self).outputs_format()
         return outputs_format
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         bk_biz_id = data.inputs.biz_cc_id
 
