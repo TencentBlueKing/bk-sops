@@ -110,8 +110,8 @@
                             {{ $t('克隆') }}
                         </p>
                         <p
-                            :class="['operate-item', { 'disabled': isComponentVar }]"
-                            v-bk-tooltips="{ content: componentVarDisabledTip, disabled: !isComponentVar }"
+                            :class="['operate-item', { 'disabled': isComponentIutputs }]"
+                            v-bk-tooltips="{ content: componentVarDisabledTip, disabled: !isComponentIutputs }"
                             @click.stop="onDeleteVariable">{{ $t('删除') }}
                         </p>
                     </template>
@@ -181,6 +181,9 @@
             },
             isComponentVar () {
                 return ['component_outputs', 'component_inputs'].includes(this.variableData.source_type)
+            },
+            isComponentIutputs () {
+                return this.variableData.source_type === 'component_inputs'
             },
             componentVarDisabledTip () {
                 return this.variableData.source_type === 'component_inputs'
@@ -299,7 +302,7 @@
                 }
             },
             onDeleteVariable () {
-                if (this.isComponentVar) return
+                if (this.isComponentIutputs) return
                 const h = this.$createElement
                 this.$bkInfo({
                     subHeader: h('div', { class: 'custom-header' }, [
