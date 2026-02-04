@@ -120,7 +120,10 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                 schema=StringItemSchema(description=_("执行脚本的目标机器 IP，多个用英文逗号 `,` 分隔")),
             ),
             self.InputItem(
-                name=_("目标账户"), key="job_account", type="string", schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
+                name=_("目标账户"),
+                key="job_account",
+                type="string",
+                schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
                 name=_("IP 存在性校验"),
@@ -160,7 +163,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         job_success_id = data.get_one_of_inputs("job_success_id")
         if job_success_id:
             history_result = self.get_job_history_result(data, parent_data)
@@ -270,9 +273,6 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastExecuteScriptService, self).schedule(data, parent_data, callback_data)
 
 
 class JobFastExecuteScriptComponent(Component):

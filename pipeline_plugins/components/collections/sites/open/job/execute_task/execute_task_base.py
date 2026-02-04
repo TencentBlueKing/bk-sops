@@ -142,7 +142,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
 
         return server
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         client.set_bk_api_ver("v2")

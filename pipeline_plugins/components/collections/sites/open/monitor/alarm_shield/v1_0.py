@@ -13,19 +13,19 @@ specific language governing permissions and limitations under the License.
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
 from api import BKMonitorClient
 from gcloud.conf import settings
-from pipeline.core.flow.io import StringItemSchema, ObjectItemSchema
-from pipeline.component_framework.component import Component
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
 from pipeline_plugins.components.utils.sites.open.utils import get_module_id_list_by_name
 from pipeline_plugins.variables.utils import (
-    get_set_list,
     get_list_by_selected_names,
     get_service_template_list,
     get_service_template_list_by_names,
+    get_set_list,
 )
 
 SCOPE = {"business": "bk_alarm_shield_business", "IP": "bk_alarm_shield_IP", "node": "bk_alarm_shield_node"}
@@ -42,7 +42,7 @@ class MonitorAlarmShieldService(MonitorBaseService):
                 name=_("屏蔽范围类型"),
                 key="bk_alarm_shield_info",
                 type="object",
-                schema=ObjectItemSchema(description=_(u"屏蔽范围类型"), property_schemas={}),
+                schema=ObjectItemSchema(description=_("屏蔽范围类型"), property_schemas={}),
             ),
             self.InputItem(
                 name=_("策略 ID"),
@@ -64,7 +64,7 @@ class MonitorAlarmShieldService(MonitorBaseService):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
         client = BKMonitorClient(username=executor)

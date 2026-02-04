@@ -14,10 +14,10 @@ from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import StringItemSchema
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from api.collections.monitor import BKMonitorClient
 
+from api.collections.monitor import BKMonitorClient
 from gcloud.conf import settings
+from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base import MonitorAlarmShieldServiceBase
 from pipeline_plugins.components.utils.sites.open.choose_time_tools import choose_time
 
@@ -35,7 +35,7 @@ class MonitorAlarmShieldService(MonitorAlarmShieldServiceBase):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
         client = BKMonitorClient(username=executor)

@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import copy
 import enum
 import logging
+import random
 import time
 from contextlib import contextmanager
 from functools import wraps
@@ -20,8 +21,11 @@ from typing import Optional
 
 from django.conf import settings
 from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import Span as SDKSpan
+from opentelemetry.sdk.trace import SpanLimits, TracerProvider
 from opentelemetry.sdk.trace.export import SpanProcessor
+from opentelemetry.sdk.util.instrumentation import InstrumentationScope
 from opentelemetry.trace import NonRecordingSpan, SpanContext, SpanKind, Status, StatusCode, TraceFlags
 
 logger = logging.getLogger("root")
@@ -147,16 +151,86 @@ def trace_view(propagate: bool = True, attr_keys=None, **default_attributes):
     return decorator
 
 
+# ==================== Execution Span 相关功能 ====================
+
+
+def create_execution_span(
+    task_id: int,
+    project_id: int,
+    pipeline_instance_id: str,
+) -> tuple:
+    """
+    创建 bksops.execution span 作为所有插件 span 的根 span
+
+    :param task_id: 任务 ID
+    :param project_id: 项目 ID
+    :param pipeline_instance_id: Pipeline 实例 ID
+    :return: (trace_id_hex, span_id_hex) 元组，如果创建失败则返回 (None, None)
+    """
+    if not settings.ENABLE_OTEL_TRACE:
+        return None, None
+
+    try:
+        tracer = trace.get_tracer(__name__)
+        platform_code = getattr(settings, "APP_CODE", "bk_sops")
+        span_name = f"{platform_code}.execution"
+
+        # 获取当前 span 作为父 span
+        current_span = trace.get_current_span()
+        parent_context = None
+        if current_span and current_span.get_span_context().is_valid:
+            parent_context = trace.set_span_in_context(current_span)
+
+        # 创建 execution span
+        start_time_ns = int(time.time() * 1e9)
+        span = tracer.start_span(
+            name=span_name,
+            context=parent_context,
+            start_time=start_time_ns,
+            kind=SpanKind.INTERNAL,
+        )
+
+        # 设置属性
+        span.set_attribute(f"{platform_code}.task_id", str(task_id))
+        span.set_attribute(f"{platform_code}.project_id", str(project_id))
+        span.set_attribute(f"{platform_code}.pipeline_instance_id", str(pipeline_instance_id))
+
+        # 获取 span context
+        span_context = span.get_span_context()
+        trace_id_hex = format(span_context.trace_id, "032x")
+        span_id_hex = format(span_context.span_id, "016x")
+
+        # 立即结束 span（异步执行场景，span 只是作为父 span 使用）
+        span.set_status(Status(StatusCode.OK))
+        span.end()
+
+        return trace_id_hex, span_id_hex
+
+    except Exception as e:
+        logger.debug(f"[plugin_span] Failed to create execution span: {e}")
+        return None, None
+
+
 # ==================== Plugin Span 相关功能 ====================
 
 # Span 信息在 data.outputs 中的 key
 PLUGIN_SPAN_START_TIME_KEY = "_plugin_span_start_time_ns"
 PLUGIN_SPAN_NAME_KEY = "_plugin_span_name"
 PLUGIN_SPAN_TRACE_ID_KEY = "_plugin_span_trace_id"
-PLUGIN_SPAN_PARENT_SPAN_ID_KEY = "_plugin_span_parent_span_id"
+PLUGIN_SPAN_PARENT_SPAN_ID_KEY = "_plugin_span_parent_span_id"  # execution span 的 ID
+PLUGIN_SPAN_ID_KEY = "_plugin_span_id"  # 预生成的 plugin span ID，用于作为 method span 的父 span
 PLUGIN_SPAN_ATTRIBUTES_KEY = "_plugin_span_attributes"
 PLUGIN_SPAN_ENDED_KEY = "_plugin_span_ended"
 PLUGIN_SCHEDULE_COUNT_KEY = "_plugin_schedule_count"
+
+
+def _generate_span_id() -> int:
+    """
+    生成一个 64 位的随机 span_id
+
+    :return: span_id (整数)
+    """
+    return random.getrandbits(64)
 
 
 def start_plugin_span(
@@ -167,18 +241,21 @@ def start_plugin_span(
     **attributes,
 ) -> int:
     """
-    记录插件Span的开始时间，将相关信息保存到data outputs中，用于跨schedule调用追踪
+    记录插件 Span 的开始信息，将相关信息保存到 data outputs 中，用于跨 schedule 调用追踪。
+    实际的 Span 会在 end_plugin_span 时创建，以确保有正确的开始和结束时间。
+
+    同时会预先生成 plugin span 的 span_id，用于作为 execute/schedule 方法 span 的父 span。
 
     :param span_name: Span 名称
     :param data: 插件数据对象
     :param trace_id: Trace ID (十六进制字符串)
-    :param parent_span_id: Parent Span ID (十六进制字符串)
+    :param parent_span_id: Parent Span ID (十六进制字符串)，即 execution span 的 ID
     :param attributes: Span 属性
     :return: 开始时间（纳秒）
     """
     start_time_ns = int(time.time() * 1e9)
 
-    # 将span信息保存到data outputs中，以便在schedule中使用
+    # 将 span 信息保存到 data outputs 中，以便在 end_plugin_span 中使用
     data.set_outputs(PLUGIN_SPAN_START_TIME_KEY, start_time_ns)
     data.set_outputs(PLUGIN_SPAN_NAME_KEY, span_name)
 
@@ -187,6 +264,12 @@ def start_plugin_span(
         data.set_outputs(PLUGIN_SPAN_TRACE_ID_KEY, trace_id)
     if parent_span_id:
         data.set_outputs(PLUGIN_SPAN_PARENT_SPAN_ID_KEY, parent_span_id)
+
+    # 预先生成 plugin span 的 span_id，用于作为 execute/schedule 方法的父 span
+    # 这个 span_id 会在 end_plugin_span 时创建实际的 span 时使用
+    plugin_span_id = _generate_span_id()
+    plugin_span_id_hex = format(plugin_span_id, "016x")
+    data.set_outputs(PLUGIN_SPAN_ID_KEY, plugin_span_id_hex)
 
     # 确保属性值可以序列化
     serializable_attributes = {k: str(v) if v is not None else "" for k, v in attributes.items()}
@@ -202,7 +285,8 @@ def end_plugin_span(
     end_time_ns: Optional[int] = None,
 ):
     """
-    结束插件Span，创建完整的Span并立即结束
+    结束插件 Span，创建完整的 Span 并立即结束。
+    使用预先生成的 span_id 确保 execute/schedule 方法 span 正确地指向此 span 作为父 span。
 
     :param data: 插件数据对象
     :param success: 是否成功
@@ -219,6 +303,7 @@ def end_plugin_span(
         attributes = data.get_one_of_outputs(PLUGIN_SPAN_ATTRIBUTES_KEY) or {}
         trace_id_hex = data.get_one_of_outputs(PLUGIN_SPAN_TRACE_ID_KEY)
         parent_span_id_hex = data.get_one_of_outputs(PLUGIN_SPAN_PARENT_SPAN_ID_KEY)
+        plugin_span_id_hex = data.get_one_of_outputs(PLUGIN_SPAN_ID_KEY)
 
         if not start_time_ns or not span_name:
             return
@@ -226,36 +311,61 @@ def end_plugin_span(
         if end_time_ns is None:
             end_time_ns = int(time.time() * 1e9)
 
-        tracer = trace.get_tracer(__name__)
+        platform_code = getattr(settings, "APP_CODE", "bk_sops")
 
-        # 尝试重建 parent context
-        parent_context = _build_parent_context(trace_id_hex, parent_span_id_hex)
-
-        # 创建 span，如果有 parent context 则使用
-        span = tracer.start_span(
-            name=span_name,
-            context=parent_context,  # 如果为 None，则创建新的 trace
-            start_time=start_time_ns,
-            kind=SpanKind.CLIENT,
+        # 使用预生成的 span_id 创建 span
+        # 这确保 execute/schedule 方法 span 的父 span_id 指向正确的 span
+        span = _create_span_with_custom_id(
+            span_name=span_name,
+            trace_id_hex=trace_id_hex,
+            span_id_hex=plugin_span_id_hex,
+            parent_span_id_hex=parent_span_id_hex,
+            start_time_ns=start_time_ns,
+            end_time_ns=end_time_ns,
         )
 
-        # 设置属性
-        platform_code = getattr(settings, "APP_CODE", "bk_sops")
-        for key, value in attributes.items():
-            span.set_attribute(f"{platform_code}.plugin.{key}", value)
+        if span is None:
+            # 如果无法使用自定义 span_id 创建 span，回退到标准方式
+            tracer = trace.get_tracer(__name__)
+            parent_context = _build_parent_context(trace_id_hex, parent_span_id_hex)
+            span = tracer.start_span(
+                name=span_name,
+                context=parent_context,
+                start_time=start_time_ns,
+                kind=SpanKind.CLIENT,
+            )
 
-        # 设置执行结果状态
-        if success:
-            span.set_status(Status(StatusCode.OK))
-            span.set_attribute(f"{platform_code}.plugin.success", True)
+            # 设置属性
+            for key, value in attributes.items():
+                span.set_attribute(f"{platform_code}.plugin.{key}", value)
+
+            # 设置执行结果状态
+            if success:
+                span.set_status(Status(StatusCode.OK))
+                span.set_attribute(f"{platform_code}.plugin.success", True)
+            else:
+                span.set_status(Status(StatusCode.ERROR, error_message or "Plugin execution failed"))
+                span.set_attribute(f"{platform_code}.plugin.success", False)
+                if error_message:
+                    span.set_attribute(f"{platform_code}.plugin.error", str(error_message)[:1000])
+
+            span.end(end_time=end_time_ns)
         else:
-            span.set_status(Status(StatusCode.ERROR, error_message or "Plugin execution failed"))
-            span.set_attribute(f"{platform_code}.plugin.success", False)
-            if error_message:
-                span.set_attribute(f"{platform_code}.plugin.error", str(error_message)[:1000])
+            # 使用自定义 span_id 创建成功，设置属性
+            for key, value in attributes.items():
+                span.set_attribute(f"{platform_code}.plugin.{key}", value)
 
-        # 手动结束span，设置结束时间
-        span.end(end_time=end_time_ns)
+            if success:
+                span.set_status(Status(StatusCode.OK))
+                span.set_attribute(f"{platform_code}.plugin.success", True)
+            else:
+                span.set_status(Status(StatusCode.ERROR, error_message or "Plugin execution failed"))
+                span.set_attribute(f"{platform_code}.plugin.success", False)
+                if error_message:
+                    span.set_attribute(f"{platform_code}.plugin.error", str(error_message)[:1000])
+
+            span.end(end_time=end_time_ns)
+
     except Exception as e:
         logger.debug(f"[plugin_span] Failed to end plugin span: {e}")
 
@@ -296,11 +406,104 @@ def _build_parent_context(trace_id_hex: Optional[str], parent_span_id_hex: Optio
         return None
 
 
+def _create_span_with_custom_id(
+    span_name: str,
+    trace_id_hex: Optional[str],
+    span_id_hex: Optional[str],
+    parent_span_id_hex: Optional[str],
+    start_time_ns: int,
+    end_time_ns: int,
+):
+    """
+    使用自定义的 span_id 创建 span。这是为了确保 execute/schedule 方法 span
+    能够正确地指向 plugin span 作为父 span。
+
+    :param span_name: Span 名称
+    :param trace_id_hex: Trace ID (十六进制字符串)
+    :param span_id_hex: 预生成的 Span ID (十六进制字符串)
+    :param parent_span_id_hex: Parent Span ID (十六进制字符串)
+    :param start_time_ns: 开始时间（纳秒）
+    :param end_time_ns: 结束时间（纳秒）
+    :return: Span 对象或 None
+    """
+    if not trace_id_hex or not span_id_hex:
+        return None
+
+    try:
+        # 将十六进制字符串转换为整数
+        trace_id_int = int(trace_id_hex, 16)
+        span_id_int = int(span_id_hex, 16)
+        parent_span_id_int = int(parent_span_id_hex, 16) if parent_span_id_hex else 0
+
+        # 创建自定义 SpanContext
+        span_context = SpanContext(
+            trace_id=trace_id_int,
+            span_id=span_id_int,
+            is_remote=False,
+            trace_flags=TraceFlags(0x01),  # SAMPLED
+        )
+
+        if not span_context.is_valid:
+            return None
+
+        # 创建 parent SpanContext
+        parent_span_context = None
+        if parent_span_id_int:
+            parent_span_context = SpanContext(
+                trace_id=trace_id_int,
+                span_id=parent_span_id_int,
+                is_remote=True,
+                trace_flags=TraceFlags(0x01),
+            )
+
+        # 获取 TracerProvider 和相关资源
+        provider = trace.get_tracer_provider()
+
+        # 尝试获取 span processor
+        span_processor = None
+        resource = Resource.create({})
+        if hasattr(provider, "_active_span_processor"):
+            span_processor = provider._active_span_processor
+        if hasattr(provider, "resource"):
+            resource = provider.resource
+
+        # 创建 InstrumentationScope
+        instrumentation_scope = InstrumentationScope(
+            name=__name__,
+            version="",
+        )
+
+        # 创建 SDK Span
+        span = SDKSpan(
+            name=span_name,
+            context=span_context,
+            parent=parent_span_context,
+            resource=resource,
+            attributes=None,
+            events=None,
+            links=None,
+            kind=SpanKind.CLIENT,
+            span_processor=span_processor,
+            limits=SpanLimits(),
+            instrumentation_scope=instrumentation_scope,
+            record_exception=True,
+            set_status_on_exception=True,
+            start_time=start_time_ns,
+        )
+
+        return span
+
+    except Exception as e:
+        logger.debug(f"[plugin_span] Failed to create span with custom id: {e}")
+        return None
+
+
 @contextmanager
 def plugin_method_span(
     method_name: str,
     trace_id: Optional[str] = None,
     parent_span_id: Optional[str] = None,
+    plugin_span_id: Optional[str] = None,
     **attributes,
 ):
     """
@@ -308,7 +511,8 @@ def plugin_method_span(
 
     :param method_name: 方法名称 (execute 或 schedule)
     :param trace_id: Trace ID (十六进制字符串)
-    :param parent_span_id: Parent Span ID (十六进制字符串)
+    :param parent_span_id: Parent Span ID (来自 parent_data，即 execution span 的 ID，作为备选)
+    :param plugin_span_id: Plugin Span ID (预生成的 plugin span ID，作为首选父 span)
     :param attributes: Span 属性
     :yield: SpanResult 对象，用于设置执行结果
     """
@@ -343,8 +547,10 @@ def plugin_method_span(
             end_time_ns = int(time.time() * 1e9)
             tracer = trace.get_tracer(__name__)
 
-            # 尝试重建 parent context
-            parent_context = _build_parent_context(trace_id, parent_span_id)
+            # 优先使用 plugin_span_id 作为父 span，如果没有则使用 execution span
+            # 这样 execute/schedule 方法 span 会正确地显示为 plugin span 的子 span
+            actual_parent_span_id = plugin_span_id if plugin_span_id else parent_span_id
+            parent_context = _build_parent_context(trace_id, actual_parent_span_id)
 
             # 创建 span
             span = tracer.start_span(

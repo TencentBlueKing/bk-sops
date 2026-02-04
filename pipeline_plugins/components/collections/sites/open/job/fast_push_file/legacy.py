@@ -12,29 +12,20 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-from functools import partial
 from copy import deepcopy
+from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.io import (
-    StringItemSchema,
-    ArrayItemSchema,
-    ObjectItemSchema,
-)
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
-from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.utils import (
-    get_job_instance_url,
-    get_node_callback_url,
-    loose_strip,
-)
-from pipeline_plugins.components.collections.sites.open.job import JobService
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.components.collections.sites.open.job import JobService
+from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url, loose_strip
 
 logger = logging.getLogger("celery")
 __group_name__ = _("作业平台(JOB)")
@@ -86,7 +77,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         client.set_bk_api_ver("v2")
@@ -155,9 +146,6 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return super(JobFastPushFileService, self).outputs_format()
