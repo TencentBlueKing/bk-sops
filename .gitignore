@@ -115,3 +115,9 @@ staticfiles/*
 
 
 pre-*-bkcodeai
+
+# CodeBuddy project data
+.codebuddy/
+
+# BKUI knowledge base config
+.bkui-knowledge.json
