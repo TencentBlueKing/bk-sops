@@ -326,7 +326,7 @@
                         },
                         {
                             validator: () => {
-                                return !this.isDateBeforeToday(this.formData.plan_start_time)
+                                return !this.isDateTimeBeforeNow(this.formData.plan_start_time)
                             },
                             message: i18n.t('启动时间不能小于当前时间'),
                             trigger: 'blur'
@@ -914,6 +914,13 @@
                 const testDateUTC = moment.utc(moment(date).format('YYYY-MM-DD')).startOf('day')
                 const isBeforeToday = testDateUTC.isBefore(todayUTC)
                 return isBeforeToday
+            },
+            isDateTimeBeforeNow (date) {
+                if (!date) return false
+                const timezone = this.localSelectTimezone || moment.tz.guess()
+                const nowInTimezone = moment().tz(timezone)
+                const selectedTime = moment.tz(date, timezone)
+                return selectedTime.isBefore(nowInTimezone)
             },
             handleTimezoneChange (value) {
                 this.localSelectTimezone = value
