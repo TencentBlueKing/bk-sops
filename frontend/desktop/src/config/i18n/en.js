@@ -1932,7 +1932,22 @@ const en = {
     '编写脚本': 'Write Script',
     '脚本检查': 'Script Check',
     '排查失败的原因': 'Find out the reason for the failure',
-    '任务总结': 'Task Summary'
+    '任务总结': 'Task Summary',
+    '生成进度': 'Generation Progress',
+    '正在准备生成环境...': 'Preparing generation environment...',
+    '生成完成！': 'Generation completed!',
+    '正在分析流程描述...': 'Analyzing process description...',
+    '正在调用 AI 模型...': 'Calling AI model...',
+    '正在生成流程结构...': 'Generating process structure...',
+    '正在优化流程布局...': 'Optimizing process layout...',
+    '正在完成最后处理...': 'Completing final processing...',
+    '即将完成，请稍候...': 'Almost done, please wait...',
+    'AI 生成': 'AI Generate',
+    'AI 生成流程': 'AI Generate Flow',
+    '流程描述': 'Flow Description',
+    'AI 正在生成流程，请稍候...': 'AI is generating flow, please wait...',
+    '请描述您想要创建的流程，例如：创建一个并行条件流程，执行数据库备份和日志清理，只有数据库所在服务器的log超过其磁盘80%时，才触发日志清理，完成后发送通知': 'Please describe the flow you want to create. For example: Create a parallel conditional flow to execute database backup and log cleanup. Log cleanup is triggered only when the log on the database server exceeds 80% of the disk. Send a notification after completion.'
+
 }
 
 export default en
