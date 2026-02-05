@@ -249,7 +249,7 @@ export const getFormMixins = (attrs = {}) => {
                         }
                         case 'regex':
                             let regexPattern = config.args
-                            if (regexPattern) {
+                            if (regexPattern && typeof regexPattern === 'string') {
                                 // 转换转义的正则表达式特殊字符
                                 regexPattern = regexPattern
                                     .replace(/\\\+/g, '+') // \+ -> +
