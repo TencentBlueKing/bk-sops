@@ -270,6 +270,7 @@
             const startTime = plan_start_time ? plan_start_time.split('+')[0] : ''
             const tempSchemeId = task_parameters.template_schemes_id || []
             const schemeId = this.type === 'create' ? [] : tempSchemeId.length ? tempSchemeId : []
+            const curTimezone = timezone
             return {
                 formData: {
                     template_id,
