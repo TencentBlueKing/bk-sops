@@ -27,6 +27,7 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
     creator = serializers.CharField(help_text="计划任务创建人", read_only=True)
     editor = serializers.CharField(help_text="计划任务编辑人", read_only=True)
     state = serializers.CharField(help_text="计划任务状态", read_only=True)
+    timezone = serializers.CharField(help_text="计划任务时区", default=timezone.get_current_timezone_name())
     plan_start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z")
     create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)
     edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S%z", read_only=True)
@@ -57,6 +58,20 @@ class ClockedTaskSerializer(serializers.ModelSerializer):
         if now > plan_start_time:
             raise serializers.ValidationError("Plan start time should be later than the time to create the plan")
         return plan_start_time
+
+    def to_representation(self, instance):
+        """在序列化时转换plan_start_time到指定时区"""
+        data = super().to_representation(instance)
+
+        # 获取时区信息
+        tz_name = instance.timezone or timezone.get_current_timezone_name()
+
+        # 转换plan_start_time到目标时区
+        plan_start_time = instance.plan_start_time
+        dt_converted = plan_start_time.astimezone(pytz.timezone(tz_name))
+        data["plan_start_time"] = dt_converted.strftime("%Y-%m-%d %H:%M:%S%z")
+
+        return data
 
     class Meta:
         model = ClockedTask

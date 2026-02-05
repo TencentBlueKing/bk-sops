@@ -37,6 +37,7 @@ class ClockedTaskManager(models.Manager):
         template_name = kwargs["template_name"]
         notify_type = kwargs.get("notify_type", "[]")
         notify_receivers = kwargs.get("notify_receivers", "{}")
+        timezone = kwargs["timezone"]
 
         optional_keys = ["editor", "edit_time", "create_time"]
         # 过滤 optional_keys 中不存在于 kwargs 的属性
@@ -54,6 +55,7 @@ class ClockedTaskManager(models.Manager):
                 task_params=task_params,
                 notify_type=notify_type,
                 notify_receivers=notify_receivers,
+                timezone=timezone,
                 **extra_data,
             )
             clocked_task_kwargs = {"clocked_task_id": task.id}
@@ -97,6 +99,7 @@ class ClockedTask(models.Model):
     state = models.CharField(
         help_text="计划任务状态", max_length=64, choices=CLOCKED_TASK_STATE, default=CLOCKED_TASK_NOT_STARTED
     )
+    timezone = models.CharField(help_text="计划任务时区", max_length=64, default="UTC")
 
     objects = ClockedTaskManager()
 

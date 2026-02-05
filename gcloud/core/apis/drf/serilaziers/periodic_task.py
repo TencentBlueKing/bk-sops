@@ -70,6 +70,7 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
     create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
     edit_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S %z", read_only=True)
     is_latest = serializers.SerializerMethodField(help_text="版本是否最新", read_only=True)
+    timezone = serializers.CharField(help_text="时区", read_only=True)
     template_scheme_ids = serializers.SerializerMethodField(
         help_text="任务创建时执行方案列表，任务创建以pipeline_tree为准，仅供参考", read_only=True
     )
@@ -96,6 +97,7 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
             "cron",
             "enabled",
             "last_run_at",
+            "timezone",
             "name",
             "task_template_name",
             "template_id",
@@ -131,6 +133,7 @@ class PeriodicTaskListReadOnlySerializer(PeriodicTaskReadOnlySerializer):
             "is_latest",
             "template_scheme_ids",
             "template_version",
+            "timezone",
         ]
 
 

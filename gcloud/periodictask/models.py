@@ -203,6 +203,10 @@ class PeriodicTask(models.Model):
         return django_celery_beat_cron_time_format_fit(self.task.cron)
 
     @property
+    def timezone(self):
+        return self.task.celery_task.crontab.timezone
+
+    @property
     def total_run_count(self):
         return self.task.total_run_count
 
