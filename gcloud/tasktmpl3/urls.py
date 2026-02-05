@@ -14,9 +14,9 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import url
 
 from gcloud.tasktmpl3.apis.django import api
-from gcloud.tasktmpl3.apis.drf.viewsets.variable_field_explain import VariableFieldExplainView
-from gcloud.tasktmpl3.apis.drf.viewsets.form_with_schemes import TemplateFormWithSchemesView
 from gcloud.tasktmpl3.apis.drf.viewsets.batch_form_with_schemes import BatchTemplateFormWithSchemesView
+from gcloud.tasktmpl3.apis.drf.viewsets.form_with_schemes import TemplateFormWithSchemesView
+from gcloud.tasktmpl3.apis.drf.viewsets.variable_field_explain import VariableFieldExplainView
 
 urlpatterns = [
     # [deprecated] this api will be instead of form_with_schemes
@@ -37,4 +37,5 @@ urlpatterns = [
     url(r"^api/variable_field_explain/$", VariableFieldExplainView.as_view()),
     url(r"^api/form_with_schemes/", TemplateFormWithSchemesView.as_view()),
     url(r"^api/batch_form_with_schemes/", BatchTemplateFormWithSchemesView.as_view()),
+    url(r"^api/generate_process_with_agent/$", api.generate_process_with_agent),
 ]
