@@ -292,7 +292,6 @@
                 timezone
             } = this.curRow
             const schemeId = template_scheme_ids || []
-            const curTimezone = timezone
             return {
                 formData: {
                     name,
@@ -380,7 +379,7 @@
                 isTplDeleted: false, // 旧数据模板是否被删除
                 hasDeleteScheme: false, // 是否存在执行方案被删除
                 cronExpression: this.cron, // 周期表达式
-                localSelectTimezone: curTimezone || window.TIMEZONE
+                localSelectTimezone: timezone || window.TIMEZONE
             }
         },
         computed: {
