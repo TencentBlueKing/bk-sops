@@ -263,10 +263,11 @@
                 task_name = '',
                 plan_start_time = '',
                 template_id = '',
-                task_parameters = {}
+                task_parameters = {},
+                timezone
             } = this.curRow
             const taskName = this.type === 'clone' ? task_name + '_clone' : task_name
-            const startTime = plan_start_time.split('+')[0]
+            const startTime = plan_start_time ? plan_start_time.split('+')[0] : ''
             const tempSchemeId = task_parameters.template_schemes_id || []
             const schemeId = this.type === 'create' ? [] : tempSchemeId.length ? tempSchemeId : []
             return {
@@ -364,7 +365,7 @@
                 flowName: '',
                 isTplDeleted: false, // 旧数据模板是否被删除
                 hasDeleteScheme: false, // 是否存在执行方案被删除
-                localSelectTimezone: window.TIMEZONE
+                localSelectTimezone: timezone || window.TIMEZONE
             }
         },
         computed: {
@@ -798,7 +799,8 @@
                             plan_start_time: this.sameTimeStamp ? undefined : time + this.locTimeZone,
                             task_parameters: {
                                 constants: this.isTplDeleted && this.type === 'edit' ? constants : taskParamEdit ? taskParamEdit.renderData : {}
-                            }
+                            },
+                            timezone: this.localSelectTimezone
                         }
                         if (this.isLatest) {
                             const schemeIds = this.formData.schemeId.filter(item => item)
@@ -862,7 +864,8 @@
                             success: this.notifyType[0],
                             fail: this.notifyType[1]
                         },
-                        plan_start_time: plan_start_time + this.locTimeZone
+                        plan_start_time: plan_start_time + this.locTimeZone,
+                        timezone: this.localSelectTimezone
                     }
                     try {
                         await this.createClocked(data)

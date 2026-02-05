@@ -47,12 +47,13 @@ const clocked = {
          * @param {Object} data 所需参数
          */
         updateClocked ({ state }, data) {
-            const { id, task_parameters, plan_start_time, task_name } = data
+            const { id, task_parameters, plan_start_time, task_name, timezone } = data
 
             return axios.patch(`api/v4/clocked_task/${id}/`, {
                 task_name,
                 task_parameters,
-                plan_start_time
+                plan_start_time,
+                timezone
             }).then(response => response.data)
         },
         /**
