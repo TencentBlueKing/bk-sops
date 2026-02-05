@@ -292,7 +292,6 @@
                 timezone
             } = this.curRow
             const schemeId = template_scheme_ids || []
-            const curTimezone = timezone
             return {
                 formData: {
                     name,
