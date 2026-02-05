@@ -19,6 +19,7 @@ from pipeline.core.flow.activity import Service
 from gcloud.core.trace import (
     PLUGIN_SCHEDULE_COUNT_KEY,
     PLUGIN_SPAN_ENDED_KEY,
+    PLUGIN_SPAN_ID_KEY,
     end_plugin_span,
     plugin_method_span,
     start_plugin_span,
@@ -52,16 +53,19 @@ class BasePluginService(Service):
     # 是否启用插件 Span 追踪，子类可以覆盖
     enable_plugin_span = True
 
-    def _get_trace_context(self, parent_data):
+    def _get_trace_context(self, data, parent_data):
         """
-        从 parent_data 中获取 trace context
+        获取 trace context，包括从 parent_data 中获取的 trace_id 和 parent_span_id，
+        以及从 data.outputs 中获取的 plugin_span_id
 
+        :param data: 插件数据对象
         :param parent_data: 父级数据对象
-        :return: 包含 trace_id 和 parent_span_id 的字典
+        :return: 包含 trace_id、parent_span_id 和 plugin_span_id 的字典
         """
         return {
             "trace_id": parent_data.get_one_of_inputs("_trace_id"),
             "parent_span_id": parent_data.get_one_of_inputs("_parent_span_id"),
+            "plugin_span_id": data.get_one_of_outputs(PLUGIN_SPAN_ID_KEY),
         }
 
     def _get_span_name(self):
@@ -171,7 +175,7 @@ class BasePluginService(Service):
         """
         self._start_plugin_span(data, parent_data)
 
-        trace_context = self._get_trace_context(parent_data)
+        trace_context = self._get_trace_context(data, parent_data)
         method_attrs = self._get_method_span_attributes(data, parent_data)
 
         if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
@@ -179,6 +183,7 @@ class BasePluginService(Service):
                 method_name="execute",
                 trace_id=trace_context.get("trace_id"),
                 parent_span_id=trace_context.get("parent_span_id"),
+                plugin_span_id=trace_context.get("plugin_span_id"),
                 **method_attrs,
             ) as span_result:
                 result = self.plugin_execute(data, parent_data)
@@ -204,7 +209,7 @@ class BasePluginService(Service):
         :param callback_data: 回调数据
         :return: 调度结果
         """
-        trace_context = self._get_trace_context(parent_data)
+        trace_context = self._get_trace_context(data, parent_data)
         method_attrs = self._get_method_span_attributes(data, parent_data)
 
         if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
@@ -216,6 +221,7 @@ class BasePluginService(Service):
                 method_name="schedule",
                 trace_id=trace_context.get("trace_id"),
                 parent_span_id=trace_context.get("parent_span_id"),
+                plugin_span_id=trace_context.get("plugin_span_id"),
                 **method_attrs,
             ) as span_result:
                 result = self.plugin_schedule(data, parent_data, callback_data)

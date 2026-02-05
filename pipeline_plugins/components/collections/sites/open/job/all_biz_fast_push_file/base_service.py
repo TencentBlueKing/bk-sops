@@ -53,7 +53,10 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
                 ),
             ),
             self.InputItem(
-                name=_("上传限速"), key="upload_speed_limit", type="string", schema=StringItemSchema(description=_("MB/s")),
+                name=_("上传限速"),
+                key="upload_speed_limit",
+                type="string",
+                schema=StringItemSchema(description=_("MB/s")),
             ),
             self.InputItem(
                 name=_("下载限速"),
@@ -112,7 +115,7 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
 
         return file_source
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
 
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)

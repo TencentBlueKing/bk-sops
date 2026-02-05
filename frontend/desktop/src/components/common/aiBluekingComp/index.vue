@@ -32,16 +32,22 @@
         watch: {
             '$route': {
                 handler () {
-                    const { instance_id: instanceId } = this.$route.query
-                    const params = this.$route.params
-                    const context = Object.assign({ bk_biz_id: this.bizId, task_id: instanceId }, this.$route.query, params)
-                    this.requestOptions = { context }
+                    this.updateRequestOptions()
                 },
                 immediate: true,
                 deep: true
+            },
+            bizId () {
+                this.updateRequestOptions()
             }
         },
         methods: {
+            updateRequestOptions () {
+                const { instance_id: instanceId } = this.$route.query
+                const params = this.$route.params
+                const context = Object.assign({ bk_biz_id: this.bizId, task_id: instanceId }, this.$route.query, params)
+                this.requestOptions = { context }
+            },
             showAi () {
                 this.$refs.aiBlueking.handleShow()
             },

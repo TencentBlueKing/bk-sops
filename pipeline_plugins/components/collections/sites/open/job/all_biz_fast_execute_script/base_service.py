@@ -66,10 +66,16 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
                 schema=StringItemSchema(description=_("执行脚本的目标机器账户")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"),
+                key="job_target_account",
+                type="int",
+                schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
-                name=_("脚本超时时间"), key="job_target_account", type="int", schema=IntItemSchema(description=_("脚本超时时间")),
+                name=_("脚本超时时间"),
+                key="job_target_account",
+                type="int",
+                schema=IntItemSchema(description=_("脚本超时时间")),
             ),
             self.InputItem(
                 name=_("执行目标信息"),
@@ -120,7 +126,7 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
         """
         return {}
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):

@@ -237,7 +237,8 @@
                 options: this.$attrs.items ? this.$attrs.items.slice(0) : [],
                 loading: false,
                 loading_text: this.$t('加载中'),
-                selectInputDom: null
+                selectInputDom: null,
+                searchQuery: '' // 搜索关键词
             }
         },
         computed: {
@@ -247,7 +248,21 @@
                 },
                 set (val) {
                     if (!this.hook) {
+                        // 更新前保存当前搜索关键词避免被组件自动调用清空
+                        const currentQuery = this.searchQuery
                         this.updateForm(val)
+                        // 多选模式下，选中后恢复搜索关键词
+                        if (this.multiple && currentQuery) {
+                            this.$nextTick(() => {
+                                const selectComp = this.$refs.selectComp
+                                if (selectComp) {
+                                    // 恢复搜索输入框的值
+                                    selectComp.query = currentQuery
+                                    this.searchQuery = currentQuery
+                                    this.searchFilter(currentQuery)
+                                }
+                            })
+                        }
                     }
                 }
             },
@@ -309,11 +324,14 @@
             },
             // 自定义搜索，支持以','符号分隔的多条数据搜索
             filterMethod (val) {
+                this.searchQuery = val
+                this.searchFilter(val)
+            },
+            searchFilter (val) {
                 if (!val) {
                     this.options = this.items.slice(0)
                     return
                 }
-
                 const inputVal = val.split(',')
                 this.options = this.items.filter(option => inputVal.some(i => option.text.toLowerCase().includes(i.toLowerCase())))
             },
@@ -354,6 +372,7 @@
             onVisibleChange (val) {
                 if (!val) { // 下拉框隐藏后，还原搜索过滤掉的选项
                     this.options = this.items.slice(0)
+                    this.searchQuery = ''
                 }
             },
             onClear () {

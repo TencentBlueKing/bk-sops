@@ -39,7 +39,7 @@ from pipeline.service import task_service
 
 from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
-from gcloud.core.trace import start_trace
+from gcloud.core.trace import create_execution_span, start_trace
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_started
@@ -184,17 +184,20 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                 self.pipeline_instance, obj_type="instance", data_type="data", username=executor
             )
 
-            # 捕获当前 trace context 并注入到 root_pipeline_data
+            # 创建 bksops.execution span 并注入 trace context 到 root_pipeline_data
             if settings.ENABLE_OTEL_TRACE and trace:
                 try:
-                    current_span = trace.get_current_span()
-                    if current_span and current_span.get_span_context().is_valid:
-                        span_context = current_span.get_span_context()
-                        # 将 trace_id 和 span_id 转换为十六进制字符串
-                        root_pipeline_data["_trace_id"] = format(span_context.trace_id, "032x")
-                        root_pipeline_data["_parent_span_id"] = format(span_context.span_id, "016x")
+                    # 创建 execution span，并获取其 trace context
+                    trace_id, execution_span_id = create_execution_span(
+                        task_id=self.taskflow_id,
+                        project_id=self.project_id,
+                        pipeline_instance_id=self.pipeline_instance.instance_id,
+                    )
+                    if trace_id and execution_span_id:
+                        root_pipeline_data["_trace_id"] = trace_id
+                        root_pipeline_data["_parent_span_id"] = execution_span_id
                 except Exception as e:
-                    logger.debug(f"[plugin_span] Failed to capture trace context: {e}")
+                    logger.debug(f"[plugin_span] Failed to create execution span: {e}")
 
             system_obj = SystemObject(root_pipeline_data)
             root_pipeline_context = {"${_system}": system_obj}

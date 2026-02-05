@@ -13,6 +13,7 @@
     <div class="full-code-editor" :class="{ 'full-status': isFullScreen }">
         <div class="tool-area">
             <ScriptCodeDrownList
+                v-if="options.isNeedAiScriptCheck !== false"
                 ref="ScriptCodeDrownList"
                 :read-only="options.readOnly"
                 :input-data="inputData" />
@@ -60,7 +61,8 @@
                 type: Object,
                 default: () => ({
                     readOnly: true,
-                    language: 'json'
+                    language: 'json',
+                    isNeedAiScriptCheck: true
                 })
             }
         },

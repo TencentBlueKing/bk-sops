@@ -5,13 +5,9 @@ from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
 from api.collections.monitor import BKMonitorClient
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
-from pipeline_plugins.components.collections.sites.open.monitor.base import (
-    MonitorBaseService,
-)
+from pipeline_plugins.components.collections.sites.open.monitor.base import MonitorBaseService
 from pipeline_plugins.components.utils.sites.open.choose_time_tools import choose_time
-from pipeline_plugins.components.utils.sites.open.utils import (
-    get_module_id_list_by_name,
-)
+from pipeline_plugins.components.utils.sites.open.utils import get_module_id_list_by_name
 from pipeline_plugins.variables.utils import (
     get_list_by_selected_names,
     get_service_template_list,
@@ -68,7 +64,7 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
         scope_value = combine.get(scope[scope_type])
         return scope_value
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
         client = BKMonitorClient(username=executor)

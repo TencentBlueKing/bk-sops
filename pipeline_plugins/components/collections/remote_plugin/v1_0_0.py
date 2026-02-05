@@ -67,6 +67,13 @@ class RemotePluginService(BasePluginService):
         """
         attributes = super()._get_span_attributes(data, parent_data)
         attributes["plugin_type"] = "bk_plugin"  # 第三方插件
+        # 添加第三方插件的 code 和 version
+        plugin_code = data.get_one_of_inputs("plugin_code")
+        plugin_version = data.get_one_of_inputs("plugin_version")
+        if plugin_code:
+            attributes["plugin_code"] = plugin_code
+        if plugin_version:
+            attributes["plugin_version"] = plugin_version
         return attributes
 
     def outputs_format(self):

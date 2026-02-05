@@ -13,14 +13,16 @@ specific language governing permissions and limitations under the License.
 """
 
 from functools import partial
-from django.utils.translation import ugettext_lazy as _
 
-from .execute_task_base import JobExecuteTaskServiceBase
-from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
+from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import StringItemSchema
+
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+
+from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
+from .execute_task_base import JobExecuteTaskServiceBase
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -81,10 +83,10 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         )
         return result, tagged_ip_dict
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         job_success_id = data.get_one_of_inputs("job_success_id")
         if not job_success_id:
-            return super().execute(data, parent_data)
+            return super().plugin_execute(data, parent_data)
         history_result = self.get_job_history_result(data, parent_data)
         self.logger.info(history_result)
         if history_result:

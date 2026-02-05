@@ -48,7 +48,7 @@ HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 
 
 class NodemanCreateTaskService(NodeManBaseService):
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
         bk_biz_id = data.inputs.bk_biz_id
