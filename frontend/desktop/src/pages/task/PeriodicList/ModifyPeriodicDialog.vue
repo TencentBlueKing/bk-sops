@@ -288,9 +288,11 @@
                 task_template_name = '',
                 template_source = 'project',
                 template_id = '',
-                template_scheme_ids = []
+                template_scheme_ids = [],
+                timezone
             } = this.curRow
             const schemeId = template_scheme_ids || []
+            const curTimezone = timezone
             return {
                 formData: {
                     name,
@@ -378,7 +380,7 @@
                 isTplDeleted: false, // 旧数据模板是否被删除
                 hasDeleteScheme: false, // 是否存在执行方案被删除
                 cronExpression: this.cron, // 周期表达式
-                localSelectTimezone: window.TIMEZONE
+                localSelectTimezone: curTimezone || window.TIMEZONE
             }
         },
         computed: {
@@ -969,7 +971,8 @@
                 const sameRenderData = taskParamEdit ? taskParamEdit.judgeDataEqual() : true
                 const sameFormData = tools.isDataEqual(this.formData, this.initFormData)
                 const sameCronDate = this.cron ? this.cron === this.cronExpression : true
-                const same = sameFormData && sameCronDate && sameRenderData
+                const sameTimeZone = this.localSelectTimezone === this.curRow.timezone
+                const same = sameFormData && sameCronDate && sameRenderData && sameTimeZone
                 return same
             },
             onCloseConfig () {
