@@ -57,7 +57,7 @@ def modify_cron(request, project_id, task_id):
     project = Project.objects.get(id=project_id)
 
     try:
-        task.modify_cron(data["cron"], project.time_zone)
+        task.modify_cron(data["cron"], data["cron"].get("timezone") or project.time_zone)
     except Exception as e:
         return JsonResponse(
             {"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
