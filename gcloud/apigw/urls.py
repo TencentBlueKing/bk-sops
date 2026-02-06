@@ -21,6 +21,7 @@ from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
 from gcloud.apigw.views.create_task import create_task
 from gcloud.apigw.views.fast_create_task import fast_create_task
+from gcloud.apigw.views.generate_process_with_agent import generate_process_with_agent
 from gcloud.apigw.views.get_common_template_info import get_common_template_info
 from gcloud.apigw.views.get_common_template_list import get_common_template_list
 from gcloud.apigw.views.get_functionalization_task_list import get_functionalization_task_list
@@ -29,6 +30,7 @@ from gcloud.apigw.views.get_periodic_task_info import get_periodic_task_info
 from gcloud.apigw.views.get_periodic_task_list import get_periodic_task_list
 from gcloud.apigw.views.get_plugin_detail import get_plugin_detail
 from gcloud.apigw.views.get_plugin_list import get_plugin_list
+from gcloud.apigw.views.get_plugin_list_public import get_plugin_info
 from gcloud.apigw.views.get_task_count import get_task_count
 from gcloud.apigw.views.get_task_detail import get_task_detail
 from gcloud.apigw.views.get_task_effective_time import get_task_effective_time
@@ -143,4 +145,6 @@ urlpatterns = [
     url(r"^get_task_node_log/$", get_task_node_log),
     url(r"^get_task_plugin_log/$", get_task_plugin_log),
     url(r"^get_task_effective_time_for_inner/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time_for_inner),
+    url(r"^generate_process_with_agent/$", generate_process_with_agent),
+    url(r"^get_plugin_list_public/(?P<project_id>\d+)/$", get_plugin_info),
 ]

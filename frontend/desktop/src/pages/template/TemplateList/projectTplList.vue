@@ -29,6 +29,15 @@
                             @click="checkCreatePermission">
                             {{$t('新建')}}
                         </bk-button>
+                        <bk-button
+                            v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
+                            :class="['ai-generate-btn', {
+                                'btn-permission-disable': !hasPermission(['flow_create'], authActions)
+                            }]"
+                            data-test-id="process_form_aiGenerate"
+                            @click="onAiGenerateClick">
+                            {{$t('AI 生成')}}
+                        </bk-button>
                         <bk-dropdown-menu>
                             <div class="import-tpl-btn" slot="dropdown-trigger">
                                 <span>{{ $t('导入') }}</span>
@@ -417,6 +426,45 @@
             @confirm="handleTplBatchUpdateConfirm"
             @close="closeBatchUpdateDialogShow">
         </TemplateUpdateDialog>
+        <bk-dialog
+            width="700"
+            ext-cls="ai-generate-dialog"
+            header-position="left"
+            render-directive="if"
+            :mask-close="false"
+            :auto-close="false"
+            :title="$t('AI 生成流程')"
+            :loading="aiGenerateLoading"
+            :value="isAiGenerateDialogShow"
+            :cancel-text="$t('取消')"
+            @confirm="onAiGenerateConfirm"
+            @cancel="onAiGenerateCancel">
+            <div class="ai-generate-content">
+                <div class="ai-form-wrapper" v-bkloading="{ isLoading: aiGenerateLoading, title: $t('AI 正在生成流程，请稍候...') }">
+                    <bk-form ref="aiGenerateForm" :model="aiGenerateData" :rules="aiGenerateRules">
+                        <bk-form-item property="prompt" :label="$t('流程描述')" :required="true">
+                            <bk-input
+                                type="textarea"
+                                :rows="8"
+                                :placeholder="aiGeneratePlaceholder"
+                                v-model="aiGenerateData.prompt">
+                            </bk-input>
+                        </bk-form-item>
+                    </bk-form>
+                </div>
+                <!-- AI 生成进度条 - 放在 loading 容器外面 -->
+                <div class="ai-progress-wrapper" v-if="aiGenerateLoading">
+                    <div class="ai-progress-info">
+                        <span class="progress-text">{{ $t('生成进度') }}</span>
+                        <span class="progress-percent">{{ aiGenerateProgress }}%</span>
+                    </div>
+                    <div class="ai-progress-bar">
+                        <div class="ai-progress-inner" :style="{ width: aiGenerateProgress + '%' }"></div>
+                    </div>
+                    <div class="ai-progress-tip">{{ aiGenerateProgressTip }}</div>
+                </div>
+            </div>
+        </bk-dialog>
     </div>
 </template>
 <script>
@@ -718,7 +766,26 @@
                 templateLabelLoading: false,
                 isEnableTemplateMarket: window.ENABLE_TEMPLATE_MARKET,
                 isBatchUpdateDialogShow: false,
-                pipelineTree: {}
+                pipelineTree: {},
+                // 智能体生成相关
+                isAiGenerateDialogShow: false,
+                aiGenerateLoading: false,
+                aiGenerateProgress: 0,
+                aiGenerateProgressTip: '',
+                aiGenerateProgressTimer: null,
+                aiGenerateData: {
+                    prompt: ''
+                },
+                aiGenerateRules: {
+                    prompt: [
+                        {
+                            required: true,
+                            message: i18n.t('必填项'),
+                            trigger: 'blur'
+                        }
+                    ]
+                },
+                aiGeneratePlaceholder: i18n.t('请描述您想要创建的流程，例如：创建一个并行条件流程，执行数据库备份和日志清理，只有数据库所在服务器的log超过其磁盘80%时，才触发日志清理，完成后发送通知')
             }
         },
         computed: {
@@ -730,7 +797,8 @@
             ...mapState('project', {
                 'timeZone': state => state.timezone,
                 'authActions': state => state.authActions,
-                'projectName': state => state.projectName
+                'projectName': state => state.projectName,
+                'bizId': state => state.bizId
             }),
             crtPageSelectedAll () {
                 return this.templateList.length > 0 && this.templateList.every(item => this.selectedTpls.find(tpl => tpl.id === item.id))
@@ -795,7 +863,8 @@
                 'loadProjectBaseInfo',
                 'saveTemplateData',
                 'updateLabelIds',
-                'getPipelineTree'
+                'getPipelineTree',
+                'generateProcessWithAgent'
             ]),
             ...mapActions('templateList/', [
                 'loadTemplateList',
@@ -814,7 +883,8 @@
             ...mapMutations('template/', [
                 'setProjectBaseInfo',
                 'setTemplateData',
-                'setPipelineTree'
+                'setPipelineTree',
+                'setAiGenerated'
             ]),
             async initData () {
                 try {
@@ -1112,6 +1182,131 @@
                         params: { type: 'new', project_id: this.project_id }
                     })
                 }
+            },
+            onAiGenerateClick () {
+                if (!this.hasPermission(['flow_create'], this.authActions)) {
+                    const resourceData = {
+                        project: [{
+                            id: this.project_id,
+                            name: this.projectName
+                        }]
+                    }
+                    this.applyForPermission(['flow_create'], this.authActions, resourceData)
+                } else {
+                    this.aiGenerateData.prompt = ''
+                    this.isAiGenerateDialogShow = true
+                }
+            },
+            // AI 生成确认
+            async onAiGenerateConfirm () {
+                try {
+                    await this.$refs.aiGenerateForm.validate()
+                } catch (e) {
+                    return
+                }
+
+                this.aiGenerateLoading = true
+                this.aiGenerateProgress = 0
+                this.aiGenerateProgressTip = i18n.t('正在准备生成环境...')
+
+                // 启动进度条动画，90秒内从0到99%
+                this.startProgressTimer()
+
+                try {
+                    const prompt = this.aiGenerateData.prompt
+                    const result = await this.generateProcessWithAgent({
+                        bk_biz_id: this.bizId,
+                        prompt: prompt
+                    })
+
+                    // 停止进度条计时器
+                    this.stopProgressTimer()
+
+                    if (result.result) {
+                        // 设置进度为100%
+                        this.aiGenerateProgress = 100
+                        this.aiGenerateProgressTip = i18n.t('生成完成！')
+
+                        // 短暂延迟后跳转，让用户看到100%
+                        await new Promise(resolve => setTimeout(resolve, 500))
+
+                        // 保存 pipeline tree 到 store，并设置 AI 生成标志
+                        this.setAiGenerated(true)
+                        this.setPipelineTree(result.data)
+                        this.isAiGenerateDialogShow = false
+                        // 跳转到画布编辑页面
+                        this.$router.push({
+                            name: 'templatePanel',
+                            params: { type: 'new', project_id: this.project_id },
+                            query: { aiGenerated: 'true' }
+                        })
+                    } else {
+                        this.$bkMessage({
+                            message: result.message || i18n.t('转换失败'),
+                            theme: 'error'
+                        })
+                    }
+                } catch (e) {
+                    this.stopProgressTimer()
+                    console.error(e)
+                    this.$bkMessage({
+                        message: i18n.t('请求失败') + ': ' + e.message,
+                        theme: 'error'
+                    })
+                } finally {
+                    this.aiGenerateLoading = false
+                }
+            },
+            // 启动进度条计时器，90秒内从0到99%
+            startProgressTimer () {
+                const totalDuration = 90 * 1000 // 90秒
+                const maxProgress = 99
+                const interval = 500 // 每500ms更新一次
+                const totalSteps = totalDuration / interval
+                const progressPerStep = maxProgress / totalSteps
+
+                let currentStep = 0
+                const progressTips = [
+                    { threshold: 10, tip: i18n.t('正在分析流程描述...') },
+                    { threshold: 25, tip: i18n.t('正在调用 AI 模型...') },
+                    { threshold: 45, tip: i18n.t('正在生成流程结构...') },
+                    { threshold: 65, tip: i18n.t('正在优化流程布局...') },
+                    { threshold: 85, tip: i18n.t('正在完成最后处理...') },
+                    { threshold: 95, tip: i18n.t('即将完成，请稍候...') }
+                ]
+
+                this.aiGenerateProgressTimer = setInterval(() => {
+                    currentStep++
+                    const newProgress = Math.min(Math.floor(currentStep * progressPerStep), maxProgress)
+                    this.aiGenerateProgress = newProgress
+
+                    // 更新提示文字
+                    for (let i = progressTips.length - 1; i >= 0; i--) {
+                        if (newProgress >= progressTips[i].threshold) {
+                            this.aiGenerateProgressTip = progressTips[i].tip
+                            break
+                        }
+                    }
+
+                    // 到达99%后停止计时器
+                    if (newProgress >= maxProgress) {
+                        this.stopProgressTimer()
+                    }
+                }, interval)
+            },
+            // 停止进度条计时器
+            stopProgressTimer () {
+                if (this.aiGenerateProgressTimer) {
+                    clearInterval(this.aiGenerateProgressTimer)
+                    this.aiGenerateProgressTimer = null
+                }
+            },
+            // AI 生成取消
+            onAiGenerateCancel () {
+                this.stopProgressTimer()
+                this.aiGenerateProgress = 0
+                this.aiGenerateProgressTip = ''
+                this.isAiGenerateDialogShow = false
             },
             // 我创建的
             handleMyCreateFilter () {
@@ -1750,6 +1945,62 @@
 }
 .create-template-btn {
     min-width: 120px;
+}
+.ai-generate-btn {
+    min-width: 100px;
+}
+.ai-generate-dialog {
+    .ai-generate-content {
+        .ai-form-wrapper {
+            min-height: 200px;
+        }
+        ::v-deep .bk-textarea-wrapper {
+            .bk-form-textarea {
+                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+                font-size: 12px;
+            }
+        }
+        .ai-progress-wrapper {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f5f7fa;
+            border-radius: 4px;
+            box-sizing: border-box;
+            .ai-progress-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+                .progress-text {
+                    font-size: 14px;
+                    color: #63656e;
+                }
+                .progress-percent {
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #3a84ff;
+                }
+            }
+            .ai-progress-bar {
+                width: 100%;
+                height: 8px;
+                background: #e5e6eb;
+                border-radius: 4px;
+                overflow: hidden;
+                .ai-progress-inner {
+                    height: 100%;
+                    background: linear-gradient(90deg, #3a84ff 0%, #699df4 100%);
+                    border-radius: 4px;
+                    transition: width 0.3s ease;
+                }
+            }
+            .ai-progress-tip {
+                margin-top: 8px;
+                font-size: 12px;
+                color: #979ba5;
+            }
+        }
+    }
 }
 .export-tpl-btn,
 .import-tpl-btn {
