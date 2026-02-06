@@ -14,21 +14,19 @@ import logging
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
+from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ArrayItemSchema, BooleanItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
-
-from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
-from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema, BooleanItemSchema
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
-    cc_list_select_node_inst_id,
     CCPluginIPMixin,
+    cc_list_select_node_inst_id,
 )
-
+from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
 logger = logging.getLogger("celery")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -39,7 +37,7 @@ VERSION = "1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCBatchTransferHostModule(Service, CCPluginIPMixin):
+class CCBatchTransferHostModule(BasePluginService, CCPluginIPMixin):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -64,7 +62,10 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
                 schema=StringItemSchema(description=_("在自动填参时使用的扩展分割符")),
             ),
             self.InputItem(
-                name=_("更新方式"), key="is_append", type="boolean", schema=BooleanItemSchema(description=_("更新方式")),
+                name=_("更新方式"),
+                key="is_append",
+                type="boolean",
+                schema=BooleanItemSchema(description=_("更新方式")),
             ),
         ]
 
@@ -84,7 +85,7 @@ class CCBatchTransferHostModule(Service, CCPluginIPMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)

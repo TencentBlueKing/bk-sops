@@ -14,13 +14,12 @@ import logging
 from functools import partial
 
 from django.utils.translation import ugettext_lazy as _
-
-from pipeline.core.flow.activity import Service
-from pipeline.core.flow.io import StringItemSchema, ArrayItemSchema, ObjectItemSchema
 from pipeline.component_framework.component import Component
+from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
@@ -33,7 +32,7 @@ VERSION = "v1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
+class CCHostCustomPropertyChangeService(BasePluginService, CCPluginIPMixin):
     class FileCode(object):
         host_rule = "1"
         set_rule = "2"
@@ -90,7 +89,7 @@ class CCHostCustomPropertyChangeService(Service, CCPluginIPMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         operator = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(operator)
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
