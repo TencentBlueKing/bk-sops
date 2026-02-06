@@ -12,6 +12,13 @@ from django.db import connection
 
 from gcloud.core.models import EnvironmentVariables
 
+# 导入数据库配置文件
+try:
+    from . import sync_config
+except ImportError:
+    # 如果sync_config不存在，使用默认配置
+    sync_config = None
+
 
 class Command(BaseCommand):
     help = "数据库增量同步工具：基于ID记录的增量数据同步"
@@ -25,12 +32,6 @@ class Command(BaseCommand):
         parser.add_argument("--skip-binary", action="store_true", default=False, help="跳过包含二进制数据的记录，默认不跳过")
         parser.add_argument("--dry-run", action="store_true", help="只检查不实际同步")
         parser.add_argument("--batch-size", type=int, default=100, help="每次同步的记录数")
-        parser.add_argument("--host", type=str, help="源数据库主机")
-        parser.add_argument("--port", type=int, help="源数据库端口")
-        parser.add_argument("--user", type=str, help="源数据库用户名")
-        parser.add_argument("--password", type=str, help="源数据库密码")
-        parser.add_argument("--database", type=str, help="源数据库名称")
-        parser.add_argument("--tenant_id", type=str, help="租户ID")
 
     def handle(self, *args, **options):
         batch_size = options["batch_size"]
@@ -40,18 +41,23 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write("*** 干运行模式：只检查不实际同步 ***")
 
+        if sync_config is None or not sync_config.SOURCE_DB_CONFIG.get("database"):
+            self.stdout.write(self.style.ERROR("请检查源环境数据库配置"))
+            return
+
         try:
             # 在同步开始前全局禁用外键约束
             with connection.cursor() as cursor:
                 cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
             # 连接源数据库
             try:
+                source_db = sync_config.SOURCE_DB_CONFIG
                 source_conn = pymysql.connect(
-                    host=options["host"],
-                    port=options["port"],
-                    user=options["user"],
-                    password=options["password"],
-                    database=options["database"],
+                    host=source_db["host"],
+                    port=source_db["port"],
+                    user=source_db["user"],
+                    password=source_db["password"],
+                    database=source_db["database"],
                     charset="utf8mb4",
                     cursorclass=pymysql.cursors.DictCursor,
                 )

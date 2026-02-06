@@ -3,82 +3,81 @@ import subprocess
 from datetime import datetime
 
 import pymysql
-from django.conf import settings
 from django.core.management.base import BaseCommand
+
+# 导入数据库配置文件
+try:
+    from . import sync_config
+except ImportError:
+    # 如果sync_config不存在，使用默认配置
+    sync_config = None
 
 
 class Command(BaseCommand):
-    help = "数据库导出导入工具：支持通过参数连接数据库并执行导出导入操作"
+    help = "数据库导出导入工具：通过配置文件管理数据库连接信息"
 
     def add_arguments(self, parser):
-        parser.add_argument("--host", type=str, help="数据库主机地址")
-        parser.add_argument("--port", type=int, help="数据库端口")
-        parser.add_argument("--user", type=str, help="数据库用户名")
-        parser.add_argument("--password", type=str, help="数据库密码")
-        parser.add_argument("--database", type=str, help="数据库名称，导出操作时必需")
-        parser.add_argument("--export", action="store_true", help="执行导出操作")
-        parser.add_argument("--import", action="store_true", help="执行导入操作")
+        parser.add_argument("--export", action="store_true", help="执行导出操作（使用源环境配置）")
+        parser.add_argument("--import", action="store_true", help="执行导入操作（使用目标环境配置）")
         parser.add_argument("--file", type=str, help="导出或导入的文件路径")
         parser.add_argument("--dry-run", action="store_true", help="只显示将要执行的操作，不实际执行")
 
     def handle(self, *args, **options):
-        # 验证必需参数
-        if options["export"] and not options["database"]:
-            self.stdout.write(self.style.ERROR("导出操作必须指定数据库名称（--database参数），因为mysqldump需要知道要导出哪个具体的数据库"))
+        # 检查配置文件是否存在
+        if sync_config is None:
+            self.stdout.write(self.style.ERROR("数据库配置文件 sync_config.py 不存在，请先创建配置文件"))
             return
+
+        # 验证必需参数
+        if options["export"]:
+            if not sync_config.SOURCE_DB_CONFIG.get("database"):
+                self.stdout.write(self.style.ERROR("源环境数据库配置中未指定数据库名称"))
+                return
 
         # 设置默认文件路径（仅在未指定文件时）
         if options["export"] or options["import"]:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             if options["export"] and not options.get("file"):
-                options["file"] = f"{options['database']}_backup_{timestamp}.sql"
+                db_name = sync_config.SOURCE_DB_CONFIG["database"]
+                options["file"] = f"{db_name}_backup_{timestamp}.sql"
             elif options["import"] and not options.get("file"):
                 # 导入操作时，文件路径是必需的
                 self.stdout.write(self.style.ERROR("导入操作必须指定文件路径（--file参数）"))
                 return
 
-        # 验证数据库连接
+        # 验证数据库连接并执行操作
         if options["export"]:
-            if not self.validate_connection(options):
+            # 导出操作始终使用源环境配置
+            if not self.validate_connection(sync_config.SOURCE_DB_CONFIG):
                 return
-            self.export_database(options)
+            self.export_database(sync_config.SOURCE_DB_CONFIG, options)
 
         if options["import"]:
-            local_db_settings = settings.DATABASES["default"]
-            local_options = {
-                "host": local_db_settings["HOST"],
-                "port": int(local_db_settings["PORT"]) if local_db_settings["PORT"] else 3306,
-                "user": local_db_settings["USER"],
-                "password": local_db_settings["PASSWORD"],
-                "database": local_db_settings["NAME"],
-                "file": options.get("file", ""),
-                "dry_run": options.get("dry_run", False),
-            }
-            if not self.validate_connection(local_options):
+            # 导入操作始终使用目标环境配置
+            if not self.validate_connection(sync_config.TARGET_DB_CONFIG):
                 return
-            self.import_database(local_options)
+            self.import_database(sync_config.TARGET_DB_CONFIG, options)
 
-    def export_database(self, options):
+    def export_database(self, sync_config, options):
         """执行数据库导出操作"""
-        self.stdout.write(f"开始导出数据库: {options['database']}")
-
         if options["dry_run"]:
             self.stdout.write("[运行] 将执行导出操作")
             return
 
-        port = int(options["port"]) if options["port"] else 3306
+        self.stdout.write(f"导出数据库: {sync_config['database']}")
+        port = int(sync_config["port"]) if sync_config["port"] else 3306
         # 构建mysqldump命令
         cmd = [
             "mysqldump",
-            f"-h{options['host']}",
+            f"-h{sync_config['host']}",
             f"-P{port}",
-            f"-u{options['user']}",
+            f"-u{sync_config['user']}",
         ]
 
-        if options["password"]:
-            cmd.append(f"-p{options['password']}")
+        if sync_config["password"]:
+            cmd.append(f"-p{sync_config['password']}")
 
-        cmd.append(options["database"])
+        cmd.append(sync_config["database"])
 
         # 添加其他选项
         cmd.extend(
@@ -107,31 +106,30 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"导出过程中发生错误: {str(e)}"))
 
-    def import_database(self, options):
+    def import_database(self, sync_config, options):
         """执行数据库导入操作"""
-        self.stdout.write(f"开始导入数据库: {options['database']}")
-
         if not os.path.exists(options["file"]):
             self.stdout.write(self.style.ERROR(f"导入文件不存在: {options['file']}"))
             return
 
+        self.stdout.write(f"导入数据库: {sync_config['database']}")
         if options["dry_run"]:
             self.stdout.write("[运行] 将执行导入操作")
             return
 
-        port = int(options["port"]) if options["port"] else 3306
+        port = int(sync_config["port"]) if sync_config["port"] else 3306
         # 构建mysql命令
         cmd = [
             "mysql",
-            f"-h{options['host']}",
+            f"-h{sync_config['host']}",
             f"-P{port}",
-            f"-u{options['user']}",
+            f"-u{sync_config['user']}",
         ]
 
-        if options["password"]:
-            cmd.append(f"-p{options['password']}")
+        if sync_config["password"]:
+            cmd.append(f"-p{sync_config['password']}")
 
-        cmd.append(options["database"])
+        cmd.append(sync_config["database"])
         cmd.extend(
             [
                 "--default-character-set=utf8",
@@ -150,16 +148,16 @@ class Command(BaseCommand):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"导入过程中发生错误: {str(e)}"))
 
-    def validate_connection(self, options):
+    def validate_connection(self, sync_config):
         """验证数据库连接"""
         try:
-            port = int(options["port"]) if options["port"] else 3306
+            port = int(sync_config["port"]) if sync_config["port"] else 3306
             conn = pymysql.connect(
-                host=options["host"],
+                host=sync_config["host"],
                 port=port,
-                user=options["user"],
-                password=options["password"],
-                database=options["database"],
+                user=sync_config["user"],
+                password=sync_config["password"],
+                database=sync_config["database"],
                 charset="utf8mb4",
             )
             conn.close()

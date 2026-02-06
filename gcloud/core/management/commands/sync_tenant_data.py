@@ -12,6 +12,8 @@ from gcloud.external_plugins.models import (
     SyncTask,
 )
 
+from . import sync_config
+
 logger = logging.getLogger("root")
 
 
@@ -20,13 +22,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         """添加命令行参数"""
-        parser.add_argument("--tenant_id", type=str, required=True, help="目标租户ID")
         parser.add_argument("--dry_run", action="store_true", help="模拟运行模式，不实际执行更新")
         parser.add_argument("--special_business_id", type=str, help="特殊业务ID")
         parser.add_argument("--special_tenant_id", type=str, help="特殊租户ID")
 
     def handle(self, *args, **options):
-        tenant_id = options.get("tenant_id", "tencent")
+        tenant_id = sync_config.TENANT_CONFIG["tenant_id"]
         special_business_id = options.get("special_business_id")
         special_tenant_id = options.get("special_tenant_id")
         dry_run = options.get("dry_run", False)
