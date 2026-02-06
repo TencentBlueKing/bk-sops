@@ -300,7 +300,8 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         with transaction.atomic():
             if "cron" in serializer.validated_data:
                 project = Project.objects.filter(id=serializer.validated_data["project"]).first()
-                instance.modify_cron(serializer.validated_data["cron"], project.time_zone)
+                timezone = serializer.validated_data["cron"].get("timezone") or project.time_zone
+                instance.modify_cron(serializer.validated_data["cron"], timezone)
             if "constants" in serializer.validated_data:
                 instance.modify_constants(serializer.validated_data["constants"])
             if "name" in serializer.validated_data:
