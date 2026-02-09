@@ -263,6 +263,10 @@ class BasePluginService(Service):
         """
         插件调度逻辑，子类应该覆盖此方法而不是 schedule
 
+        注意：对于需要调度的插件（__need_schedule__ = True），在调度完成时
+        必须调用 self.finish_schedule() 来标记调度结束。否则 BasePluginService
+        无法感知调度已完成，会导致插件级别的父 Span 无法正确结束和导出。
+
         :param data: 插件数据对象
         :param parent_data: 父级数据对象
         :param callback_data: 回调数据

@@ -24,7 +24,7 @@ __group_name__ = _("配置平台(CMDB)")
 
 
 class CmdbTransferHostResourceModuleService(BaseTransferHostToModuleService):
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         return self.exec_transfer_host_module(data, parent_data, "transfer_host_to_resourcemodule")
 
 

@@ -657,6 +657,7 @@ class JobScheduleService(JobService):
                     job_detail_url
                 )
                 self.logger.error("请求job_id({}),结果为:{}".format(job_id_str, result.get("message")))
+
         # 需要继续轮询的任务
         data.outputs.job_id_of_batch_execute = running_task_list
         # 结束调度
@@ -668,6 +669,9 @@ class JobScheduleService(JobService):
                 data.outputs.failure_inst_url = failure_inst_url
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
 
 
 class Jobv3Service(BasePluginService):
@@ -902,6 +906,9 @@ class Jobv3ScheduleService(Jobv3Service):
 
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
 
 
 class GetJobHistoryResultMixin(object):
