@@ -250,7 +250,7 @@ class NodeManBaseService(BasePluginService):
 
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
 
@@ -319,6 +319,9 @@ class NodeManBaseService(BasePluginService):
             data.set_outputs("ex_data", error_log)
             self.finish_schedule()
             return False
+
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
 
 
 class NodeManNewBaseService(NodeManBaseService):

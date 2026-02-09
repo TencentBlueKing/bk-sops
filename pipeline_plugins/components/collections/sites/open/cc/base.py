@@ -19,7 +19,6 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
@@ -33,6 +32,7 @@ from gcloud.utils.ip import (
     ip_pattern,
     ipv6_pattern,
 )
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
     get_hosts_by_hosts_ids,
     get_ipv4_host_list,
@@ -607,7 +607,7 @@ class CCPluginIPMixin:
         return cc_get_host_id_by_innerip_and_cloudid(executor, biz_cc_id, ip_str, supplier_account)
 
 
-class BaseTransferHostToModuleService(Service, CCPluginIPMixin, metaclass=ABCMeta):
+class BaseTransferHostToModuleService(BasePluginService, CCPluginIPMixin, metaclass=ABCMeta):
     def inputs_format(self):
         return [
             self.InputItem(
