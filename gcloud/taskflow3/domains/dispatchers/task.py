@@ -192,6 +192,9 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
                         task_id=self.taskflow_id,
                         project_id=self.project_id,
                         pipeline_instance_id=self.pipeline_instance.instance_id,
+                        bk_biz_id=root_pipeline_data.get("bk_biz_id"),
+                        operator=root_pipeline_data.get("operator"),
+                        executor=root_pipeline_data.get("executor"),
                     )
                     if trace_id and execution_span_id:
                         root_pipeline_data["_trace_id"] = trace_id
