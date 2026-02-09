@@ -16,6 +16,10 @@ import uuid
 
 from pipeline.component_framework.models import ComponentModel
 
+from gcloud.constants import NOTIFY_TYPE, TASK_CATEGORY, TASK_FLOW_TYPE
+from gcloud.core import roles
+from gcloud.taskflow3.domains.context import TaskContext
+
 logger = logging.getLogger("root")
 
 
@@ -44,163 +48,16 @@ class SimpleFlowConverter:
         "loop": None,
     }
 
-    PROJECT_BASE_INFO = {
-        "task_categories": [
-            {"value": "OpsTools", "name": "运维工具"},
-            {"value": "MonitorAlarm", "name": "监控告警"},
-            {"value": "ConfManage", "name": "配置管理"},
-            {"value": "DevTools", "name": "开发工具"},
-            {"value": "EnterpriseIT", "name": "企业IT"},
-            {"value": "OfficeApp", "name": "办公应用"},
-            {"value": "Other", "name": "其它"},
-            {"value": "Default", "name": "默认分类"},
-        ],
-        "flow_type_list": [
-            {"value": "common", "name": "默认任务流程"},
-            {"value": "common_func", "name": "职能化任务流程"},
-        ],
-        "notify_group": [
-            {"value": "Maintainers", "text": "运维人员"},
-            {"value": "ProductPm", "text": "产品人员"},
-            {"value": "Developer", "text": "开发人员"},
-            {"value": "Tester", "text": "测试人员"},
-        ],
-        "notify_type_list": [
-            {"value": "weixin", "name": "微信"},
-            {"value": "sms", "name": "短信"},
-            {"value": "email", "name": "邮件"},
-            {"value": "voice", "name": "语音"},
-        ],
-    }
+    @staticmethod
+    def _get_project_base_info():
+        return {
+            "task_categories": [{"value": item[0], "name": item[1]} for item in TASK_CATEGORY],
+            "flow_type_list": [{"value": item[0], "name": item[1]} for item in TASK_FLOW_TYPE],
+            "notify_group": list(roles.CC_PERSON_GROUP),
+            "notify_type_list": [{"value": item[0], "name": item[1]} for item in NOTIFY_TYPE],
+        }
 
-    INTERNAL_VARIABLE = {
-        "${_system.task_url}": {
-            "key": "${_system.task_url}",
-            "name": "任务URL",
-            "index": "-9",
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.task_start_time}": {
-            "key": "${_system.task_start_time}",
-            "name": "任务开始时间",
-            "index": -8,
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.language}": {
-            "key": "${_system.language}",
-            "name": "执行环境语言CODE",
-            "index": -7,
-            "desc": "中文对应 zh-hans，英文对应 en",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.bk_biz_id}": {
-            "key": "${_system.bk_biz_id}",
-            "name": "任务所属的CMDB业务ID",
-            "index": -6,
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.bk_biz_name}": {
-            "key": "${_system.bk_biz_name}",
-            "name": "任务所属的CMDB业务名称",
-            "index": -5,
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.operator}": {
-            "key": "${_system.operator}",
-            "name": "任务的执行人（点击开始执行的人员）",
-            "index": -4,
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.executor}": {
-            "key": "${_system.executor}",
-            "name": "任务的执行代理人",
-            "index": -3,
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.task_id}": {
-            "key": "${_system.task_id}",
-            "index": -2,
-            "name": "任务ID",
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-        "${_system.task_name}": {
-            "key": "${_system.task_name}",
-            "name": "任务名称",
-            "index": -1,
-            "desc": "",
-            "show_type": "hide",
-            "source_type": "system",
-            "source_tag": "",
-            "source_info": {},
-            "custom_type": "",
-            "value": "",
-            "hook": False,
-            "validation": "",
-        },
-    }
+    INTERNAL_VARIABLE = TaskContext.flat_details()
 
     def __init__(self, simple_flow: list):
         """
@@ -418,7 +275,7 @@ class SimpleFlowConverter:
         return {
             "name": self.template_name,
             "template_id": "",
-            "projectBaseInfo": self.PROJECT_BASE_INFO,
+            "projectBaseInfo": self._get_project_base_info(),
             "notify_receivers": {
                 "receiver_group": [],
                 "more_receiver": "",
