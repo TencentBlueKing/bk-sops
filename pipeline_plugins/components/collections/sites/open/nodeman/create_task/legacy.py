@@ -187,6 +187,9 @@ class NodemanCreateTaskService(BasePluginService):
                 self.finish_schedule()
                 return False
 
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
+
     def outputs_format(self):
         return [
             self.OutputItem(

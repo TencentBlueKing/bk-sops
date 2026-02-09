@@ -14,7 +14,6 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.utils.translation import ugettext_lazy as _
-
 from pipeline.component_framework.component import Component
 
 from gcloud.conf import settings
@@ -26,7 +25,7 @@ VERSION = "1.0"
 
 
 class CCTransferHostToRecoveryService(BaseTransferHostToModuleService):
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         return self.exec_transfer_host_module(data, parent_data, "transfer_host_to_recyclemodule")
 
 

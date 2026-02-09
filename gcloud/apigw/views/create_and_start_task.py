@@ -22,7 +22,7 @@ from django.views.decorators.http import require_POST
 
 import env
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
@@ -47,6 +47,7 @@ from gcloud.utils.throttle import check_task_operation_throttle
 @csrf_exempt
 @require_POST
 @apigw_require
+@mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
@@ -136,6 +137,12 @@ def create_and_start_task(request, template_id, project_id):
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
+    # 判断是否是 MCP 请求，设置对应的 create_method
+    # request.is_mcp_request 由 @mcp_apigw 装饰器注入
+    create_method = (
+        TaskCreateMethod.MCP.value if getattr(request, "is_mcp_request", False) else TaskCreateMethod.API.value
+    )
+
     # 创建task
     try:
         task = TaskFlowInstance.objects.create(
@@ -144,7 +151,7 @@ def create_and_start_task(request, template_id, project_id):
             category=tmpl.category,
             template_id=template_id,
             template_source=params["template_source"],
-            create_method=TaskCreateMethod.API.value,
+            create_method=create_method,
             create_info=app_code,
             flow_type=params["flow_type"],
             current_flow="execute_task" if params["flow_type"] == COMMON else "func_claim",
