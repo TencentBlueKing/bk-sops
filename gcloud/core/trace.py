@@ -31,6 +31,15 @@ from opentelemetry.trace import NonRecordingSpan, SpanContext, SpanKind, Status,
 logger = logging.getLogger("root")
 
 
+# opentelemetry-sdk >= 1.11.0 的 Span.__new__ 会阻止直接实例化 SDKSpan，
+# 抛出 TypeError("Span must be instantiated via a tracer.")
+# 通过子类绕过 __new__ 中 `if cls is Span` 的检查，使得可以使用自定义 span_id 创建 Span
+class _CustomSpan(SDKSpan):
+    """SDKSpan 子类，用于绕过 __new__ 中的直接实例化检查，允许使用自定义 span_id 创建 Span"""
+
+    pass
+
+
 class CallFrom(enum.Enum):
     """调用来源"""
 
@@ -473,8 +482,9 @@ def _create_span_with_custom_id(
             version="",
         )
 
-        # 创建 SDK Span
-        span = SDKSpan(
+        # 使用 _CustomSpan 子类创建 Span，绕过 SDKSpan.__new__ 中
+        # "Span must be instantiated via a tracer" 的检查
+        span = _CustomSpan(
             name=span_name,
             context=span_context,
             parent=parent_span_context,
@@ -488,8 +498,11 @@ def _create_span_with_custom_id(
             instrumentation_scope=instrumentation_scope,
             record_exception=True,
             set_status_on_exception=True,
-            start_time=start_time_ns,
         )
+
+        # SDKSpan.__init__ 不接受 start_time 参数（该参数在 ReadableSpan 中），
+        # 需要通过 start() 方法设置开始时间，同时触发 span_processor.on_start
+        span.start(start_time=start_time_ns)
 
         return span
 

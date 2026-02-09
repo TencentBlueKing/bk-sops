@@ -193,13 +193,19 @@ def create_task(request, template_id, project_id):
             logger.exception(message)
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
+    # 判断是否是 MCP 请求，设置对应的 create_method
+    # request.is_mcp_request 由 @mcp_apigw 装饰器注入
+    create_method = (
+        TaskCreateMethod.MCP.value if getattr(request, "is_mcp_request", False) else TaskCreateMethod.API.value
+    )
+
     task = TaskFlowInstance.objects.create(
         project=project,
         pipeline_instance=data,
         category=tmpl.category,
         template_id=template_id,
         template_source=template_source,
-        create_method=TaskCreateMethod.API.value,
+        create_method=create_method,
         create_info=app_code,
         flow_type=params.get("flow_type", "common"),
         current_flow="execute_task" if params.get("flow_type", "common") == "common" else "func_claim",

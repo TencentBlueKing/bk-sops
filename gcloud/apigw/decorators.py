@@ -200,6 +200,33 @@ def _remove_keys_from_dict(data, keys_to_remove):
     return result
 
 
+def is_mcp_request(request):
+    """
+    判断请求是否来源于 MCP
+
+    :param request: Django request 对象
+    :return: bool，True 表示是 MCP 请求，False 表示不是
+    """
+    # 检查 request.app 是否存在
+    if hasattr(request, "app") and request.app:
+        # 获取 app_code
+        app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY, None)
+        if app_code:
+            # 从 settings 获取 v_mcp 前缀
+            v_mcp_prefix = getattr(settings, "APIGW_MCP_APP_CODE_PREFIX", "v_mcp")
+            # 检查 app_code 是否以指定前缀开头
+            app_code_check = app_code.startswith(v_mcp_prefix)
+            # 从 settings 获取 MCP Server ID HTTP Header 名称
+            mcp_server_id_header = getattr(settings, "APIGW_MCP_SERVER_ID_HEADER", "HTTP_X_BKAPI_MCP_SERVER_ID")
+            # 检查 request.META 中是否有指定的 header 且值不为空
+            mcp_server_id = request.META.get(mcp_server_id_header, "")
+            mcp_server_id_check = bool(mcp_server_id and mcp_server_id.strip())
+            # 任意一个条件满足即可
+            if app_code_check or mcp_server_id_check:
+                return True
+    return False
+
+
 def _remove_nested_key(data, path_tuple):
     """
     递归地从嵌套字典/列表中移除指定路径的键
@@ -256,6 +283,8 @@ def mcp_apigw(exclude_responses=None):
     装饰器：根据app_code前缀决定是否从响应中排除指定的键
     只有当request.app存在且app_code以settings.APIGW_MCP_APP_CODE_PREFIX配置的值开头时，才启用排除逻辑
 
+    同时会将"是否是MCP请求"的标识注入到request.is_mcp_request中，供视图函数使用。
+
     @param exclude_responses: 要排除的键列表，支持 "xx.yy.zz" 格式的嵌套路径
     @return: 装饰器函数
 
@@ -263,6 +292,10 @@ def mcp_apigw(exclude_responses=None):
         @mcp_apigw(exclude_responses=["sensitive_key", "data.items.secret"])
         @return_json_response
         def my_view(request):
+            # 可以直接使用 request.is_mcp_request 判断是否是 MCP 请求
+            if request.is_mcp_request:
+                # MCP 请求的特殊处理逻辑
+                pass
             return {
                 "result": True,
                 "data": {
@@ -280,32 +313,14 @@ def mcp_apigw(exclude_responses=None):
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
+            # 在视图函数执行前，判断并注入 MCP 请求标识到 request 中
+            request.is_mcp_request = is_mcp_request(request)
+
             # 执行原始视图函数
             result = view_func(request, *args, **kwargs)
 
-            # 检查是否需要启用排除逻辑
-            should_exclude = False
-
-            # 检查 request.app 是否存在
-            if hasattr(request, "app") and request.app:
-                # 获取 app_code
-                app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY, None)
-                if app_code:
-                    # 从 settings 获取 v_mcp 前缀
-                    v_mcp_prefix = getattr(settings, "APIGW_MCP_APP_CODE_PREFIX", "v_mcp")
-                    # 检查 app_code 是否以指定前缀开头
-                    app_code_check = app_code.startswith(v_mcp_prefix)
-                    # 从 settings 获取 MCP Server ID HTTP Header 名称
-                    mcp_server_id_header = getattr(settings, "APIGW_MCP_SERVER_ID_HEADER", "HTTP_X_BKAPI_MCP_SERVER_ID")
-                    # 检查 request.META 中是否有指定的 header 且值不为空
-                    mcp_server_id = request.META.get(mcp_server_id_header, "")
-                    mcp_server_id_check = bool(mcp_server_id and mcp_server_id.strip())
-                    # 任意一个条件满足即可
-                    if app_code_check or mcp_server_id_check:
-                        should_exclude = True
-
             # 如果需要排除且返回的是字典或JsonResponse，则进行过滤
-            if should_exclude and exclude_responses:
+            if request.is_mcp_request and exclude_responses:
                 if isinstance(result, JsonResponse):
                     # JsonResponse 的内容需要提取、处理、然后重新创建
                     result_data = json.loads(result.content.decode("utf-8"))
