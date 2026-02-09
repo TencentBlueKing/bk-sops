@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 
 import json
 import logging
-import os
 
 import requests
+from django.conf import settings
 
 logger = logging.getLogger("root")
 
@@ -25,11 +25,6 @@ class AgentClient:
 
     用于与智能体服务进行通信，发送请求并获取响应
     """
-
-    # 环境变量名称
-    ENV_AGENT_URL = "AGENT_PROCESS_BUILD_URL"
-    ENV_AGENT_APP_CODE = "AGENT_PROCESS_BUILD_CODE"
-    ENV_AGENT_APP_TOKEN = "AGENT_PROCESS_BUILD_TOKEN"
 
     # 默认超时时间（秒）
     DEFAULT_TIMEOUT = 300
@@ -47,9 +42,9 @@ class AgentClient:
 
     def _load_config(self):
         """从环境变量加载配置"""
-        self._agent_url = os.environ.get(self.ENV_AGENT_URL)
-        self._agent_app_code = os.environ.get(self.ENV_AGENT_APP_CODE)
-        self._agent_app_token = os.environ.get(self.ENV_AGENT_APP_TOKEN)
+        self._agent_url = settings.AGENT_PROCESS_BUILD_URL
+        self._agent_app_code = settings.AGENT_PROCESS_BUILD_CODE
+        self._agent_app_token = settings.AGENT_PROCESS_BUILD_TOKEN
 
         if not self._agent_url or not self._agent_app_code:
             raise ValueError("智能体 API 配置缺失，请检查环境变量 {} 和 {}".format(self.ENV_AGENT_URL, self.ENV_AGENT_APP_CODE))
