@@ -89,8 +89,11 @@ class BasePluginService(Service):
         :return: 属性字典
         """
         attributes = {
-            "space_id": parent_data.get_one_of_inputs("project_id"),
+            "project_id": parent_data.get_one_of_inputs("project_id"),
+            "bk_biz_id": parent_data.get_one_of_inputs("bk_biz_id"),
             "task_id": parent_data.get_one_of_inputs("task_id"),
+            "operator": parent_data.get_one_of_inputs("operator"),
+            "executor": parent_data.get_one_of_inputs("executor"),
             "node_id": self.id,
             "plugin_type": "builtin",  # 内置插件
         }

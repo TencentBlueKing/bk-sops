@@ -167,6 +167,9 @@ def create_execution_span(
     task_id: int,
     project_id: int,
     pipeline_instance_id: str,
+    bk_biz_id: int = None,
+    operator: str = None,
+    executor: str = None,
 ) -> tuple:
     """
     创建 bksops.execution span 作为所有插件 span 的根 span
@@ -174,6 +177,9 @@ def create_execution_span(
     :param task_id: 任务 ID
     :param project_id: 项目 ID
     :param pipeline_instance_id: Pipeline 实例 ID
+    :param bk_biz_id: 业务 ID
+    :param operator: 操作员（点击开始执行的人员）
+    :param executor: 执行代理人
     :return: (trace_id_hex, span_id_hex) 元组，如果创建失败则返回 (None, None)
     """
     if not settings.ENABLE_OTEL_TRACE:
@@ -203,6 +209,12 @@ def create_execution_span(
         span.set_attribute(f"{platform_code}.task_id", str(task_id))
         span.set_attribute(f"{platform_code}.project_id", str(project_id))
         span.set_attribute(f"{platform_code}.pipeline_instance_id", str(pipeline_instance_id))
+        if bk_biz_id is not None:
+            span.set_attribute(f"{platform_code}.bk_biz_id", str(bk_biz_id))
+        if operator is not None:
+            span.set_attribute(f"{platform_code}.operator", str(operator))
+        if executor is not None:
+            span.set_attribute(f"{platform_code}.executor", str(executor))
 
         # 获取 span context
         span_context = span.get_span_context()
@@ -351,12 +363,8 @@ def end_plugin_span(
             # 设置执行结果状态
             if success:
                 span.set_status(Status(StatusCode.OK))
-                span.set_attribute(f"{platform_code}.plugin.success", True)
             else:
                 span.set_status(Status(StatusCode.ERROR, error_message or "Plugin execution failed"))
-                span.set_attribute(f"{platform_code}.plugin.success", False)
-                if error_message:
-                    span.set_attribute(f"{platform_code}.plugin.error", str(error_message)[:1000])
 
             span.end(end_time=end_time_ns)
         else:
@@ -366,12 +374,8 @@ def end_plugin_span(
 
             if success:
                 span.set_status(Status(StatusCode.OK))
-                span.set_attribute(f"{platform_code}.plugin.success", True)
             else:
                 span.set_status(Status(StatusCode.ERROR, error_message or "Plugin execution failed"))
-                span.set_attribute(f"{platform_code}.plugin.success", False)
-                if error_message:
-                    span.set_attribute(f"{platform_code}.plugin.error", str(error_message)[:1000])
 
             span.end(end_time=end_time_ns)
 
@@ -582,12 +586,8 @@ def plugin_method_span(
             # 设置执行结果状态
             if result.success:
                 span.set_status(Status(StatusCode.OK))
-                span.set_attribute(f"{platform_code}.plugin.success", True)
             else:
                 span.set_status(Status(StatusCode.ERROR, result.error_message or f"{method_name} failed"))
-                span.set_attribute(f"{platform_code}.plugin.success", False)
-                if result.error_message:
-                    span.set_attribute(f"{platform_code}.plugin.error", str(result.error_message)[:1000])
 
             # 结束 span
             span.end(end_time=end_time_ns)
