@@ -326,7 +326,8 @@
                 'username': state => state.username,
                 'site_url': state => state.site_url,
                 'infoBasicConfig': state => state.infoBasicConfig,
-                'project_scope': state => state.template.project_scope
+                'project_scope': state => state.template.project_scope,
+                'storeIsAiGenerated': state => state.template.isAiGenerated
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,
@@ -528,7 +529,8 @@
                 'setPipelineTree',
                 'setInternalVariable',
                 'setConstants',
-                'setProjectScope'
+                'setProjectScope',
+                'setAiGenerated'
             ]),
             ...mapMutations('atomForm/', [
                 'clearAtomForm'
@@ -542,7 +544,14 @@
                 'saveTaskSchemeList'
             ]),
             initData () {
-                this.initTemplateData()
+                // 检查是否是 AI 生成的流程（优先使用 store 中的标志，其次使用 URL 参数）
+                const isAiGenerated = this.storeIsAiGenerated || this.$route.query.aiGenerated === 'true'
+                if (!isAiGenerated) {
+                    this.initTemplateData()
+                } else {
+                    // 使用后清除 AI 生成标志，避免影响后续操作
+                    this.setAiGenerated(false)
+                }
                 // 获取流程内置变量
                 this.getSystemVars()
                 this.getSingleAtomList()
@@ -555,17 +564,24 @@
                 if (['edit', 'clone', 'view'].includes(this.type)) {
                     this.getTemplateData()
                 } else {
-                    let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
-                    if (this.common) {
-                        if (window.TIMEZONE) {
-                            name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
-                        } else {
-                            // 无时区的公共流程使用本地的时间
-                            name = 'new' + moment().format('YYYYMMDDHHmmss')
+                    // AI 生成的流程使用 store 中已有的名称
+                    if (!isAiGenerated) {
+                        let name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                        if (this.common) {
+                            if (window.TIMEZONE) {
+                                name = 'new' + moment.tz(window.TIMEZONE).format('YYYYMMDDHHmmss')
+                            } else {
+                                // 无时区的公共流程使用本地的时间
+                                name = 'new' + moment().format('YYYYMMDDHHmmss')
+                            }
+                            this.setProjectScope(['*'])
                         }
-                        this.setProjectScope(['*'])
+                        this.setTemplateName(name)
+                    } else if (!this.name) {
+                        // AI 生成的流程如果没有名称，则使用默认名称
+                        const name = 'new' + moment.tz(this.timeZone).format('YYYYMMDDHHmmss')
+                        this.setTemplateName(name)
                     }
-                    this.setTemplateName(name)
                     this.templateDataLoading = false
                 }
             },

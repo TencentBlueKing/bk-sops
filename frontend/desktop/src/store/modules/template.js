@@ -173,6 +173,7 @@ const template = {
     namespaced: true,
     state: {
         name: '',
+        isAiGenerated: false,
         activities: {},
         end_event: {},
         flows: {},
@@ -258,7 +259,13 @@ const template = {
                 })
             }
         },
+        setAiGenerated (state, value) {
+            state.isAiGenerated = value
+        },
         setPipelineTree (state, data) {
+            if (data.name) {
+                state.name = data.name
+            }
             const pipelineTreeOrder = [
                 'activities', 'constants', 'end_event', 'flows', 'gateways',
                 'line', 'location', 'outputs', 'start_event'
@@ -361,6 +368,7 @@ const template = {
             state.name = ''
             state.activities = activities
             state.end_event = end_event
+            state.isAiGenerated = false
             state.flows = flow
             state.gateways = {}
             state.line = line
@@ -387,6 +395,7 @@ const template = {
         resetTemplateData (state) {
             state.name = ''
             state.activities = {}
+            state.isAiGenerated = false
             state.end_event = {}
             state.flows = {}
             state.gateways = {}
@@ -1056,6 +1065,10 @@ const template = {
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
             return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
+        },
+        // AI 生成流程
+        generateProcessWithAgent ({ commit }, data) {
+            return axios.post('template/api/generate_process_with_agent/', data).then(response => response.data)
         },
         // 获取内置变量
         loadInternalVariable () {
