@@ -15,8 +15,9 @@ import logging
 import re
 
 import requests
+from django.conf import settings
 
-from api.agent_client import AgentClient
+from api.ai_sops_agent import AgentRequestType, BKSopsAgentClient
 from gcloud.utils.flow_converter import SimpleFlowConverter
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
@@ -69,7 +70,7 @@ def build_process_prompt(prompt: str, bk_biz_id: int) -> str:
     )
 
 
-def call_agent_api(prompt: str, bk_biz_id: int, username: str = "admin") -> dict:
+def call_agent_api(prompt: str, bk_biz_id: int, username: str = "") -> dict:
     """
     调用智能体插件 API 生成流程
 
@@ -79,8 +80,8 @@ def call_agent_api(prompt: str, bk_biz_id: int, username: str = "admin") -> dict
     :return: API 响应结果
     """
     input_content = build_process_prompt(prompt, bk_biz_id)
-    client = AgentClient(username=username)
-    return client.call(input_content)
+    client = BKSopsAgentClient(settings.AGENT_PROCESS_BUILD_URL, AgentRequestType.USER, username=username)
+    return client.call_agent_apigw(input_content)
 
 
 def _parse_json_array(content: str) -> list:
@@ -159,24 +160,18 @@ def parse_agent_response(agent_response: dict) -> list:
     :param agent_response: 智能体 API 响应
     :return: 简化流程列表
     """
-    if not agent_response.get("result"):
-        raise ValueError("智能体 API 返回失败: {}".format(agent_response.get("message", "未知错误")))
 
-    data = agent_response.get("data", {})
-    choices = data.get("choices", [])
-
+    choices = agent_response.get("choices", [])
     if not choices:
         raise ValueError("智能体 API 返回数据为空")
 
     content = choices[0].get("delta", {}).get("content", "")
-
     if not content:
         raise ValueError("智能体 API 返回内容为空")
 
     logger.info("parse_agent_response - Raw content: {}".format(content[:500] if len(content) > 500 else content))
 
     json_content = _extract_json_content(content)
-
     logger.info(
         "parse_agent_response - JSON content to parse: {}".format(
             json_content[:300] if len(json_content) > 300 else json_content
@@ -186,7 +181,7 @@ def parse_agent_response(agent_response: dict) -> list:
     return _parse_json_content(json_content)
 
 
-def generate_pipeline_tree(prompt: str, bk_biz_id: int, username: str = "admin") -> dict:
+def generate_pipeline_tree(prompt: str, bk_biz_id: int, username: str = "") -> dict:
     """
     根据用户描述生成完整的 pipeline_tree
 
@@ -199,7 +194,6 @@ def generate_pipeline_tree(prompt: str, bk_biz_id: int, username: str = "admin")
     :raises FlowConversionError: 流程转换失败
     :raises FlowLayoutError: 流程排版失败
     """
-    # 调用智能体 API
     try:
         agent_response = call_agent_api(prompt, bk_biz_id, username)
         simple_flow = parse_agent_response(agent_response)
@@ -210,7 +204,6 @@ def generate_pipeline_tree(prompt: str, bk_biz_id: int, username: str = "admin")
         logger.exception("generate_pipeline_tree: Agent response parse failed - {}".format(str(e)))
         raise AgentResponseParseError("智能体响应解析失败: {}".format(str(e)))
 
-    # 校验返回数据格式
     if not isinstance(simple_flow, list):
         raise AgentResponseParseError("智能体返回的数据不是有效的 JSON 数组")
 

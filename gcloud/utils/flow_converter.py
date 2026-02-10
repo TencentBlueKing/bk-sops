@@ -523,7 +523,7 @@ class SimpleFlowConverter:
             "EndEvent": "endpoint",
             "Activity": "tasknode",
             "ParallelGateway": "parallelgateway",
-            "ConditionalParallelGateway": "parallelgateway",
+            "ConditionalParallelGateway": "conditionalparallelgateway",
             "ConvergeGateway": "convergegateway",
             "ExclusiveGateway": "branchgateway",
         }

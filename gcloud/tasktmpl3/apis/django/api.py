@@ -415,7 +415,7 @@ def generate_process_with_agent(request):
             {"result": False, "message": "prompt is required", "code": err_code.REQUEST_PARAM_INVALID.code}
         )
 
-    username = request.user.username if request.user.is_authenticated else "admin"
+    username = request.user.username if request.user.is_authenticated else ""
 
     try:
         pipeline_tree = generate_pipeline_tree(prompt, bk_biz_id, username)
