@@ -20,6 +20,7 @@ from gcloud.core.trace import (
     PLUGIN_SCHEDULE_COUNT_KEY,
     PLUGIN_SPAN_ENDED_KEY,
     PLUGIN_SPAN_ID_KEY,
+    clean_plugin_span_outputs,
     end_plugin_span,
     plugin_method_span,
     start_plugin_span,
@@ -153,7 +154,7 @@ class BasePluginService(Service):
 
     def _end_plugin_span(self, data, success, error_message=None):
         """
-        结束插件执行 Span（确保只调用一次）
+        结束插件执行 Span（确保只调用一次），并清理 data.outputs 中的 span 相关内部属性
 
         :param data: 插件数据对象
         :param success: 是否成功
@@ -166,7 +167,10 @@ class BasePluginService(Service):
             return  # 幂等保护
 
         end_plugin_span(data, success=success, error_message=error_message)
-        data.set_outputs(PLUGIN_SPAN_ENDED_KEY, True)
+
+        # 清理 data.outputs 中所有 span 相关的内部属性，
+        # 避免这些非用户需要的内置属性出现在流程任务的输出中
+        clean_plugin_span_outputs(data)
 
     def execute(self, data, parent_data):
         """

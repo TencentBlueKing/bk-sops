@@ -244,6 +244,36 @@ PLUGIN_SPAN_ATTRIBUTES_KEY = "_plugin_span_attributes"
 PLUGIN_SPAN_ENDED_KEY = "_plugin_span_ended"
 PLUGIN_SCHEDULE_COUNT_KEY = "_plugin_schedule_count"
 
+# 所有 span 相关的 output key 列表，用于在 span 结束后清理
+PLUGIN_SPAN_OUTPUT_KEYS = [
+    PLUGIN_SPAN_START_TIME_KEY,
+    PLUGIN_SPAN_NAME_KEY,
+    PLUGIN_SPAN_TRACE_ID_KEY,
+    PLUGIN_SPAN_PARENT_SPAN_ID_KEY,
+    PLUGIN_SPAN_ID_KEY,
+    PLUGIN_SPAN_ATTRIBUTES_KEY,
+    PLUGIN_SPAN_ENDED_KEY,
+    PLUGIN_SCHEDULE_COUNT_KEY,
+]
+
+
+def clean_plugin_span_outputs(data):
+    """
+    清理 data.outputs 中所有 span 相关的内部属性。
+    在 plugin span 结束后调用，避免这些内部属性污染用户可见的任务输出。
+
+    :param data: 插件数据对象
+    """
+    try:
+        outputs = getattr(data, "outputs", None)
+        if outputs is None:
+            return
+
+        for key in PLUGIN_SPAN_OUTPUT_KEYS:
+            outputs.pop(key, None)
+    except Exception as e:
+        logger.debug(f"[plugin_span] Failed to clean plugin span outputs: {e}")
+
 
 def _generate_span_id() -> int:
     """
