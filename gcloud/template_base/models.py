@@ -18,22 +18,12 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from pipeline.exceptions import SubprocessExpiredError
-from pipeline.models import (
-    PipelineTemplate,
-    TemplateCurrentVersion,
-    TemplateRelationship,
-)
+from pipeline.models import PipelineTemplate, TemplateCurrentVersion, TemplateRelationship
 
 from gcloud import err_code
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.conf import settings
-from gcloud.constants import (
-    CLOCKED_TASK_NOT_STARTED,
-    COMMON,
-    PROJECT,
-    TASK_CATEGORY,
-    TEMPLATE_EXPORTER_VERSION,
-)
+from gcloud.constants import CLOCKED_TASK_NOT_STARTED, COMMON, PROJECT, TASK_CATEGORY, TEMPLATE_EXPORTER_VERSION
 from gcloud.core.utils import convert_readable_username
 from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.resource_creator_action.signals import batch_create
@@ -315,6 +305,8 @@ class BaseTemplate(models.Model):
     notify_receivers = models.TextField(_("流程事件通知人"), default="{}")
     time_out = models.IntegerField(_("流程超时时间(分钟)"), default=20)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
+    ai_notify_type = models.JSONField(_("AI分析个人通知方式"), default=dict)
+    ai_notify_group = models.JSONField(_("AI分析群聊通知配置"), default=dict)
 
     class Meta:
         # abstract would not be inherited automatically

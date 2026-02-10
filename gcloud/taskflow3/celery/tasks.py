@@ -14,6 +14,7 @@ import logging
 import socket
 import time
 
+import requests
 from celery import task
 from django.conf import settings
 from django.utils import timezone
@@ -24,9 +25,10 @@ from pipeline.eri.runtime import BambooDjangoRuntime
 
 import env
 import metrics
+from api.ai_sops_agent import AgentRequestType, BKSopsAgentClient
 from gcloud.constants import CallbackStatus
 from gcloud.core.trace import CallFrom, start_trace
-from gcloud.shortcuts.message import send_task_flow_message
+from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED, CmsiSender, send_task_flow_message
 from gcloud.taskflow3.domains.callback import TaskCallBacker
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.taskflow3.domains.node_timeout_strategy import node_timeout_handler
@@ -37,6 +39,7 @@ from gcloud.taskflow3.models import (
     TimeoutNodeConfig,
     TimeoutNodesRecord,
 )
+from gcloud.utils import crypto
 
 logger = logging.getLogger("celery")
 
@@ -326,3 +329,159 @@ def async_node_callback_retry(
             )
 
         return callback_result
+
+
+@task
+def AIAnalysisNotify(
+    bk_biz_id: str, task_id: str, executor: str, receivers: str, msg_type: str, ai_analysis_notify_types: dict
+):
+    """
+    AI分析通知任务 个人通知
+    """
+    try:
+
+        # ai_analysis_notify_types 格式为 {"success": ["rtx","email"...], "fail": ["rtx","email"...]}
+        # receivers: executor,user1,user2,user3
+
+        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
+
+        if msg_type == ATOM_FAILED and task_error_analysis and task_summary:
+
+            notify_type = ai_analysis_notify_types.get("fail", [])
+
+            # 发送任务总结报告
+            title = "标准运维AI任务执行情况总结"
+            CmsiSender().send(
+                executor=executor, receivers=receivers, notify_type=notify_type, title=title, content=task_summary
+            )
+
+            # 发送错误分析
+            title = "标准运维AI错误分析报告"
+            CmsiSender().send(
+                executor=executor,
+                receivers=receivers,
+                notify_type=notify_type,
+                title=title,
+                content=task_error_analysis,
+            )
+
+        elif msg_type == TASK_FINISHED and task_summary:
+
+            notify_type = ai_analysis_notify_types.get("success", [])
+
+            # 发送任务执行情况总结
+            title = "标准运维AI任务执行情况总结"
+            CmsiSender().send(
+                executor=executor, receivers=receivers, notify_type=notify_type, title=title, content=task_summary
+            )
+
+    except Exception as e:
+        logger.error(f"AIAnalysisNotify error: {e}")
+
+
+@task
+def AIAnalysisNotifyGroupChat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str):
+    """
+    AI分析通知任务 群聊通知
+    """
+
+    try:
+
+        chat_id, url, mentioned_str = get_ai_analysis_notify_group_config(ai_notify_group, msg_type)
+        if not chat_id or not url or not mentioned_str:
+            logger.error("AIAnalysisNotifyGroupChat error: chat_id or url or mentioned_str not be empty")
+            return
+
+        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
+
+        # 消息发送
+        if msg_type == ATOM_FAILED:
+            content = "{}\n{}\n".format(str(task_summary), mentioned_str)
+            resp = requests.post(
+                url=url,
+                json={
+                    "chatid": chat_id,
+                    "msgtype": "markdown",
+                    "markdown": {"content": content},
+                    "at_short_name": True,
+                },
+                timeout=5,
+            )
+            content = "{}\n{}\n".format(str(task_error_analysis), mentioned_str)
+            resp = requests.post(
+                url=url,
+                json={
+                    "chatid": chat_id,
+                    "msgtype": "markdown",
+                    "markdown": {"content": content},
+                    "at_short_name": True,
+                },
+                timeout=5,
+            )
+        elif msg_type == TASK_FINISHED:
+            content = "{}\n{}\n".format(str(task_summary), mentioned_str)
+            resp = requests.post(
+                url=url,
+                json={
+                    "chatid": chat_id,
+                    "msgtype": "markdown",
+                    "markdown": {"content": content},
+                    "at_short_name": True,
+                },
+                timeout=5,
+            )
+        if not resp.ok:
+            logger.error(f"AIAnalysisNotifyGroupChat error: {resp.content}")
+    except Exception as e:
+        logger.error(f"AIAnalysisNotifyGroupChat error: {e}")
+
+
+def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple:
+    """
+    AI分析报告
+    """
+
+    task_summary = None
+    task_error_analysis = None
+    bk_sops_agent_client = BKSopsAgentClient(env.BK_SOPS_AGENT_HOST, AgentRequestType.PLUGIN)
+
+    if msg_type == ATOM_FAILED:
+        task_summary = bk_sops_agent_client.summarize_task_execution(bk_biz_id, task_id)
+        task_error_analysis = bk_sops_agent_client.analyze_task_error(bk_biz_id, task_id)
+
+    elif msg_type == TASK_FINISHED:
+        task_summary = bk_sops_agent_client.summarize_task_execution(bk_biz_id, task_id)
+
+    return task_summary, task_error_analysis
+
+
+def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type: str) -> tuple:
+
+    """
+    AI分析报告群聊通知配置
+    """
+    try:
+        chat_id = None
+        url = None
+        mentioned_str = None
+
+        if msg_type == ATOM_FAILED:
+            group_notify_config = ai_analysis_notify_group.get("fail", {})
+
+        elif msg_type == TASK_FINISHED:
+            group_notify_config = ai_analysis_notify_group.get("success", {})
+
+        else:
+            return None, None, None
+
+        chat_id = crypto.decrypt(group_notify_config.get("chat_id"))
+        url = group_notify_config.get("web_hook")
+        mentioned_str = " ".join(
+            ["<@{}>".format(mentioned) for mentioned in group_notify_config.get("mentioned_member_list", [])]
+        )
+
+    except Exception as e:
+        logger.error(f"get_ai_analysis_notify_group_config error: {e}")
+        return None, None, None
+
+    return chat_id, url, mentioned_str

@@ -135,6 +135,8 @@ def mysetting(request):
         "BK_DATA_REPORT_API_URL": settings.BK_DATA_REPORT_API_URL,
         # agent配置
         "AI_SOPS_AGENT_URL": env.AI_SOPS_AGENT_URL,
+        # 是否开启AI分析通知
+        "ENABLE_AI_NOTIFICATION": env.ENABLE_AI_NOTIFICATION,
     }
 
     # custom context config

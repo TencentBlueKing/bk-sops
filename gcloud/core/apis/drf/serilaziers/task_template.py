@@ -15,11 +15,11 @@ import json
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
+from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import DATETIME_FORMAT, TASK_CATEGORY
 from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.core.models import Project
-from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
@@ -112,6 +112,8 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "default_flow_type",
             "notify_type",
             "notify_receivers",
+            "ai_notify_type",
+            "ai_notify_group",
             "pipeline_tree",
             "project",
             "template_id",
