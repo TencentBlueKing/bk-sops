@@ -1247,6 +1247,12 @@ class TaskFlowInstance(models.Model):
         notify_type = json.loads(self.template.notify_type)
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
 
+    def get_ai_notify_type(self):
+        return self.template.ai_notify_type
+
+    def get_ai_notify_group(self):
+        return self.template.ai_notify_group
+
     def record_and_get_executor_proxy(self, operator):
         if self.recorded_executor_proxy is None:
             self.recorded_executor_proxy = self.executor_proxy or ProjectConfig.objects.task_executor_for_project(

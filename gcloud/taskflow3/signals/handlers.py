@@ -30,11 +30,19 @@ from pipeline.eri.signals import (
 )
 from pipeline.models import PipelineInstance
 from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
+from webhook.signals import event_broadcast_signal
 
 import env
+from gcloud.constants import TaskCreateMethod, WebhookEventType, WebhookScopeType
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
-from gcloud.utils.json import safe_for_json
-from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
+from gcloud.taskflow3.celery.tasks import (
+    AIAnalysisNotify,
+    AIAnalysisNotifyGroupChat,
+    auto_retry_node,
+    send_taskflow_message,
+    task_callback,
+)
+from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import (
     AutoRetryNodeStrategy,
     EngineConfig,
@@ -43,10 +51,8 @@ from gcloud.taskflow3.models import (
     TimeoutNodeConfig,
 )
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
-from gcloud.constants import WebhookScopeType, WebhookEventType
-from webhook.signals import event_broadcast_signal
-from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.utils import add_node_name_to_status_tree
+from gcloud.utils.json import safe_for_json
 
 logger = logging.getLogger("celery")
 
@@ -91,6 +97,45 @@ def _send_node_fail_message(node_id, pipeline_id):
 def send_task_message(pipeline_id, node_id, msg_type):
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=pipeline_id)
+
+        bk_biz_id = taskflow.project.bk_biz_id
+        task_id = taskflow.pipeline_instance.instance_id
+        receivers_list = taskflow.get_stakeholders()
+        receivers = ",".join(receivers_list)
+        executor = taskflow.pipeline_instance.executor
+        ai_notify_type = taskflow.get_ai_notify_type()
+        ai_notify_group = taskflow.get_ai_notify_group()
+        # AI分析通知开关
+        enable_analysis_notification = env.ENABLE_AI_NOTIFICATION
+
+        # 提交个人通知任务 排除周期任务
+        if (
+            enable_analysis_notification
+            and ai_notify_type
+            and taskflow.create_method != TaskCreateMethod.PERIODIC.value
+        ):
+            AIAnalysisNotify.delay(
+                bk_biz_id=bk_biz_id,
+                task_id=task_id,
+                executor=executor,
+                receivers=receivers,
+                msg_type=msg_type,
+                ai_analysis_notify_types=ai_notify_type,
+            )
+
+        # 提交群聊通知任务 排除周期任务(周期任务频繁执行，避免频繁调用AI接口产生过多通知)
+        if (
+            enable_analysis_notification
+            and ai_notify_group
+            and taskflow.create_method != TaskCreateMethod.PERIODIC.value
+        ):
+            AIAnalysisNotifyGroupChat.delay(
+                bk_biz_id=bk_biz_id,
+                task_id=task_id,
+                ai_notify_group=ai_notify_group,
+                msg_type=msg_type,
+            )
+
         resp_data = TaskCommandDispatcher(
             engine_ver=taskflow.engine_ver,
             taskflow_id=taskflow.id,
@@ -255,7 +300,6 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
 
         if auto_retry_dispatched:
             return
-
         _send_node_fail_message(node_id=node_id, pipeline_id=root_id)
         send_task_message(pipeline_id=root_id, node_id=node_id, msg_type=ATOM_FAILED)
 

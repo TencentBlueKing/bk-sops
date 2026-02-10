@@ -68,8 +68,6 @@ class WechatWorkSendMessageService(BasePluginService):
 
         chat_id_list = chat_id.split("\n")
 
-        print(chat_id_list)
-
         url = EnvironmentVariables.objects.get_var("BKAPP_SOPS_WECHAT_WORK_WEB_HOOK")
         if not url:
             data.outputs.ex_data = "WechatWork send message URL is not config, contact admin please"
