@@ -230,6 +230,94 @@ const tools = {
         })
 
         return target
+    },
+
+    /**
+     * 转换对象中指定字段的字符串为数组
+     * @param {Object} data 待处理的数据对象
+     * @param {string|Array} fields 需要转换的字段名，支持字符串或数组
+     * @param {string} separator 分隔符，默认为逗号
+     * @returns {Object} 处理后的数据
+     */
+    convertStringToArray (data, fields = [], separator = ',') {
+        if (!data || typeof data !== 'object') {
+            return data
+        }
+        const processedData = this.deepClone(data)
+        const fieldList = Array.isArray(fields) ? fields : [fields]
+        try {
+            Object.keys(processedData).forEach(key => {
+                const itemData = processedData[key]
+                // 验证数据结构
+                if (!itemData || typeof itemData !== 'object') {
+                    return
+                }
+                // 处理指定字段
+                fieldList.forEach(fieldName => {
+                    if (itemData[fieldName]) {
+                        if (typeof itemData[fieldName] === 'string') {
+                            // 字符串转数组：分割、去空格、过滤空值
+                            itemData[fieldName] = itemData[fieldName]
+                                .split(separator)
+                                .map(item => item.trim())
+                                .filter(item => item.length > 0)
+                        } else if (!Array.isArray(itemData[fieldName])) {
+                            // 如果不是字符串也不是数组，重置为空数组
+                            itemData[fieldName] = []
+                        }
+                    }
+                })
+            })
+        } catch (error) {
+            console.warn(error)
+            return data // 出错时返回原数据
+        }
+
+        return processedData
+    },
+
+    /**
+     * 转换对象中指定字段的数组为字符串
+     * @param {Object} data 待处理的数据对象
+     * @param {string|Array} fields 需要转换的字段名，支持字符串或数组
+     * @param {string} separator 分隔符，默认为逗号
+     * @returns {Object} 处理后的数据
+     */
+    convertArrayToString (data, fields = [], separator = ',') {
+        if (!data || typeof data !== 'object') {
+            return data
+        }
+        const formattedData = this.deepClone(data)
+        const fieldList = Array.isArray(fields) ? fields : [fields]
+        try {
+            Object.keys(formattedData).forEach(key => {
+                const itemData = formattedData[key]
+                // 验证数据结构
+                if (!itemData || typeof itemData !== 'object') {
+                    return
+                }
+                // 处理指定字段
+                fieldList.forEach(fieldName => {
+                    if (itemData[fieldName]) {
+                        if (Array.isArray(itemData[fieldName])) {
+                            // 数组转字符串：过滤空值、去重、连接
+                            itemData[fieldName] = [...new Set(
+                                itemData[fieldName]
+                                    .filter(item => item && typeof item === 'string' && item.trim())
+                                    .map(item => item.trim())
+                            )].join(separator)
+                        } else if (typeof itemData[fieldName] !== 'string') {
+                            // 如果不是数组也不是字符串，重置为空字符串
+                            itemData[fieldName] = ''
+                        }
+                    }
+                })
+            })
+        } catch (error) {
+            console.warn(error)
+            return data
+        }
+        return formattedData
     }
 }
 

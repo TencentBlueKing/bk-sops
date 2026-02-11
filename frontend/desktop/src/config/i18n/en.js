@@ -1932,7 +1932,14 @@ const en = {
     '编写脚本': 'Write Script',
     '脚本检查': 'Script Check',
     '排查失败的原因': 'Find out the reason for the failure',
-    '任务总结': 'Task Summary'
+    '任务总结': 'Task Summary',
+    'AI分析通知': 'AI Analysis Notification',
+    'AI分析群聊通知': 'AI Analysis Group Chat Notification',
+    '群聊ID': 'Group Chat ID',
+    '需要@的人': 'People to Mention',
+    '请输入群聊ID': 'Please enter group chat ID',
+    '请输入需要@的人': 'Please enter the people to mention',
+    '请输入群聊机器人webhook': 'Please enter group chat bot webhook'
 }
 
 export default en
