@@ -240,7 +240,7 @@ const tools = {
      * @returns {Object} 处理后的数据
      */
     convertStringToArray (data, fields = [], separator = ',') {
-        if (!data || typeof data !== 'object') {
+        if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
             return data
         }
         const processedData = this.deepClone(data)
@@ -256,10 +256,9 @@ const tools = {
                 fieldList.forEach(fieldName => {
                     if (itemData[fieldName]) {
                         if (typeof itemData[fieldName] === 'string') {
-                            // 字符串转数组：分割、去空格、过滤空值
+                            // 字符串转数组
                             itemData[fieldName] = itemData[fieldName]
                                 .split(separator)
-                                .map(item => item.trim())
                                 .filter(item => item.length > 0)
                         } else if (!Array.isArray(itemData[fieldName])) {
                             // 如果不是字符串也不是数组，重置为空数组
@@ -300,12 +299,8 @@ const tools = {
                 fieldList.forEach(fieldName => {
                     if (itemData[fieldName]) {
                         if (Array.isArray(itemData[fieldName])) {
-                            // 数组转字符串：过滤空值、去重、连接
-                            itemData[fieldName] = [...new Set(
-                                itemData[fieldName]
-                                    .filter(item => item && typeof item === 'string' && item.trim())
-                                    .map(item => item.trim())
-                            )].join(separator)
+                            // 数组转字符串
+                            itemData[fieldName] = itemData[fieldName].join(separator)
                         } else if (typeof itemData[fieldName] !== 'string') {
                             // 如果不是数组也不是字符串，重置为空字符串
                             itemData[fieldName] = ''

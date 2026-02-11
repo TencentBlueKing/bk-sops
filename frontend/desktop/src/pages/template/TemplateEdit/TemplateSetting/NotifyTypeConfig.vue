@@ -387,15 +387,7 @@
                             }]
                         }, [
                             col.label
-                        ]),
-                        col.tips ? h('i', {
-                            class: 'bk-icon icon-exclamation-circle ml5',
-                            style: { 'font-size': '14px' },
-                            directives: [{
-                                name: 'bk-tooltips',
-                                value: { content: col.tips, allowHTML: true }
-                            }]
-                        }) : ''
+                        ])
                     ])
                 } else {
                     return h('p', {
