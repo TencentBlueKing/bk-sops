@@ -204,7 +204,9 @@ const template = {
         default_flow_type: 'common',
         project_scope: [],
         webhook_configs: {},
-        enable_webhook: false
+        enable_webhook: false,
+        ai_analysis_notify_person: {},
+        ai_analysis_notify_group: {}
     },
     mutations: {
         setWebhookConfigs (state, webhookConfigs) {
@@ -230,7 +232,8 @@ const template = {
         },
         setTplConfig (state, data) {
             const { name, category, notify_type, receiver_group, description, executor_proxy,
-                template_labels, default_flow_type, notify_type_extra_info, project_scope, webhookConfigs, enable_webhook } = data
+                template_labels, default_flow_type, notify_type_extra_info, project_scope,
+                webhookConfigs, enable_webhook, ai_analysis_notify_person, ai_analysis_notify_group } = data
             state.name = name
             state.category = category
             state.notify_type = notify_type
@@ -243,6 +246,8 @@ const template = {
             state.project_scope = project_scope
             state.webhook_configs = webhookConfigs
             state.enable_webhook = enable_webhook
+            state.ai_analysis_notify_person = ai_analysis_notify_person
+            state.ai_analysis_notify_group = ai_analysis_notify_group
         },
         setSubprocessUpdated (state, subflow) {
             if (state.subprocess_info) {
@@ -321,7 +326,8 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope, webhook_configs, enable_webhook
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope,
+                webhook_configs, enable_webhook, ai_analysis_notify_group, ai_analysis_notify_person
             } = data
 
             const pipelineData = pipeline_tree ? JSON.parse(pipeline_tree) : undefined
@@ -342,6 +348,8 @@ const template = {
             state.project_scope = project_scope
             state.webhook_configs = webhook_configs
             state.enable_webhook = enable_webhook
+            state.ai_analysis_notify_group = ai_analysis_notify_group
+            state.ai_analysis_notify_person = ai_analysis_notify_person
             if (pipeline_tree) {
                 state.project_scope = project_scope
                 this.commit('template/setPipelineTree', pipelineData)
@@ -962,7 +970,8 @@ const template = {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type,
-                init_executor_proxy, project_scope, webhook_configs, enable_webhook
+                init_executor_proxy, project_scope, webhook_configs, enable_webhook,
+                ai_analysis_notify_group, ai_analysis_notify_person
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => ({
@@ -1033,7 +1042,9 @@ const template = {
                 default_flow_type,
                 notify_type,
                 pipeline_tree: pipelineTree,
-                notify_receivers: notifyReceivers
+                notify_receivers: notifyReceivers,
+                ai_analysis_notify_group,
+                ai_analysis_notify_person
             }
             // 更新时如果执行代理人没有修改则不传
             if (templateId && init_executor_proxy === executor_proxy) {
