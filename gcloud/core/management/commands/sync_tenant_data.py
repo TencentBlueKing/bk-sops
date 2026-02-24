@@ -3,6 +3,7 @@ import logging
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from gcloud.common_template.models import CommonTemplate
 from gcloud.core.models import Business, Project
 from gcloud.external_plugins.models import (
     CachePackageSource,
@@ -41,6 +42,7 @@ class Command(BaseCommand):
         models_to_update = [
             Business,
             Project,
+            CommonTemplate,
             SyncTask,
             GitRepoOriginalSource,
             S3OriginalSource,
