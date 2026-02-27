@@ -1565,11 +1565,7 @@
                     if (!children || typeof children !== 'object') {
                         return
                     }
-                    const childrenKeys = Object.keys(children)
-                    if (childrenKeys.length === 0) {
-                        return
-                    }
-                    childrenKeys.forEach(nodeId => {
+                    Object.keys(children).forEach(nodeId => {
                         const nodeStatus = children[nodeId]
                         if (nodeStatus && nodeStatus.id) {
                             allChildrenStatus[nodeId] = nodeStatus
