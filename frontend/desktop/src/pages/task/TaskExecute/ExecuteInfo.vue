@@ -1199,7 +1199,12 @@
                         }
                         return
                     }
-                    if (!states[id]) return
+                    if (!states[id]) {
+                        if (children) {
+                            this.nodeAddStatus(children, this.getAllChildrenStatus(this.nodeDisplayStatus.children))
+                        }
+                        return
+                    }
                     const nodeState = states[id].skip ? 'SKIP' : states[id].state
                     this.$set(node, 'state', nodeState)
                     if (this.subNodesExpanded.includes(node.id)) {
@@ -1553,6 +1558,32 @@
             updateResizeProxyStyle () {
                 const resizeProxy = this.$refs.resizeProxy
                 resizeProxy.style.visibility = 'visible'
+            },
+            getAllChildrenStatus (statusData) {
+                const allChildrenStatus = {}
+                const collectChildren = (children) => {
+                    if (!children || typeof children !== 'object') {
+                        return
+                    }
+                    const childrenKeys = Object.keys(children)
+                    if (childrenKeys.length === 0) {
+                        return
+                    }
+                    childrenKeys.forEach(nodeId => {
+                        const nodeStatus = children[nodeId]
+                        if (nodeStatus && nodeStatus.id) {
+                            allChildrenStatus[nodeId] = nodeStatus
+                            if (nodeStatus.children
+                                && typeof nodeStatus.children === 'object'
+                                && Object.keys(nodeStatus.children).length > 0) {
+                                collectChildren(nodeStatus.children)
+                            }
+                        }
+                    })
+                }
+                collectChildren(statusData)
+                
+                return allChildrenStatus
             },
             handleMouseUp () {
                 const resizeMask = this.$refs.resizeMask
