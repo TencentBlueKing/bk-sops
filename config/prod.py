@@ -57,7 +57,7 @@ def get_default_database_config_dict(settings_module):
         "NAME": os.environ["%s_NAME" % db_prefix],
         "USER": os.environ["%s_USER" % db_prefix],
         "PASSWORD": os.environ["%s_PASSWORD" % db_prefix],
-        "HOST": os.getenv("SOPS_HOST") or os.environ["%s_HOST" % db_prefix],
+        "HOST": os.getenv("BKAPP_MYSQL_HOST") or os.environ["%s_HOST" % db_prefix],
         "PORT": os.environ["%s_PORT" % db_prefix],
         "OPTIONS": {"isolation_level": "repeatable read"},
     }
