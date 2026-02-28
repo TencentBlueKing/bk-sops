@@ -246,8 +246,8 @@ const template = {
             state.project_scope = project_scope
             state.webhook_configs = webhookConfigs
             state.enable_webhook = enable_webhook
-            state.ai_analysis_notify_type = ai_analysis_notify_type
-            state.ai_analysis_notify_group = ai_analysis_notify_group
+            state.ai_analysis_notify_type = ai_analysis_notify_type || {}
+            state.ai_analysis_notify_group = ai_analysis_notify_group || {}
         },
         setSubprocessUpdated (state, subflow) {
             if (state.subprocess_info) {

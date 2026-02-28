@@ -358,7 +358,7 @@
                     project_scope: project_scope,
                     template_id: template_id,
                     webhookConfigs: tools.deepClone(webhook_configs),
-                    aiAnalysisNotifyType: ai_analysis_notify_type,
+                    aiAnalysisNotifyType: tools.deepClone(ai_analysis_notify_type),
                     aiAnalysisNotifyGroup: processedAiAnalysisNotifyGroup
                 },
                 enable_webhook,
