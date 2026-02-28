@@ -353,9 +353,9 @@
                     const res = await this.getNotifyTypes()
                     this.allNotifyTypeList = [].concat(this.notifyTypeList, res.data)
                     this.aiNotifyList = [{ text: i18n.t('任务状态') }]
-                    const compannyWechat = this.allNotifyTypeList.filter(item => item.type === 'rtx')
-                    if (compannyWechat) {
-                        this.aiNotifyList.push(...compannyWechat)
+                    const companyWechat = this.allNotifyTypeList.filter(item => item.type === 'rtx')
+                    if (companyWechat.length > 0) {
+                        this.aiNotifyList.push(...companyWechat)
                     }
                 } catch (e) {
                     console.log(e)

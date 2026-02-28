@@ -348,8 +348,8 @@ const template = {
             state.project_scope = project_scope
             state.webhook_configs = webhook_configs
             state.enable_webhook = enable_webhook
-            state.ai_analysis_notify_group = ai_notify_group
-            state.ai_analysis_notify_type = ai_notify_type
+            state.ai_analysis_notify_group = ai_notify_group || {}
+            state.ai_analysis_notify_type = ai_notify_type || {}
             if (pipeline_tree) {
                 state.project_scope = project_scope
                 this.commit('template/setPipelineTree', pipelineData)
