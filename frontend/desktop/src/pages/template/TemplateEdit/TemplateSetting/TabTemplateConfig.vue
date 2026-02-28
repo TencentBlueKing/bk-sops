@@ -171,8 +171,8 @@
                         :notify-type-list="[{ text: $t('任务状态') }]"
                         :notify-type-extra-info="formData.notifyTypeExtraInfo"
                         :receiver-group="formData.receiverGroup"
-                        :ai-analysis-notify-person="formData.aiAnalysisNotifyPerson"
-                        :ai-analysis-notify-person-group="formData.aiAnalysisNotifyPersonGroup"
+                        :ai-analysis-notify-type="formData.aiAnalysisNotifyType"
+                        :ai-analysis-notify-group="formData.aiAnalysisNotifyGroup"
                         :project_id="projectId"
                         :common="common"
                         :is-template-config="true"
@@ -338,10 +338,9 @@
             const {
                 name, category, notify_type, notify_receivers, description,
                 executor_proxy, template_labels, default_flow_type, project_scope, template_id,
-                webhook_configs, enable_webhook, ai_analysis_notify_group, ai_analysis_notify_person
+                webhook_configs, enable_webhook, ai_analysis_notify_group, ai_analysis_notify_type
             } = this.$store.state.template
             const { extra_info: extraInfo = {} } = notify_receivers
-
             // 将数组转换为字符串用于表单显示
             const processedAiAnalysisNotifyGroup = tools.convertArrayToString(ai_analysis_notify_group, 'mentioned_member_list')
 
@@ -359,7 +358,7 @@
                     project_scope: project_scope,
                     template_id: template_id,
                     webhookConfigs: tools.deepClone(webhook_configs),
-                    aiAnalysisNotifyPerson: ai_analysis_notify_person,
+                    aiAnalysisNotifyType: ai_analysis_notify_type,
                     aiAnalysisNotifyGroup: processedAiAnalysisNotifyGroup
                 },
                 enable_webhook,
@@ -642,7 +641,7 @@
             },
             getTemplateConfig () {
                 const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType,
-                        notifyTypeExtraInfo, webhookConfigs, aiAnalysisNotifyPerson, aiAnalysisNotifyGroup } = this.formData
+                        notifyTypeExtraInfo, webhookConfigs, aiAnalysisNotifyType, aiAnalysisNotifyGroup } = this.formData
                 const localProjectList = this.baseInfoProjectScopeList.length === this.allProjectIds.length ? ['*'] : this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
                 if (webhookConfigs?.extra_info) {
                     webhookConfigs.extra_info.interval = typeof webhookConfigs.extra_info.interval !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.interval
@@ -667,7 +666,7 @@
                     project_scope: localProjectList,
                     webhookConfigs: webhookConfigs,
                     enable_webhook: this.enable_webhook,
-                    ai_analysis_notify_person: aiAnalysisNotifyPerson,
+                    ai_analysis_notify_type: aiAnalysisNotifyType,
                     ai_analysis_notify_group: processedAiAnalysisNotifyGroup
                 }
             },
@@ -694,27 +693,27 @@
                 }
             },
             onSelectNotifyConfig (formData) {
-                const { notifyType, notifyTypeExtraInfo, receiverGroup, aiAnalysisNotifyPerson, aiAnalysisNotifyPersonGroup } = formData
+                const { notifyType, notifyTypeExtraInfo, receiverGroup, aiAnalysisNotifyType, aiAnalysisNotifyGroup } = formData
                 this.formData.notifyType = notifyType
                 this.formData.notifyTypeExtraInfo = notifyTypeExtraInfo
                 this.formData.receiverGroup = receiverGroup
                 const notifyPerson = {}
                 const notifyGroup = {}
-                if (aiAnalysisNotifyPerson.length > 0) {
-                    aiAnalysisNotifyPerson.forEach((item) => {
+                if (aiAnalysisNotifyType.length > 0) {
+                    aiAnalysisNotifyType.forEach((item) => {
                         notifyPerson[item.key] = item.value
                     })
                 }
-                if (aiAnalysisNotifyPersonGroup.length > 0) {
-                    aiAnalysisNotifyPersonGroup.forEach((item) => {
+                if (aiAnalysisNotifyGroup.length > 0) {
+                    aiAnalysisNotifyGroup.forEach((item) => {
                         notifyGroup[item.type] = {
-                            ai_analysis_notify_group_chat_id: item.ai_analysis_notify_group_chat_id,
+                            chat_id: item.chat_id,
                             mentioned_member_list: item.mentioned_member_list,
                             web_hook: item.web_hook
                         }
                     })
                 }
-                this.formData.aiAnalysisNotifyPerson = notifyPerson
+                this.formData.aiAnalysisNotifyType = notifyPerson
                 this.formData.aiAnalysisNotifyGroup = notifyGroup
             },
             async onSaveConfig () {

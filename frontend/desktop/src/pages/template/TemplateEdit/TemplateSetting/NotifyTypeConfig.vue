@@ -51,12 +51,12 @@
             </bk-form-item>
             <!-- AI分析通知 -->
             <bk-form-item v-if="enableAiNotification && isTemplateConfig"
-                property="aiAnalysisNotifyPerson"
+                property="aiAnalysisNotifyType"
                 :label="$t('AI分析通知')"
                 data-test-id="notifyTypeConfig_form_aiAnalysisNotifyPerson">
                 <bk-table
                     class="ai-analysis-table"
-                    :data="formData.aiAnalysisNotifyPerson"
+                    :data="formData.aiAnalysisNotifyType"
                     :col-border="true"
                     v-bkloading="{ isLoading: aiAnalysisLoading, opacity: 1, zIndex: 100 }">
                     <bk-table-column
@@ -96,12 +96,12 @@
             
             <!-- AI分析群聊通知 -->
             <bk-form-item v-if="enableAiNotification && isTemplateConfig"
-                property="aiAnalysisNotifyPersonGroup"
+                property="aiAnalysisNotifyGroup"
                 :label="$t('AI分析群聊通知')"
                 data-test-id="notifyTypeConfig_form_aiAnalysisNotifyPersonGroup">
                 <bk-table
                     class="ai-chat-notify-table"
-                    :data="formData.aiAnalysisNotifyPersonGroup"
+                    :data="formData.aiAnalysisNotifyGroup"
                     :col-border="true"
                     :outer-border="true"
                     v-bkloading="{ isLoading: aiAnalysisLoading, opacity: 1, zIndex: 100 }">
@@ -115,7 +115,7 @@
                         </template>
                     </bk-table-column>
                     <bk-table-column
-                        prop="ai_analysis_notify_group_chat_id"
+                        prop="chat_id"
                         :label="$t('群聊ID')"
                         min-width="200">
                         <template slot-scope="{ row, $index }">
@@ -127,9 +127,9 @@
                                 :clearable="true"
                                 :show-word-limit="true"
                                 type="text"
-                                v-bk-tooltips="{ content: row.ai_analysis_notify_group_chat_id }"
-                                :value="row.ai_analysis_notify_group_chat_id"
-                                @change="onAiChatConfigChange($index, 'ai_analysis_notify_group_chat_id', $event)">
+                                v-bk-tooltips="{ content: row.chat_id }"
+                                :value="row.chat_id"
+                                @change="onAiChatConfigChange($index, 'chat_id', $event)">
                             </bk-input>
                         </template>
                     </bk-table-column>
@@ -206,11 +206,11 @@
                 type: Array,
                 default: () => []
             },
-            aiAnalysisNotifyPerson: {
+            aiAnalysisNotifyType: {
                 type: Object,
                 default: () => ({})
             },
-            aiAnalysisNotifyPersonGroup: {
+            aiAnalysisNotifyGroup: {
                 type: Object,
                 default: () => ({})
             },
@@ -240,34 +240,55 @@
         data () {
             const formatNotifyPerson = []
             const formatNotifyGroup = []
-            for (const key in tools.deepClone(this.aiAnalysisNotifyPerson)) {
-                const item = {}
-                item.key = key
-                item.value = this.aiAnalysisNotifyPerson[key]
-                formatNotifyPerson.push(item)
+            const notifyTypeClone = tools.deepClone(this.aiAnalysisNotifyType)
+            const keys = Object.keys(notifyTypeClone)
+            // 确保 success 始终在数组第一位
+            if (keys.includes('success')) {
+                formatNotifyPerson.push({
+                    key: 'success',
+                    value: notifyTypeClone.success
+                })
             }
+            for (const key of keys) {
+                if (key !== 'success') {
+                    const item = {}
+                    item.key = key
+                    item.value = notifyTypeClone[key]
+                    formatNotifyPerson.push(item)
+                }
+            }
+            
             if (formatNotifyPerson.length === 0) {
                 formatNotifyPerson.push(
                     { key: 'success', value: [] },
                     { key: 'fail', value: [] }
                 )
             }
-            for (const key in tools.deepClone(this.aiAnalysisNotifyPersonGroup)) {
-                const item = { ...this.aiAnalysisNotifyPersonGroup[key] }
-                item.type = key
+            const notifyGroupClone = tools.deepClone(this.aiAnalysisNotifyGroup)
+            const groupKeys = Object.keys(notifyGroupClone)
+            if (groupKeys.includes('success')) {
+                const item = { ...notifyGroupClone.success }
+                item.type = 'success'
                 formatNotifyGroup.push(item)
+            }
+            for (const key of groupKeys) {
+                if (key !== 'success') {
+                    const item = { ...notifyGroupClone[key] }
+                    item.type = key
+                    formatNotifyGroup.push(item)
+                }
             }
             if (formatNotifyGroup.length === 0) {
                 formatNotifyGroup.push(
                     {
                         type: 'success',
-                        ai_analysis_notify_group_chat_id: '',
+                        chat_id: '',
                         web_hook: '',
                         mentioned_member_list: ''
                     },
                     {
                         type: 'fail',
-                        ai_analysis_notify_group_chat_id: '',
+                        chat_id: '',
                         web_hook: '',
                         mentioned_member_list: ''
                     }
@@ -277,8 +298,8 @@
                 notifyType: tools.deepClone(this.notifyType),
                 notifyTypeExtraInfo: tools.deepClone(this.notifyTypeExtraInfo),
                 receiverGroup: tools.deepClone(this.receiverGroup),
-                aiAnalysisNotifyPerson: formatNotifyPerson,
-                aiAnalysisNotifyPersonGroup: formatNotifyGroup
+                aiAnalysisNotifyType: formatNotifyPerson,
+                aiAnalysisNotifyGroup: formatNotifyGroup
             }
             return {
                 formData,
@@ -392,6 +413,10 @@
                 } else {
                     return h('p', {
                         class: 'label-text',
+                        style: {
+                            textAlign: 'center',
+                            margin: 0
+                        },
                         directives: [{
                             name: 'bk-overflow-tips'
                         }]
@@ -430,7 +455,7 @@
                 this.$emit('change', this.formData)
             },
             onSelectAiAnalysisType (row, type, val) {
-                const data = this.formData.aiAnalysisNotifyPerson[row]
+                const data = this.formData.aiAnalysisNotifyType[row]
                 if (val) {
                     if (!data.value.includes(type)) {
                         data.value.push(type)
@@ -444,7 +469,7 @@
                 this.$emit('change', this.formData)
             },
             onAiChatConfigChange (index, field, value) {
-                this.formData.aiAnalysisNotifyPersonGroup[index][field] = value
+                this.formData.aiAnalysisNotifyGroup[index][field] = value
                 this.$emit('change', this.formData)
             },
             onReceiverGroup (val) {
