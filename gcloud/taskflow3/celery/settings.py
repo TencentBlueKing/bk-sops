@@ -37,4 +37,10 @@ CELERY_QUEUES = [
         routing_key="task_callback",
         queue_arguments={"x-max-priority": 255},
     ),
+    Queue(
+        "ai_notify",
+        Exchange("default", type="direct"),
+        routing_key="ai_notify",
+        queue_arguments={"x-max-priority": 255},
+    ),
 ]

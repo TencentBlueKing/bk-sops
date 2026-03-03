@@ -332,7 +332,7 @@ def async_node_callback_retry(
 
 
 @task
-def AIAnalysisNotify(
+def ai_analysis_notify(
     bk_biz_id: str, task_id: str, executor: str, receivers: str, msg_type: str, ai_analysis_notify_types: dict
 ):
     """
@@ -342,6 +342,9 @@ def AIAnalysisNotify(
 
         # ai_analysis_notify_types 格式为 {"success": ["rtx","email"...], "fail": ["rtx","email"...]}
         # receivers: executor,user1,user2,user3
+        logger.info(
+            f"[ai_analysis_notify] start processing, bk_biz_id: {bk_biz_id}, task_id: {task_id}, msg_type: {msg_type}"
+        )
 
         task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
 
@@ -354,6 +357,10 @@ def AIAnalysisNotify(
             CmsiSender().send(
                 executor=executor, receivers=receivers, notify_type=notify_type, title=title, content=task_summary
             )
+            logger.info(
+                f"[ai_analysis_notify] failed task summary sent, task_id: {task_id}, "
+                f"notify_type: {notify_type}, msg_type: {msg_type}"
+            )
 
             # 发送错误分析
             title = env.AI_ANALYSIS_FAIL_TASK_NOTIFY_TITLE
@@ -363,6 +370,10 @@ def AIAnalysisNotify(
                 notify_type=notify_type,
                 title=title,
                 content=task_error_analysis,
+            )
+            logger.info(
+                f"[ai_analysis_notify] failed task error analysis sent, task_id: {task_id}, "
+                f"notify_type: {notify_type}, msg_type: {msg_type}"
             )
 
         elif msg_type == TASK_FINISHED and task_summary:
@@ -374,22 +385,32 @@ def AIAnalysisNotify(
             CmsiSender().send(
                 executor=executor, receivers=receivers, notify_type=notify_type, title=title, content=task_summary
             )
+            logger.info(
+                f"[ai_analysis_notify] finished task success summary sent, task_id: {task_id}, "
+                f"notify_type: {notify_type}, msg_type: {msg_type}"
+            )
 
     except Exception as e:
-        logger.error(f"AIAnalysisNotify error: {e}")
+        logger.exception(f"[ai_analysis_notify] error occurred, task_id: {task_id}, msg_type: {msg_type}, error: {e}")
 
 
 @task
-def AIAnalysisNotifyGroupChat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str):
+def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str):
     """
     AI分析通知任务 群聊通知
     """
 
     try:
+        logger.info(
+            f"[ai_analysis_notify_group_chat] start processing, bk_biz_id: {bk_biz_id}, "
+            f"task_id: {task_id}, msg_type: {msg_type}"
+        )
 
         chat_id, url, mentioned_str = get_ai_analysis_notify_group_config(ai_notify_group, msg_type)
         if not chat_id or not url or not mentioned_str:
-            logger.error("AIAnalysisNotifyGroupChat error: chat_id or url or mentioned_str not be empty")
+            logger.error(
+                f"[ai_analysis_notify_group_chat] incomplete group config, task_id: {task_id}, msg_type: {msg_type}"
+            )
             return
 
         task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
@@ -405,7 +426,11 @@ def AIAnalysisNotifyGroupChat(bk_biz_id: str, task_id: str, ai_notify_group: dic
                     "markdown": {"content": content},
                     "at_short_name": True,
                 },
-                timeout=5,
+                timeout=15,
+            )
+            logger.info(
+                f"[ai_analysis_notify_group_chat] failed task summary sent, "
+                f"task_id: {task_id}, msg_type: {msg_type}, status: {resp.status_code}"
             )
             content = "{}\n{}\n".format(str(task_error_analysis), mentioned_str)
             resp = requests.post(
@@ -416,7 +441,11 @@ def AIAnalysisNotifyGroupChat(bk_biz_id: str, task_id: str, ai_notify_group: dic
                     "markdown": {"content": content},
                     "at_short_name": True,
                 },
-                timeout=5,
+                timeout=15,
+            )
+            logger.info(
+                f"[ai_analysis_notify_group_chat] failed task error analysis sent, task_id: {task_id},"
+                f"msg_type: {msg_type}, status: {resp.status_code}"
             )
         elif msg_type == TASK_FINISHED:
             content = "{}\n{}\n".format(str(task_summary), mentioned_str)
@@ -428,12 +457,21 @@ def AIAnalysisNotifyGroupChat(bk_biz_id: str, task_id: str, ai_notify_group: dic
                     "markdown": {"content": content},
                     "at_short_name": True,
                 },
-                timeout=5,
+                timeout=15,
+            )
+            logger.info(
+                f"[ai_analysis_notify_group_chat] finished task success summary sent, task_id: {task_id},"
+                f" msg_type: {msg_type}, status: {resp.status_code}"
             )
         if not resp.ok:
-            logger.error(f"AIAnalysisNotifyGroupChat error: {resp.content}")
+            logger.error(
+                f"[ai_analysis_notify_group_chat] send message failed, task_id: {task_id}, "
+                f"msg_type: {msg_type}, status: {resp.status_code}, response: {resp.content}"
+            )
     except Exception as e:
-        logger.error(f"AIAnalysisNotifyGroupChat error: {e}")
+        logger.exception(
+            f"[ai_analysis_notify_group_chat] error occurred, task_id: {task_id}, msg_type: {msg_type}, error: {e}"
+        )
 
 
 def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple:
@@ -449,8 +487,26 @@ def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple
         task_summary = bk_sops_agent_client.summarize_task_execution(bk_biz_id, task_id)
         task_error_analysis = bk_sops_agent_client.analyze_task_error(bk_biz_id, task_id)
 
+        if not task_summary:
+            logger.error(
+                f"[get_ai_analysis_report] summarize task execution failed, "
+                f"bk_biz_id: {bk_biz_id}, task_id: {task_id}, msg_type: {msg_type}"
+            )
+
+        if not task_error_analysis:
+            logger.error(
+                f"[get_ai_analysis_report] analyze task error failed, "
+                f"bk_biz_id: {bk_biz_id}, task_id: {task_id}, msg_type: {msg_type}"
+            )
+
     elif msg_type == TASK_FINISHED:
         task_summary = bk_sops_agent_client.summarize_task_execution(bk_biz_id, task_id)
+
+        if not task_summary:
+            logger.error(
+                f"[get_ai_analysis_report] summarize task execution failed, "
+                f"bk_biz_id: {bk_biz_id}, task_id: {task_id}, msg_type: {msg_type}"
+            )
 
     return task_summary, task_error_analysis
 
@@ -481,7 +537,7 @@ def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type
         )
 
     except Exception as e:
-        logger.error(f"get_ai_analysis_notify_group_config error: {e}")
+        logger.exception(f"[get_ai_analysis_notify_group_config] parse config failed, msg_type: {msg_type}, error: {e}")
         return None, None, None
 
     return chat_id, url, mentioned_str
