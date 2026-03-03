@@ -36,8 +36,8 @@ import env
 from gcloud.constants import TaskCreateMethod, WebhookEventType, WebhookScopeType
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
 from gcloud.taskflow3.celery.tasks import (
-    AIAnalysisNotify,
-    AIAnalysisNotifyGroupChat,
+    ai_analysis_notify,
+    ai_analysis_notify_group_chat,
     auto_retry_node,
     send_taskflow_message,
     task_callback,
@@ -114,13 +114,22 @@ def send_task_message(pipeline_id, node_id, msg_type):
             and ai_notify_type
             and taskflow.create_method != TaskCreateMethod.PERIODIC.value
         ):
-            AIAnalysisNotify.delay(
-                bk_biz_id=bk_biz_id,
-                task_id=task_id,
-                executor=executor,
-                receivers=receivers,
-                msg_type=msg_type,
-                ai_analysis_notify_types=ai_notify_type,
+
+            logger.info(
+                f"[send_task_message] ai_analysis_notify apply_async bk_biz_id: {bk_biz_id}, task_id: {task_id}"
+            )
+
+            ai_analysis_notify.apply_async(
+                kwargs={
+                    "bk_biz_id": bk_biz_id,
+                    "task_id": task_id,
+                    "executor": executor,
+                    "receivers": receivers,
+                    "msg_type": msg_type,
+                    "ai_analysis_notify_types": ai_notify_type,
+                },
+                queue="ai_notify",
+                routing_key="ai_notify",
             )
 
         # 提交群聊通知任务 排除周期任务(周期任务频繁执行，避免频繁调用AI接口产生过多通知)
@@ -129,11 +138,21 @@ def send_task_message(pipeline_id, node_id, msg_type):
             and ai_notify_group
             and taskflow.create_method != TaskCreateMethod.PERIODIC.value
         ):
-            AIAnalysisNotifyGroupChat.delay(
-                bk_biz_id=bk_biz_id,
-                task_id=task_id,
-                ai_notify_group=ai_notify_group,
-                msg_type=msg_type,
+
+            logger.info(
+                f"[send_task_message] ai_analysis_notify_group_chat apply_async bk_biz_id: "
+                f"{bk_biz_id}, task_id: {task_id}"
+            )
+
+            ai_analysis_notify_group_chat.apply_async(
+                kwargs={
+                    "bk_biz_id": bk_biz_id,
+                    "task_id": task_id,
+                    "ai_notify_group": ai_notify_group,
+                    "msg_type": msg_type,
+                },
+                queue="ai_notify",
+                routing_key="ai_notify",
             )
 
         resp_data = TaskCommandDispatcher(
