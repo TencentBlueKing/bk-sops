@@ -227,6 +227,10 @@ modules:
                 command: python manage.py node_timeout_process
                 plan: 4C1G5R
                 replicas: 1
+            ai-notify:
+                command: bash bin/celery_auto_restart.sh worker -A blueapps.core.celery -P threads -Q ai_notify -n ai_notify_worker@%h -c 35 -l info
+                plan: 4C1G5R
+                replicas: 2
         svc_discovery:
             bk_saas:
               - bk_app_code: "bk_iam"

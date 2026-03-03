@@ -444,7 +444,7 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
                 timeout=15,
             )
             logger.info(
-                f"[ai_analysis_notify_group_chat] failed task error analysis sent, task_id: {task_id},"
+                f"[ai_analysis_notify_group_chat] failed task error analysis sent, task_id: {task_id}, "
                 f"msg_type: {msg_type}, status: {resp.status_code}"
             )
         elif msg_type == TASK_FINISHED:
