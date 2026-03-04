@@ -113,7 +113,6 @@
 </template>
 
 <script>
-    import { mapActions } from 'vuex'
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
 
@@ -219,26 +218,25 @@
                 aiAnalysisLoading: false
             }
         },
+        watch: {
+            notifyTypeList: {
+                handler (val) {
+                    if (val && val.length > 0) {
+                        this.initAiNotifyList()
+                    }
+                },
+                immediate: true
+            }
+        },
         created () {
-            this.getNotifyTypeList()
+            this.initAiNotifyList()
         },
         methods: {
-            ...mapActions([
-                'getNotifyTypes'
-            ]),
-            async getNotifyTypeList () {
-                try {
-                    this.aiAnalysisLoading = true
-                    const res = await this.getNotifyTypes()
-                    this.aiNotifyList = [{ text: i18n.t('任务状态') }]
-                    const companyWechat = res.data.filter(item => item.type === 'rtx')
-                    if (companyWechat.length > 0) {
-                        this.aiNotifyList.push(...companyWechat)
-                    }
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.aiAnalysisLoading = false
+            initAiNotifyList () {
+                this.aiNotifyList = [{ text: i18n.t('任务状态') }]
+                const companyWechat = this.notifyTypeList.filter(item => item.type === 'rtx')
+                if (companyWechat.length > 0) {
+                    this.aiNotifyList.push(...companyWechat)
                 }
             },
             getAiAnalysisTypeHeader (h, data) {
@@ -292,7 +290,7 @@
                 this.$emit('change', this.formData)
             },
             validate () {
-                return this.$refs.aiAnalysisForm.validate()
+                return this.$validator.validateAll().then(valid => valid)
             }
         }
     }

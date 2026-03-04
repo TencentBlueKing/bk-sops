@@ -168,7 +168,7 @@
                         ref="notifyTypeConfig"
                         :label-width="120"
                         :notify-type="formData.notifyType"
-                        :notify-type-list="[{ text: $t('任务状态') }]"
+                        :notify-type-list="notifyTypeList"
                         :notify-type-extra-info="formData.notifyTypeExtraInfo"
                         :receiver-group="formData.receiverGroup"
                         :project_id="projectId"
@@ -186,6 +186,7 @@
                         :label-width="120"
                         :ai-analysis-notify-type="formData.aiAnalysisNotifyType"
                         :ai-analysis-notify-group="formData.aiAnalysisNotifyGroup"
+                        :notify-type-list="notifyTypeList"
                         :is-view-mode="isViewMode"
                         @change="onSelectAiAnalysisConfig">
                     </AiAnalysisNotifyConfig>
@@ -375,6 +376,7 @@
                 },
                 enable_webhook,
                 enableAiNotification: window.ENABLE_AI_NOTIFICATION,
+                notifyTypeList: [],
                 stringLength: STRING_LENGTH,
                 rules: {
                     name: [
@@ -508,6 +510,8 @@
             }
             this.$refs.nameInput.focus()
             document.addEventListener('click', this.handleClickOutside)
+            // 获取通知类型列表
+            this.getNotifyTypeList()
         },
         methods: {
             ...mapMutations('template/', [
@@ -519,6 +523,17 @@
                 'getProjectConfig',
                 'createTemplateLabel'
             ]),
+            ...mapActions([
+                'getNotifyTypes'
+            ]),
+            async getNotifyTypeList () {
+                try {
+                    const res = await this.getNotifyTypes()
+                    this.notifyTypeList = res.data
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             processingProjectsToTop (val, projects) {
                 val.forEach((item) => {
                     item = typeof item === 'number' ? item : Number(item)

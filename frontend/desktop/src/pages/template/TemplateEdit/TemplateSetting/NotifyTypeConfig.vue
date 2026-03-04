@@ -155,15 +155,23 @@
                 return list
             }
         },
+        watch: {
+            notifyTypeList: {
+                handler (val) {
+                    if (val && val.length > 0) {
+                        this.allNotifyTypeList = [].concat({ text: i18n.t('任务状态') }, val)
+                    }
+                },
+                immediate: true
+            }
+        },
         created () {
-            this.getNotifyTypeList()
             if (!this.common) {
                 this.getProjectNotifyGroup()
             }
         },
         methods: {
             ...mapActions([
-                'getNotifyTypes',
                 'getNotifyGroup'
             ]),
             ...mapActions('template/', [
@@ -172,17 +180,6 @@
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
             ]),
-            async getNotifyTypeList () {
-                try {
-                    this.notifyTypeLoading = true
-                    const res = await this.getNotifyTypes()
-                    this.allNotifyTypeList = [].concat(this.notifyTypeList, res.data)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyTypeLoading = false
-                }
-            },
             getNotifyTypeHeader (h, data) {
                 const col = this.allNotifyTypeList[data.$index]
                 if (col.type) {
