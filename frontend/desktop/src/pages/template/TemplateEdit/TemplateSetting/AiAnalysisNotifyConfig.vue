@@ -228,9 +228,6 @@
                 immediate: true
             }
         },
-        created () {
-            this.initAiNotifyList()
-        },
         methods: {
             initAiNotifyList () {
                 this.aiNotifyList = [{ text: i18n.t('任务状态') }]
