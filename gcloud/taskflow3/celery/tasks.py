@@ -11,6 +11,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+import re
 import socket
 import time
 
@@ -417,13 +418,13 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
 
         # 消息发送
         if msg_type == ATOM_FAILED:
-            content = "{}\n{}\n".format(str(task_summary), mentioned_str)
+            content = "{}".format(str(task_summary))
             resp = requests.post(
                 url=url,
                 json={
                     "chatid": chat_id,
-                    "msgtype": "markdown",
-                    "markdown": {"content": content},
+                    "msgtype": "markdown_v2",
+                    "markdown_v2": {"content": content},
                     "at_short_name": True,
                 },
                 timeout=15,
@@ -432,13 +433,13 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
                 f"[ai_analysis_notify_group_chat] failed task summary sent, "
                 f"task_id: {task_id}, msg_type: {msg_type}, status: {resp.status_code}"
             )
-            content = "{}\n{}\n".format(str(task_error_analysis), mentioned_str)
+            content = "{}".format(str(task_error_analysis))
             resp = requests.post(
                 url=url,
                 json={
                     "chatid": chat_id,
-                    "msgtype": "markdown",
-                    "markdown": {"content": content},
+                    "msgtype": "markdown_v2",
+                    "markdown_v2": {"content": content},
                     "at_short_name": True,
                 },
                 timeout=15,
@@ -448,13 +449,13 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
                 f"msg_type: {msg_type}, status: {resp.status_code}"
             )
         elif msg_type == TASK_FINISHED:
-            content = "{}\n{}\n".format(str(task_summary), mentioned_str)
+            content = "{}".format(str(task_summary))
             resp = requests.post(
                 url=url,
                 json={
                     "chatid": chat_id,
-                    "msgtype": "markdown",
-                    "markdown": {"content": content},
+                    "msgtype": "markdown_v2",
+                    "markdown_v2": {"content": content},
                     "at_short_name": True,
                 },
                 timeout=15,
@@ -463,6 +464,16 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
                 f"[ai_analysis_notify_group_chat] finished task success summary sent, task_id: {task_id},"
                 f" msg_type: {msg_type}, status: {resp.status_code}"
             )
+        resp = requests.post(
+            url=url,
+            json={
+                "chatid": chat_id,
+                "msgtype": "markdown",
+                "markdown": {"content": mentioned_str},
+                "at_short_name": True,
+            },
+            timeout=5,
+        )
         if not resp.ok:
             logger.error(
                 f"[ai_analysis_notify_group_chat] send message failed, task_id: {task_id}, "
@@ -508,7 +519,36 @@ def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple
                 f"bk_biz_id: {bk_biz_id}, task_id: {task_id}, msg_type: {msg_type}"
             )
 
-    return task_summary, task_error_analysis
+    return task_summary, truncate_error_analysis_content(task_error_analysis)
+
+
+def truncate_error_analysis_content(content, max_length=2000):
+    """
+    优先缩减JOB执行日志和脚本内容, 保留错误分析和解决步骤
+    """
+
+    if not content or len(content) <= max_length:
+        return content
+
+    truncate_hint = "\n> （内容过长已省略，请前往JOB平台查看完整日志）\n"
+    collapsible_patterns = [
+        re.compile(r"(脚本内容[^\n]*\n[^\n]*```[^\n]*\n)([\s\S]*?)(\n[^\n]*```)"),
+        re.compile(r"(JOB执行日志[^\n]*\n[^\n]*```[^\n]*\n)([\s\S]*?)(\n[^\n]*```)"),
+    ]
+
+    result = content
+    for pattern in collapsible_patterns:
+        if len(result) <= max_length:
+            break
+        match = pattern.search(result)
+        if match:
+            result = result[: match.start(2)] + truncate_hint + result[match.end(2) :]
+
+    if len(result) <= max_length:
+        return result
+
+    suffix = "\n\n...(content truncated)"
+    return result[: max_length - len(suffix)] + suffix
 
 
 def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type: str) -> tuple:
