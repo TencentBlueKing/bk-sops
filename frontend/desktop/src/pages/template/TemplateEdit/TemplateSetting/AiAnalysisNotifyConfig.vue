@@ -243,6 +243,9 @@
             },
             getAiAnalysisTypeHeader (h, data) {
                 const col = this.aiNotifyList[data.$index]
+                if (!col) {
+                    return null
+                }
                 if (col.type) {
                     return h('div', { 'class': 'notify-table-heder' }, [
                         h('img', { 'class': 'notify-icon', attrs: { src: `data:image/png;base64,${col.icon}` } }, []),
@@ -289,7 +292,7 @@
                 this.$emit('change', this.formData)
             },
             validate () {
-                return this.$validator.validateAll().then(valid => valid)
+                return this.$refs.aiAnalysisForm.validate()
             }
         }
     }
