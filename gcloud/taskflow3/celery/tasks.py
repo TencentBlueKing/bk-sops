@@ -402,6 +402,7 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
     """
 
     try:
+
         logger.info(
             f"[ai_analysis_notify_group_chat] start processing, bk_biz_id: {bk_biz_id}, "
             f"task_id: {task_id}, msg_type: {msg_type}"
@@ -418,67 +419,37 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
 
         # 消息发送
         if msg_type == ATOM_FAILED:
+            # 发送任务总结报告
             content = "{}".format(str(task_summary))
-            resp = requests.post(
-                url=url,
-                json={
-                    "chatid": chat_id,
-                    "msgtype": "markdown_v2",
-                    "markdown_v2": {"content": content},
-                    "at_short_name": True,
-                },
-                timeout=15,
-            )
+            ai_wechat_group_notify_request(url, chat_id, content, "markdown_v2", msg_type, task_id)
             logger.info(
                 f"[ai_analysis_notify_group_chat] failed task summary sent, "
-                f"task_id: {task_id}, msg_type: {msg_type}, status: {resp.status_code}"
+                f"task_id: {task_id}, msg_type: {msg_type}"
             )
+
+            # 发送错误分析
             content = "{}".format(str(task_error_analysis))
-            resp = requests.post(
-                url=url,
-                json={
-                    "chatid": chat_id,
-                    "msgtype": "markdown_v2",
-                    "markdown_v2": {"content": content},
-                    "at_short_name": True,
-                },
-                timeout=15,
-            )
+            ai_wechat_group_notify_request(url, chat_id, content, "markdown_v2", msg_type, task_id)
             logger.info(
                 f"[ai_analysis_notify_group_chat] failed task error analysis sent, task_id: {task_id}, "
-                f"msg_type: {msg_type}, status: {resp.status_code}"
+                f"msg_type: {msg_type}"
             )
+
         elif msg_type == TASK_FINISHED:
+            # 发送任务总结报告
             content = "{}".format(str(task_summary))
-            resp = requests.post(
-                url=url,
-                json={
-                    "chatid": chat_id,
-                    "msgtype": "markdown_v2",
-                    "markdown_v2": {"content": content},
-                    "at_short_name": True,
-                },
-                timeout=15,
-            )
+            ai_wechat_group_notify_request(url, chat_id, content, "markdown_v2", msg_type, task_id)
             logger.info(
                 f"[ai_analysis_notify_group_chat] finished task success summary sent, task_id: {task_id},"
-                f" msg_type: {msg_type}, status: {resp.status_code}"
+                f" msg_type: {msg_type}"
             )
-        resp = requests.post(
-            url=url,
-            json={
-                "chatid": chat_id,
-                "msgtype": "markdown",
-                "markdown": {"content": mentioned_str},
-                "at_short_name": True,
-            },
-            timeout=5,
+
+        # 发送被@的成员
+        ai_wechat_group_notify_request(url, chat_id, mentioned_str, "markdown", msg_type, task_id)
+        logger.info(
+            f"[ai_analysis_notify_group_chat] mentioned members sent, task_id: {task_id}, " f"msg_type: {msg_type}"
         )
-        if not resp.ok:
-            logger.error(
-                f"[ai_analysis_notify_group_chat] send message failed, task_id: {task_id}, "
-                f"msg_type: {msg_type}, status: {resp.status_code}, response: {resp.content}"
-            )
+
     except Exception as e:
         logger.exception(
             f"[ai_analysis_notify_group_chat] error occurred, task_id: {task_id}, msg_type: {msg_type}, error: {e}"
@@ -522,7 +493,7 @@ def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple
     return task_summary, truncate_error_analysis_content(task_error_analysis)
 
 
-def truncate_error_analysis_content(content, max_length=2000):
+def truncate_error_analysis_content(content, max_length=2000) -> str:
     """
     优先缩减JOB执行日志和脚本内容, 保留错误分析和解决步骤
     """
@@ -581,3 +552,34 @@ def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type
         return None, None, None
 
     return chat_id, url, mentioned_str
+
+
+def ai_wechat_group_notify_request(
+    url: str, chat_id: str, content: str, sent_wehchat_msg_type: str, msg_type: str, task_id: str
+):
+    """
+    发送AI分析群聊通知请求
+    """
+    try:
+
+        resp = requests.post(
+            url=url,
+            json={
+                "chatid": chat_id,
+                "msgtype": sent_wehchat_msg_type,
+                sent_wehchat_msg_type: {"content": content},
+                "at_short_name": True,
+            },
+            timeout=5,
+        )
+        if not resp.ok:
+            logger.error(
+                f"[ai_analysis_notify_group_chat] send message failed, task_id: {task_id}, "
+                f"msg_type: {msg_type}, status: {resp.status_code}, response: {resp.content}"
+            )
+
+    except Exception as e:
+        logger.exception(
+            f"[ai_analysis_notify_group_chat] send message failed,  "
+            f"task_id: {task_id}, msg_type: {msg_type}, error: {e}"
+        )
