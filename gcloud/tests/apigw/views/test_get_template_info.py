@@ -15,12 +15,11 @@ import copy
 
 import ujson as json
 
-
-from gcloud.utils.dates import format_datetime
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.common_template.models import CommonTemplate
+from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+from gcloud.utils.dates import format_datetime
 
 from .utils import APITest
 
@@ -177,3 +176,64 @@ class GetTemplateInfoAPITest(APITest):
 
         self.assertFalse(data["result"])
         self.assertTrue("message" in data)
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_get_template_info__unfold_subprocess_true(self):
+        """unfold_subprocess=true 时调用 unfold 并返回正常结果"""
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))), mock.patch(
+            "pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess"
+        ) as mock_unfold, mock.patch("gcloud.apigw.views.utils.replace_template_id"), mock.patch(
+            "gcloud.apigw.views.utils.replace_template_id_recursive"
+        ):
+            response = self.client.get(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data={"unfold_subprocess": "true"},
+            )
+            data = json.loads(response.content)
+            self.assertTrue(data["result"], msg=data)
+            mock_unfold.assert_called_once()
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_get_template_info__unfold_subprocess_exception(self):
+        """unfold_subprocess 内部异常时返回 result=False"""
+        from pipeline.exceptions import PipelineException
+
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))), mock.patch(
+            "gcloud.apigw.views.utils.replace_template_id"
+        ), mock.patch(
+            "pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess",
+            side_effect=PipelineException("recursion limit"),
+        ):
+            response = self.client.get(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data={"unfold_subprocess": "true"},
+            )
+            data = json.loads(response.content)
+            self.assertFalse(data["result"])
+            self.assertIn("unfold_subprocess", data["message"])

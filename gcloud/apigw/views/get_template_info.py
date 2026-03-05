@@ -12,6 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 
 
+import logging
+
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
@@ -25,6 +27,8 @@ from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -45,6 +49,7 @@ def get_template_info(request, template_id, project_id):
     include_constants = serializer.validated_data["include_constants"]
     include_executor_proxy = serializer.validated_data["include_executor_proxy"]
     include_notify = serializer.validated_data["include_notify"]
+    unfold_subprocess = serializer.validated_data["unfold_subprocess"]
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
@@ -73,9 +78,22 @@ def get_template_info(request, template_id, project_id):
             }
             return result
 
-    data = format_template_data(
-        tmpl, project, include_subprocess, include_executor_proxy=include_executor_proxy, include_notify=include_notify
-    )
+    try:
+        data = format_template_data(
+            tmpl,
+            project,
+            include_subprocess,
+            include_executor_proxy=include_executor_proxy,
+            include_notify=include_notify,
+            unfold_subprocess=unfold_subprocess,
+        )
+    except Exception as e:
+        logger.exception("[get_template_info] unfold_subprocess error: template_id=%s", template_id)
+        return {
+            "result": False,
+            "message": "unfold_subprocess failed: {}".format(str(e)),
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
     if include_constants:
         data["template_constants"] = process_pipeline_constants(data["pipeline_tree"])
 
