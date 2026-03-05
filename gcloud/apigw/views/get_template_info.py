@@ -88,10 +88,10 @@ def get_template_info(request, template_id, project_id):
             unfold_subprocess=unfold_subprocess,
         )
     except Exception as e:
-        logger.exception("[get_template_info] unfold_subprocess error: template_id=%s", template_id)
+        logger.exception("[get_template_info] format_template_data error: template_id=%s", template_id)
         return {
             "result": False,
-            "message": "unfold_subprocess failed: {}".format(str(e)),
+            "message": "format_template_data failed: {}".format(str(e)),
             "code": err_code.UNKNOWN_ERROR.code,
         }
     if include_constants:

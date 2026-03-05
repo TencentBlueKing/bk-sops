@@ -236,4 +236,5 @@ class GetTemplateInfoAPITest(APITest):
             )
             data = json.loads(response.content)
             self.assertFalse(data["result"])
-            self.assertIn("unfold_subprocess", data["message"])
+            self.assertIn("format_template_data", data["message"])
+            self.assertIn("code", data)
