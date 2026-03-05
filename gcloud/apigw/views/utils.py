@@ -19,6 +19,7 @@ from copy import deepcopy
 from django.apps import apps
 from pipeline.variable_framework.models import VariableModel
 
+from gcloud.constants import COMMON
 from gcloud.tasktmpl3.domains import varschema
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
 from gcloud.template_base.utils import replace_template_id
@@ -66,9 +67,7 @@ def replace_template_id_recursive(template_model, pipeline_data, reverse=False):
     for act in pipeline_data.get("activities", {}).values():
         if act.get("type") == "SubProcess" and "pipeline" in act:
             subprocess_template_model = (
-                apps.get_model("template", "CommonTemplate")
-                if act.get("template_source") == "common"
-                else template_model
+                apps.get_model("template", "CommonTemplate") if act.get("template_source") == COMMON else template_model
             )
             replace_template_id_recursive(subprocess_template_model, act["pipeline"], reverse=reverse)
 
