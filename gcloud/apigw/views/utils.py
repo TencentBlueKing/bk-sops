@@ -16,10 +16,12 @@ import logging
 import traceback
 from copy import deepcopy
 
+from django.apps import apps
 from pipeline.variable_framework.models import VariableModel
 
 from gcloud.tasktmpl3.domains import varschema
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref
+from gcloud.template_base.utils import replace_template_id
 from gcloud.utils.dates import format_datetime
 from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
@@ -52,6 +54,23 @@ def info_data_from_period_task(task, detail=True, tz=None, include_edit_info=Non
         info["pipeline_tree"] = task.pipeline_tree
 
     return info
+
+
+def replace_template_id_recursive(template_model, pipeline_data, reverse=False):
+    """对整棵 pipeline_tree（含所有层级的 act["pipeline"]）递归执行 ID 转换。
+
+    unfold_subprocess 展开后，各层子流程数据位于 act["pipeline"]，
+    现有 replace_template_id 只处理顶层 activities，此函数补充递归逻辑。
+    """
+    replace_template_id(template_model, pipeline_data, reverse=reverse)
+    for act in pipeline_data.get("activities", {}).values():
+        if act.get("type") == "SubProcess" and "pipeline" in act:
+            subprocess_template_model = (
+                apps.get_model("template", "CommonTemplate")
+                if act.get("template_source") == "common"
+                else template_model
+            )
+            replace_template_id_recursive(subprocess_template_model, act["pipeline"], reverse=reverse)
 
 
 def format_template_data(
