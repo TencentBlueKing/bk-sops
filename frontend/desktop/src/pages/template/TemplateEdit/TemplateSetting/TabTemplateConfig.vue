@@ -168,17 +168,28 @@
                         ref="notifyTypeConfig"
                         :label-width="120"
                         :notify-type="formData.notifyType"
-                        :notify-type-list="[{ text: $t('任务状态') }]"
+                        :notify-type-list="notifyTypeList"
                         :notify-type-extra-info="formData.notifyTypeExtraInfo"
                         :receiver-group="formData.receiverGroup"
-                        :ai-analysis-notify-type="formData.aiAnalysisNotifyType"
-                        :ai-analysis-notify-group="formData.aiAnalysisNotifyGroup"
                         :project_id="projectId"
                         :common="common"
-                        :is-template-config="true"
                         :is-view-mode="isViewMode"
                         @change="onSelectNotifyConfig">
                     </NotifyTypeConfig>
+                </section>
+                <section class="form-section" v-if="enableAiNotification">
+                    <h4>
+                        <span>{{ $t('AI分析通知') }}</span>
+                    </h4>
+                    <AiAnalysisNotifyConfig
+                        ref="aiAnalysisNotifyConfig"
+                        :label-width="120"
+                        :ai-analysis-notify-type="formData.aiAnalysisNotifyType"
+                        :ai-analysis-notify-group="formData.aiAnalysisNotifyGroup"
+                        :notify-type-list="notifyTypeList"
+                        :is-view-mode="isViewMode"
+                        @change="onSelectAiAnalysisConfig">
+                    </AiAnalysisNotifyConfig>
                 </section>
                 <section class="form-section">
                     <h4>
@@ -314,6 +325,7 @@
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import AiAnalysisNotifyConfig from './AiAnalysisNotifyConfig.vue'
     import HttpCallback from './HttpCallback.vue'
     import permission from '@/mixins/permission.js'
 
@@ -323,6 +335,7 @@
             MemberSelect,
             ScopeCopyPaste,
             NotifyTypeConfig,
+            AiAnalysisNotifyConfig,
             HttpCallback
         },
         mixins: [permission],
@@ -362,6 +375,8 @@
                     aiAnalysisNotifyGroup: processedAiAnalysisNotifyGroup
                 },
                 enable_webhook,
+                enableAiNotification: window.ENABLE_AI_NOTIFICATION,
+                notifyTypeList: [],
                 stringLength: STRING_LENGTH,
                 rules: {
                     name: [
@@ -495,6 +510,8 @@
             }
             this.$refs.nameInput.focus()
             document.addEventListener('click', this.handleClickOutside)
+            // 获取通知类型列表
+            this.getNotifyTypeList()
         },
         methods: {
             ...mapMutations('template/', [
@@ -506,6 +523,17 @@
                 'getProjectConfig',
                 'createTemplateLabel'
             ]),
+            ...mapActions([
+                'getNotifyTypes'
+            ]),
+            async getNotifyTypeList () {
+                try {
+                    const res = await this.getNotifyTypes()
+                    this.notifyTypeList = res.data
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             processingProjectsToTop (val, projects) {
                 val.forEach((item) => {
                     item = typeof item === 'number' ? item : Number(item)
@@ -693,10 +721,13 @@
                 }
             },
             onSelectNotifyConfig (formData) {
-                const { notifyType, notifyTypeExtraInfo, receiverGroup, aiAnalysisNotifyType, aiAnalysisNotifyGroup } = formData
+                const { notifyType, notifyTypeExtraInfo, receiverGroup } = formData
                 this.formData.notifyType = notifyType
                 this.formData.notifyTypeExtraInfo = notifyTypeExtraInfo
                 this.formData.receiverGroup = receiverGroup
+            },
+            onSelectAiAnalysisConfig (formData) {
+                const { aiAnalysisNotifyType, aiAnalysisNotifyGroup } = formData
                 const notifyPerson = {}
                 const notifyGroup = {}
                 if (aiAnalysisNotifyType.length > 0) {
@@ -724,6 +755,7 @@
                     const validations = await Promise.all([
                         this.$refs.configForm.validate(),
                         this.$refs.notifyTypeConfig.validate(),
+                        this.$refs?.aiAnalysisNotifyConfig ? this.$refs.aiAnalysisNotifyConfig.validate() : Promise.resolve(true),
                         this.$refs?.httpCallback ? this.$refs.httpCallback.validate() : Promise.resolve(true)
                     ])
                     if (validations.includes(false)) return
