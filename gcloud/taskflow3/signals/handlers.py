@@ -100,9 +100,9 @@ def send_task_message(pipeline_id, node_id, msg_type):
 
         bk_biz_id = taskflow.project.bk_biz_id
         task_id = taskflow.id
-        receivers_list = taskflow.get_stakeholders()
-        receivers = ",".join(receivers_list)
         executor = taskflow.pipeline_instance.executor
+        # TODO 暂时先使用执行人作为接收人，后续支持通知分组
+        receivers = executor
         ai_notify_type = taskflow.get_ai_notify_type()
         ai_notify_group = taskflow.get_ai_notify_group()
         # AI分析通知开关
