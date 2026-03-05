@@ -95,8 +95,8 @@ def format_template_data(
         replace_template_id_recursive(template.__class__, pipeline_tree, reverse=True)
     else:
         pipeline_tree = template.pipeline_tree
-        pipeline_tree.pop("line")
-        pipeline_tree.pop("location")
+        pipeline_tree.pop("line", None)
+        pipeline_tree.pop("location", None)
     varschema.add_schema_for_input_vars(pipeline_tree)
 
     data = {
