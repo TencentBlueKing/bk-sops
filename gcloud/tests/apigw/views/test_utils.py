@@ -14,8 +14,14 @@ for _mod in [
     "gcloud.template_base.utils",
     "gcloud.utils.dates",
     "pipeline_web.preview_base",
+    "pipeline_web.wrapper",
 ]:
     sys.modules.setdefault(_mod, MagicMock())
+
+# patch() navigates via getattr; set the stub as an attribute on the real package
+import pipeline_web as _pipeline_web  # noqa: E402
+
+_pipeline_web.wrapper = sys.modules["pipeline_web.wrapper"]
 
 REPLACE_TEMPLATE_ID = "gcloud.apigw.views.utils.replace_template_id"
 
@@ -91,3 +97,86 @@ class ReplaceTemplateIdRecursiveTest(TestCase):
         ):
             replace_template_id_recursive(template_model, pipeline_data, reverse=True)
             mock_replace.assert_any_call(mock_common_model, sub_pipeline, reverse=True)
+
+
+FORMAT_TEMPLATE_DATA_UNFOLD = "pipeline_web.wrapper.PipelineTemplateWebWrapper.unfold_subprocess"
+FORMAT_TEMPLATE_DATA_REPLACE_RECURSIVE = "gcloud.apigw.views.utils.replace_template_id_recursive"
+FORMAT_TEMPLATE_DATA_REPLACE = "gcloud.apigw.views.utils.replace_template_id"
+
+
+class FormatTemplateDataUnfoldSubprocessTest(TestCase):
+    def _make_template(self, with_subprocess=False):
+        """构造一个包含子流程活动的 mock template"""
+        activities = {}
+        if with_subprocess:
+            activities["node_sub"] = {
+                "type": "SubProcess",
+                "template_id": "999",
+                "template_source": "business",
+            }
+        pipeline_tree = {
+            "line": [],
+            "location": [],
+            "activities": activities,
+            "constants": {},
+            "gateways": {},
+            "flows": {},
+            "start_event": {},
+            "end_event": {},
+        }
+        mock_pt = MagicMock()
+        mock_pt.name = "tmpl_name"
+        mock_pt.creator = "admin"
+        mock_pt.create_time = None
+        mock_pt.editor = "admin"
+        mock_pt.edit_time = None
+        mock_pt.description = ""
+        tmpl = MagicMock()
+        tmpl.id = 1
+        tmpl.category = "Other"
+        tmpl.pipeline_template = mock_pt
+        tmpl.pipeline_tree = pipeline_tree
+        return tmpl, pipeline_tree
+
+    def test_unfold_subprocess_false_does_not_call_unfold(self):
+        """unfold_subprocess=False 时不调用 PipelineTemplateWebWrapper.unfold_subprocess"""
+        from gcloud.apigw.views.utils import format_template_data
+
+        tmpl, _ = self._make_template()
+        with patch(FORMAT_TEMPLATE_DATA_UNFOLD) as mock_unfold, patch("gcloud.apigw.views.utils.varschema"):
+            format_template_data(tmpl, unfold_subprocess=False)
+            mock_unfold.assert_not_called()
+
+    def test_unfold_subprocess_true_calls_unfold_and_recursive_replace(self):
+        """unfold_subprocess=True 时调用 unfold 和 replace_template_id_recursive"""
+        from gcloud.apigw.views.utils import format_template_data
+
+        tmpl, pipeline_tree = self._make_template(with_subprocess=True)
+        with patch(FORMAT_TEMPLATE_DATA_UNFOLD) as mock_unfold, patch(
+            FORMAT_TEMPLATE_DATA_REPLACE
+        ) as mock_replace, patch(FORMAT_TEMPLATE_DATA_REPLACE_RECURSIVE) as mock_replace_recursive, patch(
+            "gcloud.apigw.views.utils.varschema"
+        ):
+            result = format_template_data(tmpl, unfold_subprocess=True)
+            # replace_template_id 先调用（user-facing → internal UUID）
+            mock_replace.assert_called_once_with(tmpl.__class__, pipeline_tree)
+            # unfold_subprocess 调用
+            mock_unfold.assert_called_once_with(pipeline_tree, tmpl.__class__)
+            # replace_template_id_recursive 最后调用（internal UUID → user-facing）
+            mock_replace_recursive.assert_called_once_with(tmpl.__class__, pipeline_tree, reverse=True)
+            # line/location 已 pop
+            assert "line" not in result["pipeline_tree"]
+            assert "location" not in result["pipeline_tree"]
+
+    def test_unfold_subprocess_true_exception_propagates(self):
+        """unfold_subprocess 内部异常向上冒泡"""
+        from pipeline.exceptions import PipelineException
+
+        from gcloud.apigw.views.utils import format_template_data
+
+        tmpl, _ = self._make_template(with_subprocess=True)
+        with patch(FORMAT_TEMPLATE_DATA_UNFOLD, side_effect=PipelineException("recursion limit")), patch(
+            FORMAT_TEMPLATE_DATA_REPLACE
+        ), patch("gcloud.apigw.views.utils.varschema"):
+            with self.assertRaises(PipelineException):
+                format_template_data(tmpl, unfold_subprocess=True)

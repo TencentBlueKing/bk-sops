@@ -73,11 +73,30 @@ def replace_template_id_recursive(template_model, pipeline_data, reverse=False):
 
 
 def format_template_data(
-    template, project=None, include_subprocess=None, tz=None, include_executor_proxy=None, include_notify=None
+    template,
+    project=None,
+    include_subprocess=None,
+    tz=None,
+    include_executor_proxy=None,
+    include_notify=None,
+    unfold_subprocess=False,
 ):
-    pipeline_tree = template.pipeline_tree
-    pipeline_tree.pop("line")
-    pipeline_tree.pop("location")
+    if unfold_subprocess:
+        from pipeline_web.wrapper import PipelineTemplateWebWrapper
+
+        pipeline_tree = template.pipeline_tree
+        pipeline_tree.pop("line", None)
+        pipeline_tree.pop("location", None)
+        # 将顶层 SubProcess.template_id 从用户 pk 转回内部 UUID（unfold_subprocess 需要）
+        replace_template_id(template.__class__, pipeline_tree)
+        # 递归展开所有子流程，写入 act["pipeline"]
+        PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
+        # 将整棵树所有层级转回用户可见 pk
+        replace_template_id_recursive(template.__class__, pipeline_tree, reverse=True)
+    else:
+        pipeline_tree = template.pipeline_tree
+        pipeline_tree.pop("line")
+        pipeline_tree.pop("location")
     varschema.add_schema_for_input_vars(pipeline_tree)
 
     data = {
