@@ -493,13 +493,22 @@ def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple
     return task_summary, truncate_error_analysis_content(task_error_analysis)
 
 
-def truncate_error_analysis_content(content, max_length=2000) -> str:
+def truncate_error_analysis_content(content, max_bytes=4000) -> str:
     """
-    优先缩减JOB执行日志和脚本内容, 保留错误分析和解决步骤
+    优先缩减JOB执行日志和脚本内容, 保留错误分析和解决步骤。
+    max_bytes 为 UTF-8 编码后的字节上限。
     """
 
-    if not content or len(content) <= max_length:
+    def _byte_len(s):
+        return len(s.encode("utf-8"))
+
+    if not content or _byte_len(content) <= max_bytes:
         return content
+
+    logger.info(
+        f"[truncate_error_analysis_content] start truncate content length: "
+        f"{_byte_len(content)}, max_bytes: {max_bytes}"
+    )
 
     truncate_hint = "\n> （内容过长已省略，请前往JOB平台查看完整日志）\n"
     collapsible_patterns = [
@@ -509,17 +518,19 @@ def truncate_error_analysis_content(content, max_length=2000) -> str:
 
     result = content
     for pattern in collapsible_patterns:
-        if len(result) <= max_length:
+        if _byte_len(result) <= max_bytes:
             break
         match = pattern.search(result)
         if match:
             result = result[: match.start(2)] + truncate_hint + result[match.end(2) :]
 
-    if len(result) <= max_length:
+    if _byte_len(result) <= max_bytes:
         return result
 
     suffix = "\n\n...(content truncated)"
-    return result[: max_length - len(suffix)] + suffix
+    suffix_bytes = _byte_len(suffix)
+    encoded = result.encode("utf-8")[: max_bytes - suffix_bytes]
+    return encoded.decode("utf-8", errors="ignore") + suffix
 
 
 def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type: str) -> tuple:
