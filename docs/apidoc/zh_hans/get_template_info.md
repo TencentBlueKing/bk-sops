@@ -15,6 +15,7 @@
 | include_subprocess | bool | 否 | 是否包含子流程信息，默认 false |
 | include_constants | bool | 否 | 是否包含全局变量信息，默认 false |
 | include_notify | bool | 否 | 是否包含通知信息，默认 false |
+| unfold_subprocess | bool | 否 | 是否展开子流程完整配置，默认 false。设为 true 时，pipeline_tree 中每个 SubProcess 节点将包含 pipeline 字段，其中包含该子流程的完整 pipeline_tree（递归展开所有层级）。展开失败时返回 result=false。 |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
 
 ### 请求参数示例

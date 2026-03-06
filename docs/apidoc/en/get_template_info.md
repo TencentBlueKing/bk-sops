@@ -15,6 +15,7 @@ Query individual flow template details of the business
 | include_subprocess | bool | NO | whether to include subprocess information, default false |
 | include_constants | bool | NO | whether to include constants information, default false |
 | include_notify | bool | NO | whether to include notify information, default false |
+| unfold_subprocess | bool | NO | whether to expand subprocess configurations recursively, default false. When set to true, each SubProcess node in pipeline_tree will include a pipeline field containing the complete pipeline_tree of that subprocess (recursively expanded at all levels). Returns result=false on failure. |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example
