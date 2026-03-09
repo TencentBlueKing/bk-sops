@@ -16,9 +16,16 @@ from django.db.models import Value
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response, timezone_inject
+from gcloud.apigw.decorators import (
+    mark_ai_platform,
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+    timezone_inject,
+)
 from gcloud.apigw.forms import GetTaskListForm
 from gcloud.apigw.views.utils import format_task_list_data, paginate_list_data
+from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.utils import get_task_allowed_actions_for_user
@@ -31,8 +38,10 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @apigw_require
 @return_json_response
 @mark_request_whether_is_trust
+@mark_ai_platform
 @project_inject
 @timezone_inject
+@trace_view(attr_keys=["project_id"], call_from=CallFrom.APIGW.value)
 @iam_intercept(ProjectViewInterceptor())
 def get_task_list(request, project_id):
     project = request.project

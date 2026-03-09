@@ -16,9 +16,16 @@ from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_ai_platform,
+    mark_request_whether_is_trust,
+    mcp_apigw,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.utils import BucketTTLCache, api_bucket_and_key, bucket_cached
 from gcloud.apigw.views.utils import logger
+from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
@@ -42,7 +49,9 @@ def cache_decisioner(key, value):
 @mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
+@mark_ai_platform
 @project_inject
+@trace_view(attr_keys=["project_id"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TaskViewInterceptor())
 @bucket_cached(
     BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 10}, decisioner=cache_decisioner),

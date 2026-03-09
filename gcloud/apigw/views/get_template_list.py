@@ -16,6 +16,7 @@ from django.views.decorators.http import require_GET
 
 from gcloud import err_code
 from gcloud.apigw.decorators import (
+    mark_ai_platform,
     mark_request_whether_is_trust,
     mcp_apigw,
     project_inject,
@@ -26,6 +27,7 @@ from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_list_data, logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.conf import FLOW_ACTIONS
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
@@ -40,8 +42,10 @@ from gcloud.tasktmpl3.models import TaskTemplate
 @mcp_apigw(exclude_responses=["data.[].auth_actions"])
 @return_json_response
 @mark_request_whether_is_trust
+@mark_ai_platform
 @project_inject
 @timezone_inject
+@trace_view(attr_keys=["project_id"], call_from=CallFrom.APIGW.value)
 @iam_intercept(ProjectViewInterceptor())
 def get_template_list(request, project_id):
     template_source = request.GET.get("template_source", PROJECT)
