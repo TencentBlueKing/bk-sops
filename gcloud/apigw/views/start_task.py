@@ -19,7 +19,12 @@ from django.views.decorators.http import require_POST
 
 import env
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_ai_platform,
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+)
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.trace import CallFrom, trace_view
@@ -37,6 +42,7 @@ from gcloud.utils.throttle import check_task_operation_throttle
 @apigw_require
 @return_json_response
 @mark_request_whether_is_trust
+@mark_ai_platform
 @project_inject
 @trace_view(attr_keys=["project_id"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TaskOperateInterceptor())

@@ -19,7 +19,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_ai_platform,
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.views.utils import logger
 from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.intercept import iam_intercept
@@ -33,6 +38,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @apigw_require
 @return_json_response
 @mark_request_whether_is_trust
+@mark_ai_platform
 @project_inject
 @trace_view(attr_keys=["project_id", "task_id"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TaskOperateInterceptor())
