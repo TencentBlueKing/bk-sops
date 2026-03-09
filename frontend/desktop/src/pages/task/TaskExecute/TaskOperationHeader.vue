@@ -387,7 +387,6 @@
         height: 100%;
         .task-operation-btns,
         .task-params-btns {
-            float: left;
             flex-shrink: 0;
             .bk-button {
                 border: none;
