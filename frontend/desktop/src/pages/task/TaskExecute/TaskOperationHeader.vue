@@ -279,6 +279,11 @@
     .head-left-area {
         display: flex;
         align-items: center;
+        flex-wrap: nowrap;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        padding-right: 20px;
         .back-icon {
             font-size: 28px;
             color: #3a84ff;
@@ -295,12 +300,17 @@
     .bread-crumbs-wrapper {
         margin-left: 10px;
         font-size: 0;
+        flex: 1;
+        min-width: 14px;
+        overflow: hidden;
+        white-space: nowrap;
         .path-item {
             display: inline-block;
             font-size: 14px;
             overflow: hidden;
+            vertical-align: middle;
             &.name-ellipsis {
-                max-width: 700px;
+                max-width: 100%;
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;
@@ -343,6 +353,8 @@
         color: #63656e;
         border-radius: 10px;
         background-color: #dcdee5;
+        flex-shrink: 0;
+        white-space: nowrap;
         &.EXPIRED,
         &.CREATED {
             color: #63656e;
@@ -375,7 +387,7 @@
         height: 100%;
         .task-operation-btns,
         .task-params-btns {
-            float: left;
+            flex-shrink: 0;
             .bk-button {
                 border: none;
                 background: transparent;
