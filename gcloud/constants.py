@@ -84,6 +84,7 @@ class TaskCreateMethod(Enum):
     CLOCKED = "clocked"
     MOBILE = "mobile"
     MCP = "mcp"
+    OPENCLAW = "openclaw"
 
 
 # 任务流程创建方式
@@ -95,6 +96,7 @@ TASK_CREATE_METHOD = [
     (TaskCreateMethod.CLOCKED.value, _("计划任务")),
     (TaskCreateMethod.MOBILE.value, _("移动端")),
     (TaskCreateMethod.MCP.value, _("MCP")),
+    (TaskCreateMethod.OPENCLAW.value, _("OpenClaw")),
 ]
 
 # 任务引用的流程模板来源

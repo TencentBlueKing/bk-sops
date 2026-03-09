@@ -227,6 +227,23 @@ def is_mcp_request(request):
     return False
 
 
+def is_ai_platform_request(request):
+    ai_platform_header = getattr(settings, "APIGW_AI_PLATFORM_HEADER", "HTTP_X_BKAPI_AI_PLATFORM")
+    value = request.META.get(ai_platform_header, "").strip()
+    return value if value else ""
+
+
+def mark_ai_platform(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        request.ai_platform = is_ai_platform_request(request)
+        ai_skill_header = getattr(settings, "APIGW_AI_SKILL_HEADER", "HTTP_X_BKAPI_AI_SKILL")
+        request.ai_skill = request.META.get(ai_skill_header, "").strip()
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
 def _remove_nested_key(data, path_tuple):
     """
     递归地从嵌套字典/列表中移除指定路径的键
