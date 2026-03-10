@@ -24,6 +24,7 @@ from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
 from gcloud.apigw.decorators import (
+    get_request_task_create_method,
     mark_ai_platform,
     mark_request_whether_is_trust,
     mcp_apigw,
@@ -35,7 +36,7 @@ from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT, TaskCreateMethod
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
@@ -200,12 +201,7 @@ def create_task(request, template_id, project_id):
             logger.exception(message)
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
-    if getattr(request, "ai_platform", ""):
-        create_method = TaskCreateMethod.OPENCLAW.value
-    elif getattr(request, "is_mcp_request", False):
-        create_method = TaskCreateMethod.MCP.value
-    else:
-        create_method = TaskCreateMethod.API.value
+    create_method = get_request_task_create_method(request)
 
     task = TaskFlowInstance.objects.create(
         project=project,

@@ -801,3 +801,48 @@ class CreateTaskAPITest(APITest):
 
                 create_call_kwargs = TaskFlowInstance.objects.create.call_args[1]
                 self.assertEqual(create_call_kwargs["create_method"], TaskCreateMethod.OPENCLAW.value)
+
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
+    @mock.patch(
+        TASKINSTANCE_CREATE,
+        MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
+    )
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    def test_create_task__mcp_takes_priority_over_ai_platform(self):
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+        proj = MockProject(
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
+        )
+
+        with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
+            with mock.patch(
+                TASKTEMPLATE_SELECT_RELATE,
+                MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            ):
+                response = self.client.post(
+                    path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                    data=json.dumps(
+                        {
+                            "name": "name",
+                            "constants": {},
+                            "exclude_task_nodes_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                            "flow_type": "common",
+                        }
+                    ),
+                    content_type="application/json",
+                    HTTP_BK_APP_CODE="v_mcp_openclaw",
+                    HTTP_BK_USERNAME=TEST_USERNAME,
+                    HTTP_X_BKAPI_AI_PLATFORM="openclaw",
+                    HTTP_X_BKAPI_AI_SKILL="sops-task-execution",
+                )
+
+                data = json.loads(response.content)
+                self.assertTrue(data["result"], msg=data)
+
+                create_call_kwargs = TaskFlowInstance.objects.create.call_args[1]
+                self.assertEqual(create_call_kwargs["create_method"], TaskCreateMethod.MCP.value)

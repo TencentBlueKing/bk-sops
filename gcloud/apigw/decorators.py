@@ -26,6 +26,7 @@ from gcloud.apigw.exceptions import InvalidUserError
 from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.whitelist import EnvWhitelist
 from gcloud.conf import settings
+from gcloud.constants import AI_PLATFORM_TASK_CREATE_METHOD_MAP, TaskCreateMethod
 from gcloud.core.models import Project
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
@@ -228,17 +229,61 @@ def is_mcp_request(request):
 
 
 def is_ai_platform_request(request):
+    """
+    判断请求是否来自受支持的 AI 平台
+
+    :param request: Django request 对象
+    :return: bool，True 表示是受支持的 AI 平台请求
+    """
+    return bool(get_ai_platform_from_request(request))
+
+
+def get_ai_platform_from_request(request):
+    """
+    获取并校验 AI 平台标识
+
+    该装饰器会应用在所有 APIGW 视图上，因此这里需要统一做白名单校验，
+    避免任意 Header 值被写入 trace 属性。
+    """
     ai_platform_header = getattr(settings, "APIGW_AI_PLATFORM_HEADER", "HTTP_X_BKAPI_AI_PLATFORM")
     value = request.META.get(ai_platform_header, "").strip()
-    return value if value else ""
+    if not value:
+        return ""
+
+    allowed_platforms = set(
+        getattr(settings, "APIGW_ALLOWED_AI_PLATFORMS", tuple(AI_PLATFORM_TASK_CREATE_METHOD_MAP.keys()))
+    )
+    normalized_value = value.lower()
+    return normalized_value if normalized_value in allowed_platforms else ""
+
+
+def get_request_task_create_method(request):
+    """
+    统一计算任务创建方式
+
+    MCP 与 AI 平台是两个独立维度。若请求同时命中两者，优先保留 MCP，
+    避免 MCP 调用被错误统计为具体 AI 平台来源。
+    """
+    if getattr(request, "is_mcp_request", False):
+        return TaskCreateMethod.MCP.value
+
+    ai_platform = getattr(request, "ai_platform", "") or get_ai_platform_from_request(request)
+    return AI_PLATFORM_TASK_CREATE_METHOD_MAP.get(ai_platform, TaskCreateMethod.API.value)
 
 
 def mark_ai_platform(view_func):
+    """
+    为 APIGW 请求标记 AI 平台来源。
+
+    该装饰器会复用于读写接口：查询类接口用于 trace 打点，创建类接口还会
+    进一步参与 create_method 判定。
+    """
+
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        request.ai_platform = is_ai_platform_request(request)
+        request.ai_platform = get_ai_platform_from_request(request)
         ai_skill_header = getattr(settings, "APIGW_AI_SKILL_HEADER", "HTTP_X_BKAPI_AI_SKILL")
-        request.ai_skill = request.META.get(ai_skill_header, "").strip()
+        request.ai_skill = request.META.get(ai_skill_header, "").strip() if request.ai_platform else ""
         return view_func(request, *args, **kwargs)
 
     return wrapper

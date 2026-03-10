@@ -87,6 +87,12 @@ class TaskCreateMethod(Enum):
     OPENCLAW = "openclaw"
 
 
+# AI 平台与任务创建方式映射
+AI_PLATFORM_TASK_CREATE_METHOD_MAP = {
+    TaskCreateMethod.OPENCLAW.value: TaskCreateMethod.OPENCLAW.value,
+}
+
+
 # 任务流程创建方式
 TASK_CREATE_METHOD = [
     (TaskCreateMethod.APP.value, _("手动")),

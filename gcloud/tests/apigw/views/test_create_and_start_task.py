@@ -93,13 +93,52 @@ class CreateAndStartTaskAPITest(APITest):
                         create_info=TEST_APP_CODE,
                         current_flow="execute_task",
                         engine_ver=2,
-                        extra_info='{"keys_in_constants_parameter":[]}'
+                        extra_info='{"keys_in_constants_parameter":[]}',
                     )
 
                     data = json.loads(response.content)
 
                     self.assertTrue(data["result"], msg=data)
                     self.assertEqual(data["data"], assert_data)
+
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
+    @mock.patch(TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)))
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    def test_create_and_start_task__mcp_takes_priority_over_ai_platform(self):
+
+        pt = MockPipelineTemplate(id=1, name="pt")
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt)
+        proj = MockProject(
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
+        )
+
+        with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
+            with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+                with mock.patch(APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK, TEST_PRE_PARE_AND_START_TASK):
+                    response = self.client.post(
+                        path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                        data=json.dumps(
+                            {
+                                "name": "name",
+                                "constants": {},
+                                "template_source": "common",
+                                "flow_type": "common",
+                                "exclude_task_nodes_id": "exclude_task_nodes_id",
+                            }
+                        ),
+                        content_type="application/json",
+                        HTTP_BK_APP_CODE="v_mcp_openclaw",
+                        HTTP_X_BKAPI_AI_PLATFORM="openclaw",
+                    )
+
+                    data = json.loads(response.content)
+                    self.assertTrue(data["result"], msg=data)
+
+                    create_call_kwargs = TaskFlowInstance.objects.create.call_args[1]
+                    self.assertEqual(create_call_kwargs["create_method"], TaskCreateMethod.MCP.value)
 
     @mock.patch(
         PROJECT_GET,

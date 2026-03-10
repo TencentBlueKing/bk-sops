@@ -20,6 +20,7 @@ from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
 from gcloud.apigw.decorators import (
+    get_request_task_create_method,
     mark_ai_platform,
     mark_request_whether_is_trust,
     mcp_apigw,
@@ -29,7 +30,7 @@ from gcloud.apigw.decorators import (
 from gcloud.apigw.validators import FastCreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import ONETIME, TASK_CATEGORY, TASK_NAME_MAX_LENGTH, TaskCreateMethod
+from gcloud.constants import ONETIME, TASK_CATEGORY, TASK_NAME_MAX_LENGTH
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.iam_auth.intercept import iam_intercept
@@ -86,12 +87,7 @@ def fast_create_task(request, project_id):
         logger.exception(message)
         return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
-    if getattr(request, "ai_platform", ""):
-        create_method = TaskCreateMethod.OPENCLAW.value
-    elif getattr(request, "is_mcp_request", False):
-        create_method = TaskCreateMethod.MCP.value
-    else:
-        create_method = TaskCreateMethod.API.value
+    create_method = get_request_task_create_method(request)
 
     taskflow_kwargs = {
         "project": project,
