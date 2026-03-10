@@ -13,17 +13,16 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.periodictask.models import PeriodicTask
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import PeriodicTaskEditInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.periodictask.models import PeriodicTask
 
 
 @login_exempt
@@ -53,4 +52,6 @@ def set_periodic_task_enabled(request, task_id, project_id):
         }
 
     task.set_enabled(enabled)
+    task.editor = request.user.username
+    task.save(update_fields=["editor", "edit_time"])
     return {"result": True, "data": {"enabled": task.enabled}, "code": err_code.SUCCESS.code}
