@@ -12,13 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 
 from __future__ import absolute_import
+
 from datetime import datetime
 
-import ujson as json
 import mock  # noqa
-from mock import MagicMock, patch, call  # noqa
-
+import ujson as json
 from django.utils.timezone import now
+from mock import MagicMock, call, patch  # noqa
 
 from gcloud.tests.test_data import TEST_PIPELINE_TREE
 
@@ -149,6 +149,7 @@ class MockPeriodicTask(object):
         self.form = kwargs.get("form", "form")
         self.pipeline_tree = kwargs.get("pipeline_tre", "pipeline_tree")
         self.set_enabled = MagicMock()
+        self.save = MagicMock()
         self.modify_cron = MagicMock(**{"side_effect": kwargs.get("modify_cron_raise")})
         self.modify_constants = MagicMock(
             **{
