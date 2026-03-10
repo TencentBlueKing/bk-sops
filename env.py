@@ -207,6 +207,7 @@ MAX_WEBHOOK_TIMEOUT = int(os.getenv("MAX_WEBHOOK_TIMEOUT", 10))
 
 # agent配置
 AI_SOPS_AGENT_URL = os.getenv("AI_SOPS_AGENT_URL", "")
+BK_AGENT_FLOWS_BUILD_URL = os.getenv("BK_AGENT_FLOWS_BUILD_URL", "")
 
 # APIGW MCP app_code前缀配置
 APIGW_MCP_APP_CODE_PREFIX = os.getenv("APIGW_MCP_APP_CODE_PREFIX", "v_mcp")
