@@ -15,6 +15,11 @@ const Configuration = {
    * Any rules defined here will override rules from @commitlint/config-conventional
    */
   rules: {
+    'subject-case': [0],
+		'header-case': [0],
+		'body-case': [0],
+		'scope-case': [0],
+		'type-case': [0],
 		'type-enum': [
 			2,
 			'always',

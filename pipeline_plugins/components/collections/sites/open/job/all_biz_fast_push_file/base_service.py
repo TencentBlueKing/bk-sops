@@ -22,13 +22,7 @@ from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.utils import (
-    batch_execute_func,
-    get_job_instance_url,
-    get_job_task_name,
-    has_biz_set,
-    loose_strip,
-)
+from pipeline_plugins.components.utils import batch_execute_func, get_job_instance_url, has_biz_set, loose_strip
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -136,11 +130,6 @@ class BaseAllBizJobFastPushFileService(JobScheduleService, GetJobTargetServerMix
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         params_list = self.get_params_list(data, parent_data)
-        if getattr(self, "use_node_task_name", False):
-            for param in params_list:
-                task_name = get_job_task_name(self.root_pipeline_id, self.id)
-                if task_name:
-                    param["task_name"] = task_name
         task_count = len(params_list)
         # 并发请求接口
         job_result_list = batch_execute_func(client.jobv3.fast_transfer_file, params_list, interval_enabled=True)

@@ -16,7 +16,7 @@
 | 时间戳格式 | 与旧默认一致：毫秒级数字（如 `1521100521303`） |
 | 节点名处理 | 做 sanitize（去除非法字符、截断超长） |
 | 节点名缺失 | 不传 task_name，交由作业平台自动生成 |
-| 改造范围 | 6 个核心插件（快速执行脚本、快速分发文件、执行作业 + 3 个跨业务版本） |
+| 改造范围 | 3 个核心插件（快速执行脚本、快速分发文件、执行作业） |
 
 ## 方案：公共工具 + 各插件内联调用
 
@@ -49,9 +49,6 @@ def get_job_task_name(root_pipeline_id: str, node_id: str) -> str | None:
 | 快速执行脚本 | fast_execute_script/v2_1.py | v2_0 | v2_0.js |
 | 快速分发文件 | fast_push_file/v3_1.py | v3_0 | v3_0.js |
 | 执行作业 | execute_task/v2_1.py | v2_0 | v2_0.js |
-| 跨业务快速执行脚本 | all_biz_fast_execute_script/v1_2.py | v1_1 | v1_1.js |
-| 跨业务快速分发文件 | all_biz_fast_push_file/v1_2.py | v1_1 | v1_1.js |
-| 跨业务执行作业 | all_biz_execute_job_plan/v1_2.py | v1_1 | v1_1.js |
 
 **改造方式**：在构造 `job_kwargs` 时增加：
 ```python
@@ -60,7 +57,7 @@ if task_name:
     job_kwargs["task_name"] = task_name
 ```
 
-**特殊处理**：`fast_push_file`、`all_biz_fast_push_file` 使用 `batch_execute_func` 多次调用，每次调用生成新的 `task_name`（时间戳不同），保证唯一性。
+**特殊处理**：`fast_push_file` 使用 `batch_execute_func` 多次调用，每次调用生成新的 `task_name`（时间戳不同），保证唯一性。
 
 ### 3. 数据流
 
