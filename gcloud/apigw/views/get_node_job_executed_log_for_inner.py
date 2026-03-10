@@ -27,6 +27,22 @@ from pipeline_plugins.components.collections.sites.open.job.base import get_job_
 
 logger = logging.getLogger("root")
 
+JOB_INST_ID_MAP = {
+    "job_fast_execute_script": "快速执行脚本",
+    "job_local_content_upload": "本地文本框内容上传",
+    "job_execute_task": "执行作业",
+    "all_biz_job_fast_execute_script": "业务集快速执行脚本",
+    "all_biz_execute_job_plan": "业务集执行作业",
+    "job_cc_execute_script": "CC脚本执行",
+}
+
+
+JOB_INST_ID_IN_LIST_MAP = {
+    "job_fast_push_file": "快速分发文件",
+    "job_push_local_files": "分发本地文件",
+    "all_biz_job_fast_push_file": "业务集快速分发文件",
+}
+
 
 @login_exempt
 @api_view(["GET"])
@@ -34,9 +50,9 @@ logger = logging.getLogger("root")
 @return_json_response
 def get_node_job_executed_log_for_inner(request):
     bk_biz_id = request.query_params.get("bk_biz_id")
-    target_ip = request.query_params.get("target_ip")
     node_id = request.query_params.get("node_id")
-    job_scope_type = JobBizScopeType.BIZ.value
+    job_scope_type = request.query_params.get("job_scope_type", JobBizScopeType.BIZ.value)
+    component_code = request.query_params.get("component_code")
     client = settings.ESB_GET_CLIENT_BY_USER(settings.SYSTEM_USE_API_ACCOUNT)
     runtime = BambooDjangoRuntime()
     try:
@@ -50,13 +66,39 @@ def get_node_job_executed_log_for_inner(request):
                 "logs": "",
             }
         )
-    job_instance_id = execution_data.outputs.get("job_inst_id")
-    log_result = get_job_instance_log(client, logger, job_instance_id, bk_biz_id, target_ip, job_scope_type)
-    if not log_result["result"]:
+
+    if component_code in JOB_INST_ID_MAP:
+        job_instance_id = execution_data.outputs.get("job_inst_id")
+        log_result = get_job_instance_log(client, logger, job_instance_id, bk_biz_id, None, job_scope_type)
+        if not log_result["result"]:
+            return Response(
+                {
+                    "result": False,
+                    "message": log_result["message"],
+                    "logs": "",
+                }
+            )
+        log_content = log_result["data"]
+    elif component_code in JOB_INST_ID_IN_LIST_MAP:
+        job_instance_id_list = execution_data.outputs.get("job_inst_id_list") or []
+        log_content_list = []
+        for job_instance_id in job_instance_id_list:
+            log_result = get_job_instance_log(client, logger, job_instance_id, bk_biz_id, None, job_scope_type)
+            if not log_result["result"]:
+                return Response(
+                    {
+                        "result": False,
+                        "message": log_result["message"],
+                        "logs": "",
+                    }
+                )
+            log_content_list.append(log_result["data"])
+        log_content = "\n".join(log_content_list)
+    else:
         return Response(
             {
                 "result": False,
-                "message": log_result["message"],
+                "message": "component code not found: {}".format(component_code),
                 "logs": "",
             }
         )
@@ -64,6 +106,6 @@ def get_node_job_executed_log_for_inner(request):
         {
             "result": True,
             "message": "success",
-            "logs": log_result["data"],
+            "logs": log_content,
         }
     )
