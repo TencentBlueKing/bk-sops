@@ -34,7 +34,13 @@ jobs:
     - name: Install modules
       run: |
         python3.6 -m pip install --upgrade pip
-        python3.6 -m pip install -r requirements.txt -i https://mirrors.tencent.com/pypi/simple/
+        # 增加超时和重试，缓解网络偶发失败 (pip --retries 对 ReadTimeoutError 无效，需外层重试)
+        for i in 1 2 3; do
+          python3.6 -m pip install -r requirements.txt -i https://mirrors.tencent.com/pypi/simple/ \
+            --default-timeout 120 --retries 5 && break
+          echo "pip install 第 $i 次失败，重试..."
+          sleep 10
+        done
     - name: Run Tests
       run: |
         # prepare env
