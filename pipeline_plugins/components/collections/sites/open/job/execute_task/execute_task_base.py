@@ -26,6 +26,7 @@ from pipeline_plugins.components.collections.sites.open.job.ipv6_base import Get
 from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP, JOBV3_VAR_CATEGORY_PASSWORD
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
+    get_job_task_name,
     get_node_callback_url,
     is_cipher_structure,
     loose_strip,
@@ -195,6 +196,11 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             "global_var_list": global_vars,
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
+
+        if getattr(self, "use_node_task_name", False):
+            task_name = get_job_task_name(self.root_pipeline_id, self.id)
+            if task_name:
+                job_kwargs["task_name"] = task_name
 
         job_result = client.jobv3.execute_job_plan(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))

@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .legacy import JobFastPushFileService, JobFastPushFileComponent  # noqa
-from .v1_0 import JobFastPushFileService, JobFastPushFileComponent  # noqa
-from .v2_0 import JobFastPushFileService, JobFastPushFileComponent  # noqa
+from .legacy import JobFastPushFileComponent, JobFastPushFileService  # noqa
+from .v1_0 import JobFastPushFileComponent, JobFastPushFileService  # noqa
+from .v2_0 import JobFastPushFileComponent, JobFastPushFileService  # noqa
+from .v3_1 import JobFastPushFileComponent, JobFastPushFileService  # noqa

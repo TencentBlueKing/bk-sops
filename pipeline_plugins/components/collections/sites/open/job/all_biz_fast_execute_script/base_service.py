@@ -20,7 +20,7 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job import JobService
-from pipeline_plugins.components.utils import get_job_instance_url, has_biz_set
+from pipeline_plugins.components.utils import get_job_instance_url, get_job_task_name, has_biz_set
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -139,6 +139,10 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
             self.biz_scope_type = JobBizScopeType.BIZ.value
 
         job_kwargs = self.get_job_params(data, parent_data)
+        if getattr(self, "use_node_task_name", False):
+            task_name = get_job_task_name(self.root_pipeline_id, self.id)
+            if task_name:
+                job_kwargs["task_name"] = task_name
         job_result = client.jobv3.fast_execute_script(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:

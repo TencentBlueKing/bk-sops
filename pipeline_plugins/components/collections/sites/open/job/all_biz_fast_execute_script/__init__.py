@@ -12,3 +12,4 @@ specific language governing permissions and limitations under the License.
 """
 
 from .v1_0 import *  # noqa
+from .v1_2 import *  # noqa

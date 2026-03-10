@@ -11,4 +11,5 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .legacy import JobFastExecuteScriptService, JobFastExecuteScriptComponent  # noqa
+from .legacy import JobFastExecuteScriptComponent, JobFastExecuteScriptService  # noqa
+from .v2_1 import JobFastExecuteScriptComponent, JobFastExecuteScriptService  # noqa
