@@ -11,17 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Subject, Request
+import ujson as json
+from iam import Action, Request, Subject
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
-from gcloud.utils.strings import string_to_boolean
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.intercept import ViewInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import read_template_data_file
-
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
-from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.iam_auth import res_factory
+from gcloud.utils.strings import string_to_boolean
 
 iam = get_iam_client()
 
@@ -173,3 +171,17 @@ class ImportInterceptor(ViewInterceptor):
 
                 if not_allowed_list:
                     raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, edit_action, not_allowed_list)
+
+
+class AgentGenerateProcessInterceptor(ViewInterceptor):
+    def process(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        project_id = data.get("project_id")
+
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.FLOW_CREATE_ACTION)
+        resources = res_factory.resources_for_project(project_id)
+        iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
+
+        if not iam.is_allowed(iam_request):
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)

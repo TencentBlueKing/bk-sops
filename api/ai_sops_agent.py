@@ -36,11 +36,11 @@ class AgentRequestData:
     def __init__(self, request_type: AgentRequestType):
         self.request_type = request_type
 
-    def build(self, user_input: str, stream: bool = False) -> dict:
+    def build(self, user_input: str) -> dict:
         if self.request_type == AgentRequestType.USER:
             return {
                 "input": user_input,
-                "execute_kwargs": {"stream": stream},
+                "execute_kwargs": {"stream": False},
             }
         return {
             "inputs": {
@@ -97,8 +97,8 @@ class BKSopsAgentClient:
             logger.error(f"请求标准运维智能体API失败: {e}")
             return None
 
-    def call_agent_apigw(self, user_input, stream: bool = False, timeout: int = None):
-        data = self.request_data.build(user_input, stream=stream)
+    def call_agent_apigw(self, user_input, timeout: int = None):
+        data = self.request_data.build(user_input)
         response = self._make_request(method="POST", data=data, timeout=timeout or self.DEFAULT_TIMEOUT)
         if not response:
             logger.error("请求标准运维智能体API失败: 响应为空")
