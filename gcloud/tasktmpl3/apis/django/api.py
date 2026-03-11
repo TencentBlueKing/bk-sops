@@ -24,6 +24,7 @@ from gcloud import err_code
 from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
+    AgentGenerateProcessInterceptor,
     BatchFormInterceptor,
     ExportInterceptor,
     FetchPipelineTreeInterceptor,
@@ -382,6 +383,7 @@ def fetch_pipeline_tree(request):
 
 
 @require_POST
+@iam_intercept(AgentGenerateProcessInterceptor())
 def generate_process_with_agent(request):
     """
     @summary：AI 生成流程
@@ -391,7 +393,8 @@ def generate_process_with_agent(request):
     请求方法: POST
     请求体格式: JSON Object
     {
-        "bk_biz_id": 业务ID,
+        "bk_biz_id": 业务 ID,
+        "project_id": 项目 ID,
         "prompt": "流程描述"
     }
     """

@@ -785,7 +785,7 @@
                         }
                     ]
                 },
-                aiGeneratePlaceholder: i18n.t('请描述您想要创建的流程，例如：创建一个并行条件流程，执行数据库备份和日志清理，只有数据库所在服务器的log超过其磁盘80%时，才触发日志清理，完成后发送通知')
+                aiGeneratePlaceholder: i18n.t('请描述您想要创建的流程')
             }
         },
         computed: {
@@ -1216,6 +1216,7 @@
                     const prompt = this.aiGenerateData.prompt
                     const result = await this.generateProcessWithAgent({
                         bk_biz_id: this.bizId,
+                        project_id: this.project_id,
                         prompt: prompt
                     })
 

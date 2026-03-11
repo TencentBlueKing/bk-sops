@@ -272,6 +272,9 @@ class SimpleFlowConverter:
                 raise KeyError('Variable 缺少必填字段 \'key\'，请确保格式为: {"type": "Variable", "key": "${变量名}", "name": "显示名"}')
             constants[key] = self._build_constant(var, idx)
 
+        if not start_event or not end_event:
+            raise ValueError("缺少开始/结束事件节点")
+
         return {
             "name": self.template_name,
             "template_id": "",
@@ -307,7 +310,6 @@ class SimpleFlowConverter:
             "constants": constants,
             "outputs": [],
             "line": self._build_line_positions(flows),
-            "location": self._build_node_positions(),
         }
 
     def _build_activity(self, node, incoming, outgoing) -> dict:
@@ -528,48 +530,3 @@ class SimpleFlowConverter:
             "ExclusiveGateway": "branchgateway",
         }
         return type_mapping.get(node_type, node_type)
-
-    def _build_node_positions(self) -> list:
-        """
-        构建节点位置信息（自动布局）
-
-        :return: 节点位置列表
-        """
-        locations = []
-        x, y = 80, 150
-        x_step = 200
-        y_step = 150
-        max_x = 1000
-
-        for node_id, node in self.nodes.items():
-            canvas_type = self._map_node_type_for_canvas(node["type"])
-            location = {
-                "id": node_id,
-                "type": canvas_type,
-                "name": node.get("name", ""),
-                "stage_name": node.get("stage_name", node.get("name", "")),
-                "x": x,
-                "y": y,
-            }
-
-            if canvas_type == "tasknode":
-                location.update(
-                    {
-                        "group": "",
-                        "icon": "",
-                        "optional": True,
-                        "error_ignorable": False,
-                        "retryable": True,
-                        "skippable": True,
-                        "auto_retry": {"enable": False, "interval": 0, "times": 1},
-                        "timeout_config": {"action": "forced_fail", "enable": False, "seconds": 10},
-                    }
-                )
-
-            locations.append(location)
-            x += x_step
-            if x > max_x:
-                x = 80
-                y += y_step
-
-        return locations
