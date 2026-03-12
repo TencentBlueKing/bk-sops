@@ -7,6 +7,7 @@
                     <div class="show-html-text" :class="{ 'is-fold': !isExpand }">
                         <span v-html="executeInfo.failInfo"></span>
                         <img
+                            v-if="isAiEnabled"
                             @click="handleAssistantClick"
                             :title="$t('排查失败的原因')"
                             src="@/assets/images/assistant-small.svg"
@@ -114,7 +115,8 @@
         data () {
             return {
                 isExpand: false,
-                isExpandTextShow: false
+                isExpandTextShow: false,
+                isAiEnabled: !!window.AI_SOPS_AGENT_URL
             }
         },
         computed: {

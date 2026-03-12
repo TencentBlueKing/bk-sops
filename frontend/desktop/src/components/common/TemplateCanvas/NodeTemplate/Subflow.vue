@@ -55,6 +55,7 @@
                         {{ $t('跳过子流程') }}
                     </span>
                     <img
+                        v-if="isAiEnabled"
                         @click.stop="handleAssistantClick"
                         :title="$t('排查失败的原因')"
                         src="@/assets/images/assistant-small.svg"
@@ -99,6 +100,11 @@
                 default () {
                     return {}
                 }
+            }
+        },
+        data () {
+            return {
+                isAiEnabled: !!window.AI_SOPS_AGENT_URL
             }
         },
         computed: {

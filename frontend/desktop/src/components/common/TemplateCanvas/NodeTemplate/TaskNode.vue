@@ -58,7 +58,7 @@
                 <i class="common-icon-skip"></i>
                 {{ $t('跳过') }}
             </span>
-            <span v-if="isShowSkipBtn || isShowRetryBtn">
+            <span v-if="(isShowSkipBtn || isShowRetryBtn) && isAiEnabled">
                 <img
                     @click.stop="handleAssistantClick"
                     :title="$t('排查失败的原因')"
@@ -112,7 +112,8 @@
                 phaseStr: {
                     '1': i18n.t('当前插件即将停止维护，请更新插件版本'),
                     '2': i18n.t('当前插件已停止维护，请更新插件版本')
-                }
+                },
+                isAiEnabled: !!window.AI_SOPS_AGENT_URL
             }
         },
         computed: {

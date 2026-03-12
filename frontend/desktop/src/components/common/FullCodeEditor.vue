@@ -13,7 +13,7 @@
     <div class="full-code-editor" :class="{ 'full-status': isFullScreen }">
         <div class="tool-area">
             <ScriptCodeDrownList
-                v-if="options.isNeedAiScriptCheck !== false"
+                v-if="options.isNeedAiScriptCheck !== false && isAiEnabled"
                 ref="ScriptCodeDrownList"
                 :read-only="options.readOnly"
                 :input-data="inputData" />
@@ -70,7 +70,8 @@
             return {
                 copyText: '',
                 isFullScreen: false,
-                inputData: this.value || ''
+                inputData: this.value || '',
+                isAiEnabled: !!window.AI_SOPS_AGENT_URL
             }
         },
         watch: {

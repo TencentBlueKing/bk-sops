@@ -51,7 +51,7 @@
             </div>
         </div>
         <div class="operation-container" slot="expand">
-            <div class="task-summarize">
+            <div class="task-summarize" v-if="isAiEnabled">
                 <bk-button
                     class="mr10"
                     ext-cls="task-summarize-btn-wrapper"
@@ -188,7 +188,8 @@
         ],
         data () {
             return {
-                showNodeList: [0, 1, 2]
+                showNodeList: [0, 1, 2],
+                isAiEnabled: !!window.AI_SOPS_AGENT_URL
             }
         },
         computed: {
