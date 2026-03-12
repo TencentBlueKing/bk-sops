@@ -42,7 +42,8 @@ from gcloud.constants import JobBizScopeType
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job import GetJobTargetServerMixin, JobService
-from pipeline_plugins.components.utils import get_job_instance_url, get_job_task_name, get_node_callback_url
+from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
+from pipeline_plugins.components.utils.sites.open.utils import get_job_task_name
 
 from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
 

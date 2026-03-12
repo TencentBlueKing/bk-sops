@@ -26,12 +26,12 @@ from pipeline_plugins.components.collections.sites.open.job.ipv6_base import Get
 from pipeline_plugins.components.query.sites.open.job import JOBV3_VAR_CATEGORY_IP, JOBV3_VAR_CATEGORY_PASSWORD
 from pipeline_plugins.components.utils import (
     get_job_instance_url,
-    get_job_task_name,
     get_node_callback_url,
     is_cipher_structure,
     loose_strip,
     parse_passwd_value,
 )
+from pipeline_plugins.components.utils.sites.open.utils import get_job_task_name
 
 __group_name__ = _("作业平台(JOB)")
 
