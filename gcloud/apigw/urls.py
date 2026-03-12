@@ -25,6 +25,7 @@ from gcloud.apigw.views.get_common_template_info import get_common_template_info
 from gcloud.apigw.views.get_common_template_list import get_common_template_list
 from gcloud.apigw.views.get_functionalization_task_list import get_functionalization_task_list
 from gcloud.apigw.views.get_mini_app_list import get_mini_app_list
+from gcloud.apigw.views.get_node_job_executed_log import get_node_job_executed_log
 from gcloud.apigw.views.get_node_job_executed_log_for_inner import get_node_job_executed_log_for_inner
 from gcloud.apigw.views.get_periodic_task_info import get_periodic_task_info
 from gcloud.apigw.views.get_periodic_task_list import get_periodic_task_list
@@ -39,8 +40,10 @@ from gcloud.apigw.views.get_task_list import get_task_list
 from gcloud.apigw.views.get_task_node_data import get_task_node_data
 from gcloud.apigw.views.get_task_node_detail import get_task_node_detail
 from gcloud.apigw.views.get_task_node_log import get_task_node_log
+from gcloud.apigw.views.get_task_node_log_for_inner import get_task_node_log_for_inner
 from gcloud.apigw.views.get_task_operate_record import get_task_operate_record
 from gcloud.apigw.views.get_task_plugin_log import get_task_plugin_log
+from gcloud.apigw.views.get_task_plugin_log_for_inner import get_task_plugin_log_for_inner
 from gcloud.apigw.views.get_task_status import get_task_status
 from gcloud.apigw.views.get_tasks_manual_intervention_state import get_tasks_manual_intervention_state
 from gcloud.apigw.views.get_tasks_status import get_tasks_status
@@ -142,9 +145,12 @@ urlpatterns = [
     url(r"^get_task_operate_record/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_operate_record),
     url(r"^apply_webhook_configs/(?P<project_id>\d+)/$", apply_webhook_configs),
     url(r"^get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time),
-    url(r"^get_task_node_log/$", get_task_node_log),
-    url(r"^get_task_plugin_log/$", get_task_plugin_log),
-    url(r"^get_task_effective_time_for_inner/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time_for_inner),
-    url(r"^get_node_job_executed_log_for_inner/$", get_node_job_executed_log_for_inner),
+    url(r"^get_task_node_log/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_node_log),
+    url(r"^get_task_plugin_log/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_task_plugin_log),
+    url(r"^get_node_job_executed_log/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_node_job_executed_log),
+    url(r"^inner/get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time_for_inner),
+    url(r"^inner/get_task_node_log/$", get_task_node_log_for_inner),
+    url(r"^inner/get_task_plugin_log/$", get_task_plugin_log_for_inner),
+    url(r"^inner/get_node_job_executed_log/$", get_node_job_executed_log_for_inner),
     url(r"^get_plugin_base_info/(?P<project_id>\d+)/$", get_plugin_base_info),
 ]
