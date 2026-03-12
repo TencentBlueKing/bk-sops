@@ -84,6 +84,7 @@
 <script>
     import NodeRightIconStatus from './NodeRightIconStatus.vue'
     import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'Subflow',
@@ -102,12 +103,10 @@
                 }
             }
         },
-        data () {
-            return {
-                isAiEnabled: !!window.AI_SOPS_AGENT_URL
-            }
-        },
         computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            }),
             isOpenTooltip () {
                 if (this.node.mode === 'execute') {
                     if (this.node.status === 'RUNNING') {

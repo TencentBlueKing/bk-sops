@@ -30,6 +30,7 @@
                             {{$t('新建')}}
                         </bk-button>
                         <bk-button
+                            v-if="isAiEnabled"
                             v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
                             :class="['ai-generate-btn', {
                                 'btn-permission-disable': !hasPermission(['flow_create'], authActions)
@@ -792,7 +793,8 @@
             ...mapState({
                 'site_url': state => state.site_url,
                 'v1_import_flag': state => state.v1_import_flag,
-                'username': state => state.username
+                'username': state => state.username,
+                'isAiEnabled': state => state.isAiEnabled
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone,

@@ -89,6 +89,7 @@
     import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
     import NodeRightIconStatus from './NodeRightIconStatus.vue'
     import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'TaskNode',
@@ -112,11 +113,13 @@
                 phaseStr: {
                     '1': i18n.t('当前插件即将停止维护，请更新插件版本'),
                     '2': i18n.t('当前插件已停止维护，请更新插件版本')
-                },
-                isAiEnabled: !!window.AI_SOPS_AGENT_URL
+                }
             }
         },
         computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            }),
             isOpenTooltip () {
                 if (this.node.mode === 'execute') {
                     if (this.node.status === 'RUNNING') {

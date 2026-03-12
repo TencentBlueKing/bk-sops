@@ -48,6 +48,7 @@
     import i18n from '@/config/i18n/index.js'
     import CodeEditor from './CodeEditor.vue'
     import ScriptCodeDrownList from '@/components/common/aiBluekingComp/ScriptCodeDrownList.vue'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'FullCodeEditor',
@@ -70,9 +71,13 @@
             return {
                 copyText: '',
                 isFullScreen: false,
-                inputData: this.value || '',
-                isAiEnabled: !!window.AI_SOPS_AGENT_URL
+                inputData: this.value || ''
             }
+        },
+        computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            })
         },
         watch: {
             isFullScreen () {

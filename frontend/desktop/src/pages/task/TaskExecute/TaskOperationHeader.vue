@@ -188,14 +188,14 @@
         ],
         data () {
             return {
-                showNodeList: [0, 1, 2],
-                isAiEnabled: !!window.AI_SOPS_AGENT_URL
+                showNodeList: [0, 1, 2]
             }
         },
         computed: {
             ...mapState({
                 hideHeader: state => state.hideHeader,
-                view_mode: state => state.view_mode
+                view_mode: state => state.view_mode,
+                isAiEnabled: state => state.isAiEnabled
             })
         },
         watch: {

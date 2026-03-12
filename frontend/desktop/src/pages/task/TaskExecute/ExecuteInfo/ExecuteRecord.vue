@@ -70,6 +70,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
     
     export default {
         name: 'executeRecord',
@@ -115,11 +116,13 @@
         data () {
             return {
                 isExpand: false,
-                isExpandTextShow: false,
-                isAiEnabled: !!window.AI_SOPS_AGENT_URL
+                isExpandTextShow: false
             }
         },
         computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            }),
             nodeState () {
                 const { state, skip, error_ignored } = this.executeInfo
                 // 如果整体任务未执行的话不展示描述

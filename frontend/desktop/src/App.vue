@@ -89,8 +89,7 @@
                 isRouterAlive: false,
                 projectDetailLoading: false, // 项目详情加载
                 appmakerDataLoading: false, // 轻应用加载 app 详情,
-                isUseSnapshot: false, // 登录成功时是否使用快照
-                isAiEnabled: !!window.AI_SOPS_AGENT_URL
+                isUseSnapshot: false // 登录成功时是否使用快照
             }
         },
         computed: {
@@ -98,7 +97,8 @@
                 'hideHeader': state => state.hideHeader,
                 'viewMode': state => state.view_mode,
                 'appId': state => state.app_id,
-                'site_url': state => state.site_url
+                'site_url': state => state.site_url,
+                'isAiEnabled': state => state.isAiEnabled
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id
