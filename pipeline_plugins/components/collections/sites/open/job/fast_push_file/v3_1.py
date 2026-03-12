@@ -24,8 +24,9 @@ from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.components.collections.sites.open.job.base import JobScheduleService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
-from pipeline_plugins.components.utils import chunk_table_data, get_job_instance_url, get_job_task_name, loose_strip
+from pipeline_plugins.components.utils import chunk_table_data, get_job_instance_url, loose_strip
 from pipeline_plugins.components.utils.common import batch_execute_func
+from pipeline_plugins.components.utils.sites.open.utils import get_job_task_name
 
 __group_name__ = _("作业平台(JOB)")
 

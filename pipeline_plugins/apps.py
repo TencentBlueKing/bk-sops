@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import importlib
 import logging
 import sys
 
@@ -34,13 +33,4 @@ class PipelinePluginsConfig(AppConfig):
             return
 
         for old_path, new_path in list(getattr(settings, "COMPATIBLE_MODULE_MAP", {}).items()):
-            if new_path not in sys.modules:
-                try:
-                    importlib.import_module(new_path)
-                except Exception:
-                    logger.exception(
-                        "Failed to import compatible module [{}], "
-                        "compatible alias [{}] will not be set".format(new_path, old_path)
-                    )
-                    continue
             sys.modules[old_path] = sys.modules[new_path]
