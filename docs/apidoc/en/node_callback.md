@@ -1,18 +1,17 @@
 ### Functional description
 
-callback specific node
-
-### Request Parameters
+Callback a specific node (typically used for manual approval callback on pause/wait nodes)
 
 #### Interface Parameters
 
-| Field          |  Type       | Required   |  Description             |
-| ------------ | ------------ | ------ | ---------------- |
-|   bk_biz_id    |   string     |   YES   |  the business ID |
-|   task_id     |   string   |   YES   |  the task ID     |
-|   node_id        | string     | YES         | node id                        |
-|   callback_data        | dict     | NO         | callback data          |           |
-| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
+| Field          | Type       | Required | Description             |
+|----------------|------------|----------|-------------------------|
+| bk_biz_id      | string     | YES      | the business ID |
+| task_id        | string     | YES      | the task ID |
+| node_id        | string     | YES      | the node ID |
+| callback_data  | dict       | NO       | callback data to pass to the node |
+| version        | string     | NO       | node version, used to specify which version of the node to callback |
+| scope          | string     | NO       | bk_biz_id scope. default is cmdb_biz, and bk_biz_id means bindded CMDB business ID of a project; when set to project, bk_biz_id means the project ID |
 
 ### Request Parameters Example
 
@@ -28,6 +27,7 @@ callback specific node
     "callback_data": {
         "data": {}
     },
+    "version": "23ac8c29f62b3337aafcf1f538d277f8",
     "scope": "cmdb_biz"
 }
 ```
@@ -45,7 +45,7 @@ callback specific node
 ### Return Result Description
 
 | Field      | Type      | Description      |
-| ------------  | ---------- | ------------------------------ |
-|  result   |    bool    |      true or false, indicate success or failure   |
-|  message  |    string  |      error message returned when result is false  |
-|  trace_id     |    string  | open telemetry trace_id       |
+|-----------|----------|-----------|
+|  result   |    bool    |      true or false, indicate success or failure     |
+|  message  |    string  |      error message returned when result is false     |
+|  trace_id |    string  |      open telemetry trace_id     |
