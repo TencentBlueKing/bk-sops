@@ -11,24 +11,27 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from gcloud.apigw.decorators import return_json_response
-from gcloud.apigw.views.get_node_job_executed_log import fetch_node_job_executed_log
+from gcloud.apigw.views.get_task_node_log import DEFAULT_PAGE, DEFAULT_PAGE_SIZE, fetch_task_node_log
 
 
 @login_exempt
 @api_view(["GET"])
 @apigw_require
 @return_json_response
-def get_node_job_executed_log_for_inner(request):
-    bk_biz_id = request.query_params.get("bk_biz_id")
+def get_task_node_log_for_inner(request):
+    """
+    内部接口，仅限于内部使用
+    免去用户登录、iam鉴权等操作
+    """
+    page = request.query_params.get("page", DEFAULT_PAGE)
+    page_size = request.query_params.get("page_size", DEFAULT_PAGE_SIZE)
     node_id = request.query_params.get("node_id")
-    job_scope_type = request.query_params.get("job_scope_type")
-    component_code = request.query_params.get("component_code")
-    return Response(fetch_node_job_executed_log(
-        node_id, bk_biz_id, component_code=component_code, job_scope_type=job_scope_type
-    ))
+    version = request.query_params.get("version")
+    return Response(fetch_task_node_log(node_id, version, page=page, page_size=page_size))
