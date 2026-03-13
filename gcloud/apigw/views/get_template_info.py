@@ -19,11 +19,18 @@ from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_ai_platform,
+    mark_request_whether_is_trust,
+    mcp_apigw,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_data, process_pipeline_constants
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -38,7 +45,9 @@ logger = logging.getLogger("root")
 @mcp_apigw(trim_responses={"pipeline_tree": trim_pipeline_tree})
 @return_json_response
 @mark_request_whether_is_trust
+@mark_ai_platform
 @project_inject
+@trace_view(attr_keys=["project_id"], call_from=CallFrom.APIGW.value)
 @iam_intercept(GetTemplateInfoInterceptor())
 def get_template_info(request, template_id, project_id):
     project = request.project

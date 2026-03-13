@@ -152,6 +152,17 @@ def trace_view(propagate: bool = True, attr_keys=None, **default_attributes):
                         attributes[attr_key] = scope[attr_key]
                         break
 
+            ai_platform = getattr(request, "ai_platform", "")
+            if ai_platform:
+                attributes["ai_platform"] = ai_platform
+                attributes["ai_skill"] = getattr(request, "ai_skill", "")
+                if hasattr(request, "user") and hasattr(request.user, "username"):
+                    attributes["ai_username"] = request.user.username
+                if hasattr(request, "app"):
+                    attributes["ai_app_code"] = getattr(
+                        request.app, getattr(settings, "APIGW_MANAGER_APP_CODE_KEY", "bk_app_code"), ""
+                    )
+
             with start_trace(view_func.__name__, propagate, **attributes):
                 return view_func(request, *args, **kwargs)
 

@@ -23,13 +23,20 @@ from pipeline.core.constants import PE
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    get_request_task_create_method,
+    mark_ai_platform,
+    mark_request_whether_is_trust,
+    mcp_apigw,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT, TaskCreateMethod
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
@@ -66,6 +73,7 @@ def get_exclude_nodes_by_execute_nodes(execute_nodes, pipline_tree):
 @mcp_apigw(exclude_responses=["data.pipeline_tree"])
 @return_json_response
 @mark_request_whether_is_trust
+@mark_ai_platform
 @project_inject
 @request_validate(CreateTaskValidator)
 @trace_view(attr_keys=["project_id"], call_from=CallFrom.APIGW.value)
@@ -193,11 +201,7 @@ def create_task(request, template_id, project_id):
             logger.exception(message)
             return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
-    # 判断是否是 MCP 请求，设置对应的 create_method
-    # request.is_mcp_request 由 @mcp_apigw 装饰器注入
-    create_method = (
-        TaskCreateMethod.MCP.value if getattr(request, "is_mcp_request", False) else TaskCreateMethod.API.value
-    )
+    create_method = get_request_task_create_method(request)
 
     task = TaskFlowInstance.objects.create(
         project=project,

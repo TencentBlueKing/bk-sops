@@ -84,6 +84,13 @@ class TaskCreateMethod(Enum):
     CLOCKED = "clocked"
     MOBILE = "mobile"
     MCP = "mcp"
+    OPENCLAW = "openclaw"
+
+
+# AI 平台与任务创建方式映射
+AI_PLATFORM_TASK_CREATE_METHOD_MAP = {
+    TaskCreateMethod.OPENCLAW.value: TaskCreateMethod.OPENCLAW.value,
+}
 
 
 # 任务流程创建方式
@@ -95,6 +102,7 @@ TASK_CREATE_METHOD = [
     (TaskCreateMethod.CLOCKED.value, _("计划任务")),
     (TaskCreateMethod.MOBILE.value, _("移动端")),
     (TaskCreateMethod.MCP.value, _("MCP")),
+    (TaskCreateMethod.OPENCLAW.value, _("OpenClaw")),
 ]
 
 # 任务引用的流程模板来源
