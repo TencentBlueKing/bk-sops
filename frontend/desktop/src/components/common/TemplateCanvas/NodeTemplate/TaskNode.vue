@@ -58,7 +58,7 @@
                 <i class="common-icon-skip"></i>
                 {{ $t('跳过') }}
             </span>
-            <span v-if="isShowSkipBtn || isShowRetryBtn">
+            <span v-if="(isShowSkipBtn || isShowRetryBtn) && isAiEnabled">
                 <img
                     @click.stop="handleAssistantClick"
                     :title="$t('排查失败的原因')"
@@ -89,6 +89,7 @@
     import { SYSTEM_GROUP_ICON, BK_PLUGIN_ICON } from '@/constants/index.js'
     import NodeRightIconStatus from './NodeRightIconStatus.vue'
     import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'TaskNode',
@@ -116,6 +117,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            }),
             isOpenTooltip () {
                 if (this.node.mode === 'execute') {
                     if (this.node.status === 'RUNNING') {

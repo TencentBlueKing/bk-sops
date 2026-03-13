@@ -39,7 +39,7 @@
                 :to="getTplURL()">
             </router-link>
             <span v-if="stateStr" :class="['task-state', state]">{{ stateStr }}</span>
-            <div v-if="state === 'FAILED' "
+            <div v-if="state === 'FAILED' && isAiEnabled"
                 class="operation-assistant-icon"
                 @click="handleAssistantClick">
                 <img
@@ -51,7 +51,7 @@
             </div>
         </div>
         <div class="operation-container" slot="expand">
-            <div class="task-summarize">
+            <div class="task-summarize" v-if="isAiEnabled">
                 <bk-button
                     class="mr10"
                     ext-cls="task-summarize-btn-wrapper"
@@ -194,7 +194,8 @@
         computed: {
             ...mapState({
                 hideHeader: state => state.hideHeader,
-                view_mode: state => state.view_mode
+                view_mode: state => state.view_mode,
+                isAiEnabled: state => state.isAiEnabled
             })
         },
         watch: {

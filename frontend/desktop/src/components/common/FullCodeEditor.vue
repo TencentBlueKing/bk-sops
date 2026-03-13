@@ -13,7 +13,7 @@
     <div class="full-code-editor" :class="{ 'full-status': isFullScreen }">
         <div class="tool-area">
             <ScriptCodeDrownList
-                v-if="options.isNeedAiScriptCheck !== false"
+                v-if="options.isNeedAiScriptCheck !== false && isAiEnabled"
                 ref="ScriptCodeDrownList"
                 :read-only="options.readOnly"
                 :input-data="inputData" />
@@ -48,6 +48,7 @@
     import i18n from '@/config/i18n/index.js'
     import CodeEditor from './CodeEditor.vue'
     import ScriptCodeDrownList from '@/components/common/aiBluekingComp/ScriptCodeDrownList.vue'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'FullCodeEditor',
@@ -72,6 +73,11 @@
                 isFullScreen: false,
                 inputData: this.value || ''
             }
+        },
+        computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            })
         },
         watch: {
             isFullScreen () {

@@ -69,7 +69,8 @@ const store = new Vuex.Store({
                 return true
             }
         },
-        functionClaimMsg: null
+        functionClaimMsg: null,
+        isAiEnabled: !!window.AI_SOPS_AGENT_URL
     },
     mutations: {
         setAppId (state, id) {
