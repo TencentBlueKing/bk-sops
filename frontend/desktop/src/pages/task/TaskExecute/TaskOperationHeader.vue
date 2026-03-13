@@ -39,7 +39,7 @@
                 :to="getTplURL()">
             </router-link>
             <span v-if="stateStr" :class="['task-state', state]">{{ stateStr }}</span>
-            <div v-if="state === 'FAILED' "
+            <div v-if="state === 'FAILED' && isAiEnabled"
                 class="operation-assistant-icon"
                 @click="handleAssistantClick">
                 <img
