@@ -27,6 +27,7 @@ from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.pipeline_tree_trimmer import trim_pipeline_tree
 
 logger = logging.getLogger("root")
 
@@ -34,7 +35,7 @@ logger = logging.getLogger("root")
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.pipeline_tree"])
+@mcp_apigw(trim_responses={"pipeline_tree": trim_pipeline_tree})
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
