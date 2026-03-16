@@ -231,6 +231,13 @@ const template = {
         setCategory (state, data) {
             state.category = data
         },
+        // 重置模板元数据（保留 pipeline 结构）
+        resetTemplateMeta (state) {
+            state.category = 'Default'
+            state.template_labels = []
+            state.default_flow_type = 'common'
+            state.template_id = ''
+        },
         setTplConfig (state, data) {
             const { name, category, notify_type, receiver_group, description, executor_proxy,
                 template_labels, default_flow_type, notify_type_extra_info, project_scope,

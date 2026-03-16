@@ -549,10 +549,7 @@
                 if (!isAiGenerated) {
                     this.initTemplateData()
                 } else {
-                    this.$store.state.template.category = 'Default'
-                    this.$store.state.template.template_labels = []
-                    this.$store.state.template.default_flow_type = 'common'
-                    this.$store.state.template.template_id = ''
+                    this.$store.commit('template/resetTemplateMeta')
                     // 使用后清除 AI 生成标志，避免影响后续操作
                     this.setAiGenerated(false)
                 }
