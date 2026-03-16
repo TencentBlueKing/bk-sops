@@ -549,6 +549,7 @@
                 if (!isAiGenerated) {
                     this.initTemplateData()
                 } else {
+                    this.$store.commit('template/resetTemplateMeta')
                     // 使用后清除 AI 生成标志，避免影响后续操作
                     this.setAiGenerated(false)
                 }
