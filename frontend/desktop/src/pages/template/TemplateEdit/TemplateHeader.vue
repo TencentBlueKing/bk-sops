@@ -33,9 +33,10 @@
                             :key="tab.id"
                             :class="['setting-item', {
                                 'active': activeTab === tab.id,
-                                'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
+                                'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate,
+                                'disabled': tab.id === 'historicalTaskTab' && type === 'new'
                             }]"
-                            @click="$emit('onChangePanel', tab.id)">
+                            @click="!(tab.id === 'historicalTaskTab' && type === 'new') && $emit('onChangePanel', tab.id)">
                             <svg v-if="tab.id === 'historicalTaskTab'"
                                 width="20" height="20"
                                 viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -611,6 +612,13 @@
                     height: 8px;
                     border-radius: 50%;
                     background: #ff5757;
+                }
+                &.disabled {
+                    color: #c4c6cc;
+                    cursor: not-allowed;
+                    &:hover {
+                        color: #c4c6cc;
+                    }
                 }
             }
             .icon-history {

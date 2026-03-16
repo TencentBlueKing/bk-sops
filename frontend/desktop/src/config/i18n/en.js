@@ -1955,7 +1955,7 @@ const en = {
     '流程描述': 'Flow Description',
     'AI 正在生成流程，请稍候...': 'AI is generating flow, please wait...',
     '请描述您想要创建的流程': 'Please describe the flow you want to create.',
-    '历史任务': 'History Tasks'
+    '历史任务': 'Task History'
 }
 
 export default en
