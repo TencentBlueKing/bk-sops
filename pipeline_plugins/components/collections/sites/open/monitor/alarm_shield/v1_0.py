@@ -80,7 +80,7 @@ class MonitorAlarmShieldService(MonitorBaseService):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
         request_body = self.get_request_body(
-            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, tenant_id
+            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, tenant_id, data
         )
         if "all" not in target:
             request_body["dimension_config"].update({"metric_id": target})

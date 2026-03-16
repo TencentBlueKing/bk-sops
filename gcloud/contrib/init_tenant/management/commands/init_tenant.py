@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
@@ -26,8 +25,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         tenant_id = options.get("tenant_id")
         # 注册itsm workflow
-        if settings.ENABLE_MULTI_TENANT_MODE:
-            call_command("migrate_itsm_workflow", "--tenant_id", tenant_id)
+        call_command("migrate_itsm_workflow", "--tenant_id", tenant_id)
 
         # 其他初始化操作
 

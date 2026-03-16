@@ -15,9 +15,8 @@ from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import StringItemSchema
 
-from api.collections.monitor import BKMonitorClient
 from gcloud.conf import settings
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
+from packages.bkapi.bk_monitor.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.monitor.alarm_shield.base import MonitorAlarmShieldServiceBase
 from pipeline_plugins.components.utils.sites.open.choose_time_tools import choose_time
 
@@ -38,7 +37,8 @@ class MonitorAlarmShieldService(MonitorAlarmShieldServiceBase):
     def execute(self, data, parent_data):
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
-        client = BKMonitorClient(username=executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
         combine = data.get_one_of_inputs("bk_alarm_shield_info")
         scope_type = combine.get("bk_alarm_shield_scope")
         scope_value = self.get_scope_value(bk_biz_id, scope_type, combine)
@@ -57,17 +57,15 @@ class MonitorAlarmShieldService(MonitorAlarmShieldServiceBase):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
 
-        supplier_account = supplier_account_for_business(bk_biz_id)
-
         request_body = self.get_request_body(
-            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, supplier_account
+            bk_biz_id, begin_time, end_time, scope_type, scope_value, executor, tenant_id, data
         )
         if shield_reason:
             request_body["description"] = shield_reason
         if "all" not in target:
             request_body["dimension_config"].update({"metric_id": target})
 
-        result_flag = self.send_request(request_body, data, client)
+        result_flag = self.send_request(tenant_id, request_body, data, client)
 
         return result_flag
 
