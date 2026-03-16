@@ -36,7 +36,18 @@
                                 'update': tab.id === 'globalVariableTab' && isGlobalVariableUpdate
                             }]"
                             @click="$emit('onChangePanel', tab.id)">
-                            <i :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
+                            <svg v-if="tab.id === 'historicalTaskTab'"
+                                width="20" height="20"
+                                viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                                class="icon-history"
+                                v-bk-tooltips.bottom="tab.title">
+                                <path fill="currentColor" d="M928 128H699.2c-49.6 0-97.6 14.4-137.6 40l-48 32-48-32C422.4 142.4 374.4 128 324.8 128H96c-17.6 0-32 14.4-32 32v632c0 17.6 14.4 32 32 32h228.8c49.6 0 97.6 12.8 139.2 40l44.8 28.8c1.6 1.6 3.2 1.6 4.8 1.6 1.6 0 3.2 0 4.8-1.6L560 864c41.6-27.2 89.6-40 139.2-40H928c17.6 0 32-14.4 32-32V160C960 142.4 945.6 128 928 128zM480 798.4c-48-25.6-100.8-38.4-155.2-38.4H128V192h196.8c35.2 0 70.4 9.6 99.2 28.8l48 30.4 6.4 4.8L480 798.4zM896 758.4H699.2c-54.4 0-107.2 12.8-155.2 40V257.6l6.4-4.8 48-30.4c30.4-19.2 64-28.8 100.8-28.8H896V758.4z" />
+                                <path fill="currentColor" d="M192 320H384V384H192V320z" />
+                                <path fill="currentColor" d="M192 448H384V512H192V448z" />
+                                <path fill="currentColor" d="M640 320H832V384H640V320z" />
+                                <path fill="currentColor" d="M640 448H832V512H640V448z" />
+                            </svg>
+                            <i v-else :class="tab.icon" v-bk-tooltips.bottom="tab.title"></i>
                         </span>
                     </template>
                 </div>
@@ -601,6 +612,9 @@
                     border-radius: 50%;
                     background: #ff5757;
                 }
+            }
+            .icon-history {
+                vertical-align: middle;
             }
         }
         .task-btn {

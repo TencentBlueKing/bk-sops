@@ -1577,9 +1577,17 @@
             },
             // 选择侧滑面板
             onChangeSettingPanel (val) {
-                this.activeSettingTab = val
-                if (this.isGlobalVariableUpdate && val === 'globalVariableTab') {
-                    this.isGlobalVariableUpdate = false
+                if (val === 'historicalTaskTab') {
+                    const { href } = this.$router.resolve({
+                        path: `/taskflow/home/list/${this.project_id}/`,
+                        query: { template_id: this.template_id }
+                    })
+                    window.open(href, '_blank')
+                } else {
+                    this.activeSettingTab = val
+                    if (this.isGlobalVariableUpdate && val === 'globalVariableTab') {
+                        this.isGlobalVariableUpdate = false
+                    }
                 }
             },
             // 跳转到节点选择页面
