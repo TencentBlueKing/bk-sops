@@ -32,6 +32,7 @@ from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
+from pipeline_web.drawing_new.drawing import draw_pipeline
 
 manager = TemplateManager(template_model_cls=TaskTemplate)
 
@@ -67,6 +68,12 @@ def create_template(request, project_id):
                 "message": "pipeline_tree is not a valid JSON string",
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
+
+    # location 自动排版
+    try:
+        draw_pipeline(pipeline_tree)
+    except Exception as e:
+        logger.warning("[API] create_template draw_pipeline failed: %s, skip auto layout", e)
 
     creator = request.user.username
     project = request.project
