@@ -1,0 +1,166 @@
+openapi: 3.0.1
+servers:
+- url: /
+info:
+  version: '2.0'
+  title: API Gateway Resources - create_template
+  description: 标准运维 create_template 接口资源定义
+paths:
+  /create_template/{project_id}/:
+    post:
+      operationId: create_template
+      description: 创建项目流程模板
+      tags:
+      - 通用接口
+      parameters:
+      - in: path
+        name: project_id
+        schema:
+          type: string
+        required: true
+        description: 项目ID（即 bk_biz_id）。调用传参时，务必在路径参数（path_params）中传入当前参数
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID
+          为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - pipeline_tree
+              properties:
+                name:
+                  type: string
+                  description: 模板名称，为空时自动生成默认名称（格式：new+当前时间戳，如 new20260317143000）
+                format:
+                  type: string
+                  description: pipeline_tree 的输入格式。json（默认）时 pipeline_tree 为 JSON 对象或
+                    JSON 字符串；yaml 时 pipeline_tree 为 YAML schema 字符串（含 schema_version/meta/spec
+                    结构，与页面导出格式一致），name 和 description 可从 YAML meta 中自动提取
+                  enum:
+                  - json
+                  - yaml
+                  default: json
+                pipeline_tree:
+                  description: 流程树数据。format=json 时为 JSON 对象或 JSON 字符串（包含 activities、flows、gateways
+                    等字段）；format=yaml 时为 YAML schema 字符串
+                  oneOf:
+                  - type: object
+                    additionalProperties: true
+                  - type: string
+                description:
+                  type: string
+                  description: 模板描述
+                  default: ''
+                category:
+                  type: string
+                  description: 模板分类。可选值：OpsTools（运维工具）、MonitorAlarm（监控告警）、ConfManage（配置管理）、DevTools（开发工具）、EnterpriseIT（企业IT）、OfficeApp（办公应用）、Other（其它）、Default（默认）
+                  default: Default
+                notify_type:
+                  type: object
+                  description: 通知类型配置
+                  properties:
+                    success:
+                      type: array
+                      items:
+                        type: string
+                      description: 任务成功时的通知方式列表，如 weixin、email
+                    fail:
+                      type: array
+                      items:
+                        type: string
+                      description: 任务失败时的通知方式列表
+                notify_receivers:
+                  type: object
+                  description: 通知接收人配置
+                  properties:
+                    receiver_group:
+                      type: array
+                      items:
+                        type: string
+                      description: 通知分组，如 Maintainers
+                    more_receiver:
+                      type: string
+                      description: 附加通知人，多个以逗号分隔
+                timeout:
+                  type: integer
+                  description: 超时时间（分钟）
+                  default: 20
+                default_flow_type:
+                  type: string
+                  description: 流程类型
+                  default: common
+                template_labels:
+                  type: array
+                  items:
+                    type: integer
+                  description: 模板标签 ID 列表
+                executor_proxy:
+                  type: string
+                  description: 执行代理人
+                  default: ''
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  code:
+                    type: integer
+                    description: 返回码，0 表示成功
+                  data:
+                    type: object
+                    properties:
+                      template_id:
+                        type: integer
+                        description: 模板 ID
+                      template_name:
+                        type: string
+                        description: 模板名称
+                      pipeline_template_id:
+                        type: string
+                        description: 流程模板 ID
+                    description: result=true 时返回数据
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        enableWebsocket: false
+        backend:
+          name: default
+          method: post
+          path: /{env.api_sub_path}apigw/create_template/{project_id}/
+          matchSubpath: false
+          timeout: 60
+        pluginConfigs:
+        - type: bk-rate-limit
+          yaml: |
+            rates:
+              __default:
+              - tokens: 10
+                period: 1
+              bksops:
+              - tokens: 100
+                period: 1
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Create a project flow template

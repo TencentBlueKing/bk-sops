@@ -31,6 +31,7 @@ from gcloud.iam_auth.view_interceptors.apigw import CreateTemplateInterceptor
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
+from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
 from gcloud.template_base.domains.template_manager import TemplateManager
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
@@ -53,21 +54,63 @@ def create_template(request, project_id):
         return {"result": False, "message": "invalid json format", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     # name 空时，与前端一致生成默认名称
-    name = params.get("name") or "new{}".format(datetime.now().strftime("%Y%m%d%H%M%S"))
+    name = params.get("name")
+    description = params.get("description", "")
     pipeline_tree = params.get("pipeline_tree")
     if not pipeline_tree:
         return {"result": False, "message": "pipeline_tree is required", "code": err_code.REQUEST_PARAM_INVALID.code}
 
-    # pipeline_tree 支持传入 dict 或 JSON 字符串
-    if isinstance(pipeline_tree, str):
-        try:
-            pipeline_tree = json.loads(pipeline_tree)
-        except Exception:
+    input_format = params.get("format", "json")
+    if input_format == "yaml":
+        if not isinstance(pipeline_tree, str):
             return {
                 "result": False,
-                "message": "pipeline_tree is not a valid JSON string",
+                "message": "pipeline_tree must be a YAML string when format=yaml",
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
+        converter_handler = YamlSchemaConverterHandler("v1")
+        load_result = converter_handler.load_yaml_docs(pipeline_tree)
+        if not load_result["result"]:
+            return {
+                "result": False,
+                "message": "invalid YAML: {}".format(load_result["message"]),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        try:
+            convert_result = converter_handler.reconvert(load_result["data"])
+        except Exception as e:
+            logger.exception("[API] create_template reconvert yaml failed: %s", e)
+            return {
+                "result": False,
+                "message": "YAML reconvert failed: {}".format(str(e)),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        if not convert_result["result"]:
+            return {
+                "result": False,
+                "message": "YAML reconvert failed: {}".format(convert_result["message"]),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        template_order = convert_result["data"]["template_order"]
+        templates = convert_result["data"]["templates"]
+        first_template_id = template_order[0]
+        first_template = templates[first_template_id]
+        pipeline_tree = first_template["tree"]
+        name = name or first_template.get("name")
+        description = description or first_template.get("description", "")
+    else:
+        # pipeline_tree 支持传入 dict 或 JSON 字符串
+        if isinstance(pipeline_tree, str):
+            try:
+                pipeline_tree = json.loads(pipeline_tree)
+            except Exception:
+                return {
+                    "result": False,
+                    "message": "pipeline_tree is not a valid JSON string",
+                    "code": err_code.REQUEST_PARAM_INVALID.code,
+                }
+
+    name = name or "new{}".format(datetime.now().strftime("%Y%m%d%H%M%S"))
 
     # location 自动排版
     try:
@@ -77,7 +120,6 @@ def create_template(request, project_id):
 
     creator = request.user.username
     project = request.project
-    description = params.get("description", "")
     category = params.get("category", "Default")
     notify_type = params.get("notify_type", {"success": [], "fail": []})
     notify_receivers = params.get("notify_receivers", {"receiver_group": [], "more_receiver": ""})
