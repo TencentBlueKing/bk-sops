@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+import re
 
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse
@@ -20,10 +21,14 @@ from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
+import env
+from api.ai_sops_agent import AgentRequestType, BKSopsAgentClient
 from gcloud import err_code
 from gcloud.contrib.analysis.analyse_items import task_template
+from gcloud.core.models import Project
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
+    AgentBeautifyTemplateLayoutInterceptor,
     AgentGenerateProcessInterceptor,
     BatchFormInterceptor,
     ExportInterceptor,
@@ -64,6 +69,7 @@ from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
 
 from .validators import (
+    AgentBeautifyTemplateLayoutValidator,
     AnalysisConstantsRefValidator,
     CheckBeforeImportValidator,
     DrawPipelineValidator,
@@ -430,3 +436,69 @@ def generate_process_with_agent(request):
         return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
 
     return JsonResponse({"result": True, "data": pipeline_tree, "code": err_code.SUCCESS.code, "message": ""})
+
+
+@require_GET
+@request_validate(AgentBeautifyTemplateLayoutValidator)
+@iam_intercept(AgentBeautifyTemplateLayoutInterceptor())
+def ai_beautify_sops_template_layout(request):
+    """
+    @summary：AI 优化模板布局
+    @param request:
+    @return:
+
+    请求方法: GET
+    请求参数:
+    params:
+        "project_id": 项目 ID,
+        "template_id": 模板 ID,
+        "canvas_width": 画布宽度
+    """
+
+    logger.info("beautify_sops_template_layout: request - {}".format(request.GET))
+
+    project_id = request.GET.get("project_id")
+    template_id = request.GET.get("template_id")
+    canvas_width = request.GET.get("canvas_width")
+
+    try:
+        project_obj = Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        logger.error("beautify_sops_template_layout error: project not found - {}".format(project_id))
+        return JsonResponse({"result": False, "message": "project not found", "code": err_code.UNKNOWN_ERROR.code})
+
+    bk_biz_id = project_obj.bk_biz_id
+
+    try:
+        client = BKSopsAgentClient(env.BK_SOPS_AGENT_HOST, AgentRequestType.PLUGIN)
+        response = client.beautify_sops_template_layout(bk_biz_id, template_id, canvas_width)
+    except Exception as e:
+        logger.error("beautify_sops_template_layout error: 调用AI失败 - {}".format(str(e)))
+        return JsonResponse(
+            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
+        )
+
+    if not response:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "beautify_sops_template_layout failed",
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+        )
+
+    match = re.search(r'\{[^{}]*"location"\s*:\s*\[.*?\]\s*,\s*"line"\s*:\s*\[.*?\]\s*\}', response, re.DOTALL)
+    if not match:
+        logger.error("beautify_sops_template_layout: 无法从AI回答中提取布局数据 - {}".format(response))
+        return JsonResponse(
+            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
+        )
+    try:
+        layout_data = json.loads(match.group())
+    except (json.JSONDecodeError, ValueError) as e:
+        logger.error("beautify_sops_template_layout: 布局数据JSON解析失败 - {}".format(str(e)))
+        return JsonResponse(
+            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
+        )
+
+    return JsonResponse({"result": True, "data": layout_data, "code": err_code.SUCCESS.code, "message": ""})
