@@ -16,6 +16,7 @@ from .common_flow_view import CommonFlowViewInterceptor  # noqa
 from .copy_template_across_project import CopyTemplateInterceptor  # noqa
 from .create_periodic_task import CreatePeriodicTaskInterceptor  # noqa
 from .create_task import CreateTaskInterceptor  # noqa
+from .create_template import CreateTemplateInterceptor  # noqa
 from .fast_create_task import FastCreateTaskInterceptor  # noqa
 from .flow_view import FlowViewInterceptor  # noqa
 from .functionalization_task_view import FunctionViewInterceptor  # noqa
