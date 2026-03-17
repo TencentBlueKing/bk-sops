@@ -17,7 +17,7 @@
 | include_notify | bool | 否 | 是否包含通知信息，默认 false |
 | unfold_subprocess | bool | 否 | 是否展开子流程完整配置，默认 false。设为 true 时，pipeline_tree 中每个 SubProcess 节点将包含 pipeline 字段，其中包含该子流程的完整 pipeline_tree（递归展开所有层级）。展开失败时返回 result=false。 |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
-| format | string | 否 | pipeline_tree 的返回格式，可选值 json（默认）、yaml。设为 yaml 时，pipeline_tree 字段返回与页面导出一致的 YAML schema 字符串（含 schema_version/meta/spec 结构） |
+| format | string | 否 | pipeline_tree 的返回格式，可选值 json（默认）、yaml。设为 yaml 时，pipeline_tree 字段返回与页面导出一致的 YAML schema 字符串（含 schema_version/meta/spec 结构）。注意：format=yaml 时若同时传入 include_constants=true，template_constants 仍为 JSON 对象（从原始 pipeline_tree 提取），与 YAML 格式的 pipeline_tree 独立 |
 | include_pipeline_tree | bool | 否 | MCP 请求时是否返回精简后的 pipeline_tree，默认 false。非 MCP 请求忽略此参数 |
 
 ### 请求参数示例

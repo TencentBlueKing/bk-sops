@@ -16,7 +16,7 @@ Query individual flow template details of the business
 | include_constants | bool | NO | whether to include constants information, default false |
 | include_notify | bool | NO | whether to include notify information, default false |
 | unfold_subprocess | bool | NO | whether to expand subprocess configurations recursively, default false. When set to true, each SubProcess node in pipeline_tree will include a pipeline field containing the complete pipeline_tree of that subprocess (recursively expanded at all levels). Returns result=false on failure. |
-| format | string | NO | Return format for pipeline_tree field. Accepted values: json (default), yaml. When set to yaml, pipeline_tree returns a YAML schema string (with schema_version/meta/spec structure, same as page export) |
+| format | string | NO | Return format for pipeline_tree field. Accepted values: json (default), yaml. When set to yaml, pipeline_tree returns a YAML schema string (with schema_version/meta/spec structure, same as page export). Note: when format=yaml with include_constants=true, template_constants remains a JSON object (extracted from the original pipeline_tree), independent of the YAML-formatted pipeline_tree |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 
 ### Request Parameters Example

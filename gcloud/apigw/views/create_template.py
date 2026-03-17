@@ -93,6 +93,17 @@ def create_template(request, project_id):
             }
         template_order = convert_result["data"]["template_order"]
         templates = convert_result["data"]["templates"]
+        if not template_order:
+            return {
+                "result": False,
+                "message": "YAML contains no valid template",
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        if len(template_order) > 1:
+            logger.warning(
+                "[API] create_template: YAML contains %d templates, only the first will be imported",
+                len(template_order),
+            )
         first_template_id = template_order[0]
         first_template = templates[first_template_id]
         pipeline_tree = first_template["tree"]
