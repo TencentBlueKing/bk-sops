@@ -121,3 +121,6 @@ pre-*-bkcodeai
 
 # BKUI knowledge base config
 .bkui-knowledge.json
+
+# exported apigw yaml
+apigw/*.yaml

@@ -238,3 +238,105 @@ class GetTemplateInfoAPITest(APITest):
             self.assertFalse(data["result"])
             self.assertIn("format_template_data", data["message"])
             self.assertIn("code", data)
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_get_template_info__format_yaml_success(self):
+        """format=yaml 时 pipeline_tree 应为 YAML schema 字符串"""
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        mock_yaml_docs = [{"schema_version": "v1", "meta": {"name": "pt1"}, "spec": {"nodes": []}}]
+        mock_convert_result = {"result": True, "data": mock_yaml_docs}
+
+        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),), mock.patch(
+            "gcloud.tasktmpl3.models.TaskTemplate.objects.export_templates",
+            return_value={"template_data": "mock"},
+        ), mock.patch("gcloud.apigw.views.get_template_info.YamlSchemaConverterHandler") as mock_handler_cls:
+            mock_handler = MagicMock()
+            mock_handler.convert.return_value = mock_convert_result
+            mock_handler_cls.return_value = mock_handler
+
+            response = self.client.get(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data={"format": "yaml"},
+            )
+            data = json.loads(response.content)
+            self.assertTrue(data["result"], msg=data)
+            self.assertIsInstance(data["data"]["pipeline_tree"], str)
+            self.assertIn("schema_version", data["data"]["pipeline_tree"])
+            self.assertEqual(data["data"]["id"], tmpl.id)
+            self.assertEqual(data["data"]["name"], tmpl.pipeline_template.name)
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_get_template_info__format_yaml_convert_fail(self):
+        """format=yaml 转换失败时返回 result=False"""
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        mock_convert_result = {"result": False, "message": "unsupported node type", "data": None}
+
+        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),), mock.patch(
+            "gcloud.tasktmpl3.models.TaskTemplate.objects.export_templates",
+            return_value={"template_data": "mock"},
+        ), mock.patch("gcloud.apigw.views.get_template_info.YamlSchemaConverterHandler") as mock_handler_cls:
+            mock_handler = MagicMock()
+            mock_handler.convert.return_value = mock_convert_result
+            mock_handler_cls.return_value = mock_handler
+
+            response = self.client.get(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data={"format": "yaml"},
+            )
+            data = json.loads(response.content)
+            self.assertFalse(data["result"])
+            self.assertIn("convert yaml failed", data["message"])
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_get_template_info__format_yaml_export_exception(self):
+        """format=yaml export_templates 抛异常时返回 result=False"""
+        from gcloud.exceptions import FlowExportError
+
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl)),), mock.patch(
+            "gcloud.tasktmpl3.models.TaskTemplate.objects.export_templates",
+            side_effect=FlowExportError("export error"),
+        ):
+            response = self.client.get(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data={"format": "yaml"},
+            )
+            data = json.loads(response.content)
+            self.assertFalse(data["result"])
+            self.assertIn("export yaml failed", data["message"])

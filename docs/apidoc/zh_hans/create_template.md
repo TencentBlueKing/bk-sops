@@ -10,7 +10,8 @@
 |---------------|------------|--------|------------------|
 |   bk_biz_id    |   string     |   是   |  项目ID |
 |   name     |   string     |   否   |  模板名称，为空时自动生成默认名称（格式：new+当前时间戳） |
-|   pipeline_tree     |   dict/string     |   是   |  流程树数据，支持传入 dict 或 JSON 字符串 |
+|   pipeline_tree     |   dict/string     |   是   |  流程树数据。format=json 时支持传入 dict 或 JSON 字符串；format=yaml 时传入 YAML schema 字符串（与页面导出格式一致） |
+|   format     |   string     |   否   |  pipeline_tree 的输入格式，可选值 json（默认）、yaml。设为 yaml 时 name 和 description 可从 YAML meta 中自动提取。注意：若 YAML 中包含多个模板，仅导入第一个 |
 |   description     |   string     |   否   |  模板描述，默认为空 |
 |   category     |   string     |   否   |  模板分类，默认为 Default |
 |   notify_type     |   dict     |   否   |  通知类型，默认为 {"success": [], "fail": []} |

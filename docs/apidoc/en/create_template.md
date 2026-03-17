@@ -10,7 +10,8 @@ Create a project flow template
 |---------------|------------|--------|------------------|
 |   bk_biz_id    |   string     |   YES   |  the business ID |
 |   name     |   string     |   NO   |  template name, auto-generated if empty (format: new+current timestamp) |
-|   pipeline_tree     |   dict/string     |   YES   |  pipeline tree data, supports dict or JSON string |
+|   pipeline_tree     |   dict/string     |   YES   |  pipeline tree data. When format=json, supports dict or JSON string; when format=yaml, pass a YAML schema string (same as page export format) |
+|   format     |   string     |   NO   |  input format for pipeline_tree, accepted values: json (default), yaml. When set to yaml, name and description can be auto-extracted from YAML meta. Note: if the YAML contains multiple templates, only the first one will be imported |
 |   description     |   string     |   NO   |  template description, default is empty |
 |   category     |   string     |   NO   |  template category, default is Default |
 |   notify_type     |   dict     |   NO   |  notification type, default is {"success": [], "fail": []} |
