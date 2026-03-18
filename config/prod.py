@@ -54,11 +54,11 @@ def get_default_database_config_dict(settings_module):
         return {}
     return {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.environ["%s_NAME" % db_prefix],
-        "USER": os.environ["%s_USER" % db_prefix],
-        "PASSWORD": os.environ["%s_PASSWORD" % db_prefix],
+        "NAME": os.getenv("BKAPP_MYSQL_NAME") or os.environ["%s_NAME" % db_prefix],
+        "USER": os.getenv("BKAPP_MYSQL_USER") or os.environ["%s_USER" % db_prefix],
+        "PASSWORD": os.getenv("BKAPP_MYSQL_PASSWORD") or os.environ["%s_PASSWORD" % db_prefix],
         "HOST": os.getenv("BKAPP_MYSQL_HOST") or os.environ["%s_HOST" % db_prefix],
-        "PORT": os.environ["%s_PORT" % db_prefix],
+        "PORT": os.getenv("BKAPP_MYSQL_PORT") or os.environ["%s_PORT" % db_prefix],
         "OPTIONS": {"isolation_level": "repeatable read"},
     }
 
