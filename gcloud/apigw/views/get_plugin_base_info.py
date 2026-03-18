@@ -10,6 +10,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from cachetools import TTLCache, cached
@@ -21,6 +23,9 @@ from gcloud import err_code
 from gcloud.apigw.decorators import project_inject, return_json_response
 from gcloud.apigw.utils import api_hash_key
 from gcloud.core.models import DisabledComponent, ProjectBasedComponent
+from plugin_service.plugin_client import PluginServiceApiClient
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
@@ -53,4 +58,23 @@ def get_plugin_base_info(request, project_id):
             }
         )
 
-    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
+    # 获取第三方插件列表
+    remote_plugins = []
+    try:
+        remote_result = PluginServiceApiClient.get_plugin_list(limit=100, offset=0)
+        if remote_result.get("result"):
+            for plugin in remote_result.get("data", {}).get("plugins", []):
+                remote_plugins.append(
+                    {
+                        "code": plugin["code"],
+                        "name": plugin["name"],
+                    }
+                )
+    except Exception:
+        logger.exception("get_plugin_base_info get remote plugin list failed ～")
+
+    return {
+        "result": True,
+        "data": {"builtin_plugins": data, "remote_plugins": remote_plugins},
+        "code": err_code.SUCCESS.code,
+    }
