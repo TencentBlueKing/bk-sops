@@ -433,7 +433,7 @@ def generate_process_with_agent(request):
             {
                 "result": False,
                 "message": "该项目未开启 AI 生成流程功能",
-                "code": err_code.REQUEST_PARAM_INVALID.code,
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
             }
         )
 
