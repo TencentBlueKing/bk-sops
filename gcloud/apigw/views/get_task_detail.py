@@ -23,13 +23,17 @@ from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.utils.pipeline_tree_trimmer import trim_pipeline_tree
 from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_id
 
 
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.pipeline_tree", "data.task_webhook_history"])
+@mcp_apigw(
+    exclude_responses=["data.task_webhook_history"],
+    trim_responses={"pipeline_tree": trim_pipeline_tree},
+)
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject

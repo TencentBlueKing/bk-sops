@@ -83,6 +83,7 @@ class TaskCreateMethod(Enum):
     PERIODIC = "periodic"
     CLOCKED = "clocked"
     MOBILE = "mobile"
+    MCP = "mcp"
 
 
 # 任务流程创建方式
@@ -93,6 +94,7 @@ TASK_CREATE_METHOD = [
     (TaskCreateMethod.PERIODIC.value, _("周期任务")),
     (TaskCreateMethod.CLOCKED.value, _("计划任务")),
     (TaskCreateMethod.MOBILE.value, _("移动端")),
+    (TaskCreateMethod.MCP.value, _("MCP")),
 ]
 
 # 任务引用的流程模板来源

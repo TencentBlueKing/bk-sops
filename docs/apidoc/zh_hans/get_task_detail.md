@@ -14,6 +14,7 @@
 | include_webhook_history | bool | 否 | 是否包含 webhook 回调信息，默认 false |
 | include_children_status | bool | 否 | 是否包含任务节点状态，默认 false |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
+| include_pipeline_tree | bool | 否 | MCP 请求时是否返回精简后的 pipeline_tree，默认 false。非 MCP 请求忽略此参数 |
 
 ### 请求参数示例
 
@@ -282,66 +283,7 @@
 
 ### MCP 请求说明
 
-当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+当请求来源于网关MCP时，部分字段会在响应中被过滤或精简：
 
-- `data.pipeline_tree` - 流程树信息
-- `data.task_webhook_history` - Webhook 回调历史记录
-
-#### data
-
-| 字段      | 类型      | 描述              |
-|-----------|----------|-----------------|
-|  id      |    int    | 任务 ID，即 task_id |
-|  name    |    string    | 任务名称            |
-|  project_id      |  int       | 所属项目 ID         |
-|  project_name    |  string    | 所属项目名称          |
-|  template_id      |  int       | 创建任务所用的流程模板 ID  |
-|  create_time      |  string    | 任务创建时间          |
-|  create_method    |  string    | 任务创建方式          |
-|  start_time       |  string    | 任务执行时间          |
-|  finish_time      |  string    | 任务完成时间          |
-|  elapsed_time     |  int       | 任务执行耗时(秒）       |
-|  creator          |  string    | 任务创建人           |
-|  executor         |  string    | 任务执行人           |
-|  constants        |  dict      | 输入的全局变量，详情见下面说明 |
-|  outputs          |  list      | 任务输出参数，详情见下面说明  |
-|  task_url     |    str     | 任务实例链接          |
-|  pipeline_tree     |    dict     | 任务实例树           |
-
-#### data.constants KEY
-
-全局变量 KEY，${key} 格式
-
-#### data.constants VALUE
-
-|   字段   |  类型  |           描述             |
-| ------------ | ---------- | ------------------------------ |
-|  key      |    string    |      同 KEY     |
-|  name      |    string    |      变量名字    |
-|  index      |    int    |      变量在模板中的显示顺序    |
-|  desc      |    string    |      变量说明   |
-|  source_type      |    string    |      变量来源, 取值范围 custom: 自定义变量，component_inputs: 从标准插件输入参数勾选，component_outputs：从标准插件输出结果中勾选   |
-|  custom_type      |    string    |      source_type=custom 时有效，自定义变量类型， 取值范围 input: 输入框，textarea: 文本框，datetime: 日期时间，int: 整数|
-|  source_tag      |    string    |      source_type=component_inputs/component_outputs 时有效，变量的来源标准插件   |
-|  source_info   |   dict  |  source_type=component_inputs/component_outputs 时有效，变量的来源节点信息 |
-
-#### data.outputs[]
-
-|      字段     |     类型   |               描述             |
-| ------------  | ---------- | ------------------------------ |
-|  name         | string     | 输出参数名称                   |
-|  value        | string、int、bool、dict、list | 输出参数值  |
-|  key          | string     | 输出参数 KEY                   |
-|  preset       | bool       | 是否是标准插件定义中预设输出变量   |
-
-#### data.pipeline_tree
-
-| 字段      | 类型      | 描述      |
-|-----------|----------|-----------|
-|  start_event      |    dict    |      开始节点信息     |
-|  end_event      |    dict    |      结束节点信息    |
-|  activities      |    dict    |      任务节点（标准插件和子流程）信息    |
-|  gateways      |    dict    |      网关节点（并行网关、分支网关和汇聚网关）信息    |
-|  flows      |    dict    |     顺序流（节点连线）信息    |
-|  constants      |    dict    |  全局变量信息，详情见下面    |
-|  outputs      |    list    |  模板输出信息，标记 constants 中的输出字段    |
+- `data.pipeline_tree` - 默认不返回；传入 `include_pipeline_tree=true` 时返回精简版本（移除前端渲染、画布布局等冗余信息，仅保留语义信息）
+- `data.task_webhook_history` - 不返回

@@ -16,36 +16,28 @@ import logging
 import os
 import re
 
-import pytz
 from django.conf import settings
-from django.utils import translation
+from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ObjectItemSchema, StringItemSchema
 
 from gcloud.core.models import Project
-from gcloud.shortcuts.message import PENDING_PROCESSING
-from gcloud.taskflow3.celery.tasks import send_taskflow_message
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("蓝鲸服务(BK)")
 
 LOGGER = logging.getLogger("celery")
 
 
-class PauseService(Service):
+class PauseService(BasePluginService):
     __need_schedule__ = True
 
-    def execute(self, data, parent_data):
-        task_id: int = parent_data.get_one_of_inputs("task_id")
-        send_taskflow_message.delay(
-            task_id=task_id,
-            msg_type=PENDING_PROCESSING,
-            use_root=True,
-        )
+    def plugin_execute(self, data, parent_data):
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if callback_data is not None:
             data.outputs.callback_data = callback_data
             self.finish_schedule()
@@ -80,12 +72,10 @@ class PauseComponent(Component):
     code = "pause_node"
     bound_service = PauseService
     form = settings.STATIC_URL + "components/atoms/bk/pause.js"
-    desc = _(
-        "该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据"
-    )
+    desc = _("该节点可以通过node_callback API接口进行回调并传入数据，callback_data参数为dict类型，回调数据会作为该节点的输出数据")
 
 
-class SleepTimerService(Service):
+class SleepTimerService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(0)
     BK_TIMEMING_TICK_INTERVAL = int(os.getenv("BK_TIMEMING_TICK_INTERVAL", 60 * 60 * 24))
@@ -106,16 +96,14 @@ class SleepTimerService(Service):
                 name=_("是否强制晚于当前时间"),
                 key="force_check",
                 type="bool",
-                schema=StringItemSchema(
-                    description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")
-                ),
+                schema=StringItemSchema(description=_("用户输入日期格式时是否强制要求时间晚于当前时间，只对日期格式定时输入有效")),
             ),
         ]
 
     def outputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         if parent_data.get_one_of_inputs("language"):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
@@ -124,7 +112,7 @@ class SleepTimerService(Service):
         # 项目时区获取
         project = Project.objects.get(id=parent_data.inputs.project_id)
 
-        project_tz = pytz.timezone(project.time_zone)
+        project_tz = timezone.pytz.timezone(project.time_zone)
         data.outputs.business_tz = project_tz
 
         now = datetime.datetime.now(tz=project_tz)
@@ -139,10 +127,7 @@ class SleepTimerService(Service):
             #  如果写成+号 可以输入无限长，或考虑前端修改
             eta = now + datetime.timedelta(seconds=int(timing))
         else:
-            message = (
-                _("[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置")
-                % timing
-            )
+            message = _("[定时]节点执行失败: 定时时间仅支持「秒(s)」 或 「%%Y-%%m-%%d %%H:%%M:%%S)」格式，请检查节点配置") % timing
             LOGGER.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -152,7 +137,7 @@ class SleepTimerService(Service):
 
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         timing_time = data.outputs.timing_time
 
         business_tz = data.outputs.business_tz

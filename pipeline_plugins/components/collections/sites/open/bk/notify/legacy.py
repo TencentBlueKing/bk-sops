@@ -16,12 +16,12 @@ import logging
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
 from gcloud.utils.cmdb import get_notify_receivers
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -29,8 +29,7 @@ logger = logging.getLogger(__name__)
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-class NotifyService(Service):
-
+class NotifyService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -67,16 +66,10 @@ class NotifyService(Service):
                 schema=StringItemSchema(description=_("除了通知分组外需要额外通知的人员")),
             ),
             self.InputItem(
-                name=_("通知标题"),
-                key="bk_notify_title",
-                type="string",
-                schema=StringItemSchema(description=_("通知的标题")),
+                name=_("通知标题"), key="bk_notify_title", type="string", schema=StringItemSchema(description=_("通知的标题"))
             ),
             self.InputItem(
-                name=_("通知内容"),
-                key="bk_notify_content",
-                type="string",
-                schema=StringItemSchema(description=_("通知的内容")),
+                name=_("通知内容"), key="bk_notify_content", type="string", schema=StringItemSchema(description=_("通知的内容"))
             ),
         ]
 
@@ -86,14 +79,11 @@ class NotifyService(Service):
                 name=_("返回码"), key="code", type="string", schema=StringItemSchema(description=_("通知接口的返回码"))
             ),
             self.OutputItem(
-                name=_("信息"),
-                key="message",
-                type="string",
-                schema=StringItemSchema(description=_("通知接口返回的信息")),
+                name=_("信息"), key="message", type="string", schema=StringItemSchema(description=_("通知接口返回的信息"))
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):

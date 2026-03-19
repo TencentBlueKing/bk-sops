@@ -7,6 +7,7 @@
                     <div class="show-html-text" :class="{ 'is-fold': !isExpand }">
                         <span v-html="executeInfo.failInfo"></span>
                         <img
+                            v-if="isAiEnabled"
                             @click="handleAssistantClick"
                             :title="$t('排查失败的原因')"
                             src="@/assets/images/assistant-small.svg"
@@ -69,6 +70,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'executeRecord',
@@ -106,6 +108,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            }),
             abnormalShow () {
                 const { state, skip, error_ignored } = this.executeInfo
                 return state === 'FAILED' || (state === 'FINISHED' && (skip || error_ignored))

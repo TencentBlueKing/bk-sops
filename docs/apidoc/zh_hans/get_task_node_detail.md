@@ -12,6 +12,7 @@
 | component_code   | string | 否   | 标准插件编码，请求标准插件执行详情必填 |
 | subprocess_stack | string | 否   | 子流程堆栈，json 格式的列表    |
 | loop             | int    | 否   | 节点循环次数              |
+| max_histories    | int    | 否   | MCP 请求时返回最近 N 条重试记录，默认 3。0 表示不返回。非 MCP 请求忽略此参数 |
 
 ### 请求参数示例
 
@@ -137,6 +138,6 @@
 
 ### MCP 请求说明
 
-当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+当请求来源于网关MCP时，`histories` 字段仅返回最近 3 条重试记录（可通过 `max_histories` 参数调整）：
 
-- `data.histories` - 节点重试历史记录
+- `data.histories` - 默认返回最近 3 条，`max_histories=0` 时不返回，`max_histories=N` 时返回最近 N 条

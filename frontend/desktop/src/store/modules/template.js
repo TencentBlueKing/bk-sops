@@ -174,6 +174,7 @@ const template = {
     namespaced: true,
     state: {
         name: '',
+        isAiGenerated: false,
         activities: {},
         end_event: {},
         flows: {},
@@ -205,7 +206,9 @@ const template = {
         default_flow_type: 'common',
         project_scope: [],
         webhook_configs: {},
-        enable_webhook: false
+        enable_webhook: false,
+        ai_analysis_notify_type: {},
+        ai_analysis_notify_group: {}
     },
     mutations: {
         setWebhookConfigs (state, webhookConfigs) {
@@ -229,9 +232,31 @@ const template = {
         setCategory (state, data) {
             state.category = data
         },
+        // 重置模板元数据（保留 pipeline 结构）
+        resetTemplateMeta (state) {
+            state.name = ''
+            state.template_id = ''
+            state.category = 'Default'
+            state.notify_type = { success: [], fail: [] }
+            state.notify_receivers = {
+                receiver_group: [],
+                more_receiver: '',
+                extra_info: {}
+            }
+            state.description = ''
+            state.executor_proxy = ''
+            state.init_executor_proxy = ''
+            state.template_labels = []
+            state.default_flow_type = 'common'
+            state.outputs = []
+            state.webhook_configs = {}
+            state.ai_analysis_notify_group = {}
+            state.ai_analysis_notify_type = {}
+        },
         setTplConfig (state, data) {
             const { name, category, notify_type, receiver_group, description, executor_proxy,
-                template_labels, default_flow_type, notify_type_extra_info, project_scope, webhookConfigs, enable_webhook } = data
+                template_labels, default_flow_type, notify_type_extra_info, project_scope,
+                webhookConfigs, enable_webhook, ai_analysis_notify_type, ai_analysis_notify_group } = data
             state.name = name
             state.category = category
             state.notify_type = notify_type
@@ -244,6 +269,8 @@ const template = {
             state.project_scope = project_scope
             state.webhook_configs = webhookConfigs
             state.enable_webhook = enable_webhook
+            state.ai_analysis_notify_type = ai_analysis_notify_type || {}
+            state.ai_analysis_notify_group = ai_analysis_notify_group || {}
         },
         setSubprocessUpdated (state, subflow) {
             if (state.subprocess_info) {
@@ -259,7 +286,13 @@ const template = {
                 })
             }
         },
+        setAiGenerated (state, value) {
+            state.isAiGenerated = value
+        },
         setPipelineTree (state, data) {
+            if (data.name) {
+                state.name = data.name
+            }
             const pipelineTreeOrder = [
                 'activities', 'constants', 'end_event', 'flows', 'gateways',
                 'line', 'location', 'outputs', 'start_event'
@@ -322,7 +355,8 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope, webhook_configs, enable_webhook
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope,
+                webhook_configs, enable_webhook, ai_notify_group, ai_notify_type
             } = data
 
             const pipelineData = pipeline_tree ? JSON.parse(pipeline_tree) : undefined
@@ -343,6 +377,8 @@ const template = {
             state.project_scope = project_scope
             state.webhook_configs = webhook_configs
             state.enable_webhook = enable_webhook
+            state.ai_analysis_notify_group = ai_notify_group || {}
+            state.ai_analysis_notify_type = ai_notify_type || {}
             if (pipeline_tree) {
                 state.project_scope = project_scope
                 this.commit('template/setPipelineTree', pipelineData)
@@ -362,6 +398,7 @@ const template = {
             state.name = ''
             state.activities = activities
             state.end_event = end_event
+            state.isAiGenerated = false
             state.flows = flow
             state.gateways = {}
             state.line = line
@@ -383,11 +420,14 @@ const template = {
             state.template_labels = []
             state.default_flow_type = 'common'
             state.webhook_configs = {}
+            state.ai_analysis_notify_group = {}
+            state.ai_analysis_notify_type = {}
         },
         // 重置模板数据
         resetTemplateData (state) {
             state.name = ''
             state.activities = {}
+            state.isAiGenerated = false
             state.end_event = {}
             state.flows = {}
             state.gateways = {}
@@ -969,7 +1009,8 @@ const template = {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type,
-                init_executor_proxy, project_scope, webhook_configs, enable_webhook
+                init_executor_proxy, project_scope, webhook_configs, enable_webhook,
+                ai_analysis_notify_group, ai_analysis_notify_type
             } = state
             // 剔除 location 的冗余字段
             const pureLocation = location.map(item => ({
@@ -1040,7 +1081,10 @@ const template = {
                 default_flow_type,
                 notify_type,
                 pipeline_tree: pipelineTree,
-                notify_receivers: notifyReceivers
+                notify_receivers: notifyReceivers,
+                ai_notify_type: ai_analysis_notify_type,
+                ai_notify_group: ai_analysis_notify_group
+
             }
             // 更新时如果执行代理人没有修改则不传
             if (templateId && init_executor_proxy === executor_proxy) {
@@ -1063,6 +1107,10 @@ const template = {
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
             return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
+        },
+        // AI 生成流程
+        generateProcessWithAgent ({ commit }, data) {
+            return axios.post('template/api/generate_process_with_agent/', data).then(response => response.data)
         },
         // 获取内置变量
         loadInternalVariable () {

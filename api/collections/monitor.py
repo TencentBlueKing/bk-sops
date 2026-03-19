@@ -17,9 +17,7 @@ import env
 from api.client import BKComponentClient
 
 
-MONITOR_API_ENTRY = env.BK_MONITOR_API_ENTRY or "{}/{}".format(
-    settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/monitor_v3"
-)
+MONITOR_API_ENTRY = env.BK_MONITOR_API_ENTRY or "{}/{}".format(settings.BK_PAAS_ESB_HOST, "api/c/compapi/v2/monitor_v3")
 
 
 def _get_monitor_api(api_name):
@@ -27,9 +25,15 @@ def _get_monitor_api(api_name):
 
 
 class BKMonitorClient(BKComponentClient):
-    def search_alarm_strategy(self, bk_biz_id):
+    def search_alarm_strategy(self, bk_biz_id, page, page_size):
         return self._request(
-            method="post", url=_get_monitor_api("search_alarm_strategy"), data={"bk_biz_id": bk_biz_id}
+            method="post",
+            url=_get_monitor_api("search_alarm_strategy"),
+            data={
+                "bk_biz_id": bk_biz_id,
+                "page": page,
+                "page_size": page_size,
+            },
         )
 
     def add_shield(

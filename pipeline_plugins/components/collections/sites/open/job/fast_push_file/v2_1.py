@@ -108,7 +108,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):
@@ -180,8 +180,8 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 "bk_biz_id": biz_cc_id,
                 "file_source_list": file_source,
                 "target_server": target_server,
-                "account_alias": attr["job_account"].strip(),
-                "file_target_path": attr["job_target_path"].strip(),
+                "account_alias": attr["job_account"],
+                "file_target_path": attr["job_target_path"],
             }
             if upload_speed_limit:
                 job_kwargs["upload_speed_limit"] = int(upload_speed_limit)
@@ -240,10 +240,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("分发请求成功数")),
             ),
             self.OutputItem(
-                name=_("分发成功数"),
-                key="success_count",
-                type="string",
-                schema=StringItemSchema(description=_("上传成功数")),
+                name=_("分发成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
             ),
             self.OutputItem(
                 name=_("任务id"),

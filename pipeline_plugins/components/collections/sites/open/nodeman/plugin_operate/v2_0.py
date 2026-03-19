@@ -77,7 +77,7 @@ class NodemanPluginOperateService(NodeManBaseService, NodemanPluginIPMixin):
         outputs_format = super(NodemanPluginOperateService, self).outputs_format()
         return outputs_format
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         bk_biz_id = data.inputs.biz_cc_id
 

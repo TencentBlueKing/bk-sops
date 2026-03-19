@@ -43,7 +43,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
     def outputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         biz_cc_id = data.inputs.biz_cc_id
         local_files = data.inputs.job_local_files
@@ -82,9 +82,9 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
             esb_client=client,
             bk_biz_id=biz_cc_id,
             file_tags=file_tags,
-            target_path=target_path.strip(),
+            target_path=target_path,
             ips=None,
-            account=target_account.strip(),
+            account=target_account,
             callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
             target_server=target_server,
         )
@@ -107,6 +107,4 @@ class JobPushLocalFilesComponent(Component):
     bound_service = JobPushLocalFilesService
     form = "%scomponents/atoms/job/job_push_local_files/v1_0_0.js" % settings.STATIC_URL
     version = "1.0.0"
-    desc = _(
-        "本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。"
-    )
+    desc = _("本地上传的文件不保证长期保存并可用于多次分发，推荐勾选上传变量并在创建任务时进行上传操作。如果希望多次分发相同文件，请使用快速分发文件插件。")

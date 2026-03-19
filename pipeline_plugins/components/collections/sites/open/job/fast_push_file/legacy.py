@@ -77,7 +77,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         client.set_bk_api_ver("v2")
@@ -125,8 +125,8 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             "bk_biz_id": biz_cc_id,
             "file_source_list": file_source,
             "target_server": target_server,
-            "account_alias": data.get_one_of_inputs("job_account").strip(),
-            "file_target_path": data.get_one_of_inputs("job_target_path").strip(),
+            "account_alias": data.get_one_of_inputs("job_account"),
+            "file_target_path": data.get_one_of_inputs("job_target_path"),
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
         if job_timeout:
@@ -146,9 +146,6 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return super(JobFastPushFileService, self).outputs_format()

@@ -49,7 +49,7 @@ class MonitorAlarmShieldStrategyService(MonitorBaseService):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         if parent_data.get_one_of_inputs("language"):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
