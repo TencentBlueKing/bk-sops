@@ -497,6 +497,43 @@ def get_difference_ip_list(original_ip_list, ip_list):
     return difference_ip_list
 
 
+def get_job_task_name(root_pipeline_id, node_id):
+    """
+    生成 job 任务名：节点名称_sanitize + 毫秒时间戳。
+    若无法获取节点名则返回 None（调用方不传 task_name，由作业平台自动生成）。
+    """
+    JOB_TASK_NAME_NODE_MAX_LEN = 50
+
+    def _sanitize_node_name(name):
+        if not name or not isinstance(name, str):
+            return ""
+        name_str = re.compile(r"[<>$&\'\"]+").sub("", name)
+        return name_str.strip()[:JOB_TASK_NAME_NODE_MAX_LEN]
+
+    def _find_node_name(tree, nid):
+        activities = tree.get(PE.activities, {})
+        if nid in activities:
+            return activities[nid].get("name", "")
+        for act in activities.values():
+            if act.get("type") == PE.SubProcess and PE.pipeline in act:
+                found = _find_node_name(act[PE.pipeline], nid)
+                if found:
+                    return found
+        return ""
+
+    try:
+        pipeline = PipelineInstance.objects.filter(instance_id=root_pipeline_id).first()
+        if not pipeline or not pipeline.execution_data:
+            return None
+        node_name = _find_node_name(pipeline.execution_data, node_id)
+        sanitized = _sanitize_node_name(node_name)
+        if not sanitized:
+            return None
+        return f"{sanitized}_{int(time.time() * 1000)}"
+    except Exception:
+        return None
+
+
 def get_biz_ip_from_frontend(
     tenant_id,
     ip_str,
