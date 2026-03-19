@@ -28,7 +28,7 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.histories"])
+@mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
@@ -74,4 +74,19 @@ def get_task_node_detail(request, task_id, project_id):
         project_id=project_id,
         loop=loop,
     )
+
+    if getattr(request, "is_mcp_request", False) and result.get("result"):
+        max_histories = _get_max_histories(request)
+        histories = result.get("data", {}).get("histories")
+        if histories is not None and len(histories) > max_histories:
+            result["data"]["histories"] = histories[-max_histories:]
+
     return result
+
+
+def _get_max_histories(request):
+    try:
+        val = int(request.GET.get("max_histories", 3))
+        return max(val, 0)
+    except (ValueError, TypeError):
+        return 3

@@ -22,8 +22,10 @@ from rest_framework.decorators import api_view
 
 from gcloud import err_code
 from gcloud.contrib.analysis.analyse_items import task_template
+from gcloud.core.models import ProjectConfig
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
+    AgentGenerateProcessInterceptor,
     BatchFormInterceptor,
     ExportInterceptor,
     FetchPipelineTreeInterceptor,
@@ -32,6 +34,13 @@ from gcloud.iam_auth.view_interceptors.template import (
     ParentsInterceptor,
 )
 from gcloud.openapi.schema import AnnotationAutoSchema
+from gcloud.tasktmpl3.agent_utils import (
+    AgentAPIError,
+    AgentResponseParseError,
+    FlowConversionError,
+    FlowLayoutError,
+    generate_pipeline_tree,
+)
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref, get_constant_values
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.apis.django.api import (
@@ -372,3 +381,71 @@ def fetch_pipeline_tree(request):
             "message": "",
         }
     )
+
+
+@require_POST
+@iam_intercept(AgentGenerateProcessInterceptor())
+def generate_process_with_agent(request):
+    """
+    @summary：AI 生成流程
+    @param request:
+    @return:
+
+    请求方法: POST
+    请求体格式: JSON Object
+    {
+        "bk_biz_id": 业务 ID,
+        "project_id": 项目 ID,
+        "prompt": "流程描述"
+    }
+    """
+    try:
+        request_data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        logger.warning("generate_process_with_agent: Invalid JSON format - {}".format(str(e)))
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "Invalid JSON format: {}".format(str(e)),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
+
+    bk_biz_id = request_data.get("bk_biz_id")
+    project_id = request_data.get("project_id")
+    prompt = request_data.get("prompt")
+
+    if not prompt:
+        return JsonResponse(
+            {"result": False, "message": "prompt is required", "code": err_code.REQUEST_PARAM_INVALID.code}
+        )
+
+    # 功能开关：通过 ProjectConfig 的 custom_display_configs 控制是否开启 AI 生成流程
+    agent_enabled = False
+    if project_id:
+        project_config = ProjectConfig.objects.filter(project_id=project_id).first()
+        if project_config:
+            custom_configs = project_config.custom_display_configs or {}
+            agent_enabled = custom_configs.get("enable_agent_generate", False)
+
+    if not agent_enabled:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "该项目未开启 AI 生成流程功能",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
+
+    username = request.user.username if request.user.is_authenticated else ""
+
+    try:
+        pipeline_tree = generate_pipeline_tree(prompt, bk_biz_id, username)
+    except (AgentAPIError, AgentResponseParseError) as e:
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+    except FlowConversionError as e:
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.REQUEST_PARAM_INVALID.code})
+    except FlowLayoutError as e:
+        return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
+
+    return JsonResponse({"result": True, "data": pipeline_tree, "code": err_code.SUCCESS.code, "message": ""})

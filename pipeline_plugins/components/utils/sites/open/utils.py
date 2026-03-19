@@ -13,10 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import re
+import time
 from collections import Counter
 
 from cryptography.fernet import Fernet
 from django.utils.translation import gettext_lazy as _
+from pipeline.core.constants import PE
+from pipeline.models import PipelineInstance
 
 import env
 from gcloud.conf import settings
@@ -35,6 +38,7 @@ __all__ = [
     "get_nodeman_job_url",
     "get_difference_ip_list",
     "get_biz_ip_from_frontend",
+    "get_job_task_name",
 ]
 
 JOB_APP_CODE = "bk_job"
@@ -126,9 +130,7 @@ def get_ipv4_info_list(username, biz_cc_id, supplier_account, ipv4_list):
     for ip_info in ipv4_info_list:
         ip_result.append(
             {
-                "InnerIP": ip_info["host"][
-                    "bk_host_innerip"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": ip_info["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": ip_info["host"]["bk_host_id"],
                 "Source": ip_info["host"].get("bk_cloud_id", -1),
                 "Sets": ip_info["set"],
@@ -170,9 +172,7 @@ def get_ipv4_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv4
     for item in ipv4_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"][
-                    "bk_host_innerip"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"]["bk_host_innerip"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -229,9 +229,7 @@ def get_ipv6_info_list_with_cloud_id(username, biz_cc_id, supplier_account, ipv6
     for item in ipv6_info_with_cloud_valid:
         ip_result.append(
             {
-                "InnerIP": item["host"][
-                    "bk_host_innerip_v6"
-                ],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
+                "InnerIP": item["host"]["bk_host_innerip_v6"],  # 即使多个host命中，也都是同一个主机id，这里以第一个合法host为标识
                 "HostID": item["host"]["bk_host_id"],
                 "Source": item["host"].get("bk_cloud_id", -1),
                 "Sets": item["set"],
@@ -468,6 +466,43 @@ def get_node_callback_url(root_pipeline_id, node_id, node_version=""):
     )
 
 
+def get_job_task_name(root_pipeline_id, node_id):
+    """
+    生成 job 任务名：节点名称_sanitize + 毫秒时间戳。
+    若无法获取节点名则返回 None（调用方不传 task_name，由作业平台自动生成）。
+    """
+    JOB_TASK_NAME_NODE_MAX_LEN = 50
+
+    def _sanitize_node_name(name):
+        if not name or not isinstance(name, str):
+            return ""
+        name_str = re.compile(r"[<>$&\'\"]+").sub("", name)
+        return name_str.strip()[:JOB_TASK_NAME_NODE_MAX_LEN]
+
+    def _find_node_name(tree, nid):
+        activities = tree.get(PE.activities, {})
+        if nid in activities:
+            return activities[nid].get("name", "")
+        for act in activities.values():
+            if act.get("type") == PE.SubProcess and PE.pipeline in act:
+                found = _find_node_name(act[PE.pipeline], nid)
+                if found:
+                    return found
+        return ""
+
+    try:
+        pipeline = PipelineInstance.objects.filter(instance_id=root_pipeline_id).first()
+        if not pipeline or not pipeline.execution_data:
+            return None
+        node_name = _find_node_name(pipeline.execution_data, node_id)
+        sanitized = _sanitize_node_name(node_name)
+        if not sanitized:
+            return None
+        return f"{sanitized}_{int(time.time() * 1000)}"
+    except Exception:
+        return None
+
+
 def get_module_id_list_by_name(bk_biz_id, username, set_list, service_template_list):
     """
     @summary 根据集群、服务模板名称筛选出符合条件的模块id
@@ -542,11 +577,7 @@ def get_repeat_ip(ip_list):
         repeat_ip_detail.setdefault(ip_info["ip"], []).append(ip_info["bk_cloud_id"])
 
     return ",".join(
-        [
-            "ip: {} 管控区域{}".format(repeat_ip, value)
-            for repeat_ip, value in repeat_ip_detail.items()
-            if len(value) > 0
-        ]
+        ["ip: {} 管控区域{}".format(repeat_ip, value) for repeat_ip, value in repeat_ip_detail.items() if len(value) > 0]
     )
 
 
@@ -604,9 +635,7 @@ def get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data, ignore_ex
         # 这种情况应该是存在一个ip下有多个管控区域的情况
         if not ignore_ex_data:
             repeat_err_msg = get_repeat_ip(ip_list)
-            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(
-                repeat_err_msg
-            )
+            data.outputs.ex_data = "IP在多个管控区域下重复，建议输入管控区域:ip确定目标主机，详情: {}".format(repeat_err_msg)
         return False, []
     if not ip_list:
         if not ignore_ex_data:

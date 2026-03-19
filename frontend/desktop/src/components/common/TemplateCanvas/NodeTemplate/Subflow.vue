@@ -78,6 +78,7 @@
                         {{ $t('跳过子流程') }}
                     </span>
                     <img
+                        v-if="isAiEnabled"
                         @click.stop="handleAssistantClick"
                         :title="$t('排查失败的原因')"
                         src="@/assets/images/assistant-small.svg"
@@ -107,6 +108,7 @@
 <script>
     import NodeRightIconStatus from './NodeRightIconStatus.vue'
     import bus from '@/utils/bus.js'
+    import { mapState } from 'vuex'
 
     export default {
         name: 'Subflow',
@@ -131,6 +133,9 @@
             }
         },
         computed: {
+            ...mapState({
+                'isAiEnabled': state => state.isAiEnabled
+            }),
             isOpenTooltip () {
                 if (this.node.mode === 'execute') {
                     if (this.node.status === 'RUNNING') {

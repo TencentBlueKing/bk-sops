@@ -19,10 +19,10 @@ from gcloud.conf import settings
 __group_name__ = _("配置平台(CMDB)")
 
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import (
     BkObjType,
@@ -38,7 +38,7 @@ cc_handle_api_error = partial(handle_api_error, __group_name__)
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 
-class CCBatchModuleUpdateService(Service):
+class CCBatchModuleUpdateService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -64,7 +64,7 @@ class CCBatchModuleUpdateService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
@@ -155,9 +155,7 @@ class CCBatchModuleUpdateService(Service):
             )
             if not cc_list_select_node_inst_id_return["result"]:
 
-                message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}"
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, message: {cc_list_select_node_inst_id_return['message']}")
                 failed_update.append(message)
                 self.logger.error(message)
                 continue
@@ -176,9 +174,7 @@ class CCBatchModuleUpdateService(Service):
                 self.logger.info("module 属性更新成功, item={}, data={}".format(update_item, kwargs))
                 success_update.append(update_item)
             else:
-                message = _(
-                    f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {kwargs}, 错误消息: {update_result['message']}"
-                )
+                message = _(f"模块属性更新失败: 主机属性: {update_item}, 更新属性: {kwargs}, 错误消息: {update_result['message']}")
                 self.logger.error(message)
                 failed_update.append(message)
 

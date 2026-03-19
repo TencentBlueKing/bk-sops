@@ -94,7 +94,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):
@@ -203,9 +203,6 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
             return False
         data.outputs.final_res = task_count == len(job_result_list)
         return True
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [

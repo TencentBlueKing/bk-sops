@@ -128,7 +128,7 @@ class BaseAllBizJobFastExecuteScriptService(JobService):
         """
         return {}
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         if parent_data.get_one_of_inputs("language"):

@@ -305,6 +305,8 @@ class BaseTemplate(models.Model):
     notify_receivers = models.TextField(_("流程事件通知人"), default="{}")
     time_out = models.IntegerField(_("流程超时时间(分钟)"), default=20)
     is_deleted = models.BooleanField(_("是否删除"), default=False)
+    ai_notify_type = models.JSONField(_("AI分析个人通知方式"), default=dict)
+    ai_notify_group = models.JSONField(_("AI分析群聊通知配置"), default=dict)
 
     class Meta:
         # abstract would not be inherited automatically

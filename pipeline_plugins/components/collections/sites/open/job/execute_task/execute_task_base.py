@@ -31,6 +31,7 @@ from pipeline_plugins.components.utils import (
     loose_strip,
     parse_passwd_value,
 )
+from pipeline_plugins.components.utils.sites.open.utils import get_job_task_name
 
 __group_name__ = _("作业平台(JOB)")
 
@@ -142,7 +143,7 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
 
         return server
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         client.set_bk_api_ver("v2")
@@ -197,6 +198,11 @@ class JobExecuteTaskServiceBase(JobService, GetJobTargetServerMixin):
             "global_var_list": global_vars,
             "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
         }
+
+        if getattr(self, "use_node_task_name", False):
+            task_name = get_job_task_name(self.root_pipeline_id, self.id)
+            if task_name:
+                job_kwargs["task_name"] = task_name
 
         job_result = client.jobv3.execute_job_plan(job_kwargs)
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))

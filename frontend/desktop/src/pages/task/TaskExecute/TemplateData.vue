@@ -4,7 +4,7 @@
             <full-code-editor
                 v-if="templateData"
                 :value="templateData"
-                :options="{ readOnly: true, language: 'json' }">
+                :options="{ readOnly: true, language: 'json', isNeedAiScriptCheck: false }">
             </full-code-editor>
             <no-data v-else></no-data>
         </div>

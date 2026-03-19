@@ -64,7 +64,7 @@ class MonitorAlarmShieldServiceBase(MonitorBaseService):
         scope_value = combine.get(scope[scope_type])
         return scope_value
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         bk_biz_id = parent_data.get_one_of_inputs("biz_cc_id")
         executor = parent_data.get_one_of_inputs("executor")
         client = BKMonitorClient(username=executor)

@@ -52,7 +52,7 @@
         </template>
         <ErrorCodeModal ref="errorModal"></ErrorCodeModal>
         <PermissionModal ref="permissionModal"></PermissionModal>
-        <AiBluekingComp ref="aiBluekingComp"></AiBluekingComp>
+        <AiBluekingComp v-if="isAiEnabled" ref="aiBluekingComp"></AiBluekingComp>
 
     </div>
 </template>
@@ -111,7 +111,8 @@
                 'hideHeader': state => state.hideHeader,
                 'viewMode': state => state.view_mode,
                 'appId': state => state.app_id,
-                'site_url': state => state.site_url
+                'site_url': state => state.site_url,
+                'isAiEnabled': state => state.isAiEnabled
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id,
@@ -178,17 +179,22 @@
                 this.isUseSnapshot = true
             })
             // 编写脚本打开Ai小鲸对话框
-            bus.$on('writeScript', data => {
-                this.$refs.aiBluekingComp.showAi()
-            })
-            // 脚本检查
-            bus.$on('checkScript', data => {
-                this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkScript' })
-            })
-            // 排查流程执行失败的原因
-            bus.$on('checkExecutedFailed', data => {
-                this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkExecutedFailed' })
-            })
+            if (this.isAiEnabled) {
+                bus.$on('writeScript', data => {
+                    this.$refs.aiBluekingComp.showAi()
+                })
+                // 脚本检查
+                bus.$on('checkScript', data => {
+                    this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkScript' })
+                })
+                // 排查流程执行失败的原因
+                bus.$on('checkExecutedFailed', data => {
+                    this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'checkExecutedFailed' })
+                })
+                bus.$on('taskSummarize', data => {
+                    this.$refs.aiBluekingComp.sendDefaultcommand({ data, operationName: 'taskSummarize' })
+                })
+            }
 
             /**
              * 兼容标准插件配置项里，异步请求用到的全局弹窗提示

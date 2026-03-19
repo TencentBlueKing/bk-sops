@@ -85,10 +85,10 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         )
         return result, tagged_ip_dict
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         job_success_id = data.get_one_of_inputs("job_success_id")
         if not job_success_id:
-            return super().execute(data, parent_data)
+            return super().plugin_execute(data, parent_data)
         history_result = self.get_job_history_result(data, parent_data)
         self.logger.info(history_result)
         if history_result:

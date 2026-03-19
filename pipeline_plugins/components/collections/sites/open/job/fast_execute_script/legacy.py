@@ -76,9 +76,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
                 key="job_script_type",
                 type="string",
                 schema=StringItemSchema(
-                    description=_(
-                        "待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"
-                    ),
+                    description=_("待执行的脚本类型：shell(1) bat(2) perl(3) python(4) powershell(5)" "，仅在脚本来源为手动时生效"),
                     enum=["1", "2", "3", "4", "5"],
                 ),
             ),
@@ -122,9 +120,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
                 name=_("IP 存在性校验"),
                 key="ip_is_exist",
                 type="boolean",
-                schema=BooleanItemSchema(
-                    description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")
-                ),
+                schema=BooleanItemSchema(description=_("是否做 IP 存在性校验，如果ip校验开关打开，校验通过的ip数量若减少，即返回错误")),
             ),
         ]
 
@@ -146,7 +142,7 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         ip_is_exist = data.get_one_of_inputs("ip_is_exist")
@@ -206,9 +202,6 @@ class JobFastExecuteScriptService(JobService, GetJobTargetServerMixin):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastExecuteScriptService, self).schedule(data, parent_data, callback_data)
 
 
 class JobFastExecuteScriptComponent(Component):

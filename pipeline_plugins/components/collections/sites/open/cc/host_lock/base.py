@@ -16,11 +16,11 @@ from functools import partial
 
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import CCPluginIPMixin
 
@@ -32,7 +32,7 @@ __group_name__ = _("配置平台(CMDB)")
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class HostLockTypeService(Service, metaclass=ABCMeta):
+class HostLockTypeService(BasePluginService, metaclass=ABCMeta):
     @abstractmethod
     def host_lock_method(self):
         raise NotImplementedError()
@@ -49,7 +49,7 @@ class CCHostLockBaseService(HostLockTypeService, CCPluginIPMixin):
             )
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         method = self.host_lock_method()
         executor = parent_data.get_one_of_inputs("executor")
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
@@ -64,9 +64,7 @@ class CCHostLockBaseService(HostLockTypeService, CCPluginIPMixin):
 
         if not host_list_result["result"]:
             data.outputs.ex_data = _(
-                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, message={}".format(
-                    host_list_result.get("message", "")
-                )
+                "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法, message={}".format(host_list_result.get("message", ""))
             )
             return False
 

@@ -23,7 +23,6 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
-from gcloud.shortcuts.message import PENDING_PROCESSING
 from pipeline_plugins.components.collections.sites.open.bk.approve.v1_0 import ApproveComponent
 
 
@@ -47,9 +46,8 @@ class MockClient(object):
 GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.BKItsmClient"
 GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.get_node_callback_url"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.handle_api_error"
-SEND_TASKFLOW_MESSAGE = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.send_taskflow_message.delay"
 
-COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0, "task_id": 1}
+COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0}
 
 CREAT_TICKET_FAIL_RETURN = {"result": False, "message": "create ticket fail"}
 
@@ -79,7 +77,6 @@ CALLBACK_URL_REJECT_RETURN = {
 
 CREAT_TICKET_SUCCESS_CLIENT = MockClient(create_ticket=CREAT_TICKET_SUCCESS_RETURN)
 CREAT_TICKET_FAIL_RETURN_CLIENT = MockClient(create_ticket=CREAT_TICKET_FAIL_RETURN)
-SEND_TASKFLOW_MESSAGE_MOCK_FUNC = MagicMock(return_value=2)
 
 CREAT_TICKET_CALL = {
     "creator": "admin",
@@ -90,11 +87,6 @@ CREAT_TICKET_CALL = {
     ],
     "fast_approval": True,
     "meta": {"callback_url": "callback_url"},
-}
-SEND_TASKFLOW_MESSAGE_CALL = {
-    "task_id": COMMON_PARENT["task_id"],
-    "msg_type": PENDING_PROCESSING,
-    "use_root": True,
 }
 INPUTS = {
     "bk_verifier": "tester, tester1",
@@ -119,7 +111,6 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_FAIL_RETURN_CLIENT),
         Patcher(target=BK_HANDLE_API_ERROR, return_value="create ticket fail"),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
-        Patcher(target=SEND_TASKFLOW_MESSAGE, side_effect=SEND_TASKFLOW_MESSAGE_MOCK_FUNC),
     ],
 )
 
@@ -133,10 +124,6 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
             func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket,
             calls=[Call(**CREAT_TICKET_CALL)],
         ),
-        CallAssertion(
-            func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,
-            calls=[Call(**SEND_TASKFLOW_MESSAGE_CALL)],
-        ),
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -147,7 +134,6 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_SUCCESS_CLIENT),
         Patcher(target=BK_HANDLE_API_ERROR, return_value=""),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
-        Patcher(target=SEND_TASKFLOW_MESSAGE, side_effect=SEND_TASKFLOW_MESSAGE_MOCK_FUNC),
     ],
 )
 BLOCKED_INPUTS = {
@@ -168,10 +154,6 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
             func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket,
             calls=[Call(**CREAT_TICKET_CALL)],
         ),
-        CallAssertion(
-            func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,
-            calls=[Call(**SEND_TASKFLOW_MESSAGE_CALL)],
-        ),
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -182,6 +164,5 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_SUCCESS_CLIENT),
         Patcher(target=BK_HANDLE_API_ERROR, return_value=""),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
-        Patcher(target=SEND_TASKFLOW_MESSAGE, side_effect=SEND_TASKFLOW_MESSAGE_MOCK_FUNC),
     ],
 )

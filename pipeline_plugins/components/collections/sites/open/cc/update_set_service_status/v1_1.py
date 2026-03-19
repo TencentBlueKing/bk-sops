@@ -16,12 +16,12 @@ from functools import partial
 
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 logger = logging.getLogger("celery")
@@ -33,7 +33,7 @@ VERSION = "1.1"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCUpdateSetServiceStatusService(Service):
+class CCUpdateSetServiceStatusService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -41,8 +41,7 @@ class CCUpdateSetServiceStatusService(Service):
                 key="set_select_method",
                 type="string",
                 schema=StringItemSchema(
-                    description=_("集群填入方式，Set名称(name)，Set ID(id)，自定义（根据集群属性过滤）"),
-                    enum=["name", "id", "custom"],
+                    description=_("集群填入方式，Set名称(name)，Set ID(id)，自定义（根据集群属性过滤）"), enum=["name", "id", "custom"]
                 ),
             ),
             self.InputItem(
@@ -68,7 +67,7 @@ class CCUpdateSetServiceStatusService(Service):
     def outputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         bk_biz_id = parent_data.get_one_of_inputs("bk_biz_id")

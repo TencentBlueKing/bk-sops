@@ -15,11 +15,11 @@ from functools import partial
 
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import ArrayItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.utils import chunk_table_data, convert_num_to_str
 
@@ -32,7 +32,7 @@ VERSION = "1.0"
 cc_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class CCBatchUpdateSetService(Service):
+class CCBatchUpdateSetService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -74,7 +74,7 @@ class CCBatchUpdateSetService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_user(executor)
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)

@@ -168,7 +168,7 @@
                         ref="notifyTypeConfig"
                         :label-width="120"
                         :notify-type="formData.notifyType"
-                        :notify-type-list="[{ text: $t('任务状态') }]"
+                        :notify-type-list="notifyTypeList"
                         :notify-type-extra-info="formData.notifyTypeExtraInfo"
                         :receiver-group="formData.receiverGroup"
                         :project_id="projectId"
@@ -176,6 +176,20 @@
                         :is-view-mode="isViewMode"
                         @change="onSelectNotifyConfig">
                     </NotifyTypeConfig>
+                </section>
+                <section class="form-section" v-if="enableAiNotification">
+                    <h4>
+                        <span>{{ $t('AI分析通知') }}</span>
+                    </h4>
+                    <AiAnalysisNotifyConfig
+                        ref="aiAnalysisNotifyConfig"
+                        :label-width="120"
+                        :ai-analysis-notify-type="formData.aiAnalysisNotifyType"
+                        :ai-analysis-notify-group="formData.aiAnalysisNotifyGroup"
+                        :notify-type-list="notifyTypeList"
+                        :is-view-mode="isViewMode"
+                        @change="onSelectAiAnalysisConfig">
+                    </AiAnalysisNotifyConfig>
                 </section>
                 <section class="form-section">
                     <h4>
@@ -311,6 +325,7 @@
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
     import NotifyTypeConfig from './NotifyTypeConfig.vue'
+    import AiAnalysisNotifyConfig from './AiAnalysisNotifyConfig.vue'
     import HttpCallback from './HttpCallback.vue'
     import permission from '@/mixins/permission.js'
 
@@ -320,6 +335,7 @@
             MemberSelect,
             ScopeCopyPaste,
             NotifyTypeConfig,
+            AiAnalysisNotifyConfig,
             HttpCallback
         },
         mixins: [permission],
@@ -334,11 +350,12 @@
         data () {
             const {
                 name, category, notify_type, notify_receivers, description,
-                executor_proxy, template_labels, default_flow_type, project_scope, template_id, webhook_configs, enable_webhook
+                executor_proxy, template_labels, default_flow_type, project_scope, template_id,
+                webhook_configs, enable_webhook, ai_analysis_notify_group, ai_analysis_notify_type
             } = this.$store.state.template
-            const { success, fail, pending_processing = [] } = notify_type
             const { extra_info: extraInfo = {} } = notify_receivers
-            const notifyType = [success.slice(0), fail.slice(0), pending_processing.slice(0)]
+            // 将数组转换为字符串用于表单显示
+            const processedAiAnalysisNotifyGroup = tools.convertArrayToString(ai_analysis_notify_group, 'mentioned_member_list')
 
             return {
                 formData: {
@@ -347,15 +364,19 @@
                     description,
                     executorProxy: executor_proxy ? [executor_proxy] : [],
                     receiverGroup: notify_receivers.receiver_group.slice(0),
-                    notifyType,
+                    notifyType: [notify_type.success.slice(0), notify_type.fail.slice(0)],
                     notifyTypeExtraInfo: { ...extraInfo },
                     labels: template_labels,
                     defaultFlowType: default_flow_type,
                     project_scope: project_scope,
                     template_id: template_id,
-                    webhookConfigs: tools.deepClone(webhook_configs)
+                    webhookConfigs: tools.deepClone(webhook_configs),
+                    aiAnalysisNotifyType: tools.deepClone(ai_analysis_notify_type),
+                    aiAnalysisNotifyGroup: processedAiAnalysisNotifyGroup
                 },
                 enable_webhook,
+                enableAiNotification: window.ENABLE_AI_NOTIFICATION,
+                notifyTypeList: [],
                 stringLength: STRING_LENGTH,
                 rules: {
                     name: [
@@ -489,6 +510,8 @@
             }
             this.$refs.nameInput.focus()
             document.addEventListener('click', this.handleClickOutside)
+            // 获取通知类型列表
+            this.getNotifyTypeList()
         },
         methods: {
             ...mapMutations('template/', [
@@ -500,6 +523,17 @@
                 'getProjectConfig',
                 'createTemplateLabel'
             ]),
+            ...mapActions([
+                'getNotifyTypes'
+            ]),
+            async getNotifyTypeList () {
+                try {
+                    const res = await this.getNotifyTypes()
+                    this.notifyTypeList = res.data
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             processingProjectsToTop (val, projects) {
                 val.forEach((item) => {
                     item = typeof item === 'number' ? item : Number(item)
@@ -634,7 +668,8 @@
                 window.open(href, '_blank')
             },
             getTemplateConfig () {
-                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType, notifyTypeExtraInfo, webhookConfigs } = this.formData
+                const { name, category, description, executorProxy, receiverGroup, notifyType, labels, defaultFlowType,
+                        notifyTypeExtraInfo, webhookConfigs, aiAnalysisNotifyType, aiAnalysisNotifyGroup } = this.formData
                 const localProjectList = this.baseInfoProjectScopeList.length === this.allProjectIds.length ? ['*'] : this.baseInfoProjectScopeList.map(item => typeof item === 'number' ? String(item) : item)
                 if (webhookConfigs?.extra_info) {
                     webhookConfigs.extra_info.interval = typeof webhookConfigs.extra_info.interval !== 'number' ? parseInt(webhookConfigs.extra_info.interval) : webhookConfigs.extra_info.interval
@@ -642,6 +677,10 @@
                     webhookConfigs.extra_info.timeout = typeof webhookConfigs.extra_info.timeout !== 'number' ? parseInt(webhookConfigs.extra_info.timeout) : webhookConfigs.extra_info.timeout
                     webhookConfigs.extra_info.headers = webhookConfigs.extra_info.headers.filter(item => item.key !== '')
                 }
+                
+                // 将字符串转换为数组用于提交
+                const processedAiAnalysisNotifyGroup = tools.convertStringToArray(aiAnalysisNotifyGroup, 'mentioned_member_list')
+                
                 return {
                     name,
                     category,
@@ -649,12 +688,14 @@
                     template_labels: labels,
                     executor_proxy: executorProxy.length === 1 ? executorProxy[0] : '',
                     receiver_group: receiverGroup,
-                    notify_type: { success: notifyType[0], fail: notifyType[1], pending_processing: notifyType[2] },
+                    notify_type: { success: notifyType[0], fail: notifyType[1] },
                     notify_type_extra_info: notifyTypeExtraInfo,
                     default_flow_type: defaultFlowType,
                     project_scope: localProjectList,
                     webhookConfigs: webhookConfigs,
-                    enable_webhook: this.enable_webhook
+                    enable_webhook: this.enable_webhook,
+                    ai_analysis_notify_type: aiAnalysisNotifyType,
+                    ai_analysis_notify_group: processedAiAnalysisNotifyGroup
                 }
             },
             onSelectedExecutorProxy (val) {
@@ -685,6 +726,27 @@
                 this.formData.notifyTypeExtraInfo = notifyTypeExtraInfo
                 this.formData.receiverGroup = receiverGroup
             },
+            onSelectAiAnalysisConfig (formData) {
+                const { aiAnalysisNotifyType, aiAnalysisNotifyGroup } = formData
+                const notifyPerson = {}
+                const notifyGroup = {}
+                if (aiAnalysisNotifyType.length > 0) {
+                    aiAnalysisNotifyType.forEach((item) => {
+                        notifyPerson[item.key] = item.value
+                    })
+                }
+                if (aiAnalysisNotifyGroup.length > 0) {
+                    aiAnalysisNotifyGroup.forEach((item) => {
+                        notifyGroup[item.type] = {
+                            chat_id: item.chat_id,
+                            mentioned_member_list: item.mentioned_member_list,
+                            web_hook: item.web_hook
+                        }
+                    })
+                }
+                this.formData.aiAnalysisNotifyType = notifyPerson
+                this.formData.aiAnalysisNotifyGroup = notifyGroup
+            },
             async onSaveConfig () {
                 try {
                     if (this.isProxyValidateError) {
@@ -693,6 +755,7 @@
                     const validations = await Promise.all([
                         this.$refs.configForm.validate(),
                         this.$refs.notifyTypeConfig.validate(),
+                        this.$refs?.aiAnalysisNotifyConfig ? this.$refs.aiAnalysisNotifyConfig.validate() : Promise.resolve(true),
                         this.$refs?.httpCallback ? this.$refs.httpCallback.validate() : Promise.resolve(true)
                     ])
                     if (validations.includes(false)) return

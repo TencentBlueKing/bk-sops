@@ -18,17 +18,17 @@ from bkcrypto.asymmetric.interceptors import BaseAsymmetricInterceptor
 from bkcrypto.constants import AsymmetricCipherType
 from bkcrypto.contrib.django.ciphers import get_asymmetric_cipher
 from django.utils.translation import gettext_lazy as _
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from api.collections.nodeman import BKNodeManClient
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
+from pipeline_plugins.base import BasePluginService
+from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
 __group_name__ = _("节点管理(Nodeman)")
-
-from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
-from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
 
 class NodeManAsymmetricInterceptor(BaseAsymmetricInterceptor):
@@ -110,7 +110,7 @@ def get_nodeman_public_key(executor, logger):
     }
 
 
-class NodeManBaseService(Service):
+class NodeManBaseService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
@@ -250,7 +250,7 @@ class NodeManBaseService(Service):
 
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         executor = parent_data.inputs.executor
         client = BKNodeManClient(username=executor)
 
@@ -320,6 +320,9 @@ class NodeManBaseService(Service):
             self.finish_schedule()
             return False
 
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
+
 
 class NodeManNewBaseService(NodeManBaseService):
     def inputs_format(self):
@@ -346,8 +349,7 @@ class NodeManNewBaseService(NodeManBaseService):
                         "nodeman_ap_id": StringItemSchema(description=_("接入点 ID")),
                         "nodeman_op_type": StringItemSchema(
                             description=_(
-                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、"
-                                " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
+                                "任务操作类型，可以是 INSTALL（安装）、  REINSTALL（重装）、" " UNINSTALL （卸载）、 REMOVE （移除）或 UPGRADE （升级）"
                             )
                         ),
                         "nodeman_hosts": ArrayItemSchema(
@@ -358,22 +360,14 @@ class NodeManNewBaseService(NodeManBaseService):
                                     "nodeman_bk_cloud_id": StringItemSchema(description=_("管控区域ID")),
                                     "nodeman_ap_id": StringItemSchema(description=_("接入点")),
                                     "inner_ip": StringItemSchema(description=_("内网 IP")),
-                                    "login_ip": StringItemSchema(
-                                        description=_("主机登录 IP，可以为空，适配复杂网络时填写")
-                                    ),
-                                    "data_ip": StringItemSchema(
-                                        description=_("主机数据 IP，可以为空，适配复杂网络时填写")
-                                    ),
+                                    "login_ip": StringItemSchema(description=_("主机登录 IP，可以为空，适配复杂网络时填写")),
+                                    "data_ip": StringItemSchema(description=_("主机数据 IP，可以为空，适配复杂网络时填写")),
                                     "outer_ip": StringItemSchema(description=_("外网 IP, 可以为空")),
-                                    "os_type": StringItemSchema(
-                                        description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")
-                                    ),
+                                    "os_type": StringItemSchema(description=_("操作系统类型，可以是 LINUX, WINDOWS, 或 AIX")),
                                     "port": StringItemSchema(description=_("端口号")),
                                     "account": StringItemSchema(description=_("登录帐号")),
                                     "auth_type": StringItemSchema(description=_("认证方式，可以是 PASSWORD 或 KEY")),
-                                    "auth_key": StringItemSchema(
-                                        description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")
-                                    ),
+                                    "auth_key": StringItemSchema(description=_("认证密钥,根据认证方式，是登录密码或者登陆密钥")),
                                 },
                             ),
                         ),
