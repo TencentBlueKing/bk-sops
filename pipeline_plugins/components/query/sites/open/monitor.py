@@ -2,7 +2,7 @@
 
 import logging
 
-from django.conf.urls import url
+from django.urls import re_path
 from django.conf import settings
 
 from api import BKMonitorClient
@@ -50,4 +50,4 @@ def monitor_get_strategy(request, biz_cc_id):
     return JsonResponse({"result": True, "data": strategy_list})
 
 
-monitor_urlpatterns = [url(r"^monitor_get_strategy/(?P<biz_cc_id>\d+)/$", monitor_get_strategy)]
+monitor_urlpatterns = [re_path(r"^monitor_get_strategy/(?P<biz_cc_id>\d+)/$", monitor_get_strategy)]
