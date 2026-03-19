@@ -6,3 +6,4 @@ python manage.py update_variable_models
 python manage.py sync_saas_apigw
 python manage.py register_bksops_notice
 python manage.py sync_webhook_events ./config webhook_resources.yaml
+python manage.py init_tenant
