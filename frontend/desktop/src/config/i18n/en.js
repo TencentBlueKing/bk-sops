@@ -1739,7 +1739,7 @@ const en = {
     '从{0}开始到{1}的每{2}个小时': 'Every {2} hours from {0} to {1}',
     '每天': 'Every day',
     '{0}号': '{0} day',
-    '{0}号到{2}号': '{0} to {2}',
+    '{0}号到{1}号': '{0} to {1}',
     '每隔{0}天': 'Every {0} days',
     '从{0}号开始每隔{1}天': 'Every {1} days starting from {0}',
     '从{0}号开始到{1}号的每{2}天': 'Every {2} days from {0} to {1}',
