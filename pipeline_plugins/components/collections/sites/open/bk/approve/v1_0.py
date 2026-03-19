@@ -18,6 +18,8 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
+from gcloud.shortcuts.message import PENDING_PROCESSING
+from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
 from pipeline_plugins.base import BasePluginService
