@@ -41,10 +41,11 @@ class BkApproveComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, create_ticket=None):
-        self.create_ticket = MagicMock(return_value=create_ticket)
+        self.api = MagicMock()
+        self.api.create_ticket = MagicMock(return_value=create_ticket)
 
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.BKItsmClient"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.get_client_by_username"
 GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.get_node_callback_url"
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.handle_api_error"
 SEND_TASKFLOW_MESSAGE = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.send_taskflow_message.delay"
@@ -53,7 +54,12 @@ COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0,
 
 CREAT_TICKET_FAIL_RETURN = {"result": False, "message": "create ticket fail"}
 
-CREAT_TICKET_SUCCESS_RETURN = {"message": "success", "code": 0, "data": {"sn": "NO2019090519542603"}, "result": True}
+CREAT_TICKET_SUCCESS_RETURN = {
+    "message": "success",
+    "code": 0,
+    "data": {"sn": "NO2019090519542603", "id": 12345},
+    "result": True,
+}
 
 CALLBACK_URL_FAIL_RETURN = {"result": False, "message": "approve reject"}
 
@@ -110,8 +116,8 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "create ticket fail"}),
     execute_call_assertion=[
         CallAssertion(
-            func=CREAT_TICKET_FAIL_RETURN_CLIENT.create_ticket,
-            calls=[Call(**CREAT_TICKET_CALL)],
+            func=CREAT_TICKET_FAIL_RETURN_CLIENT.api.create_ticket,
+            calls=[Call(CREAT_TICKET_CALL)],
         ),
     ],
     schedule_assertion=None,
@@ -127,11 +133,13 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     name="create approve ticket success case",
     inputs=INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
+    execute_assertion=ExecuteAssertion(
+        success=True, outputs={"sn": "NO2019090519542603", "id": 12345}
+    ),
     execute_call_assertion=[
         CallAssertion(
-            func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket,
-            calls=[Call(**CREAT_TICKET_CALL)],
+            func=CREAT_TICKET_SUCCESS_CLIENT.api.create_ticket,
+            calls=[Call(CREAT_TICKET_CALL)],
         ),
         CallAssertion(
             func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,
@@ -140,7 +148,7 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
-        outputs={"approve_result": "通过", "sn": "NO2019090519542603"},
+        outputs={"approve_result": "通过", "sn": "NO2019090519542603", "id": 12345},
         callback_data=CALLBACK_URL_SUCCESS_RETURN,
     ),
     patchers=[
@@ -162,11 +170,13 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
     name="rejected_block success case",
     inputs=BLOCKED_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603"}),
+    execute_assertion=ExecuteAssertion(
+        success=True, outputs={"sn": "NO2019090519542603", "id": 12345}
+    ),
     execute_call_assertion=[
         CallAssertion(
-            func=CREAT_TICKET_SUCCESS_CLIENT.create_ticket,
-            calls=[Call(**CREAT_TICKET_CALL)],
+            func=CREAT_TICKET_SUCCESS_CLIENT.api.create_ticket,
+            calls=[Call(CREAT_TICKET_CALL)],
         ),
         CallAssertion(
             func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,
@@ -175,7 +185,7 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
     ],
     schedule_assertion=ScheduleAssertion(
         success=True,
-        outputs={"approve_result": "拒绝", "sn": "NO2019090519542603"},
+        outputs={"approve_result": "拒绝", "sn": "NO2019090519542603", "id": 12345},
         callback_data=CALLBACK_URL_REJECT_RETURN,
     ),
     patchers=[

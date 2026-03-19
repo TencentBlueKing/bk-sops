@@ -34,8 +34,8 @@ TEST_INSTANCE_ID = 100
 TEST_TEMPLATE_ID = "template_123"
 TEST_TASK_TEMPLATE_ID = "task_template_123"
 
-GET_TASK_EFFECTIVE_TIME_TASK_COMMAND_DISPATCHER = "gcloud.apigw.views.get_task_effective_time.TaskCommandDispatcher"
-GET_TASK_EFFECTIVE_TIME_GET_PROJECT_WITH = "gcloud.apigw.views.get_task_effective_time.get_project_with"
+GET_TASK_EFFECTIVE_TIME_TASK_COMMAND_DISPATCHER = "gcloud.analysis_statistics.service.TaskCommandDispatcher"
+GET_TASK_EFFECTIVE_TIME_GET_PROJECT_WITH = "gcloud.analysis_statistics.service.get_project_with"
 
 
 class GetTaskEffectiveTimeAPITest(APITest):
@@ -184,7 +184,7 @@ class GetTaskEffectiveTimeAPITest(APITest):
                     ),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                        "gcloud.analysis_statistics.service._check_revoke_operation",
                         MagicMock(return_value=True),
                     ):
                         response = self.client.get(
@@ -249,11 +249,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve", "pause_node"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -355,11 +355,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -443,11 +443,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -518,11 +518,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -636,11 +636,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -823,11 +823,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 ),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["pause_node"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -980,11 +980,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 ),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["pause_node"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1139,11 +1139,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 ),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["pause_node"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1227,11 +1227,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1312,11 +1312,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1377,11 +1377,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=[]),  # 没有排除组件代码
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1443,11 +1443,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1490,11 +1490,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=[]),
                     ):
                         with patch(
@@ -1565,11 +1565,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=task_stat),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=[]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1652,11 +1652,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1714,11 +1714,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1795,11 +1795,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -1874,7 +1874,7 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     # 测试从环境变量读取配置
@@ -1953,11 +1953,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -2048,11 +2048,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):
@@ -2144,11 +2144,11 @@ class GetTaskEffectiveTimeAPITest(APITest):
                 MagicMock(return_value=self._create_mock_task_stat()),
             ):
                 with patch(
-                    "gcloud.apigw.views.get_task_effective_time._check_revoke_operation",
+                    "gcloud.analysis_statistics.service._check_revoke_operation",
                     MagicMock(return_value=False),
                 ):
                     with patch(
-                        "gcloud.apigw.views.get_task_effective_time._get_excluded_component_codes",
+                        "gcloud.analysis_statistics.service._get_excluded_component_codes",
                         MagicMock(return_value=["bk_approve"]),
                     ):
                         with patch(TASKFLOWEXECUTEDNODE_STATISTICS_FILTER, MagicMock(return_value=all_node_stats_qs)):

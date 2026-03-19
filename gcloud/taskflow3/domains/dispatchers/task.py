@@ -42,7 +42,7 @@ from pipeline.service import task_service
 from engine_pickle_obj.context import SystemObject
 from gcloud import err_code
 from gcloud.constants import TaskExtraStatus
-from gcloud.core.trace import start_trace
+from gcloud.core.trace import create_execution_span, start_trace
 from gcloud.project_constants.domains.context import get_project_constants_context
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.signals import pre_taskflow_start, taskflow_started
@@ -54,6 +54,11 @@ from gcloud.taskflow3.utils import (
     format_pipeline_status,
 )
 from pipeline_web.parser.format import classify_constants, format_web_data_to_pipeline
+
+try:
+    from opentelemetry import trace
+except ImportError:
+    trace = None
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
@@ -187,6 +192,25 @@ class TaskCommandDispatcher(EngineCommandDispatcher):
             root_pipeline_data = get_pipeline_context(
                 self.pipeline_instance, obj_type="instance", data_type="data", username=executor
             )
+
+            # 创建 bksops.execution span 并注入 trace context 到 root_pipeline_data
+            if settings.ENABLE_OTEL_TRACE and trace:
+                try:
+                    # 创建 execution span，并获取其 trace context
+                    trace_id, execution_span_id = create_execution_span(
+                        task_id=self.taskflow_id,
+                        project_id=self.project_id,
+                        pipeline_instance_id=self.pipeline_instance.instance_id,
+                        bk_biz_id=root_pipeline_data.get("bk_biz_id"),
+                        operator=root_pipeline_data.get("operator"),
+                        executor=root_pipeline_data.get("executor"),
+                    )
+                    if trace_id and execution_span_id:
+                        root_pipeline_data["_trace_id"] = trace_id
+                        root_pipeline_data["_parent_span_id"] = execution_span_id
+                except Exception as e:
+                    logger.debug(f"[plugin_span] Failed to create execution span: {e}")
+
             system_obj = SystemObject(root_pipeline_data)
             root_pipeline_context = {"${_system}": system_obj}
             root_pipeline_context.update(get_project_constants_context(self.project_id))

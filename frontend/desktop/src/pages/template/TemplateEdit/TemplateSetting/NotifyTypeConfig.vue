@@ -46,8 +46,10 @@
                         <div class="empty-data" slot="empty">
                             <NoData></NoData>
                         </div>
-                    </bk-table-column></bk-table>
+                    </bk-table-column>
+                </bk-table>
             </bk-form-item>
+
             <bk-form-item property="notifyGroup" :label="notifyGroupLabel" data-test-id="notifyTypeConfig_form_notifyGroup">
                 <bk-checkbox-group
                     class="bk-checkbox-group"
@@ -72,6 +74,7 @@
     import i18n from '@/config/i18n/index.js'
     import tools from '@/utils/tools.js'
     import NoData from '@/components/common/base/NoData.vue'
+    
     export default {
         components: {
             NoData
@@ -152,15 +155,23 @@
                 return list
             }
         },
+        watch: {
+            notifyTypeList: {
+                handler (val) {
+                    if (val && val.length > 0) {
+                        this.allNotifyTypeList = [].concat({ text: i18n.t('任务状态') }, val)
+                    }
+                },
+                immediate: true
+            }
+        },
         created () {
-            this.getNotifyTypeList()
             if (!this.common) {
                 this.getProjectNotifyGroup()
             }
         },
         methods: {
             ...mapActions([
-                'getNotifyTypes',
                 'getNotifyGroup'
             ]),
             ...mapActions('template/', [
@@ -169,17 +180,6 @@
             ...mapMutations('template/', [
                 'setProjectBaseInfo'
             ]),
-            async getNotifyTypeList () {
-                try {
-                    this.notifyTypeLoading = true
-                    const res = await this.getNotifyTypes()
-                    this.allNotifyTypeList = [].concat(this.notifyTypeList, res.data)
-                } catch (e) {
-                    console.log(e)
-                } finally {
-                    this.notifyTypeLoading = false
-                }
-            },
             getNotifyTypeHeader (h, data) {
                 const col = this.allNotifyTypeList[data.$index]
                 if (col.type) {
@@ -295,14 +295,21 @@
         align-items: center;
         width: 100px;
     }
-    .notify-type-table {
+    // 表格样式
+    .notify-type-table,
+    .ai-analysis-table,
+    .ai-chat-notify-table {
         min-height: 86px;
         ::v-deep .bk-table-header-label {
             width: 100%;
-            .notify-table-heder {
+
+            .notify-table-heder,
+            .ai-analysis-table-header {
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                gap: 4px;
+                
                 .notify-icon {
                     margin-right: 4px;
                     width: 18px;
@@ -324,6 +331,10 @@
                     min-width: 0;
                     flex-shrink: 0;
                 }
+                
+                .table-input {
+                    width: 100%;
+                }
             }
             .vee-error .bk-textarea-wrapper {
                 border-color: #ea3636;
@@ -336,4 +347,43 @@
             }
         }
     }
+    
+    // AI分析通知样式
+    .ai-analysis-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        
+        .analysis-method {
+            font-size: 12px;
+            color: #63656e;
+            margin-right: 16px;
+            min-width: 60px;
+        }
+        
+        .analysis-icons {
+            display: flex;
+            gap: 8px;
+            
+            .icon-item {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 8px;
+                background: #f0f1f5;
+                border-radius: 2px;
+                
+                .bk-icon {
+                    font-size: 14px;
+                    color: #3a84ff;
+                }
+                
+                span {
+                    font-size: 12px;
+                    color: #63656e;
+                }
+            }
+        }
+    }
+
 </style>

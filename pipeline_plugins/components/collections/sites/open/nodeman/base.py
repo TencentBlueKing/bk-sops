@@ -18,11 +18,14 @@ from bkcrypto.asymmetric.interceptors import BaseAsymmetricInterceptor
 from bkcrypto.constants import AsymmetricCipherType
 from bkcrypto.contrib.django.ciphers import get_asymmetric_cipher
 from django.utils.translation import gettext_lazy as _
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
+from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
+from pipeline_plugins.base import BasePluginService
+from pipeline_plugins.components.utils.sites.open.utils import get_nodeman_job_url
 
 __group_name__ = _("节点管理(Nodeman)")
 
@@ -110,7 +113,7 @@ def get_nodeman_public_key(tenant_id, executor, logger):
     }
 
 
-class NodeManBaseService(Service):
+class NodeManBaseService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
@@ -253,7 +256,7 @@ class NodeManBaseService(Service):
 
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         executor = parent_data.inputs.executor
         tenant_id = parent_data.inputs.tenant_id
         client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
@@ -324,6 +327,9 @@ class NodeManBaseService(Service):
             data.set_outputs("ex_data", error_log)
             self.finish_schedule()
             return False
+
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
 
 
 class NodeManNewBaseService(NodeManBaseService):

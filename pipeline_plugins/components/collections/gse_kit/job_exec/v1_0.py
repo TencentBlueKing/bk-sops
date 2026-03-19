@@ -16,13 +16,14 @@ from functools import partial
 
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import StringItemSchema
 
 from env import BK_GSE_KIT_PAGE_URL_TEMPLATE
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_gsekit.shortcuts import get_client_by_username
+from pipeline_plugins.base import BasePluginService
 
 logger = logging.getLogger("celery")
 
@@ -47,11 +48,11 @@ JOB_STATUS_CHOICES = (
 )
 
 
-class GsekitJobExecService(Service):
+class GsekitJobExecService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)  # 每隔5秒钟进行重启结果状态轮询
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         """
         gsekit-轮询服务重启结果
         """
@@ -154,7 +155,7 @@ class GsekitJobExecService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)

@@ -14,13 +14,14 @@ import base64
 from functools import partial
 
 from django.utils.translation import gettext_lazy as _
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import BooleanItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.collections.sites.open.job.ipv6_base import GetJobTargetServerMixin
 from pipeline_plugins.components.utils import get_job_instance_url
 
@@ -29,7 +30,7 @@ __group_name__ = _("作业平台(JOB)")
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
+class BaseJobLocalContentUploadService(BasePluginService, GetJobTargetServerMixin):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
@@ -142,7 +143,7 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
         }
         return job_kwargs
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         tenant_id = parent_data.inputs.tenant_id
         biz_cc_id = parent_data.inputs.biz_cc_id
@@ -169,8 +170,8 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
             data.outputs.ex_data = message
             return False
 
-    def schedule(self, data, parent_data, callback_data=None):
-        client = get_client_by_username(parent_data.get_one_of_inputs("executor"))
+    def plugin_schedule(self, data, parent_data, callback_data=None):
+        client = get_client_by_user(parent_data.get_one_of_inputs("executor"))
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         get_job_instance_log_kwargs = {
@@ -199,3 +200,6 @@ class BaseJobLocalContentUploadService(Service, GetJobTargetServerMixin):
                 )
                 data.set_outputs("ex_data", err_message)
                 return False
+
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True

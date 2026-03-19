@@ -13,6 +13,11 @@ import i18n from '@/config/i18n/index.js'
 
 const SETTING_TABS = [
     {
+        id: 'historicalTaskTab',
+        icon: 'common-icon-read',
+        title: i18n.t('历史任务')
+    },
+    {
         id: 'operationFlowTab',
         icon: 'common-icon-branchs',
         title: i18n.t('操作记录')

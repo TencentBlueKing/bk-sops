@@ -39,4 +39,5 @@ urlpatterns = [
     re_path(r"^api/variable_field_explain/$", VariableFieldExplainView.as_view()),
     re_path(r"^api/form_with_schemes/", TemplateFormWithSchemesView.as_view()),
     re_path(r"^api/batch_form_with_schemes/", BatchTemplateFormWithSchemesView.as_view()),
+    re_path(r"^api/generate_process_with_agent/$", api.generate_process_with_agent),
 ]

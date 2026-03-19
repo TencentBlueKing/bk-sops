@@ -4,7 +4,6 @@ from functools import partial
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.utils import cmdb
@@ -13,12 +12,13 @@ from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import cc_get_host_by_innerip_with_ipv6_across_business
 from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("监控平台(Monitor)")
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class MonitorBaseService(Service):
+class MonitorBaseService(BasePluginService):
     """
     监控基类，封装request_body构建与send_request这些通用逻辑
     """
@@ -133,15 +133,9 @@ class MonitorBaseService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("屏蔽Id"),
-                key="shield_id",
-                type="string",
-                schema=StringItemSchema(description=_("创建的告警屏蔽 ID")),
+                name=_("屏蔽Id"), key="shield_id", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽 ID"))
             ),
             self.OutputItem(
-                name=_("详情"),
-                key="message",
-                type="string",
-                schema=StringItemSchema(description=_("创建的告警屏蔽详情")),
+                name=_("详情"), key="message", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽详情"))
             ),
         ]

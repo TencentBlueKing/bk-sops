@@ -107,7 +107,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
@@ -243,10 +243,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("分发请求成功数")),
             ),
             self.OutputItem(
-                name=_("分发成功数"),
-                key="success_count",
-                type="string",
-                schema=StringItemSchema(description=_("上传成功数")),
+                name=_("分发成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
             ),
             self.OutputItem(
                 name=_("任务id"),

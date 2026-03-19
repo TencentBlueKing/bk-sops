@@ -80,7 +80,7 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
@@ -151,9 +151,6 @@ class JobFastPushFileService(JobService, GetJobTargetServerMixin):
             self.logger.error(message)
             data.outputs.ex_data = message
             return False
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return super(JobFastPushFileService, self).outputs_format()

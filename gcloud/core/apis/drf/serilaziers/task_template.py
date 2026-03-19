@@ -112,6 +112,8 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             "default_flow_type",
             "notify_type",
             "notify_receivers",
+            "ai_notify_type",
+            "ai_notify_group",
             "pipeline_tree",
             "project",
             "template_id",

@@ -20,7 +20,7 @@ from gcloud.core.models import ProjectConfig
 class ProjectConfigSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectConfig
-        fields = ["project_id", "executor_proxy", "executor_proxy_exempts"]
+        fields = ["project_id", "executor_proxy", "executor_proxy_exempts", "custom_display_configs"]
         read_only_fields = ["project_id"]
 
     def validate_executor_proxy(self, value):

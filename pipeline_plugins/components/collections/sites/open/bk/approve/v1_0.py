@@ -15,7 +15,6 @@ import traceback
 
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
@@ -23,13 +22,14 @@ from gcloud.shortcuts.message import PENDING_PROCESSING
 from gcloud.taskflow3.celery.tasks import send_taskflow_message
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_itsm.shortcuts import get_client_by_username
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.utils import get_node_callback_url
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 
 
-class ApproveService(Service):
+class ApproveService(BasePluginService):
     __need_schedule__ = True
 
     def inputs_format(self):
@@ -41,16 +41,10 @@ class ApproveService(Service):
                 schema=StringItemSchema(description=_("审核人,多个用英文逗号`,`分隔")),
             ),
             self.InputItem(
-                name=_("审核标题"),
-                key="bk_approve_title",
-                type="string",
-                schema=StringItemSchema(description=_("审核标题")),
+                name=_("审核标题"), key="bk_approve_title", type="string", schema=StringItemSchema(description=_("审核标题"))
             ),
             self.InputItem(
-                name=_("审核内容"),
-                key="bk_approve_message",
-                type="string",
-                schema=StringItemSchema(description=_("通知的标题")),
+                name=_("审核内容"), key="bk_approve_message", type="string", schema=StringItemSchema(description=_("通知的标题"))
             ),
         ]
 
@@ -65,7 +59,7 @@ class ApproveService(Service):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
 
@@ -105,11 +99,13 @@ class ApproveService(Service):
 
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         try:
             rejected_block = data.get_one_of_inputs("rejected_block", True)
             approve_result = callback_data["approve_result"]
             data.outputs.approve_result = "通过" if approve_result else "拒绝"
+            # 回调处理完成，标记调度结束
+            self.finish_schedule()
             # 审核拒绝不阻塞
             if not approve_result and not rejected_block:
                 return True

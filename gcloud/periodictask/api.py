@@ -12,26 +12,24 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 from gcloud import err_code
 from gcloud.core.models import Project
-
-from gcloud.utils.decorators import request_validate
-from gcloud.periodictask.models import PeriodicTask
-from gcloud.periodictask.validators import (
-    SetEnabledForPeriodicTaskValidator,
-    ModifyCronValidator,
-    ModifyConstantsValidator,
-)
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.periodic_task import (
-    SetEnabledForPeriodicTaskInterceptor,
-    ModifyCronInterceptor,
     ModifyConstantsInterceptor,
+    ModifyCronInterceptor,
+    SetEnabledForPeriodicTaskInterceptor,
 )
+from gcloud.periodictask.models import PeriodicTask
+from gcloud.periodictask.validators import (
+    ModifyConstantsValidator,
+    ModifyCronValidator,
+    SetEnabledForPeriodicTaskValidator,
+)
+from gcloud.utils.decorators import request_validate
 
 
 @require_POST
@@ -42,6 +40,8 @@ def set_enabled_for_periodic_task(request, project_id, task_id):
 
     task = PeriodicTask.objects.get(id=task_id)
     task.set_enabled(data["enabled"])
+    task.editor = request.user.username
+    task.save(update_fields=["editor", "edit_time"])
 
     return JsonResponse({"result": True, "message": "success"})
 

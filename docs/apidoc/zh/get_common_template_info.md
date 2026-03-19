@@ -13,6 +13,7 @@
 | include_subprocess | bool | 否 | 是否包含子流程信息，默认 false |
 | include_constants | bool | 否 | 是否包含全局变量信息，默认 false |
 | include_notify | bool | 否 | 是否包含通知信息，默认 false |
+| include_pipeline_tree | bool | 否 | MCP 请求时是否返回精简后的 pipeline_tree，默认 false。非 MCP 请求忽略此参数 |
 
 ### 请求参数示例
 
@@ -243,7 +244,7 @@
 
 ### MCP 请求说明
 
-当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+当请求来源于网关MCP时，部分字段会在响应中被过滤或精简：
 
-- `data.pipeline_tree` - 流程树信息
-- `data.template_constants` - 模板常量
+- `data.pipeline_tree` - 默认不返回；传入 `include_pipeline_tree=true` 时返回精简版本（移除前端渲染、画布布局等冗余信息，仅保留语义信息）
+- `data.template_constants` - 不返回

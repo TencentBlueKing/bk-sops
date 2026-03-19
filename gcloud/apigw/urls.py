@@ -20,24 +20,31 @@ from gcloud.apigw.views.create_and_start_task import create_and_start_task
 from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
 from gcloud.apigw.views.create_task import create_task
+from gcloud.apigw.views.create_template import create_template
 from gcloud.apigw.views.fast_create_task import fast_create_task
 from gcloud.apigw.views.get_common_template_info import get_common_template_info
 from gcloud.apigw.views.get_common_template_list import get_common_template_list
 from gcloud.apigw.views.get_functionalization_task_list import get_functionalization_task_list
 from gcloud.apigw.views.get_mini_app_list import get_mini_app_list
+from gcloud.apigw.views.get_node_job_executed_log import get_node_job_executed_log
+from gcloud.apigw.views.get_node_job_executed_log_for_inner import get_node_job_executed_log_for_inner
 from gcloud.apigw.views.get_periodic_task_info import get_periodic_task_info
 from gcloud.apigw.views.get_periodic_task_list import get_periodic_task_list
+from gcloud.apigw.views.get_plugin_base_info import get_plugin_base_info
 from gcloud.apigw.views.get_plugin_detail import get_plugin_detail
 from gcloud.apigw.views.get_plugin_list import get_plugin_list
 from gcloud.apigw.views.get_task_count import get_task_count
 from gcloud.apigw.views.get_task_detail import get_task_detail
 from gcloud.apigw.views.get_task_effective_time import get_task_effective_time
+from gcloud.apigw.views.get_task_effective_time_for_inner import get_task_effective_time_for_inner
 from gcloud.apigw.views.get_task_list import get_task_list
 from gcloud.apigw.views.get_task_node_data import get_task_node_data
 from gcloud.apigw.views.get_task_node_detail import get_task_node_detail
 from gcloud.apigw.views.get_task_node_log import get_task_node_log
+from gcloud.apigw.views.get_task_node_log_for_inner import get_task_node_log_for_inner
 from gcloud.apigw.views.get_task_operate_record import get_task_operate_record
 from gcloud.apigw.views.get_task_plugin_log import get_task_plugin_log
+from gcloud.apigw.views.get_task_plugin_log_for_inner import get_task_plugin_log_for_inner
 from gcloud.apigw.views.get_task_status import get_task_status
 from gcloud.apigw.views.get_tasks_manual_intervention_state import get_tasks_manual_intervention_state
 from gcloud.apigw.views.get_tasks_status import get_tasks_status
@@ -72,6 +79,7 @@ urlpatterns = [
     re_path(r"^get_common_template_list/$", get_common_template_list),
     re_path(r"^get_common_template_info/(?P<template_id>\d+)/$", get_common_template_info),
     re_path(r"^create_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_task),
+    re_path(r"^create_template/(?P<project_id>\d+)/$", create_template),
     re_path(r"^fast_create_task/(?P<project_id>\d+)/$", fast_create_task),
     re_path(r"^start_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", start_task),
     re_path(r"^operate_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", operate_task),
@@ -141,4 +149,10 @@ urlpatterns = [
     re_path(r"^get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time),
     re_path(r"^get_task_node_log/$", get_task_node_log),
     re_path(r"^get_task_plugin_log/$", get_task_plugin_log),
+    re_path(r"^get_node_job_executed_log/(?P<task_id>\d+)/(?P<project_id>\d+)/$", get_node_job_executed_log),
+    re_path(r"^inner/get_task_effective_time/(?P<task_id>\d+)/(?P<bk_biz_id>\d+)/$", get_task_effective_time_for_inner),
+    re_path(r"^inner/get_task_node_log/$", get_task_node_log_for_inner),
+    re_path(r"^inner/get_task_plugin_log/$", get_task_plugin_log_for_inner),
+    re_path(r"^inner/get_node_job_executed_log/$", get_node_job_executed_log_for_inner),
+    re_path(r"^get_plugin_base_info/(?P<project_id>\d+)/$", get_plugin_base_info),
 ]

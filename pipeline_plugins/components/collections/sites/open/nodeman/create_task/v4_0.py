@@ -52,7 +52,7 @@ HOST_EXTRA_PARAMS_IPV6 = ["inner_ipv6", "outer_ipv6"]
 
 
 class NodemanCreateTaskService(NodeManNewBaseService):
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         tenant_id = parent_data.inputs.tenant_id
         client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
