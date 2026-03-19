@@ -22,6 +22,7 @@ from rest_framework.decorators import api_view
 
 from gcloud import err_code
 from gcloud.contrib.analysis.analyse_items import task_template
+from gcloud.core.models import ProjectConfig
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.template import (
     AgentGenerateProcessInterceptor,
@@ -412,11 +413,29 @@ def generate_process_with_agent(request):
         )
 
     bk_biz_id = request_data.get("bk_biz_id")
+    project_id = request_data.get("project_id")
     prompt = request_data.get("prompt")
 
     if not prompt:
         return JsonResponse(
             {"result": False, "message": "prompt is required", "code": err_code.REQUEST_PARAM_INVALID.code}
+        )
+
+    # 功能开关：通过 ProjectConfig 的 custom_display_configs 控制是否开启 AI 生成流程
+    agent_enabled = False
+    if project_id:
+        project_config = ProjectConfig.objects.filter(project_id=project_id).first()
+        if project_config:
+            custom_configs = project_config.custom_display_configs or {}
+            agent_enabled = custom_configs.get("enable_agent_generate", False)
+
+    if not agent_enabled:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "该项目未开启 AI 生成流程功能",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
         )
 
     username = request.user.username if request.user.is_authenticated else ""

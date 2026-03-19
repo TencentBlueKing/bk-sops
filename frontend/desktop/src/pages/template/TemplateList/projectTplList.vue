@@ -30,7 +30,7 @@
                             {{$t('新建')}}
                         </bk-button>
                         <bk-button
-                            v-if="isAiEnabled"
+                            v-if="agentEnabled"
                             v-cursor="{ active: !hasPermission(['flow_create'], authActions) }"
                             :class="['ai-generate-btn', {
                                 'btn-permission-disable': !hasPermission(['flow_create'], authActions)
@@ -779,6 +779,7 @@
                 isBatchUpdateDialogShow: false,
                 pipelineTree: {},
                 // 智能体生成相关
+                agentEnabled: false,
                 isAiGenerateDialogShow: false,
                 aiGenerateLoading: false,
                 aiGenerateProgress: 0,
@@ -853,6 +854,7 @@
             this.getFields()
             this.getProjectLabelList()
             this.getExpiredSubflowData()
+            this.getAgentEnabledConfig()
             await this.initData()
             this.firstLoading = false
         },
@@ -866,6 +868,17 @@
         methods: {
             closeBatchUpdateDialogShow () {
                 this.isBatchUpdateDialogShow = false
+            },
+            async getAgentEnabledConfig () {
+                try {
+                    const resp = await this.getProjectConfig(this.project_id)
+                    if (resp.result) {
+                        const customConfigs = resp.data.custom_display_configs || {}
+                        this.agentEnabled = !!customConfigs.enable_agent_generate
+                    }
+                } catch (e) {
+                    console.error(e)
+                }
             },
             ...mapActions([
                 'addToCollectList',
@@ -888,6 +901,7 @@
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault',
+                'getProjectConfig',
                 'getUserProjectConfigOptions',
                 'setUserProjectConfig',
                 'createTemplateLabel'
