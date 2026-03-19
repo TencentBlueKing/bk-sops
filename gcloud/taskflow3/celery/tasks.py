@@ -343,7 +343,7 @@ def async_node_callback_retry(
         return callback_result
 
 
-@task
+@current_app.task
 def ai_analysis_notify(
     bk_biz_id: str, task_id: str, executor: str, receivers: str, msg_type: str, ai_analysis_notify_types: dict
 ):
@@ -406,7 +406,7 @@ def ai_analysis_notify(
         logger.exception(f"[ai_analysis_notify] error occurred, task_id: {task_id}, msg_type: {msg_type}, error: {e}")
 
 
-@task
+@current_app.task
 def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str):
     """
     AI分析通知任务 群聊通知
