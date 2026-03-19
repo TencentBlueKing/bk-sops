@@ -11,20 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import sys
 import logging
+import sys
 
-from django.conf import settings
 from django.apps import AppConfig
+from django.conf import settings
 
-logger = logging.getLogger('root')
+logger = logging.getLogger("root")
 
-DJANGO_MANAGE_CMD = 'manage.py'
-INIT_PASS_TRIGGER = {'migrate'}
+DJANGO_MANAGE_CMD = "manage.py"
+INIT_PASS_TRIGGER = {"migrate"}
 
 
 class PipelinePluginsConfig(AppConfig):
-    name = 'pipeline_plugins'
+    name = "pipeline_plugins"
 
     def ready(self):
 
@@ -32,5 +32,5 @@ class PipelinePluginsConfig(AppConfig):
             logger.info("ignore pipeline plugins init for command: {}".format(sys.argv))
             return
 
-        for old_path, new_path in list(getattr(settings, 'COMPATIBLE_MODULE_MAP', {}).items()):
+        for old_path, new_path in list(getattr(settings, "COMPATIBLE_MODULE_MAP", {}).items()):
             sys.modules[old_path] = sys.modules[new_path]

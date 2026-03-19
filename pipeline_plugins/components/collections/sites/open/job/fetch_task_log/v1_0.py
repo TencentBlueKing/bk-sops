@@ -16,12 +16,12 @@ from functools import partial
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
 
 __group_name__ = _("作业平台(JOB)")
@@ -29,7 +29,7 @@ __group_name__ = _("作业平台(JOB)")
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
-class JobFetchTaskLogService(Service):
+class JobFetchTaskLogService(BasePluginService):
     def inputs_format(self):
         return [
             self.InputItem(
@@ -49,14 +49,11 @@ class JobFetchTaskLogService(Service):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("任务日志"),
-                key="job_task_log",
-                type="string",
-                schema=StringItemSchema(description=_("任务日志")),
+                name=_("任务日志"), key="job_task_log", type="string", schema=StringItemSchema(description=_("任务日志"))
             )
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)

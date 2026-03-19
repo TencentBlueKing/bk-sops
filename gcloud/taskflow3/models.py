@@ -1274,6 +1274,12 @@ class TaskFlowInstance(models.Model):
             else {"success": notify_type, "fail": notify_type, "pending_processing": notify_type}
         )
 
+    def get_ai_notify_type(self):
+        return self.template.ai_notify_type
+
+    def get_ai_notify_group(self):
+        return self.template.ai_notify_group
+
     def record_and_get_executor_proxy(self, operator):
         if self.recorded_executor_proxy is None:
             self.recorded_executor_proxy = self.executor_proxy or ProjectConfig.objects.task_executor_for_project(

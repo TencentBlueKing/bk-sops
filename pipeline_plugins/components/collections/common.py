@@ -19,14 +19,16 @@ from django.conf import settings
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import IntItemSchema, ObjectItemSchema, StringItemSchema
+
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 
 
-class HttpRequestService(Service):
+class HttpRequestService(BasePluginService):
 
     __need_schedule__ = True
     interval = StaticIntervalGenerator(0)
@@ -62,17 +64,14 @@ class HttpRequestService(Service):
                 schema=ObjectItemSchema(description=_("HTTP 请求响应内容，内部结构不固定"), property_schemas={}),
             ),
             self.OutputItem(
-                name=_("状态码"),
-                key="status_code",
-                type="int",
-                schema=IntItemSchema(description=_("HTTP 请求响应状态码")),
+                name=_("状态码"), key="status_code", type="int", schema=IntItemSchema(description=_("HTTP 请求响应状态码"))
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if parent_data.get_one_of_inputs("language"):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
@@ -126,10 +125,7 @@ class HttpRequestService(Service):
 
 class HttpComponent(Component):
     name = _("HTTP 请求")
-    desc = _(
-        "提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 "
-        "2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功"
-    )
+    desc = _("提示: 1.请求URL需要在当前网络下可以访问，否则会超时失败 " "2.响应状态码在200-300(不包括300)之间，并且响应内容是 JSON 格式才会执行成功")
     code = "bk_http_request"
     bound_service = HttpRequestService
     form = settings.STATIC_URL + "components/atoms/bk/http/legacy.js"

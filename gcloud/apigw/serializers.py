@@ -29,6 +29,13 @@ class IncludeTemplateSerializer(serializers.Serializer):
     include_constants = serializers.BooleanField(required=False, help_text="全局变量", default=False)
     include_notify = serializers.BooleanField(required=False, help_text="通知信息", default=False)
     include_labels = serializers.BooleanField(required=False, help_text="标签信息", default=False)
+    unfold_subprocess = serializers.BooleanField(required=False, help_text="是否展开子流程完整配置", default=False)
+    format = serializers.ChoiceField(
+        required=False,
+        choices=["json", "yaml"],
+        default="json",
+        help_text="pipeline_tree 的返回格式，json 返回原始对象，yaml 返回 YAML schema 字符串",
+    )
 
 
 class IncludeTaskSerializer(serializers.Serializer):

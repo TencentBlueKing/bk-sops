@@ -1969,7 +1969,31 @@ const en = {
     '粘贴失败': 'Paste failed',
     '编写脚本': 'Write Script',
     '脚本检查': 'Script Check',
-    '排查失败的原因': 'Find out the reason for the failure'
+    '排查失败的原因': 'Find out the reason for the failure',
+    '任务总结': 'Task Summary',
+    'AI分析通知': 'AI Analysis Notification',
+    '群聊通知': 'Group Chat Notification',
+    '执行者通知': 'Executor Notification',
+    '群聊ID': 'Group Chat ID',
+    '需要@的人': 'People to Mention',
+    '请输入群聊ID': 'Please enter group chat ID',
+    '请输入需要@的人': 'Please enter the people to mention',
+    '请输入群聊机器人webhook': 'Please enter group chat bot webhook',
+    '生成进度': 'Generation Progress',
+    '正在准备生成环境...': 'Preparing generation environment...',
+    '生成完成！': 'Generation completed!',
+    '正在分析流程描述...': 'Analyzing process description...',
+    '正在调用 AI 模型...': 'Calling AI model...',
+    '正在生成流程结构...': 'Generating process structure...',
+    '正在优化流程布局...': 'Optimizing process layout...',
+    '正在完成最后处理...': 'Completing final processing...',
+    '即将完成，请稍候...': 'Almost done, please wait...',
+    'AI 生成': 'AI Generate',
+    'AI 生成流程': 'AI Generate Flow',
+    '流程描述': 'Flow Description',
+    'AI 正在生成流程，请稍候...': 'AI is generating flow, please wait...',
+    '请描述您想要创建的流程': 'Please describe the flow you want to create.',
+    '历史任务': 'Task History'
 }
 
 export default en

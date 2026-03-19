@@ -19,7 +19,7 @@ from django.views.decorators.http import require_POST
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.validators import FastCreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
@@ -38,6 +38,7 @@ from gcloud.utils.strings import standardize_name
 @csrf_exempt
 @require_POST
 @apigw_require
+@mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
@@ -80,11 +81,17 @@ def fast_create_task(request, project_id):
         logger.exception(message)
         return {"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code}
 
+    # 判断是否是 MCP 请求，设置对应的 create_method
+    # request.is_mcp_request 由 @mcp_apigw 装饰器注入
+    create_method = (
+        TaskCreateMethod.MCP.value if getattr(request, "is_mcp_request", False) else TaskCreateMethod.API.value
+    )
+
     taskflow_kwargs = {
         "project": project,
         "pipeline_instance": pipeline_instance,
         "template_source": ONETIME,
-        "create_method": TaskCreateMethod.API.value,
+        "create_method": create_method,
     }
     if params.get("category") in [cate[0] for cate in TASK_CATEGORY]:
         taskflow_kwargs["category"] = params["category"]

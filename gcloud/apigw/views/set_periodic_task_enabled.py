@@ -53,4 +53,6 @@ def set_periodic_task_enabled(request, task_id, project_id):
         }
 
     task.set_enabled(enabled)
+    task.editor = request.user.username
+    task.save(update_fields=["editor", "edit_time"])
     return {"result": True, "data": {"enabled": task.enabled}, "code": err_code.SUCCESS.code}

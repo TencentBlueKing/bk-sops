@@ -35,7 +35,6 @@ from functools import partial
 
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow import StaticIntervalGenerator
-from pipeline.core.flow.activity import Service
 from pipeline.core.flow.io import IntItemSchema, StringItemSchema
 
 from env import JOB_LOG_VAR_SEARCH_CUSTOM_PATTERNS
@@ -43,6 +42,7 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
+from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.utils.common import batch_execute_func
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
@@ -438,7 +438,7 @@ def get_job_sops_var_dict(
     return {"result": True, "data": get_sops_var_dict_from_log_text(log_text, service_logger)}
 
 
-class JobService(Service):
+class JobService(BasePluginService):
     __need_schedule__ = True
 
     reload_outputs = True
@@ -449,7 +449,7 @@ class JobService(Service):
 
     biz_scope_type = JobBizScopeType.BIZ.value
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         pass
 
     def is_need_log_outputs_even_fail(self, data):
@@ -468,7 +468,8 @@ class JobService(Service):
         )
         return result, tagged_ip_dict
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
+
         try:
             job_instance_id = callback_data.get("job_instance_id", None)
             status = callback_data.get("status", None)
@@ -618,7 +619,7 @@ class JobScheduleService(JobService):
 
     need_show_failure_inst_url = False
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         else:
@@ -679,6 +680,7 @@ class JobScheduleService(JobService):
                     job_detail_url
                 )
                 self.logger.error("请求job_id({}),结果为:{}".format(job_id_str, result.get("message")))
+
         # 需要继续轮询的任务
         data.outputs.job_id_of_batch_execute = running_task_list
         # 结束调度
@@ -691,8 +693,11 @@ class JobScheduleService(JobService):
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
 
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
 
-class Jobv3Service(Service):
+
+class Jobv3Service(BasePluginService):
     __need_schedule__ = True
 
     reload_outputs = True
@@ -704,7 +709,7 @@ class Jobv3Service(Service):
 
     biz_scope_type = JobBizScopeType.BIZ.value
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         pass
 
     def is_need_log_outputs_even_fail(self, data):
@@ -723,7 +728,7 @@ class Jobv3Service(Service):
         )
         return result, tagged_ip_dict
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
 
         try:
             job_instance_id = callback_data.get("job_instance_id", None)
@@ -871,7 +876,7 @@ class Jobv3ScheduleService(Jobv3Service):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(5)
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
             data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
         else:
@@ -938,6 +943,9 @@ class Jobv3ScheduleService(Jobv3Service):
 
             self.finish_schedule()
             return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
+        return True
 
 
 class GetJobHistoryResultMixin(object):

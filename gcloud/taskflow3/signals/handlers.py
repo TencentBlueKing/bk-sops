@@ -33,9 +33,15 @@ from pipeline.signals import post_pipeline_finish, post_pipeline_revoke
 from webhook.signals import event_broadcast_signal
 
 import env
-from gcloud.constants import WebhookEventType, WebhookScopeType
+from gcloud.constants import TaskCreateMethod, WebhookEventType, WebhookScopeType
 from gcloud.shortcuts.message import ATOM_FAILED, TASK_FINISHED
-from gcloud.taskflow3.celery.tasks import auto_retry_node, send_taskflow_message, task_callback
+from gcloud.taskflow3.celery.tasks import (
+    ai_analysis_notify,
+    ai_analysis_notify_group_chat,
+    auto_retry_node,
+    send_taskflow_message,
+    task_callback,
+)
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import (
     AutoRetryNodeStrategy,
@@ -46,6 +52,7 @@ from gcloud.taskflow3.models import (
 )
 from gcloud.taskflow3.signals import taskflow_finished, taskflow_revoked
 from gcloud.taskflow3.utils import add_node_name_to_status_tree
+from gcloud.utils.json import safe_for_json
 
 logger = logging.getLogger("celery")
 
@@ -90,12 +97,76 @@ def _send_node_fail_message(node_id, pipeline_id):
 def send_task_message(pipeline_id, node_id, msg_type):
     try:
         taskflow = TaskFlowInstance.objects.get(pipeline_instance__instance_id=pipeline_id)
+
+        bk_biz_id = taskflow.project.bk_biz_id
+        task_id = taskflow.id
+        executor = taskflow.pipeline_instance.executor
+        # TODO 暂时先使用执行人作为接收人，后续支持通知分组
+        receivers = executor
+        ai_notify_type = taskflow.get_ai_notify_type()
+        ai_notify_group = taskflow.get_ai_notify_group()
+        # AI分析通知开关
+        enable_analysis_notification = env.ENABLE_AI_NOTIFICATION
+
+        # 提交个人通知任务 排除周期任务
+        if (
+            enable_analysis_notification
+            and ai_notify_type
+            and taskflow.create_method != TaskCreateMethod.PERIODIC.value
+        ):
+
+            logger.info(
+                f"[send_task_message] ai_analysis_notify apply_async bk_biz_id: {bk_biz_id}, task_id: {task_id}"
+            )
+
+            ai_analysis_notify.apply_async(
+                kwargs={
+                    "bk_biz_id": bk_biz_id,
+                    "task_id": task_id,
+                    "executor": executor,
+                    "receivers": receivers,
+                    "msg_type": msg_type,
+                    "ai_analysis_notify_types": ai_notify_type,
+                },
+                queue="ai_notify",
+                routing_key="ai_notify",
+            )
+
+        # 提交群聊通知任务 排除周期任务(周期任务频繁执行，避免频繁调用AI接口产生过多通知)
+        if (
+            enable_analysis_notification
+            and ai_notify_group
+            and taskflow.create_method != TaskCreateMethod.PERIODIC.value
+        ):
+
+            logger.info(
+                f"[send_task_message] ai_analysis_notify_group_chat apply_async bk_biz_id: "
+                f"{bk_biz_id}, task_id: {task_id}"
+            )
+
+            ai_analysis_notify_group_chat.apply_async(
+                kwargs={
+                    "bk_biz_id": bk_biz_id,
+                    "task_id": task_id,
+                    "ai_notify_group": ai_notify_group,
+                    "msg_type": msg_type,
+                },
+                queue="ai_notify",
+                routing_key="ai_notify",
+            )
+
         resp_data = TaskCommandDispatcher(
             engine_ver=taskflow.engine_ver,
             taskflow_id=taskflow.id,
             pipeline_instance=taskflow.pipeline_instance,
             project_id=taskflow.project_id,
         ).render_current_constants()
+
+        if resp_data["result"]:
+            for var in resp_data["data"]:
+                if safe_for_json(var["value"]):
+                    continue
+                var["value"] = str(var["value"].__dict__) if hasattr(var["value"], "__dict__") else str(var["value"])
 
         scopes = [(WebhookScopeType.TEMPLATE.value, str(taskflow.template_id))]
         extra_info = {
@@ -248,7 +319,6 @@ def bamboo_engine_eri_post_set_state_handler(sender, node_id, to_state, version,
 
         if auto_retry_dispatched:
             return
-
         _send_node_fail_message(node_id=node_id, pipeline_id=root_id)
         send_task_message(pipeline_id=root_id, node_id=node_id, msg_type=ATOM_FAILED)
 

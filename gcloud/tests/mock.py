@@ -149,6 +149,7 @@ class MockPeriodicTask(object):
         self.form = kwargs.get("form", "form")
         self.pipeline_tree = kwargs.get("pipeline_tre", "pipeline_tree")
         self.set_enabled = MagicMock()
+        self.save = MagicMock()
         self.modify_cron = MagicMock(**{"side_effect": kwargs.get("modify_cron_raise")})
         self.modify_constants = MagicMock(
             **{

@@ -40,16 +40,10 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
     def inputs_format(self):
         return [
             self.InputItem(
-                name=_("目标IP"),
-                key="job_target_ip_list",
-                type="string",
-                schema=StringItemSchema(description=_("目标IP")),
+                name=_("目标IP"), key="job_target_ip_list", type="string", schema=StringItemSchema(description=_("目标IP"))
             ),
             self.InputItem(
-                name=_("执行账号"),
-                key="job_target_account",
-                type="string",
-                schema=StringItemSchema(description=_("执行账号")),
+                name=_("执行账号"), key="job_target_account", type="string", schema=StringItemSchema(description=_("执行账号"))
             ),
             self.InputItem(
                 name=_("本地文件信息"),
@@ -72,8 +66,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
                                                     description=_("tag"),
                                                     property_schemas={
                                                         "type": StringItemSchema(
-                                                            description=_("文件类型"),
-                                                            enum=["upload_module", "host_nfs"],
+                                                            description=_("文件类型"), enum=["upload_module", "host_nfs"]
                                                         ),
                                                         "tags": ObjectItemSchema(
                                                             description=_(
@@ -116,10 +109,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
                 schema=StringItemSchema(description=_("上传请求成功数")),
             ),
             self.OutputItem(
-                name=_("上传成功数"),
-                key="success_count",
-                type="string",
-                schema=StringItemSchema(description=_("上传成功数")),
+                name=_("上传成功数"), key="success_count", type="string", schema=StringItemSchema(description=_("上传成功数"))
             ),
             self.OutputItem(
                 name=_("任务id"),
@@ -159,9 +149,9 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
                     for _file in push_files_info["file_info"]
                     if _file["response"]["result"] is True
                 ],
-                "target_path": push_files_info["target_path"].strip(),
+                "target_path": push_files_info["target_path"],
                 "ips": None,
-                "account": target_account.strip(),
+                "account": target_account,
                 "target_server": target_server,
                 "headers": {"X-Bk-Tenant-Id": tenant_id},
             }
@@ -170,7 +160,7 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
 
         return params_list
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         tenant_id = parent_data.inputs.tenant_id
         biz_cc_id = data.inputs.biz_cc_id
@@ -253,6 +243,3 @@ class BaseJobPushLocalFilesService(JobScheduleService, GetJobTargetServerMixin):
         # 任务结果
         data.outputs.final_res = task_count == len(job_instance_id_list)
         return True
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(BaseJobPushLocalFilesService, self).schedule(data, parent_data, callback_data)

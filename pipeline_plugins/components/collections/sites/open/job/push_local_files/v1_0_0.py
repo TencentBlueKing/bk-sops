@@ -42,7 +42,7 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
     def outputs_format(self):
         return []
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
         tenant_id = parent_data.inputs.tenant_id
         biz_cc_id = data.inputs.biz_cc_id
@@ -89,9 +89,9 @@ class JobPushLocalFilesService(JobService, GetJobTargetServerMixin):
             esb_client=client,
             bk_biz_id=biz_cc_id,
             file_tags=file_tags,
-            target_path=target_path.strip(),
+            target_path=target_path,
             ips=None,
-            account=target_account.strip(),
+            account=target_account,
             callback_url=get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", "")),
             target_server=target_server,
             headers={"X-Bk-Tenant-Id": tenant_id},

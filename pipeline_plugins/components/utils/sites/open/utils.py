@@ -13,10 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 import re
+import time
 from collections import Counter
 
 from cryptography.fernet import Fernet
 from django.utils.translation import gettext_lazy as _
+from pipeline.core.constants import PE
+from pipeline.models import PipelineInstance
 
 import env
 from gcloud.conf import settings
@@ -34,6 +37,7 @@ __all__ = [
     "get_nodeman_job_url",
     "get_difference_ip_list",
     "get_biz_ip_from_frontend",
+    "get_job_task_name",
 ]
 
 JOB_APP_CODE = "bk_job"

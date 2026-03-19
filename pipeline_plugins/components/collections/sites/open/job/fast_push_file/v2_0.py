@@ -93,7 +93,7 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
@@ -220,9 +220,6 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
             return False
         data.outputs.final_res = task_count == len(job_result_list)
         return True
-
-    def schedule(self, data, parent_data, callback_data=None):
-        return super(JobFastPushFileService, self).schedule(data, parent_data, callback_data)
 
     def outputs_format(self):
         return [

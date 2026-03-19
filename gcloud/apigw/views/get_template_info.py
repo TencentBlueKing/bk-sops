@@ -12,6 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 
+import logging
+
+import yaml
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
@@ -22,15 +25,21 @@ from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_data, process_pipeline_constants
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
+from gcloud.utils.pipeline_tree_trimmer import trim_pipeline_tree
+from gcloud.utils.yaml import NoAliasSafeDumper
+
+logger = logging.getLogger("root")
 
 
 @login_exempt
 @require_GET
 @apigw_require
-@mcp_apigw(exclude_responses=["data.pipeline_tree"])
+@mcp_apigw(trim_responses={"pipeline_tree": trim_pipeline_tree})
 @return_json_response
 @mark_request_whether_is_trust
 @project_inject
@@ -46,6 +55,7 @@ def get_template_info(request, template_id, project_id):
     include_constants = serializer.validated_data["include_constants"]
     include_executor_proxy = serializer.validated_data["include_executor_proxy"]
     include_notify = serializer.validated_data["include_notify"]
+    unfold_subprocess = serializer.validated_data["unfold_subprocess"]
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
@@ -76,11 +86,59 @@ def get_template_info(request, template_id, project_id):
             }
             return result
 
-    data = format_template_data(
-        tmpl, project, include_subprocess, include_executor_proxy=include_executor_proxy, include_notify=include_notify
-    )
+    try:
+        data = format_template_data(
+            tmpl,
+            project,
+            include_subprocess,
+            include_executor_proxy=include_executor_proxy,
+            include_notify=include_notify,
+            unfold_subprocess=unfold_subprocess,
+        )
+    except Exception as e:
+        logger.exception("[get_template_info] format_template_data error: template_id=%s", template_id)
+        return {
+            "result": False,
+            "message": "format_template_data failed: {}".format(str(e)),
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
     if include_constants:
         data["template_constants"] = process_pipeline_constants(data["pipeline_tree"])
+
+    output_format = serializer.validated_data["format"]
+    if output_format == "yaml":
+        template_model_cls = TaskTemplate if template_source in NON_COMMON_TEMPLATE_TYPES else CommonTemplate
+        export_kwargs = {}
+        if template_source in NON_COMMON_TEMPLATE_TYPES:
+            export_kwargs["project_id"] = project.id
+        try:
+            templates_data = template_model_cls.objects.export_templates([int(template_id)], **export_kwargs)
+            convert_result = YamlSchemaConverterHandler("v1").convert(templates_data)
+        except FlowExportError as e:
+            logger.exception("[get_template_info] export yaml failed: template_id=%s", template_id)
+            return {
+                "result": False,
+                "message": "export yaml failed: {}".format(str(e)),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+        except Exception as e:
+            logger.exception("[get_template_info] convert yaml failed: template_id=%s", template_id)
+            return {
+                "result": False,
+                "message": "convert yaml failed: {}".format(str(e)),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+
+        if not convert_result["result"]:
+            return {
+                "result": False,
+                "message": "convert yaml failed: {}".format(convert_result["message"]),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+
+        data["pipeline_tree"] = yaml.dump_all(
+            convert_result["data"], allow_unicode=True, sort_keys=False, Dumper=NoAliasSafeDumper
+        )
 
     return {
         "result": True,

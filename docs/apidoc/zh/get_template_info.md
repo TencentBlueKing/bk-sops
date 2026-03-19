@@ -15,7 +15,10 @@
 | include_subprocess | bool | 否 | 是否包含子流程信息，默认 false |
 | include_constants | bool | 否 | 是否包含全局变量信息，默认 false |
 | include_notify | bool | 否 | 是否包含通知信息，默认 false |
+| unfold_subprocess | bool | 否 | 是否展开子流程完整配置，默认 false。设为 true 时，pipeline_tree 中每个 SubProcess 节点将包含 pipeline 字段，其中包含该子流程的完整 pipeline_tree（递归展开所有层级）。展开失败时返回 result=false。 |
 | scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目|
+| format | string | 否 | pipeline_tree 的返回格式，可选值 json（默认）、yaml。设为 yaml 时，pipeline_tree 字段返回与页面导出一致的 YAML schema 字符串（含 schema_version/meta/spec 结构）。注意：format=yaml 时若同时传入 include_constants=true，template_constants 仍为 JSON 对象（从原始 pipeline_tree 提取），与 YAML 格式的 pipeline_tree 独立 |
+| include_pipeline_tree | bool | 否 | MCP 请求时是否返回精简后的 pipeline_tree，默认 false。非 MCP 请求忽略此参数 |
 
 ### 请求参数示例
 
@@ -215,7 +218,7 @@
 | create_time   |    string    | 模板创建时间            |
 | editor        |    string 或者 null    | 模板编辑人             |
 | edit_time     |    string    | 模板最新编辑时间          |
-| pipeline_tree |    dict      | 模板任务树信息，详细信息见下面说明 |
+| pipeline_tree |    dict 或 string      | 模板任务树信息。format=json 时为 dict（详细信息见下面说明），format=yaml 时为 YAML schema 字符串 |
 
 #### data.category
 
@@ -260,6 +263,6 @@
 
 ### MCP 请求说明
 
-当请求来源于网关MCP时，以下字段会在响应中被过滤，不会返回：
+当请求来源于网关MCP时，`pipeline_tree` 字段默认不返回（向后兼容）。如需获取精简后的流程树，请传入 `include_pipeline_tree=true`：
 
-- `data.pipeline_tree` - 流程树信息
+- `data.pipeline_tree` - 默认不返回；传入 `include_pipeline_tree=true` 时返回精简版本（移除前端渲染、画布布局等冗余信息，仅保留语义信息）

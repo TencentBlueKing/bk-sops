@@ -21,18 +21,19 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.conf import settings
-from pipeline.core.flow.activity import Service, StaticIntervalGenerator
+from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import ArrayItemSchema, IntItemSchema, ObjectItemSchema, StringItemSchema
 from pipeline.utils.boolrule import BoolRule
 from requests import request
 
 from gcloud.utils.validate import DomainValidator
+from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
 
 
-class HttpRequestService(Service):
+class HttpRequestService(BasePluginService):
 
     __need_schedule__ = True
     interval = StaticIntervalGenerator(0)
@@ -97,17 +98,14 @@ class HttpRequestService(Service):
                 schema=ObjectItemSchema(description=_("HTTP 请求响应内容，内部结构不固定"), property_schemas={}),
             ),
             self.OutputItem(
-                name=_("状态码"),
-                key="status_code",
-                type="int",
-                schema=IntItemSchema(description=_("HTTP 请求响应状态码")),
+                name=_("状态码"), key="status_code", type="int", schema=IntItemSchema(description=_("HTTP 请求响应状态码"))
             ),
         ]
 
-    def execute(self, data, parent_data):
+    def plugin_execute(self, data, parent_data):
         return True
 
-    def schedule(self, data, parent_data, callback_data=None):
+    def plugin_schedule(self, data, parent_data, callback_data=None):
         if parent_data.get_one_of_inputs("language"):
             translation.activate(parent_data.get_one_of_inputs("language"))
 
