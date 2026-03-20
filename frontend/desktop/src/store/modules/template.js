@@ -1101,6 +1101,10 @@ const template = {
         getLayoutedPipeline ({ commit }, data) {
             return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
         },
+        // AI 自动排版
+        getAILayoutedPipeline ({ commit }, data) {
+            return axios.get('template/api/ai_beautify_layout/', { params: data }).then(response => response.data)
+        },
         // AI 生成流程
         generateProcessWithAgent ({ commit }, data) {
             return axios.post('template/api/generate_process_with_agent/', data).then(response => response.data)

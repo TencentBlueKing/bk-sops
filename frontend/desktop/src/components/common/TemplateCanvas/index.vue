@@ -61,12 +61,15 @@
                     :zoom-ratio="zoomRatio"
                     :is-show-hot-key="isShowHotKey"
                     :is-perspective="isPerspective"
+                    :ai-format-loading="aiFormatLoading"
+                    :ai-format-result="aiFormatResult"
                     @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
                     @onResetPosition="onResetPosition"
                     @onOpenFrameSelect="onOpenFrameSelect"
                     @onFormatPosition="onFormatPosition"
+                    @onAIFormatPosition="onAIFormatPosition"
                     @onToggleAllNode="onToggleAllNode"
                     @onToggleHotKeyInfo="onToggleHotKeyInfo"
                     @onTogglePerspective="onTogglePerspective"
@@ -265,6 +268,14 @@
             nodeExecRecordInfo: {
                 type: Object,
                 default: () => ({})
+            },
+            aiFormatLoading: {
+                type: Boolean,
+                default: false
+            },
+            aiFormatResult: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -452,6 +463,10 @@
             },
             onFormatPosition () {
                 this.$emit('onFormatPosition')
+                this.showSmallMap = false
+            },
+            onAIFormatPosition () {
+                this.$emit('onAIFormatPosition')
                 this.showSmallMap = false
             },
             onOpenFrameSelect () {

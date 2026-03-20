@@ -1955,7 +1955,11 @@ const en = {
     '流程描述': 'Flow Description',
     'AI 正在生成流程，请稍候...': 'AI is generating flow, please wait...',
     '请描述您想要创建的流程': 'Please describe the flow you want to create.',
-    '历史任务': 'Task History'
+    '历史任务': 'Task History',
+    'AI排版': 'AI Layout',
+    'AI排版完成,原内容在本地快照中': 'AI layout completed, original content in local snapshot',
+    'AI排版失败': 'AI layout failed',
+    'AI排版请求异常': 'AI layout request exception'
 }
 
 export default en
