@@ -297,14 +297,15 @@
     .operation-title {
         font-size: 14px;
         color: #313238;
+        white-space: nowrap;
     }
     .bread-crumbs-wrapper {
         margin-left: 10px;
         font-size: 0;
-        flex: 1;
         min-width: 14px;
         overflow: hidden;
         white-space: nowrap;
+        flex-shrink: 1;
         .path-item {
             display: inline-block;
             font-size: 14px;

@@ -17,14 +17,12 @@ from blueapps.account.decorators import login_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from gcloud.apigw.decorators import return_json_response
 from gcloud.apigw.views.get_task_node_log import DEFAULT_PAGE, DEFAULT_PAGE_SIZE, fetch_task_node_log
 
 
 @login_exempt
 @api_view(["GET"])
 @apigw_require
-@return_json_response
 def get_task_node_log_for_inner(request):
     """
     内部接口，仅限于内部使用

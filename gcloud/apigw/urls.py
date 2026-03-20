@@ -20,6 +20,7 @@ from gcloud.apigw.views.create_and_start_task import create_and_start_task
 from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
 from gcloud.apigw.views.create_task import create_task
+from gcloud.apigw.views.create_template import create_template
 from gcloud.apigw.views.fast_create_task import fast_create_task
 from gcloud.apigw.views.get_common_template_info import get_common_template_info
 from gcloud.apigw.views.get_common_template_list import get_common_template_list
@@ -78,6 +79,7 @@ urlpatterns = [
     url(r"^get_common_template_list/$", get_common_template_list),
     url(r"^get_common_template_info/(?P<template_id>\d+)/$", get_common_template_info),
     url(r"^create_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_task),
+    url(r"^create_template/(?P<project_id>\d+)/$", create_template),
     url(r"^fast_create_task/(?P<project_id>\d+)/$", fast_create_task),
     url(r"^start_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", start_task),
     url(r"^operate_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", operate_task),

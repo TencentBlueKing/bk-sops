@@ -16,12 +16,12 @@ import logging
 from apigw_manager.apigw.decorators import apigw_require
 from bamboo_engine import exceptions as bamboo_exceptions
 from blueapps.account.decorators import login_exempt
-from django.views.decorators.http import require_GET
 from pipeline.eri.runtime import BambooDjangoRuntime
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject
 from gcloud.apigw.views.utils import logger
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
@@ -48,8 +48,7 @@ JOB_INST_ID_IN_LIST_MAP = {
 }
 
 
-def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_code=None,
-                                job_scope_type=None):
+def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_code=None, job_scope_type=None):
     """获取节点JOB执行日志的核心逻辑，供内外接口共用"""
     if job_scope_type is None:
         job_scope_type = JobBizScopeType.BIZ.value
@@ -69,8 +68,9 @@ def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_co
         job_instance_id_list = execution_data.outputs.get("job_inst_id_list") or []
         log_content_list = []
         for job_instance_id in job_instance_id_list:
-            log_result = get_job_instance_log(client, node_logger, job_instance_id, bk_biz_id, target_ip,
-                                              job_scope_type)
+            log_result = get_job_instance_log(
+                client, node_logger, job_instance_id, bk_biz_id, target_ip, job_scope_type
+            )
             if not log_result["result"]:
                 return {
                     "result": False,
@@ -107,10 +107,9 @@ def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_co
 
 
 @login_exempt
-@require_GET
+@api_view(["GET"])
 @apigw_require
 @mcp_apigw()
-@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())
@@ -126,7 +125,7 @@ def get_node_job_executed_log(request, task_id, project_id):
             )
         )
         logger.exception(message)
-        return {"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
+        return Response({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
 
     node_id = request.GET.get("node_id")
     target_ip = request.GET.get("target_ip")
