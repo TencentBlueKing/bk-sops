@@ -1436,20 +1436,10 @@
                                 theme: 'success'
                             })
                         })
-                    } else {
-                        this.aiFormatResult = 'fail'
-                        this.$bkMessage({
-                            message: res.message || i18n.t('AI排版失败'),
-                            theme: 'error'
-                        })
                     }
                 } catch (e) {
                     console.log(e)
                     this.aiFormatResult = 'fail'
-                    this.$bkMessage({
-                        message: i18n.t('AI排版请求异常'),
-                        theme: 'error'
-                    })
                 } finally {
                     this.aiFormatLoading = false
                 }
