@@ -38,4 +38,5 @@ urlpatterns = [
     url(r"^api/form_with_schemes/", TemplateFormWithSchemesView.as_view()),
     url(r"^api/batch_form_with_schemes/", BatchTemplateFormWithSchemesView.as_view()),
     url(r"^api/generate_process_with_agent/$", api.generate_process_with_agent),
+    url(r"^api/ai_beautify_layout/$", api.ai_beautify_sops_template_layout),
 ]
