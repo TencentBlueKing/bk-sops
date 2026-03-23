@@ -463,10 +463,6 @@
             nodeNav () {
                 return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
             },
-            // 当前画布是否为最外层
-            isTopTask () {
-                return this.nodeNav.length === 1
-            },
             isTaskOperationBtnsShow () {
                 return this.state !== 'REVOKED' && this.state !== 'FINISHED'
             },
@@ -659,9 +655,6 @@
                         if (['FINISHED', 'FAILED'].includes(this.state)) {
                             const instanceData = await this.getTaskInstanceData(this.taskId)
                             this.webhookHistory = instanceData.task_webhook_history
-                        }
-                        if (this.isTopTask) {
-                            this.rootState = this.state
                         }
                         if (
                             !this.cacheStatus
