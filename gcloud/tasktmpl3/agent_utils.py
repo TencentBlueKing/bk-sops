@@ -122,7 +122,7 @@ def _parse_json_content(content: str) -> list:
     raise ValueError("JSON 解析失败, 原始内容: {}".format(content))
 
 
-def _extract_json_content(content: str) -> str:
+def extract_json_content(content: str) -> str:
     """
     从智能体返回内容中提取 JSON 部分
 
@@ -142,6 +142,12 @@ def _extract_json_content(content: str) -> str:
     # 尝试提取 JSON 数组
     start_idx = content.find("[")
     end_idx = content.rfind("]")
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        return content[start_idx : end_idx + 1]
+
+    # 尝试提取 JSON 对象
+    start_idx = content.find("{")
+    end_idx = content.rfind("}")
     if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
         return content[start_idx : end_idx + 1]
 
@@ -166,7 +172,7 @@ def parse_agent_response(agent_response: dict) -> list:
 
     logger.info("parse_agent_response - Raw content: {}".format(content[:500] if len(content) > 500 else content))
 
-    json_content = _extract_json_content(content)
+    json_content = extract_json_content(content)
     logger.info(
         "parse_agent_response - JSON content to parse: {}".format(
             json_content[:300] if len(json_content) > 300 else json_content
