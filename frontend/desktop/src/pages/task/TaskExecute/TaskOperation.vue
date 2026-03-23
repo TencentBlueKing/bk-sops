@@ -29,6 +29,7 @@
             :is-show-view-process="isShowViewProcess"
             :params-can-be-modify="paramsCanBeModify"
             :pending-nodes="pendingNodes"
+            :is-task-operation-btns-show="isTaskOperationBtnsShow"
             @moveNodeToView="moveNodeToView"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
@@ -461,6 +462,13 @@
             },
             nodeNav () {
                 return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
+            },
+            // 当前画布是否为最外层
+            isTopTask () {
+                return this.nodeNav.length === 1
+            },
+            isTaskOperationBtnsShow () {
+                return this.state !== 'REVOKED' && this.state !== 'FINISHED'
             },
             taskOperationBtns () {
                 const operationBtns = []

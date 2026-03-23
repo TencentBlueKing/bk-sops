@@ -301,7 +301,7 @@
     .bread-crumbs-wrapper {
         margin-left: 10px;
         font-size: 0;
-        flex: 1;
+        flex-shrink: 1;
         min-width: 14px;
         overflow: hidden;
         white-space: nowrap;
