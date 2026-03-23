@@ -28,6 +28,7 @@ from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
 
 node_logger = logging.getLogger("root")
@@ -48,11 +49,13 @@ JOB_INST_ID_IN_LIST_MAP = {
 }
 
 
-def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_code=None, job_scope_type=None):
+def fetch_node_job_executed_log(
+    node_id, bk_biz_id, tenant_id, target_ip=None, component_code=None, job_scope_type=None
+):
     """获取节点JOB执行日志的核心逻辑，供内外接口共用"""
     if job_scope_type is None:
         job_scope_type = JobBizScopeType.BIZ.value
-    client = settings.ESB_GET_CLIENT_BY_USER(settings.SYSTEM_USE_API_ACCOUNT)
+    client = get_client_by_username(settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
     runtime = BambooDjangoRuntime()
     try:
         execution_data = runtime.get_execution_data(node_id=node_id)
@@ -69,7 +72,7 @@ def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_co
         log_content_list = []
         for job_instance_id in job_instance_id_list:
             log_result = get_job_instance_log(
-                client, node_logger, job_instance_id, bk_biz_id, target_ip, job_scope_type
+                tenant_id, client, node_logger, job_instance_id, bk_biz_id, target_ip, job_scope_type
             )
             if not log_result["result"]:
                 return {
@@ -92,7 +95,9 @@ def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_co
         }
 
     job_instance_id = execution_data.outputs.get("job_inst_id")
-    log_result = get_job_instance_log(client, node_logger, job_instance_id, bk_biz_id, target_ip, job_scope_type)
+    log_result = get_job_instance_log(
+        tenant_id, client, node_logger, job_instance_id, bk_biz_id, target_ip, job_scope_type
+    )
     if not log_result["result"]:
         return {
             "result": False,
@@ -130,4 +135,4 @@ def get_node_job_executed_log(request, task_id, project_id):
     node_id = request.GET.get("node_id")
     target_ip = request.GET.get("target_ip")
 
-    return Response(fetch_node_job_executed_log(node_id, project.bk_biz_id, target_ip))
+    return Response(fetch_node_job_executed_log(node_id, project.bk_biz_id, request.user.tenant_id, target_ip))

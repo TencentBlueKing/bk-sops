@@ -171,7 +171,7 @@ class BaseJobLocalContentUploadService(BasePluginService, GetJobTargetServerMixi
             return False
 
     def plugin_schedule(self, data, parent_data, callback_data=None):
-        client = get_client_by_user(parent_data.get_one_of_inputs("executor"))
+        client = get_client_by_username(parent_data.get_one_of_inputs("executor"), stage=settings.BK_APIGW_STAGE_NAME)
         biz_cc_id = parent_data.get_one_of_inputs("biz_cc_id")
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         get_job_instance_log_kwargs = {
