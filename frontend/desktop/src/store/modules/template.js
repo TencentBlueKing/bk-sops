@@ -350,6 +350,14 @@ const template = {
                 state[key] = val
             })
         },
+        setAiPipelineTree (state, data) {
+            const replaceKeys = ['line', 'location']
+            replaceKeys.forEach((key) => {
+                if (data[key] !== undefined) {
+                    state[key] = data[key]
+                }
+            })
+        },
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
             const {

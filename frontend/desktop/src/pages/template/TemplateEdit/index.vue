@@ -535,6 +535,7 @@
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree',
+                'setAiPipelineTree',
                 'setInternalVariable',
                 'setConstants',
                 'setProjectScope',
@@ -1413,29 +1414,25 @@
                     if (res.result) {
                         // 创建快照
                         this.onCreateSnapshoot('isAIFormatPosition')
+                        const { line, location } = res.data
                         const curPipelineTree = {
-                            activities: tools.deepClone(this.activities),
-                            constants: tools.deepClone(this.constants),
-                            end_event: tools.deepClone(this.end_event),
-                            flows: tools.deepClone(this.flows),
-                            gateways: tools.deepClone(this.gateways),
-                            line: res.data.line,
-                            location: res.data.location,
-                            outputs: tools.deepClone(this.outputs),
-                            start_event: tools.deepClone(this.start_event)
+                            line,
+                            location
                         }
-                        this.$refs.templateCanvas.removeAllConnector()
-                        this.setPipelineTree(curPipelineTree)
+                        // ai排版只改变位置关系,不改变连线关系
+                        this.setAiPipelineTree(curPipelineTree)
                         this.aiFormatResult = 'success'
                         this.$nextTick(() => {
                             this.$refs.templateCanvas.updateCanvas()
                             this.$refs.templateCanvas.onResetPosition()
                             this.templateDataChanged()
                             this.$bkMessage({
-                                message: i18n.t('AI排版完成，原内容在本地快照中'),
+                                message: i18n.t('AI排版完成,原内容在本地快照中'),
                                 theme: 'success'
                             })
                         })
+                    } else {
+                        this.aiFormatResult = 'fail'
                     }
                 } catch (e) {
                     console.log(e)

@@ -222,7 +222,8 @@
             return {
                 aiProgress: 0,
                 isShowAiProgress: false,
-                progressTimer: null
+                progressTimer: null,
+                hideTimer: null
             }
         },
         computed: {
@@ -251,6 +252,10 @@
                 if (this.progressTimer) {
                     clearInterval(this.progressTimer)
                     this.progressTimer = null
+                }
+                if (this.hideTimer) {
+                    clearTimeout(this.hideTimer)
+                    this.hideTimer = null
                 }
             },
             startFakeProgress () {
@@ -296,7 +301,7 @@
                 // 请求成功：跳到100%，短暂停留后隐藏
                 this.clearProgressTimer()
                 this.aiProgress = 100
-                setTimeout(() => {
+                this.hideTimer = setTimeout(() => {
                     this.isShowAiProgress = false
                     this.aiProgress = 0
                 }, 500)
@@ -304,7 +309,7 @@
             cancelFakeProgress () {
                 // 请求失败：停留在当前进度，短暂停留后隐藏
                 this.clearProgressTimer()
-                setTimeout(() => {
+                this.hideTimer = setTimeout(() => {
                     this.isShowAiProgress = false
                     this.aiProgress = 0
                 }, 1000)
