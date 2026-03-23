@@ -1063,6 +1063,9 @@
              * 标准插件版本切换
              */
             async versionChange (val) {
+                // 保存旧的插件参数
+                const oldInputsParamValue = tools.deepClone(this.inputsParamValue)
+                const oldInputs = tools.deepClone(this.inputs)
                 // 获取不同版本的描述
                 let desc = this.basicInfo.desc
                 if (!this.isThirdParty) {
@@ -1075,9 +1078,9 @@
                     desc = descList.join('<br>')
                 }
                 this.updateBasicInfo({ version: val, desc })
-                await this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
+                this.inputsParamValue = await this.getPluginInputsValue(this.inputs, oldInputs, oldInputsParamValue)
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
                         // 普通插件值为true，codeEditor类型插件优先使用variable_render字段，默认值为true
@@ -1085,6 +1088,24 @@
                         return acc
                     }, {})
                 }
+            },
+            async getPluginInputsValue (newInputs, oldInputs = [], oldInputsParamValue = {}) {
+                const oldTagCodes = oldInputs.map(item => item.tag_code)
+                const newTagCodes = newInputs.map(item => item.tag_code)
+                const newInputsParamValue = {}
+                // 保留新旧版本中都存在的参数值
+                newInputs.forEach(item => {
+                    if (oldTagCodes.includes(item.tag_code)) {
+                        newInputsParamValue[item.tag_code] = oldInputsParamValue[item.tag_code]
+                    }
+                })
+                // 收集旧版本中存在但新版本中不存在的参数并清除其勾选状态
+                const needClearInput = oldInputs.filter(item => !newTagCodes.includes(item.tag_code))
+                // 取消非兼容变量相关的全局变量的输入、输出参数勾选状态
+                if (needClearInput.length > 0) {
+                    await this.clearParamsSourceInfo(needClearInput)
+                }
+                return newInputsParamValue
             },
             /**
              * 子流程切换
