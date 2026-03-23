@@ -27,6 +27,9 @@ def get_node_job_executed_log_for_inner(request):
     node_id = request.query_params.get("node_id")
     job_scope_type = request.query_params.get("job_scope_type")
     component_code = request.query_params.get("component_code")
+    tenant_id = getattr(request.user, "tenant_id", "")
     return Response(
-        fetch_node_job_executed_log(node_id, bk_biz_id, component_code=component_code, job_scope_type=job_scope_type)
+        fetch_node_job_executed_log(
+            node_id, bk_biz_id, tenant_id, component_code=component_code, job_scope_type=job_scope_type
+        )
     )

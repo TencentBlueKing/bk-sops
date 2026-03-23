@@ -41,6 +41,7 @@ from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.handlers import handle_api_error
+from packages.bkapi.jobv3_cloud.shortcuts import get_client_by_username
 from pipeline_plugins.components.collections.sites.open.job import GetJobTargetServerMixin, JobService
 from pipeline_plugins.components.utils import get_job_instance_url, get_node_callback_url
 from pipeline_plugins.components.utils.sites.open.utils import get_job_task_name
@@ -48,8 +49,6 @@ from pipeline_plugins.components.utils.sites.open.utils import get_job_task_name
 from ..base import GetJobHistoryResultMixin, get_job_tagged_ip_dict_complex
 
 __group_name__ = _("作业平台(JOB)")
-
-get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
@@ -178,8 +177,11 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
         return True
 
     def get_tagged_ip_dict(self, data, parent_data, job_instance_id):
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         result, tagged_ip_dict = get_job_tagged_ip_dict_complex(
-            data.outputs.client,
+            parent_data.get_one_of_inputs("tenant_id"),
+            client,
             self.logger,
             job_instance_id,
             data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -196,7 +198,8 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                 self.__need_schedule__ = False
             return history_result
         executor = parent_data.get_one_of_inputs("executor")
-        client = get_client_by_user(executor)
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
         if parent_data.get_one_of_inputs("language"):
             setattr(client, "language", parent_data.get_one_of_inputs("language"))
             translation.activate(parent_data.get_one_of_inputs("language"))
@@ -242,9 +245,9 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                 kwargs.update(
                     {"bk_scope_type": JobBizScopeType.BIZ.value, "bk_scope_id": str(biz_cc_id), "bk_biz_id": biz_cc_id}
                 )
-                func = client.jobv3.get_script_list
+                func = client.api.get_script_list
             else:
-                func = client.jobv3.get_public_script_list
+                func = client.api.get_public_script_list
 
             try:
                 script_list = batch_request(
@@ -254,6 +257,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
                     get_count=lambda x: x["data"]["total"],
                     page_param={"cur_page_param": "start", "page_size_param": "length"},
                     is_page_merge=True,
+                    headers={"X-Bk-Tenant-Id": tenant_id},
                 )
             except ApiRequestError as e:
                 message = str(e)
@@ -297,7 +301,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
         if task_name:
             job_kwargs["task_name"] = task_name
 
-        job_result = client.jobv3.fast_execute_script(job_kwargs)
+        job_result = client.api.fast_execute_script(job_kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
         self.logger.info("job_result: {result}, job_kwargs: {kwargs}".format(result=job_result, kwargs=job_kwargs))
         if job_result["result"]:
             job_instance_id = job_result["data"]["job_instance_id"]
