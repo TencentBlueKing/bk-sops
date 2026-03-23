@@ -29,6 +29,7 @@
             :is-show-view-process="isShowViewProcess"
             :params-can-be-modify="paramsCanBeModify"
             :pending-nodes="pendingNodes"
+            :is-task-operation-btns-show="isTaskOperationBtnsShow"
             @moveNodeToView="moveNodeToView"
             @onSelectSubflow="onSelectSubflow"
             @onOperationClick="onOperationClick"
@@ -462,6 +463,9 @@
             nodeNav () {
                 return this.selectedFlowPath.filter(item => item.type !== 'ServiceActivity')
             },
+            isTaskOperationBtnsShow () {
+                return this.state !== 'REVOKED' && this.state !== 'FINISHED'
+            },
             taskOperationBtns () {
                 const operationBtns = []
                 const operationType = STATE_OPERATIONS[this.state]
@@ -651,9 +655,6 @@
                         if (['FINISHED', 'FAILED'].includes(this.state)) {
                             const instanceData = await this.getTaskInstanceData(this.taskId)
                             this.webhookHistory = instanceData.task_webhook_history
-                        }
-                        if (this.isTopTask) {
-                            this.rootState = this.state
                         }
                         if (
                             !this.cacheStatus
