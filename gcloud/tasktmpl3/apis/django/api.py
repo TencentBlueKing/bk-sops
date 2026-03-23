@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
-import re
 
 import ujson as json
 from django.http import HttpResponseForbidden, JsonResponse
@@ -43,6 +42,7 @@ from gcloud.tasktmpl3.agent_utils import (
     AgentResponseParseError,
     FlowConversionError,
     FlowLayoutError,
+    extract_json_content,
     generate_pipeline_tree,
 )
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref, get_constant_values
@@ -485,6 +485,12 @@ def ai_beautify_sops_template_layout(request):
         logger.error("beautify_sops_template_layout error: project not found - {}".format(project_id))
         return JsonResponse({"result": False, "message": "project not found", "code": err_code.UNKNOWN_ERROR.code})
 
+    try:
+        template_obj = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
+    except TaskTemplate.DoesNotExist:
+        logger.error("beautify_sops_template_layout error: template not found - {}".format(template_id))
+        return JsonResponse({"result": False, "message": "template not found", "code": err_code.UNKNOWN_ERROR.code})
+
     bk_biz_id = project_obj.bk_biz_id
 
     try:
@@ -505,18 +511,42 @@ def ai_beautify_sops_template_layout(request):
             }
         )
 
-    match = re.search(r'\{[^{}]*"location"\s*:\s*\[.*?\]\s*,\s*"line"\s*:\s*\[.*?\]\s*\}', response, re.DOTALL)
-    if not match:
-        logger.error("beautify_sops_template_layout: 无法从AI回答中提取布局数据 - {}".format(response))
-        return JsonResponse(
-            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
-        )
     try:
-        layout_data = json.loads(match.group())
+        json_content = extract_json_content(response)
+        layout_data = json.loads(json_content)
     except (json.JSONDecodeError, ValueError) as e:
-        logger.error("beautify_sops_template_layout: 布局数据JSON解析失败 - {}".format(str(e)))
+        logger.error("beautify_sops_template_layout: 布局数据JSON解析失败 - {}, response={}".format(str(e), response))
         return JsonResponse(
             {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
         )
 
-    return JsonResponse({"result": True, "data": layout_data, "code": err_code.SUCCESS.code, "message": ""})
+    if not isinstance(layout_data, dict) or "location" not in layout_data or "line" not in layout_data:
+        logger.error("beautify_sops_template_layout: AI生成布局数据缺少必要字段 - {}".format(layout_data))
+        return JsonResponse(
+            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
+        )
+
+    pipeline_tree = template_obj.pipeline_tree
+
+    try:
+        new_location_map = {item["id"]: item for item in layout_data.get("location", [])}
+        for node in pipeline_tree.get("location", []):
+            new_node = new_location_map.get(node["id"])
+            if new_node:
+                node["x"] = new_node["x"]
+                node["y"] = new_node["y"]
+
+        new_line_map = {item["id"]: item for item in layout_data.get("line", [])}
+        for line in pipeline_tree.get("line", []):
+            new_line = new_line_map.get(line["id"])
+            if new_line:
+                line["source"]["arrow"] = new_line["source"]["arrow"]
+                line["target"]["arrow"] = new_line["target"]["arrow"]
+    except (KeyError, TypeError) as e:
+        logger.error("beautify_sops_template_layout: 合并布局数据异常 - {}, layout_data={}".format(str(e), layout_data))
+        return JsonResponse(
+            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
+        )
+
+    data = {"location": pipeline_tree.get("location", []), "line": pipeline_tree.get("line", [])}
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
