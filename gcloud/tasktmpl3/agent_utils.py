@@ -62,7 +62,7 @@ def build_process_prompt(prompt: str, bk_biz_id: int) -> str:
     :param bk_biz_id: 业务ID
     :return: 完整的 prompt 内容
     """
-    return f"严格依据《流程编排协议知识库》中的结构进行编排，输出的插件信息必须由工具获取，并进行命名。\n" f"业务 bk_biz_id：{bk_biz_id}\n" f"流程描述：{prompt}\n"
+    return f"业务 bk_biz_id：{bk_biz_id}\n" f"流程描述：{prompt}\n"
 
 
 def call_agent_api(prompt: str, bk_biz_id: int, username: str = "") -> dict:
