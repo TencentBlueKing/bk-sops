@@ -10,7 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-
+import re
 from copy import deepcopy
 from functools import partial
 
@@ -118,29 +118,44 @@ class JobFastPushFileService(JobScheduleService, GetJobTargetServerMixin):
 
         tenant_id = parent_data.get_one_of_inputs("tenant_id")
         biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
-        original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
         upload_speed_limit = data.get_one_of_inputs("upload_speed_limit")
+        job_source_files_origin = data.get_one_of_inputs("job_source_files_origin")
         download_speed_limit = data.get_one_of_inputs("download_speed_limit")
         job_timeout = data.get_one_of_inputs("job_timeout")
         job_rolling_config = data.get_one_of_inputs("job_rolling_config", {})
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
 
         file_source = []
-        for item in original_source_files:
-            clean_source_ip_result, server = self.get_target_server_hybrid_with_host_id(
-                tenant_id, executor, biz_cc_id, data, item["ip"], logger_handle=self.logger
-            )
-            if not clean_source_ip_result:
-                return False
-            file_source.append(
-                {
-                    "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
-                    "server": server,
-                    "account": {
-                        "alias": loose_strip(item["account"]),
-                    },
-                }
-            )
+        if job_source_files_origin == "server":
+            original_source_files = deepcopy(data.get_one_of_inputs("job_server", []))
+            for item in original_source_files:
+                clean_source_ip_result, server = self.get_target_server_hybrid_with_host_id(
+                    tenant_id, executor, biz_cc_id, data, item["ip"], logger_handle=self.logger
+                )
+                if not clean_source_ip_result:
+                    return False
+                file_source.append(
+                    {
+                        "file_list": [_file.strip() for _file in item["files"].split("\n") if _file.strip()],
+                        "server": server,
+                        "account": {
+                            "alias": loose_strip(item["account"]),
+                        },
+                    }
+                )
+        elif job_source_files_origin == "file_source":
+            original_source_files = deepcopy(data.get_one_of_inputs("job_source_files", []))
+            for item in original_source_files:
+                file_source.append(
+                    {
+                        "file_list": [_file.strip() for _file in re.split(r"[, \n]", item["files"]) if _file.strip()],
+                        "file_source_code": item["file_source"],
+                        "file_type": 3,
+                    }
+                )
+        else:
+            data.outputs.ex_data = "只支持服务器和源文件类型"
+            return False
 
         select_method = data.get_one_of_inputs("select_method")
         break_line = data.get_one_of_inputs("break_line") or ","
