@@ -237,8 +237,8 @@
                                         ({{ group.count }})
                                     </p>
                                     <bk-option v-for="childOption in group.children"
-                                        :key="childOption.id"
-                                        :id="childOption.id"
+                                        :key="(childOption.isCommon ? 'common_' : 'project_') + childOption.id"
+                                        :id="(childOption.isCommon ? 'common_' : 'project_') + childOption.id"
                                         :name="childOption.name">
                                     </bk-option>
                                 </bk-option-group>
@@ -472,6 +472,7 @@
                     loading: false,
                     searchable: true,
                     id: '',
+                    realId: '', // 原始数字id，用于API调用和路由跳转
                     name: '',
                     project: {},
                     empty: false,
@@ -833,7 +834,7 @@
                     tplListData.results.forEach(item => {
                         item.isCommon = isCommon
                     })
-
+                    
                     // 当项目列表为空或轮到公共流程加载时, 添加公共流程分组
                     if (isCommon && !this.template.list[1]) {
                         this.template.list.push({
@@ -902,15 +903,21 @@
             onSelectedTemplate (id) {
                 const templateList = this.template.list
                 let isCommon = ''
-                let name, project, tplAction
+                let name, project, tplAction, realId
 
                 if (id === undefined) {
                     return
                 }
 
+                // 从组合id中解析出类型前缀和原始id
+                const isCommonPrefix = String(id).startsWith('common_')
+                realId = isCommonPrefix ? String(id).replace('common_', '') : String(id).replace('project_', '')
+                realId = Number(realId)
+
                 templateList.some(group => {
                     return group.children.some(item => {
-                        if (item.id === id) {
+                        const compositeId = (item.isCommon ? 'common_' : 'project_') + item.id
+                        if (compositeId === id) {
                             isCommon = item.isCommon
                             name = item.name
                             project = item.project
@@ -924,6 +931,7 @@
                 // 通过isCommon查找是否是公共流程
                 this.isCommonTemplate = isCommon
                 this.template.id = id
+                this.template.realId = realId
                 this.template.name = name
                 this.template.project = project
                 this.template.empty = false
@@ -947,7 +955,7 @@
                                 {
                                     system: bkSops.id,
                                     type: 'common_flow',
-                                    id: this.template.id,
+                                    id: this.template.realId,
                                     attributes: {}
                                 }
                             ]
@@ -972,7 +980,7 @@
                     curPermission = [...this.tplAction, ...this.business.auth_actions]
                     resourceData = {
                         common_flow: [{
-                            id: this.template.id,
+                            id: this.template.realId,
                             name: this.template.name
                         }],
                         project: [{
@@ -985,7 +993,7 @@
                     curPermission = [...this.tplAction]
                     resourceData = {
                         flow: [{
-                            id: this.template.id,
+                            id: this.template.realId,
                             name: this.template.name
                         }],
                         project: [{
@@ -1018,13 +1026,13 @@
                     this.$router.push({
                         name: 'functionTemplateStep',
                         params: { project_id: this.business.id, step: 'selectnode' },
-                        query: { template_id: this.template.id, common: 1, entrance: 'function' }
+                        query: { template_id: this.template.realId, common: 1, entrance: 'function' }
                     })
                 } else {
                     this.$router.push({
                         name: 'functionTemplateStep',
                         params: { project_id: this.business.id, step: 'selectnode' },
-                        query: { template_id: this.template.id, entrance: 'function' }
+                        query: { template_id: this.template.realId, entrance: 'function' }
                     })
                 }
             },
@@ -1056,6 +1064,7 @@
             },
             onClearTemplate () {
                 this.template.id = ''
+                this.template.realId = ''
                 this.template.name = ''
                 this.template.project = {}
                 this.isLoadCommonTpl = false
@@ -1065,6 +1074,7 @@
                 this.business.id = ''
                 this.business.auth_actions = []
                 this.template.id = ''
+                this.template.realId = ''
                 this.template.name = ''
                 this.template.project = {}
                 this.template.disabled = true
