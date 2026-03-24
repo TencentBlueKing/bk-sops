@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from gcloud.conf import settings
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
 from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
     cc_get_host_by_innerip_with_ipv6_across_business,
@@ -161,9 +160,7 @@ class GetJobTargetServerMixin(object):
         # 情况1: 用户传入的是host_id
         if has_host_id:
             logger_handle.info("[get_target_server_hybrid_with_host_id] detected host_id input, will use host_id_list")
-            # 校验host_id是否有效
-            supplier_account = supplier_account_for_business(biz_cc_id)
-            host_result = get_hosts_by_hosts_ids(executor, biz_cc_id, supplier_account, host_id_list)
+            host_result = get_hosts_by_hosts_ids(tenant_id, executor, biz_cc_id, host_id_list)
             if not host_result["result"]:
                 data.outputs.ex_data = "host_id查询失败: {}".format(host_result.get("message"))
                 return False, {}
