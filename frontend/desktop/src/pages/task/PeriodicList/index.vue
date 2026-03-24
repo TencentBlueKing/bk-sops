@@ -265,6 +265,7 @@
     import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import Translate from '@/utils/cron.js'
     import CancelRequest from '@/api/cancelRequest.js'
+    import { setConfigContext } from '@/config/setting.js'
 
     const SEARCH_LIST = [
         {
@@ -451,7 +452,8 @@
         computed: {
             ...mapState({
                 username: state => state.username,
-                hasAdminPerm: state => state.hasAdminPerm
+                hasAdminPerm: state => state.hasAdminPerm,
+                site_url: state => state.site_url
             }),
             ...mapState('project', {
                 'timeZone': state => state.timezone
@@ -781,6 +783,9 @@
             },
             async onModifyCronPeriodic (item) {
                 const { id: taskId, cron, is_latest, template_source } = item
+                if (item.project) {
+                    setConfigContext(this.site_url, item.project)
+                }
                 if (!this.hasPermission(this.getEditPerm(item), item.auth_actions)) {
                     this.onPeriodicPermissonCheck(this.getEditPerm(item), item)
                     return
