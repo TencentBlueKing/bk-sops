@@ -210,7 +210,7 @@ class JobFastExecuteScriptService(JobService, GetJobHistoryResultMixin, GetJobTa
         job_rolling_execute = job_rolling_config.get("job_rolling_execute", None)
         # 获取 IP（支持host_id）
         result, target_server = self.get_target_server_hybrid_with_host_id(
-            executor, biz_cc_id, data, ip_info, logger_handle=self.logger
+            tenant_id, executor, biz_cc_id, data, ip_info, logger_handle=self.logger
         )
         if not result:
             return False
