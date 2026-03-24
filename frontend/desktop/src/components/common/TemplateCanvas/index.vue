@@ -61,12 +61,15 @@
                     :zoom-ratio="zoomRatio"
                     :is-show-hot-key="isShowHotKey"
                     :is-perspective="isPerspective"
+                    :ai-format-loading="aiFormatLoading"
+                    :ai-format-result="aiFormatResult"
                     @onShowMap="onToggleMapShow"
                     @onZoomIn="onZoomIn"
                     @onZoomOut="onZoomOut"
                     @onResetPosition="onResetPosition"
                     @onOpenFrameSelect="onOpenFrameSelect"
                     @onFormatPosition="onFormatPosition"
+                    @onAIFormatPosition="onAIFormatPosition"
                     @onToggleAllNode="onToggleAllNode"
                     @onToggleHotKeyInfo="onToggleHotKeyInfo"
                     @onTogglePerspective="onTogglePerspective"
@@ -265,6 +268,14 @@
             nodeExecRecordInfo: {
                 type: Object,
                 default: () => ({})
+            },
+            aiFormatLoading: {
+                type: Boolean,
+                default: false
+            },
+            aiFormatResult: {
+                type: String,
+                default: ''
             }
         },
         data () {
@@ -454,6 +465,10 @@
                 this.$emit('onFormatPosition')
                 this.showSmallMap = false
             },
+            onAIFormatPosition () {
+                this.$emit('onAIFormatPosition')
+                this.showSmallMap = false
+            },
             onOpenFrameSelect () {
                 this.isSelectionOpen = true
                 this.$refs.jsFlow.frameSelect()
@@ -603,6 +618,19 @@
             updateCanvas () {
                 const { locations: nodes, lines } = this.canvasData
                 this.$refs.jsFlow.updateCanvas({ nodes, lines })
+            },
+            // AI排版：只更新节点位置，不触发连线的 detach/attach 事件，保留 incoming/outgoing
+            updateNodePositions () {
+                const ins = this.$refs.jsFlow.instance
+                const { locations } = this.canvasData
+                locations.forEach((node) => {
+                    const el = document.getElementById(node.id)
+                    if (el) {
+                        el.style.left = node.x + 'px'
+                        el.style.top = node.y + 'px'
+                        ins.revalidate(el)
+                    }
+                })
             },
             removeAllConnector () {
                 this.$refs.jsFlow.removeAllConnector()

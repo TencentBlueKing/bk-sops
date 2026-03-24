@@ -350,6 +350,18 @@ const template = {
                 state[key] = val
             })
         },
+        setAiPipelineTree (state, data) {
+            // 只更新 location 中每个节点的 x/y 坐标，保留其他字段
+            if (data.location) {
+                data.location.forEach((newLoc) => {
+                    const existLoc = state.location.find(loc => loc.id === newLoc.id)
+                    if (existLoc) {
+                        existLoc.x = newLoc.x
+                        existLoc.y = newLoc.y
+                    }
+                })
+            }
+        },
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
             const {
@@ -1100,6 +1112,10 @@ const template = {
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
             return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
+        },
+        // AI 自动排版
+        getAILayoutedPipeline ({ commit }, data) {
+            return axios.get('template/api/ai_beautify_layout/', { params: data }).then(response => response.data)
         },
         // AI 生成流程
         generateProcessWithAgent ({ commit }, data) {

@@ -58,6 +58,8 @@
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-variable-info="nodeVariableInfo"
+                    :ai-format-loading="aiFormatLoading"
+                    :ai-format-result="aiFormatResult"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -65,6 +67,7 @@
                     @onLineChange="onLineChange"
                     @onLocationMoveDone="onLocationMoveDone"
                     @onFormatPosition="onFormatPosition"
+                    @onAIFormatPosition="onAIFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
                     @onShowNodeConfig="onShowNodeConfig"
                     @onTogglePerspective="onTogglePerspective"
@@ -306,7 +309,9 @@
                 isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
                 checkedNodes: [],
                 checkedConvergeNodes: [],
-                isolationAtomConfig: {} // 被隔离插件的基础配置
+                isolationAtomConfig: {}, // 被隔离插件的基础配置
+                aiFormatLoading: false, // AI排版加载状态
+                aiFormatResult: '' // AI排版结果状态
             }
         },
         computed: {
@@ -320,6 +325,8 @@
                 'gateways': state => state.template.gateways,
                 'start_event': state => state.template.start_event,
                 'end_event': state => state.template.end_event,
+                'outputs': state => state.template.outputs,
+                'flows': state => state.template.flows,
                 'internalVariable': state => state.template.internalVariable,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
@@ -493,6 +500,7 @@
                 'saveTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
+                'getAILayoutedPipeline',
                 'loadInternalVariable',
                 'getVariableCite',
                 'getProcessOpenRetryAndTimeout'
@@ -527,6 +535,7 @@
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree',
+                'setAiPipelineTree',
                 'setInternalVariable',
                 'setConstants',
                 'setProjectScope',
@@ -1365,6 +1374,69 @@
                     console.log(e)
                 } finally {
                     this.canvasDataLoading = false
+                }
+            },
+            /**
+             * AI自动排版
+             */
+            async onAIFormatPosition () {
+                window.reportInfo({
+                    page: 'templateEdit',
+                    zone: 'formatPositionIcon',
+                    event: 'click'
+                })
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
+                if (!validateMessage.result) {
+                    if (validateMessage.errorId) {
+                        this.validateConnectFailList.push(...validateMessage.errorId)
+                    }
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'error',
+                        ellipsisLine: 0,
+                        delay: 10000
+                    })
+                    return
+                }
+                if (this.aiFormatLoading || this.canvasDataLoading) {
+                    return
+                }
+                this.aiFormatLoading = true
+                this.aiFormatResult = ''
+                try {
+                    const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
+                    const width = canvasEl.offsetWidth - 200
+                    const res = await this.getAILayoutedPipeline({
+                        project_id: this.project_id,
+                        template_id: this.template_id,
+                        canvas_width: width
+                    })
+                    if (res.result) {
+                        // 创建快照
+                        this.onCreateSnapshoot('isAIFormatPosition')
+                        const curPipelineTree = {
+                            location: res.data.location
+                        }
+                        // ai排版只改变位置关系,不改变连线关系
+                        this.setAiPipelineTree(curPipelineTree)
+                        this.aiFormatResult = 'success'
+                        this.$nextTick(() => {
+                            this.$refs.templateCanvas.updateNodePositions()
+                            this.$refs.templateCanvas.onResetPosition()
+                            this.templateDataChanged()
+                            this.$bkMessage({
+                                message: i18n.t('AI排版完成,原内容在本地快照中'),
+                                theme: 'success'
+                            })
+                        })
+                    } else {
+                        this.aiFormatResult = 'fail'
+                    }
+                } catch (e) {
+                    console.log(e)
+                    this.aiFormatResult = 'fail'
+                } finally {
+                    this.aiFormatLoading = false
                 }
             },
             /**
