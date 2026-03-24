@@ -619,6 +619,19 @@
                 const { locations: nodes, lines } = this.canvasData
                 this.$refs.jsFlow.updateCanvas({ nodes, lines })
             },
+            // AI排版：只更新节点位置，不触发连线的 detach/attach 事件，保留 incoming/outgoing
+            updateNodePositions () {
+                const ins = this.$refs.jsFlow.instance
+                const { locations } = this.canvasData
+                locations.forEach((node) => {
+                    const el = document.getElementById(node.id)
+                    if (el) {
+                        el.style.left = node.x + 'px'
+                        el.style.top = node.y + 'px'
+                        ins.revalidate(el)
+                    }
+                })
+            },
             removeAllConnector () {
                 this.$refs.jsFlow.removeAllConnector()
             },

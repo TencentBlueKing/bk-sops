@@ -86,23 +86,19 @@
                     class="ai-format-wrap"
                     v-if="editable">
                     <div
-                        :class="['tool-icon', 'ai-format-icon', { 'disabled': aiFormatLoading, 'actived': isShowAiProgress }]"
+                        :class="['tool-icon', 'ai-format-icon', { 'disabled': aiFormatLoading }]"
                         v-bk-tooltips="{
                             content: $t('AI排版'),
                             delay: 300,
                             placements: ['bottom']
                         }"
                         @click="onAIFormatPosition">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1102.769 1024" version="1.1" class="ai-icon-svg">
-                            <rect x="551.4" y="78.8" width="551.3" height="78.8" rx="39.4" class="ai-icon-line" />
-                            <rect x="551.4" y="315.1" width="551.3" height="78.8" rx="39.4" class="ai-icon-line" />
-                            <rect x="551.4" y="630.2" width="551.3" height="78.8" rx="39.4" class="ai-icon-line" />
-                            <rect x="551.4" y="866.5" width="551.3" height="78.8" rx="39.4" class="ai-icon-line" />
-                            <rect x="0" y="0" width="472.6" height="472.6" rx="78.8" class="ai-icon-box" />
-                            <path d="M236 106 L271 201 L366 236 L271 271 L236 366 L201 271 L106 236 L201 201 Z" class="ai-icon-star" />
-                            <rect x="0" y="551.4" width="472.6" height="472.6" rx="78.8" class="ai-icon-box" />
-                            <path d="M236 690 L256 758 L324 787.7 L256 817 L236 885 L216 817 L148 787.7 L216 758 Z" class="ai-icon-star" />
-                        </svg>
+                        <img
+                            :src="isAiIconHover ? aiIconHover : aiIconDefault"
+                            class="ai-icon-img"
+                            @mouseenter="isAiIconHover = true"
+                            @mouseleave="isAiIconHover = false"
+                        />
                     </div>
                     <div class="ai-progress-popover" v-if="isShowAiProgress">
                         <bk-progress
@@ -169,6 +165,8 @@
 </template>
 <script>
     import i18n from '@/config/i18n/index.js'
+    import aiIconDefault from '@/assets/images/typesetting-ai.svg'
+    import aiIconHover from '@/assets/images/typesetting-ai-hover.svg'
 
     export default {
         name: 'ToolPanel',
@@ -220,6 +218,9 @@
         },
         data () {
             return {
+                aiIconDefault,
+                aiIconHover,
+                isAiIconHover: false,
                 aiProgress: 0,
                 isShowAiProgress: false,
                 progressTimer: null,
@@ -400,21 +401,11 @@
         align-items: center;
         justify-content: center;
         padding: 0 !important;
-        .ai-icon-svg {
+        .ai-icon-img {
             width: 17px !important;
             height: 17px !important;
             display: block;
             flex-shrink: 0;
-            .ai-icon-line {
-                fill: currentColor;
-                opacity: 0.5;
-            }
-            .ai-icon-box {
-                fill: currentColor;
-            }
-            .ai-icon-star {
-                fill: #fff;
-            }
         }
     }
     .zoom-wrapper, .square-wrapper {

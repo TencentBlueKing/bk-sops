@@ -1414,16 +1414,14 @@
                     if (res.result) {
                         // 创建快照
                         this.onCreateSnapshoot('isAIFormatPosition')
-                        const { line, location } = res.data
                         const curPipelineTree = {
-                            line,
-                            location
+                            location: res.data.location
                         }
                         // ai排版只改变位置关系,不改变连线关系
                         this.setAiPipelineTree(curPipelineTree)
                         this.aiFormatResult = 'success'
                         this.$nextTick(() => {
-                            this.$refs.templateCanvas.updateCanvas()
+                            this.$refs.templateCanvas.updateNodePositions()
                             this.$refs.templateCanvas.onResetPosition()
                             this.templateDataChanged()
                             this.$bkMessage({
