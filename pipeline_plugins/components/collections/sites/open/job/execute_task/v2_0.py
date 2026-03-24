@@ -64,10 +64,10 @@ class JobExecuteTaskService(JobExecuteTaskServiceBase, GetJobHistoryResultMixin)
         """
         return False
 
-    def build_ip_list(self, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
+    def build_ip_list(self, tenant_id, biz_across, val, executor, biz_cc_id, data, ip_is_exist):
         # 使用支持host_id的新方法
         result, ip_list = self.get_target_server_hybrid_with_host_id(
-            executor, biz_cc_id, data, val, logger_handle=self.logger
+            tenant_id, executor, biz_cc_id, data, val, logger_handle=self.logger
         )
         if not result:
             return {}

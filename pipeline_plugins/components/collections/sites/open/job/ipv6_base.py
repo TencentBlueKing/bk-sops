@@ -117,7 +117,7 @@ class GetJobTargetServerMixin(object):
 
         return True, {"ip_list": ip_list}
 
-    def get_target_server_hybrid_with_host_id(self, executor, biz_cc_id, data, ip_str, logger_handle):
+    def get_target_server_hybrid_with_host_id(self, tenant_id, executor, biz_cc_id, data, ip_str, logger_handle):
         """
         支持传入IP或host_id（二选一，不支持混合）
         用户可以传入IP地址或host_id，插件会自动识别并构造相应的target_server参数
@@ -176,10 +176,12 @@ class GetJobTargetServerMixin(object):
             logger_handle.info("[get_target_server_hybrid_with_host_id] detected IP input")
             if settings.ENABLE_IPV6:
                 # IPV6模式，使用原有逻辑（会转换为host_id_list）
-                return self.get_target_server_ipv6_across_business(executor, biz_cc_id, ip_str, logger_handle, data)
+                return self.get_target_server_ipv6_across_business(
+                    tenant_id, executor, biz_cc_id, ip_str, logger_handle, data
+                )
             else:
                 # 非IPV6模式，使用原有逻辑（返回ip_list）
-                clean_result, ip_list = get_biz_ip_from_frontend_hybrid(executor, ip_str, biz_cc_id, data)
+                clean_result, ip_list = get_biz_ip_from_frontend_hybrid(tenant_id, executor, ip_str, biz_cc_id, data)
                 if not clean_result:
                     return False, {}
                 return True, {"ip_list": ip_list}

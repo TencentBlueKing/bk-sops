@@ -27,9 +27,6 @@ class Command(BaseCommand):
         parser.add_argument("-t", "--tenant_id", help="租户ID", type=str)
 
     def handle(self, *args, **options):
-        if not settings.ENABLE_MULTI_TENANT_MODE:
-            return
-
         tenant_id = options.get("tenant_id")
 
         client = get_client_by_username("bk_admin", stage=settings.BK_APIGW_STAGE_NAME)
