@@ -406,7 +406,7 @@ def generate_process_with_agent(request):
     """
     try:
         request_data = json.loads(request.body)
-    except json.JSONDecodeError as e:
+    except ValueError as e:
         logger.warning("generate_process_with_agent: Invalid JSON format - {}".format(str(e)))
         return JsonResponse(
             {
@@ -514,7 +514,7 @@ def ai_beautify_sops_template_layout(request):
     try:
         json_content = extract_json_content(response)
         layout_data = json.loads(json_content)
-    except (json.JSONDecodeError, ValueError) as e:
+    except ValueError as e:
         logger.error("beautify_sops_template_layout: 布局数据JSON解析失败 - {}, response={}".format(str(e), response))
         return JsonResponse(
             {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
