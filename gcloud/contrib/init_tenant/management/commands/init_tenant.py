@@ -20,10 +20,10 @@ logger = logging.getLogger("root")
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument("-t", "--tenant_id", help="租户ID", type=str)
+        parser.add_argument("-t", "--tenant_id", help="租户ID", type=str, default="default")
 
     def handle(self, *args, **options):
-        tenant_id = options.get("tenant_id", "default")
+        tenant_id = options.get("tenant_id")
         # 注册itsm workflow
         call_command("migrate_itsm_workflow", "--tenant_id", tenant_id)
 
