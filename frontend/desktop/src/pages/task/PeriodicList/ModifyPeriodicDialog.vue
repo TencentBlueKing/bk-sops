@@ -214,7 +214,7 @@
                             :notify-type="notifyType"
                             :project_id="project_id"
                             :is-view-mode="true"
-                            :notify-type-list="[{ text: $t('任务状态') }]"
+                            :notify-type-list="notifyTypeList"
                             :common="formData.template_source === 'common' ? 1 : 0"
                             :notify-type-extra-info="notifyTypeExtraInfo"
                             :receiver-group="receiverGroup">
@@ -455,6 +455,9 @@
             }
             this.onTplSearch = tools.debounce(this.handleTplSearch, 500)
         },
+        mounted () {
+            this.getNotifyTypeList()
+        },
         methods: {
             ...mapActions([
                 'queryUserPermission'
@@ -478,6 +481,17 @@
             ...mapActions('template/', [
                 'loadTemplateData'
             ]),
+            ...mapActions([
+                'getNotifyTypes'
+            ]),
+            async getNotifyTypeList () {
+                try {
+                    const res = await this.getNotifyTypes()
+                    this.notifyTypeList = res.data
+                } catch (e) {
+                    console.log(e)
+                }
+            },
             async getTemplateList (add) {
                 try {
                     const offset = (this.pagination.current - 1) * this.pagination.limit
