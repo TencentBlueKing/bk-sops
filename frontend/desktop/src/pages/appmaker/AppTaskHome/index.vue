@@ -81,6 +81,9 @@
                                         <span class="task-status-text" v-if="executeStatus[props.row.id]">{{executeStatus[props.row.id].text}}</span>
                                     </div>
                                 </template>
+                                <template v-else-if="['creator_name', 'executor_name', 'recorded_executor_proxy'].includes(item.id)">
+                                    <UserDisplayName :name="props.row[item.id]" />
+                                </template>
                                 <!-- 其他 -->
                                 <template v-else>
                                     {{ props.row[item.id] || '--' }}
@@ -139,6 +142,7 @@
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
     import CancelRequest from '@/api/cancelRequest.js'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
 
     const SEARCH_LIST = [
         {
@@ -220,7 +224,8 @@
         components: {
             Skeleton,
             SearchSelect,
-            NoData
+            NoData,
+            UserDisplayName
         },
         mixins: [permission, task],
         props: ['project_id', 'app_id'],
