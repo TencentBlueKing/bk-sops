@@ -37,6 +37,7 @@ class Command(BaseCommand):
                 headers={"X-Bk-Tenant-Id": tenant_id},
             )
         except Exception as e:
+            print(e)
             logger.error(e)
 
         # migrate itsm workflow
@@ -55,4 +56,5 @@ class Command(BaseCommand):
                     files=files,
                 )
         except Exception as e:
+            print(e)
             logger.error(e)

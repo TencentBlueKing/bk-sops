@@ -28,5 +28,5 @@ class Command(BaseCommand):
         call_command("migrate_itsm_workflow", "--tenant_id", tenant_id)
 
         # 其他初始化操作
-
+        print(f"initialize tenant {tenant_id} success")
         logger.info(f"initialize tenant {tenant_id} success")
