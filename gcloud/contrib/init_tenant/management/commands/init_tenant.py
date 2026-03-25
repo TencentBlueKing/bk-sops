@@ -23,10 +23,10 @@ class Command(BaseCommand):
         parser.add_argument("-t", "--tenant_id", help="租户ID", type=str)
 
     def handle(self, *args, **options):
-        tenant_id = options.get("tenant_id", "default")
+        tenant_id = options.get("tenant_id")
         # 注册itsm workflow
         call_command("migrate_itsm_workflow", "--tenant_id", tenant_id)
 
         # 其他初始化操作
-
+        print(f"initialize tenant {tenant_id} success")
         logger.info(f"initialize tenant {tenant_id} success")
