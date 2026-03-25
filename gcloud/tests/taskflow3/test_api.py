@@ -117,7 +117,9 @@ class APITest(TestCase):
         self.client = Client()
 
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
-    def test_preview_task_tree__constants_not_referred(self):
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_preview_task_tree__constants_not_referred(self, mock_filter):
+        mock_filter.return_value.order_by.return_value.only.return_value.first.return_value = None
 
         with mock.patch(
             TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
@@ -172,3 +174,101 @@ class APITest(TestCase):
             self.assertEqual(
                 list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}", "${custom_key2}"]
             )
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_preview_task_tree__last_execution_id_exists(self, mock_filter):
+        mock_task = MagicMock()
+        mock_task.id = 999
+        mock_filter.return_value.order_by.return_value.only.return_value.first.return_value = mock_task
+
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
+            data = {
+                "template_source": "project",
+                "template_id": "1",
+                "version": "test_version",
+                "exclude_task_nodes_id": [],
+            }
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertEqual(result["data"]["last_execution_id"], 999)
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_preview_task_tree__last_execution_id_none(self, mock_filter):
+        mock_filter.return_value.order_by.return_value.only.return_value.first.return_value = None
+
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
+            data = {
+                "template_source": "project",
+                "template_id": "1",
+                "version": "test_version",
+                "exclude_task_nodes_id": [],
+            }
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertIsNone(result["data"]["last_execution_id"])
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_last_execution_constants__success(self, mock_filter):
+        mock_pipeline_instance = MagicMock()
+        mock_pipeline_instance.execution_data = {
+            "constants": {
+                "${ip}": {
+                    "key": "${ip}",
+                    "name": "目标IP",
+                    "value": "10.0.0.1",
+                    "custom_type": "input",
+                    "source_type": "custom",
+                    "show_type": "show",
+                },
+                "${hidden_var}": {
+                    "key": "${hidden_var}",
+                    "name": "隐藏变量",
+                    "value": "secret",
+                    "custom_type": "input",
+                    "source_type": "custom",
+                    "show_type": "hide",
+                },
+            }
+        }
+        mock_pipeline_instance.name = "测试任务"
+        mock_pipeline_instance.executor = "admin"
+        mock_pipeline_instance.create_time.strftime.return_value = "2026-03-20 10:30:00"
+
+        mock_task = MagicMock()
+        mock_task.id = 123
+        mock_task.pipeline_instance = mock_pipeline_instance
+
+        mock_filter.return_value.order_by.return_value.select_related.return_value.first.return_value = mock_task
+
+        request = MockJsonBodyRequest("GET", {})
+        request.GET = {"template_id": "1", "template_source": "project"}
+        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+
+        self.assertTrue(result["result"])
+        self.assertEqual(result["data"]["task_id"], 123)
+        self.assertEqual(result["data"]["task_name"], "测试任务")
+        self.assertEqual(result["data"]["executor"], "admin")
+        self.assertIn("${ip}", result["data"]["constants"])
+        self.assertNotIn("${hidden_var}", result["data"]["constants"])
+        returned_ip = result["data"]["constants"]["${ip}"]
+        self.assertEqual(returned_ip["value"], "10.0.0.1")
+        self.assertEqual(returned_ip["name"], "目标IP")
+        self.assertEqual(returned_ip["custom_type"], "input")
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_last_execution_constants__no_history(self, mock_filter):
+        mock_filter.return_value.order_by.return_value.select_related.return_value.first.return_value = None
+
+        request = MockJsonBodyRequest("GET", {})
+        request.GET = {"template_id": "1", "template_source": "project"}
+        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+
+        self.assertFalse(result["result"])

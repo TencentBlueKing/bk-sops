@@ -23,6 +23,7 @@ from gcloud.constants import PROJECT
 from drf_yasg.utils import swagger_auto_schema
 
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.taskflow3.models import TaskFlowInstance
 from pipeline_web.preview import preview_template_tree_with_schemes
 from django.utils.translation import ugettext_lazy as _
 
@@ -89,5 +90,19 @@ class PreviewTaskTreeWithSchemesView(APIView):
             message = _(f"任务数据请求失败: 获取带执行方案流程树数据失败, 错误信息: {e}, 请重试. 如多次失败可联系管理员处理 | preview_task_tree")
             logger.exception(message)
             return Response({"result": False, "message": message, "data": {}})
+
+        if project_id:
+            last_task = TaskFlowInstance.objects.filter(
+                project_id=project_id,
+                template_id=str(template_id),
+                template_source=template_source,
+                is_deleted=False,
+                is_child_taskflow=False,
+                pipeline_instance__is_started=True,
+                pipeline_instance__isnull=False,
+            ).order_by("-id").only("id").first()
+            data["last_execution_id"] = last_task.id if last_task else None
+        else:
+            data["last_execution_id"] = None
 
         return Response({"result": True, "data": data, "message": "success"})

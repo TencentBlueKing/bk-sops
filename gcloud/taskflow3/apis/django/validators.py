@@ -264,3 +264,11 @@ class GetNodeLogValidator(RequestValidator):
             return False, "instance_id can not be empty"
 
         return True, ""
+
+
+class LastExecutionConstantsValidator(RequestValidator):
+    def validate(self, request, *args, **kwargs):
+        template_id = request.GET.get("template_id")
+        if not template_id:
+            return False, "template_id can not be empty"
+        return True, ""

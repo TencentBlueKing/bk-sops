@@ -58,6 +58,7 @@ from gcloud.taskflow3.apis.django.validators import (
     DetailValidator,
     GetJobInstanceLogValidator,
     GetNodeLogValidator,
+    LastExecutionConstantsValidator,
     NodesActionValidator,
     PreviewTaskTreeValidator,
     QueryTaskCountValidator,
@@ -424,7 +425,66 @@ def preview_task_tree(request, project_id):
         logger.exception(message)
         return JsonResponse({"result": False, "message": message})
 
+    last_task = TaskFlowInstance.objects.filter(
+        project_id=project_id,
+        template_id=str(template_id),
+        template_source=template_source,
+        is_deleted=False,
+        is_child_taskflow=False,
+        pipeline_instance__is_started=True,
+        pipeline_instance__isnull=False,
+    ).order_by("-id").only("id").first()
+
+    data["last_execution_id"] = last_task.id if last_task else None
+
     return JsonResponse({"result": True, "data": data})
+
+
+@require_GET
+@request_validate(LastExecutionConstantsValidator)
+def last_execution_constants(request, project_id):
+    template_id = request.GET.get("template_id")
+    template_source = request.GET.get("template_source", PROJECT)
+
+    last_task = TaskFlowInstance.objects.filter(
+        project_id=project_id,
+        template_id=str(template_id),
+        template_source=template_source,
+        is_deleted=False,
+        is_child_taskflow=False,
+        pipeline_instance__is_started=True,
+        pipeline_instance__isnull=False,
+    ).order_by("-id").select_related("pipeline_instance").first()
+
+    if not last_task or not last_task.pipeline_instance:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    execution_data = last_task.pipeline_instance.execution_data
+    all_constants = execution_data.get("constants", {})
+
+    constants = {}
+    for key, val in all_constants.items():
+        if val.get("show_type") != "show":
+            continue
+        constants[key] = {
+            "key": val.get("key", key),
+            "name": val.get("name", ""),
+            "value": val.get("value"),
+            "custom_type": val.get("custom_type", ""),
+            "source_type": val.get("source_type", ""),
+        }
+
+    data = {
+        "task_id": last_task.id,
+        "task_name": last_task.pipeline_instance.name,
+        "executor": last_task.pipeline_instance.executor,
+        "create_time": last_task.pipeline_instance.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "constants": constants,
+    }
+
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
 
 
 @require_POST
