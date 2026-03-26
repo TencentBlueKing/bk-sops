@@ -351,15 +351,11 @@ const template = {
             })
         },
         setAiPipelineTree (state, data) {
-            // 只更新 location 中每个节点的 x/y 坐标，保留其他字段
             if (data.location) {
-                data.location.forEach((newLoc) => {
-                    const existLoc = state.location.find(loc => loc.id === newLoc.id)
-                    if (existLoc) {
-                        existLoc.x = newLoc.x
-                        existLoc.y = newLoc.y
-                    }
-                })
+                state.location = data.location
+            }
+            if (data.line) {
+                state.line = data.line
             }
         },
         // 更新模板各相关字段数据
