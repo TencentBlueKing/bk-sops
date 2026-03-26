@@ -20,8 +20,6 @@ from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
-import env
-from api.ai_sops_agent import AgentRequestType, BKSopsAgentClient
 from gcloud import err_code
 from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.core.models import Project, ProjectConfig
@@ -42,7 +40,6 @@ from gcloud.tasktmpl3.agent_utils import (
     AgentResponseParseError,
     FlowConversionError,
     FlowLayoutError,
-    extract_json_content,
     generate_pipeline_tree,
 )
 from gcloud.tasktmpl3.domains.constants import analysis_pipeline_constants_ref, get_constant_values
@@ -67,6 +64,7 @@ from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import check_and_rename_params
 from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
+from pipeline_web.drawing_new.layout import layout_pipeline_tree
 
 from .validators import (
     AgentBeautifyTemplateLayoutValidator,
@@ -461,7 +459,7 @@ def generate_process_with_agent(request):
 @iam_intercept(AgentBeautifyTemplateLayoutInterceptor())
 def ai_beautify_sops_template_layout(request):
     """
-    @summary：AI 优化模板布局
+    @summary：自动优化模板布局（基于块结构排版算法）
     @param request:
     @return:
 
@@ -480,7 +478,7 @@ def ai_beautify_sops_template_layout(request):
     canvas_width = request.GET.get("canvas_width")
 
     try:
-        project_obj = Project.objects.get(id=project_id)
+        Project.objects.get(id=project_id)
     except Project.DoesNotExist:
         logger.error("beautify_sops_template_layout error: project not found - {}".format(project_id))
         return JsonResponse({"result": False, "message": "project not found", "code": err_code.UNKNOWN_ERROR.code})
@@ -491,59 +489,15 @@ def ai_beautify_sops_template_layout(request):
         logger.error("beautify_sops_template_layout error: template not found - {}".format(template_id))
         return JsonResponse({"result": False, "message": "template not found", "code": err_code.UNKNOWN_ERROR.code})
 
-    bk_biz_id = project_obj.bk_biz_id
-
-    try:
-        client = BKSopsAgentClient(env.BK_SOPS_AGENT_HOST, AgentRequestType.PLUGIN)
-        response = client.beautify_sops_template_layout(bk_biz_id, template_id, canvas_width)
-    except Exception as e:
-        logger.error("beautify_sops_template_layout error: 调用AI失败 - {}".format(str(e)))
-        return JsonResponse(
-            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
-        )
-
-    if not response:
-        return JsonResponse(
-            {
-                "result": False,
-                "message": "beautify_sops_template_layout failed",
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
-        )
-
-    try:
-        json_content = extract_json_content(response)
-        layout_data = json.loads(json_content)
-    except ValueError as e:
-        logger.error("beautify_sops_template_layout: 布局数据JSON解析失败 - {}, response={}".format(str(e), response))
-        return JsonResponse(
-            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
-        )
-
-    if not isinstance(layout_data, dict) or "location" not in layout_data or "line" not in layout_data:
-        logger.error("beautify_sops_template_layout: AI生成布局数据缺少必要字段 - {}".format(layout_data))
-        return JsonResponse(
-            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
-        )
-
     pipeline_tree = template_obj.pipeline_tree
 
     try:
-        new_location_map = {item["id"]: item for item in layout_data.get("location", [])}
-        for node in pipeline_tree.get("location", []):
-            new_node = new_location_map.get(node["id"])
-            if new_node:
-                node["x"] = new_node["x"]
-                node["y"] = new_node["y"]
-
-        new_line_map = {item["id"]: item for item in layout_data.get("line", [])}
-        for line in pipeline_tree.get("line", []):
-            new_line = new_line_map.get(line["id"])
-            if new_line:
-                line["source"]["arrow"] = new_line["source"]["arrow"]
-                line["target"]["arrow"] = new_line["target"]["arrow"]
-    except (KeyError, TypeError) as e:
-        logger.error("beautify_sops_template_layout: 合并布局数据异常 - {}, layout_data={}".format(str(e), layout_data))
+        layout_kwargs = {}
+        if canvas_width:
+            layout_kwargs["canvas_width"] = int(canvas_width)
+        layout_pipeline_tree(pipeline_tree, **layout_kwargs)
+    except Exception as e:
+        logger.exception("beautify_sops_template_layout error: layout failed - {}".format(str(e)))
         return JsonResponse(
             {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
         )

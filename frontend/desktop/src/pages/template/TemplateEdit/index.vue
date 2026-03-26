@@ -311,7 +311,8 @@
                 checkedConvergeNodes: [],
                 isolationAtomConfig: {}, // 被隔离插件的基础配置
                 aiFormatLoading: false, // AI排版加载状态
-                aiFormatResult: '' // AI排版结果状态
+                aiFormatResult: '', // AI排版结果状态
+                isReplacingConnectors: false
             }
         },
         computed: {
@@ -1414,14 +1415,16 @@
                     if (res.result) {
                         // 创建快照
                         this.onCreateSnapshoot('isAIFormatPosition')
-                        const curPipelineTree = {
-                            location: res.data.location
-                        }
-                        // ai排版只改变位置关系,不改变连线关系
-                        this.setAiPipelineTree(curPipelineTree)
+                        this.isReplacingConnectors = true
+                        this.$refs.templateCanvas.removeAllConnector()
+                        this.isReplacingConnectors = false
+                        this.setAiPipelineTree({
+                            location: res.data.location,
+                            line: res.data.line
+                        })
                         this.aiFormatResult = 'success'
                         this.$nextTick(() => {
-                            this.$refs.templateCanvas.updateNodePositions()
+                            this.$refs.templateCanvas.updateCanvas()
                             this.$refs.templateCanvas.onResetPosition()
                             this.templateDataChanged()
                             this.$bkMessage({
@@ -1579,6 +1582,7 @@
              * @param {Object} line 连线对象
              */
             onLineChange (changeType, line) {
+                if (this.isReplacingConnectors) return
                 this.setLine({ type: changeType, line })
                 // 对校验失败节点进行处理
                 if (!this.validateConnectFailList.length) return
