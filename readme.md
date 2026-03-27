@@ -19,9 +19,9 @@
 > 底层流程引擎 SDK：[bamboo-engine](https://github.com/TencentBlueKing/bamboo-engine)
 
 ## Overview
-- [架构设计](docs/guide/architecture.md)
-- [代码目录](docs/guide/code_structure.md)
-- [使用场景](docs/guide/usecase.md)
+- [架构设计](docs/zh_hans/guide/architecture.md)
+- [代码目录](docs/zh_hans/guide/code_structure.md)
+- [使用场景](docs/zh_hans/guide/usecase.md)
 
 
 ## Features
@@ -36,24 +36,24 @@
 
 
 ## Getting started
-- [开发环境后台部署](docs/develop/dev_deploy.md)
-- [开发环境前端部署](docs/develop/dev_web.md)
-- [正式环境源码部署](docs/deploy/source_code_deploy.md)
-- [正式环境上传部署](docs/deploy/upload_pack_deploy.md)
-- [标准插件开发](docs/develop/dev_plugins.md)
-- [标准插件开发最佳实践](docs/develop/dev_plugin_best_practices.md)
-- [标准运维开发者工具包](docs/develop/bksops-developer-tools.md)
+- [开发环境后台部署](docs/zh_hans/develop/dev_deploy.md)
+- [开发环境前端部署](docs/zh_hans/develop/dev_web.md)
+- [正式环境源码部署](docs/zh_hans/deploy/source_code_deploy.md)
+- [正式环境上传部署](docs/zh_hans/deploy/upload_pack_deploy.md)
+- [标准插件开发](docs/zh_hans/develop/dev_plugins.md)
+- [标准插件开发最佳实践](docs/zh_hans/develop/dev_plugin_best_practices.md)
+- [标准运维开发者工具包](docs/zh_hans/develop/bksops-developer-tools.md)
 
 
 ## Usage
 - [API使用说明](https://bk.tencent.com/docs/document/6.0/167/13157)
-- [标准插件说明](docs/guide/plugin_usage.md)
-- [标准插件远程加载](docs/guide/remote_plugins.md)
-- [变量引擎](docs/guide/variables_engine.md)
-- [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
-- [redis 部署模式支持](docs/guide/redis_usage.md)
-- [版本升级注意事项](docs/ops/version_update_notes.md)
-- [故障排查手册](docs/ops/fault_detection_manual.md)
+- [标准插件说明](docs/zh_hans/guide/plugin_usage.md)
+- [标准插件远程加载](docs/zh_hans/guide/remote_plugins.md)
+- [变量引擎](docs/zh_hans/guide/variables_engine.md)
+- [Tag使用和开发说明](docs/zh_hans/develop/tag_usage_dev.md)
+- [redis 部署模式支持](docs/zh_hans/guide/redis_usage.md)
+- [版本升级注意事项](docs/zh_hans/ops/version_update_notes.md)
+- [故障排查手册](docs/zh_hans/ops/fault_detection_manual.md)
 
 ## Releases
 - [已发布版本](https://github.com/TencentBlueKing/bk-sops/releases)
@@ -77,12 +77,12 @@
 
 ## Contributing
 如果你有好的意见或建议，欢迎给我们提 Issues 或 Pull Requests，为蓝鲸开源社区贡献力量。关于标准运维分支管理、Issue 以及 PR 规范，
-请阅读 [Contributing Guide](docs/CONTRIBUTING.md)。
+请阅读 [Contributing Guide](docs/zh_hans/CONTRIBUTING.md)。
 
 [腾讯开源激励计划](https://opensource.tencent.com/contribution) 鼓励开发者的参与和贡献，期待你的加入。
 
 ## FAQ
-[FAQ](docs/wiki/faq.md)
+[FAQ](docs/zh_hans/wiki/faq.md)
 
 
 ## License

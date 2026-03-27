@@ -140,13 +140,10 @@ jobs:
           ## 项目文档
 
           在审查代码时，请参考以下项目文档以理解架构设计和业务上下文：
-          - docs/guide/ — 用户指南（架构概览、功能特性、使用说明）
-          - docs/develop/ — 开发指南（插件开发、本地环境搭建）
-          - docs/deploy/ — 生产部署文档
-          - docs/apidoc/ — API 文档（中英文）
+          - docs/zh_hans/ — 中文文档（guide/ develop/ deploy/ ops/ wiki/ apidoc/）
+          - docs/en/ — 英文文档（guide/ develop/ deploy/ wiki/ apidoc/）
           - docs/specs/ — 设计文档（brainstorming 输出）
           - docs/plans/ — 实现计划（writing-plans 输出）
-          - docs/ops/ — 运维手册
           - .cursor/rules/docs-management.mdc — 文档目录管理规范
 
           审查时应结合这些文档判断：
@@ -158,7 +155,7 @@ jobs:
           ## API 网关同步规则
 
           若 PR 涉及 gcloud/apigw/ 下的变更，需检查以下同步项：
-          1) 新增/修改 API 视图 → 对应文档 docs/apidoc/zh_hans/{api_name}.md 和 docs/apidoc/en/{api_name}.md 是否已同步更新
+          1) 新增/修改 API 视图 → 对应文档 docs/zh_hans/apidoc/{api_name}.md 和 docs/en/apidoc/{api_name}.md 是否已同步更新
           2) 新增 API → apigw/bk_apigw_resources_bk-sops_mcp_additions.yaml 是否已添加资源定义
           3) 已注册接口补全 schema → apigw/bk_apigw_resources_bk-sops_mcp_supplement.yaml 是否已更新
           4) 文档更新后 → apigw-docs.tgz 是否已重新生成

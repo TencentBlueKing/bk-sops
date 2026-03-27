@@ -21,9 +21,9 @@ The background uses Python as the development language and Django development fr
  greatly reduces the difficulty for users to develop front-end forms of Standard Plugins.
 
 ## Overview
-- [Architecture Design](en_docs/overview/architecture.md)
-- [Code Directory](en_docs/overview/code_structure.md)
-- [Use Case](en_docs/overview/usecase.md)
+- [Architecture Design](docs/en/guide/architecture.md)
+- [Code Directory](docs/en/guide/code_structure.md)
+- [Use Case](docs/en/guide/usecase.md)
 
 
 ## Features
@@ -43,19 +43,19 @@ If you want to know more about the above features, please refer to the
 
 
 ## Getting started
-- [Development Background Deployment](en_docs/install/dev_deploy.md)
-- [Development Front-end Deployment](en_docs/install/dev_web.md)
-- [Production Source Deployment](en_docs/install/source_code_deploy.md)
-- [Production Upload Deployment](en_docs/install/upload_pack_deploy.md)
-- [Standard Plugin Development](en_docs/develop/dev_plugins.md)
+- [Development Background Deployment](docs/en/develop/dev_deploy.md)
+- [Development Front-end Deployment](docs/en/develop/dev_web.md)
+- [Production Source Deployment](docs/en/deploy/source_code_deploy.md)
+- [Production Upload Deployment](docs/en/deploy/upload_pack_deploy.md)
+- [Standard Plugin Development](docs/en/develop/dev_plugins.md)
 
 
 ## Usage
 - [API Documents](https://bk.tencent.com/docs/document/6.0/167/13157)
-- [Standard Plugin Documents](en_docs/features/plugin_usage.md)
-- [Standard Plugin Remote Importing](en_docs/features/remote_plugins.md)
-- [Variables Engine](en_docs/features/variables_engine.md)
-- [Tag Usage And Develop](en_docs/develop/tag_usage_dev.md)
+- [Standard Plugin Documents](docs/en/guide/plugin_usage.md)
+- [Standard Plugin Remote Importing](docs/en/guide/remote_plugins.md)
+- [Variables Engine](docs/en/guide/variables_engine.md)
+- [Tag Usage And Develop](docs/en/develop/tag_usage_dev.md)
 
 
 ## Releases
@@ -83,13 +83,13 @@ If you want to know more about the above features, please refer to the
 ## Contributing
 If you have good ideas or suggestions, please let us know by Issues or Pull Requests and contribute to the Blue Whale
  Open Source Community. For Standard SOPS branch management, issues, and pr specifications, read the
- [Contributing Guide](en_docs/CONTRIBUTING.md)。
+ [Contributing Guide](docs/en/CONTRIBUTING.md)。
 
-If you are interested in contributing, check out the [CONTRIBUTING.md](en_docs/CONTRIBUTING.md), also join our
+If you are interested in contributing, check out the [CONTRIBUTING.md](docs/en/CONTRIBUTING.md), also join our
  [Tencent OpenSource Plan](https://opensource.tencent.com/contribution).
 
 ## FAQ
-[FAQ](en_docs/wiki/faq.md)
+[FAQ](docs/en/wiki/faq.md)
 
 
 ## License
