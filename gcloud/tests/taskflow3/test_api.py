@@ -13,14 +13,12 @@ specific language governing permissions and limitations under the License.
 
 from copy import deepcopy
 
-from django.test import TestCase, Client
-
+from django.test import Client, TestCase
 from pipeline.utils.uniqid import node_uniqid
 
+from gcloud.taskflow3.apis.django import api
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.taskflow3.apis.django import api
-
 
 TEST_PROJECT_ID = "2"  # do not change this to non number
 TEST_ID_LIST = [node_uniqid() for i in range(10)]
@@ -272,3 +270,12 @@ class APITest(TestCase):
         result = api.last_execution_constants(request, TEST_PROJECT_ID)
 
         self.assertFalse(result["result"])
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    def test_last_execution_constants__invalid_template_source(self):
+        request = MockJsonBodyRequest("GET", {})
+        request.GET = {"template_id": "1", "template_source": "onetime"}
+        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+
+        self.assertFalse(result["result"])
+        self.assertIn("template_source", result["message"])

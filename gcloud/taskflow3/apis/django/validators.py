@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
+from gcloud.constants import COMMON, PROJECT
 from gcloud.utils.validate import ObjectJsonBodyValidator, RequestValidator
 
 
@@ -271,4 +272,7 @@ class LastExecutionConstantsValidator(RequestValidator):
         template_id = request.GET.get("template_id")
         if not template_id:
             return False, "template_id can not be empty"
+        template_source = request.GET.get("template_source", PROJECT)
+        if template_source not in (PROJECT, COMMON):
+            return False, "template_source must be 'project' or 'common'"
         return True, ""
