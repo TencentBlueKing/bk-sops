@@ -1,4 +1,4 @@
-﻿# Production environment source code deployment
+# Production environment source code deployment
 
 ## Fork source code to your own repository  
 By forking source code to your own repository, you can carry out extended development and customizations. It is suggested that public feature development and bug fixes to be submitted to the official repository via pull requests. If there is no need for extended development, please retrieve a packaged version from releases, then upload, deploy and update official SOPS SaaS.
@@ -42,7 +42,7 @@ Execute the following command in the controlling machine of the Blueking Communi
 source /data/install/utils.fc
 add_app_token bk-sops-ce "$(_app_token bk-sops-ce)" "SOPS Custom Edition"
 ```
-Please change "SPOS Custom Edition" and bk-sops-ce to your app name and app ID.
+Please change "SOPS Custom Edition" and bk-sops-ce to your app name and app ID.
 
 
 # Prepare redis resources

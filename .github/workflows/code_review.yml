@@ -46,7 +46,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # 关键：检出 PR 的代码，而不是默认分支
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: 设置 Node.js 环境
@@ -61,26 +60,20 @@ jobs:
       - name: 配置 CodeBuddy CLI
         env:
           CODEBUDDY_API_KEY: ${{ secrets.CODEBUDDY_API_KEY }}
+          CODEBUDDY_INTERNET_ENVIRONMENT: iOA
           GH_TOKEN: ${{ github.token }}
         run: |
-          # 验证 API Key 是否存在
           if [ -z "$CODEBUDDY_API_KEY" ]; then
             echo "⚠️ 警告: CODEBUDDY_API_KEY 未设置，CodeBuddy 可能无法正常工作"
             echo "请在 GitHub 仓库的 Settings -> Secrets and variables -> Actions 中添加 CODEBUDDY_API_KEY"
-            echo "如果使用公开 API，可以跳过此步骤"
           else
             echo "✅ CodeBuddy API Key 已配置"
-            # 设置环境变量供 CodeBuddy CLI 使用
             export CODEBUDDY_API_KEY="$CODEBUDDY_API_KEY"
           fi
-          # 配置 GitHub MCP Server（用于 CodeBuddy 访问 GitHub API）
           echo "🔧 配置 GitHub MCP Server..."
-          # 创建 CodeBuddy 配置目录
           CODEBUDDY_CONFIG_DIR="$HOME/.config/codebuddy"
           mkdir -p "$CODEBUDDY_CONFIG_DIR"
-          # 创建 MCP 配置文件
           MCP_CONFIG_FILE="$CODEBUDDY_CONFIG_DIR/mcp.json"
-          # 使用 Node.js 创建配置文件（Node.js 在 GitHub Actions 中可用）
           node -e "
             const fs = require('fs');
             const config = {
@@ -108,17 +101,24 @@ jobs:
           CI: true
         run: |
           echo "🚀 开始执行 CodeBuddy 代码审查..."
-          # 检查 codebuddy 是否可用
           if ! command -v codebuddy &> /dev/null && ! command -v cbc &> /dev/null; then
             echo "❌ codebuddy 命令未找到"
             exit 1
           fi
-          # 使用 codebuddy 或 cbc 命令（两者等价）
-          CODEBUDDY_CMD="codebuddy -p --dangerously-skip-permissions"
+          CODEBUDDY_CMD="codebuddy -p --dangerously-skip-permissions --model claude-opus-4.6"
           if ! command -v codebuddy &> /dev/null; then
-            CODEBUDDY_CMD="cbc"
+            CODEBUDDY_CMD="cbc -p --dangerously-skip-permissions --model claude-opus-4.6"
           fi
-          # 获取 PR 信息
+          echo "🔍 验证 CodeBuddy CLI 连通性..."
+          VERIFY_RESULT=$($CODEBUDDY_CMD "回复ok" 2>&1) || true
+          echo "验证结果: $VERIFY_RESULT"
+          if echo "$VERIFY_RESULT" | grep -qi "ok"; then
+            echo "✅ CodeBuddy CLI 验证通过"
+          else
+            echo "❌ CodeBuddy CLI 验证失败，请检查 API Key 和网络配置"
+            echo "详细输出: $VERIFY_RESULT"
+            exit 1
+          fi
           PR_NUMBER="${{ github.event.pull_request.number }}"
           REPO="${{ github.repository }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
@@ -127,31 +127,78 @@ jobs:
           echo "📦 PR 编号: $PR_NUMBER"
           echo "📦 Head SHA: $HEAD_SHA"
           echo "📦 Base SHA: $BASE_SHA"
-          # 构建审查提示词（使用 printf 避免 YAML 解析问题）
-          REVIEW_PROMPT=$(printf '%s\n\n%s\n- %s：%s\n- %s：%s\n- %s：%s\n- %s：%s\n\n%s\n%s\n%s\n%s\n\n%s\n- %s：gh pr view %s --json comments\n- %s：gh pr diff %s\n- %s\n- %s\n\n%s\n- %s\n- %s\n- %s\n- %s\n\n%s\n- %s\n- %s：gh pr review %s --comment\n- %s' \
-            "你当前在 GitHub Actions runner 中执行自动化代码审查。gh CLI 可用并已通过 GH_TOKEN 认证。你可以在拉取请求上发表评论。" \
-            "上下文：" \
-            "仓库" "$REPO" \
-            "PR 编号" "$PR_NUMBER" \
-            "PR Head SHA" "$HEAD_SHA" \
-            "PR Base SHA" "$BASE_SHA" \
-            "目标：" \
-            "1) 复核已有审查评论，若已处理则回复：已解决" \
-            "2) 审查当前 PR diff，仅标注明确且高严重度的问题" \
-            "3) 只在变更的行留下非常简短的行内评论（1-2 句），并在末尾给出简要总结" \
-            "流程：" \
-            "获取已有评论" "$PR_NUMBER" \
-            "获取 diff" "$PR_NUMBER" \
-            "若先前报告的问题似乎已被附近的更改修复，回复：✅ 此问题似乎已被最近的更改解决" \
-            "避免重复：如果同类反馈已在相同行或附近存在，则跳过" \
-            "评论规则：" \
-            "最多 10 条行内评论；优先处理最关键的问题" \
-            "每条评论只包含一个问题；放在准确的变更行" \
-            "语气自然，具体且可执行；不要提及自动化或高置信度" \
-            "使用表情：🚨 严重 🔒 安全 ⚡ 性能 ⚠️ 逻辑 ✅ 已解决 ✨ 改进" \
-            "提交：" \
-            "提交一次审查，包含行内评论与简明总结" \
-            "仅使用" "$PR_NUMBER" \
-            "不要使用：gh pr review --approve 或 --request-changes")
-          # 执行 CodeBuddy 审查
-          $CODEBUDDY_CMD "$REVIEW_PROMPT"
+          REVIEW_PROMPT=$(cat <<EOF
+          你当前在 GitHub Actions runner 中执行自动化代码审查。gh CLI 可用并已通过 GH_TOKEN 认证。你可以在拉取请求上发表评论。
+
+          ## 上下文
+
+          - 仓库：${REPO}
+          - PR 编号：${PR_NUMBER}
+          - PR Head SHA：${HEAD_SHA}
+          - PR Base SHA：${BASE_SHA}
+
+          ## 项目文档
+
+          在审查代码时，请参考以下项目文档以理解架构设计和业务上下文：
+          - docs/guide/ — 用户指南（架构概览、功能特性、使用说明）
+          - docs/develop/ — 开发指南（插件开发、本地环境搭建）
+          - docs/deploy/ — 生产部署文档
+          - docs/apidoc/ — API 文档（中英文）
+          - docs/specs/ — 设计文档（brainstorming 输出）
+          - docs/plans/ — 实现计划（writing-plans 输出）
+          - docs/ops/ — 运维手册
+          - .cursor/rules/docs-management.mdc — 文档目录管理规范
+
+          审查时应结合这些文档判断：
+          1) 代码变更是否与已有架构设计一致
+          2) 是否有需要同步更新的文档
+          3) 新增功能是否遵循了文档中描述的设计模式
+          4) 文档是否放在了正确的目录（参考 docs-management.mdc）
+
+          ## API 网关同步规则
+
+          若 PR 涉及 gcloud/apigw/ 下的变更，需检查以下同步项：
+          1) 新增/修改 API 视图 → 对应文档 docs/apidoc/zh_hans/{api_name}.md 和 docs/apidoc/en/{api_name}.md 是否已同步更新
+          2) 新增 API → apigw/bk_apigw_resources_bk-sops_mcp_additions.yaml 是否已添加资源定义
+          3) 已注册接口补全 schema → apigw/bk_apigw_resources_bk-sops_mcp_supplement.yaml 是否已更新
+          4) 文档更新后 → apigw-docs.tgz 是否已重新生成
+          5) 修改了 Serializer 字段 → 文档中的接口参数表格是否同步更新
+
+          ## 目标
+
+          1) 复核已有审查评论，若已处理则回复：已解决
+          2) 审查当前 PR diff，仅标注明确且高严重度的问题
+          3) 结合项目文档判断代码变更的合理性，检查是否需要更新文档
+          4) 只在变更的行留下非常简短的行内评论（1-2 句），并在末尾给出简要总结
+
+          ## 流程
+
+          - 获取已有评论：gh pr view ${PR_NUMBER} --json comments
+          - 获取 diff：gh pr diff ${PR_NUMBER}
+          - 按需阅读项目文档：cat docs/guide/architecture.md 等
+          - 若先前报告的问题似乎已被附近的更改修复，回复：✅ 此问题似乎已被最近的更改解决
+          - 避免重复：如果同类反馈已在相同行或附近存在，则跳过
+
+          ## 评论规则
+
+          - 最多 10 条行内评论；优先处理最关键的问题
+          - 每条评论只包含一个问题；放在准确的变更行
+          - 语气自然，具体且可执行；不要提及自动化或高置信度
+          - 使用表情：🚨 严重 🔒 安全 ⚡ 性能 ⚠️ 逻辑 ✅ 已解决 ✨ 改进
+
+          ## 提交
+
+          - 提交一次审查，包含行内评论与简明总结
+          - 仅使用：gh pr review ${PR_NUMBER} --comment
+          - 不要使用：gh pr review --approve 或 --request-changes
+          EOF
+          )
+          echo "========== CodeBuddy 审查开始 =========="
+          $CODEBUDDY_CMD "$REVIEW_PROMPT" 2>&1 | tee /tmp/review_output.txt
+          REVIEW_EXIT_CODE=${PIPESTATUS[0]}
+          echo "========== CodeBuddy 审查结束 =========="
+          echo "退出码: $REVIEW_EXIT_CODE"
+          if [ $REVIEW_EXIT_CODE -ne 0 ]; then
+            echo "❌ CodeBuddy 审查异常退出"
+            exit $REVIEW_EXIT_CODE
+          fi

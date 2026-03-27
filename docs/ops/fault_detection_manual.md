@@ -14,9 +14,9 @@
 
 ## 部署架构
 
-![](./assets/deployment_components.png)
+标准运维部署架构主要包括 Web/API 模块、Celery Worker/Schedule 模块、RabbitMQ、Redis、MySQL 等组件。
 
-结合上图，再根据实际问题进行定位和排查，例如：
+根据部署架构，再结合实际问题进行定位和排查，例如：
 
 - JOB 作业已执行完成，标准运维 JOB 节点未往下执行
   - 参考附录检查 Web/API 模块是否已经成功收到 JOB 回调

@@ -1,5 +1,5 @@
 # Contributing to bk-sops
-我们欢迎 [Report Issues](https://github.com/Tencent/bk-sops/issues) 或者 [Pull requests](https://github.com/Tencent/bk-sops/pulls)。 在贡献代码之前请阅读以下指引。
+我们欢迎 [Report Issues](https://github.com/TencentBlueKing/bk-sops/issues) 或者 [Pull requests](https://github.com/TencentBlueKing/bk-sops/pulls)。 在贡献代码之前请阅读以下指引。
 
 
 ## 问题管理
@@ -20,12 +20,12 @@
 
 在完成一个 PR 之前请做一下确认:
 
-1. 从 `master` 或者 `hotfix` fork 你自己的分支。
+1. Fork 仓库到自己的账号下，从社区版分支 `release_humming_bird` 创建功能分支（如 `feat/xxx` 或 `fix/xxx`）。
 2. 在修改了代码之后请修改对应的文档和注释。
 3. 在新建的文件中请加入 license 和 copy right 申明。
 4. 确保一致的代码风格。
 5. 做充分的测试。
-6. 然后，你可以提交你的代码到 `dev` 或者 `hotfix` 分支。
+6. 将分支推送到自己的 fork 仓库，然后向上游 `release_humming_bird` 分支提交 Pull Request。
 
 
 ## 代码协议

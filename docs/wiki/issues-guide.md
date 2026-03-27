@@ -1,7 +1,7 @@
 # Issues规则
 
 ## BUG提单
-如果你在使用标准运维的过程中发现了一个bug，欢迎你通过[提交issue](https://github.com/Tencent/bk-sops/issues/new)
+如果你在使用标准运维的过程中发现了一个bug，欢迎你通过[提交issue](https://github.com/TencentBlueKing/bk-sops/issues/new)
 将这个bug反馈给社区来进行定位和修复。针对你提交的bug，还需要你提供一些具体的信息来帮助社区来定位、修复这个问题。
 
 社区需要你提供下面这些基础信息：
@@ -24,7 +24,7 @@
 <列出如何重现的方法或操作步骤>
 
 
-**重要提醒**: 请优先尝试部署使用最新发布的版本 (发布清单： https://github.com/Tencent/bk-sops/releases), 如果问题不能在最新发布的版本里重现，说明此问题已经被修复。
+**重要提醒**: 请优先尝试部署使用最新发布的版本 (发布清单： https://github.com/TencentBlueKing/bk-sops/releases), 如果问题不能在最新发布的版本里重现，说明此问题已经被修复。
 
 
 关键信息
@@ -50,7 +50,7 @@
 bug修复后，你可以基于这个分支自行部署使用。也可以等社区release新的版本后再使用。
 
 # 提需求
-如果你在使用标准运维的过程中发现目前的版本还无法满足你的某些需求，欢迎[创建issue](https://github.com/Tencent/bk-sops/issues/new)
+如果你在使用标准运维的过程中发现目前的版本还无法满足你的某些需求，欢迎[创建issue](https://github.com/TencentBlueKing/bk-sops/issues/new)
 将你的需求反馈给我们。社区希望你的需求能够：
 - 具有普适的使用场景。
 - 在标准运维产品形态的适用范围内。

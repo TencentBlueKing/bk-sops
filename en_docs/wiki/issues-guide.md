@@ -1,7 +1,7 @@
 ﻿# Issues Guide
 
 ## BUG Ticket
-If you encounter a bug in SOPS, you can submit the bug to the community by [Submit Issue] (https://github.com/Tencent/bk-sops/issues/new)
+If you encounter a bug in SOPS, you can submit the bug to the community by [Submit Issue] (https://github.com/TencentBlueKing/bk-sops/issues/new)
 to locate and fix the bug. You also need to provide more specific information to help the community locate and fix the problem.
 
 The community needs you to provide the following basic information.
@@ -24,7 +24,7 @@ Reproducing the issue
 <The methods or steps required to reproduce the issue>
 
 
-**Important Reminder**: Please try deploying the latest version first (Release list: https://github.com/Tencent/bk-sops/releases). If the issue cannot be reproduced in the latest version, then it means the issue has been fixed.
+**Important Reminder**: Please try deploying the latest version first (Release list: https://github.com/TencentBlueKing/bk-sops/releases). If the issue cannot be reproduced in the latest version, then it means the issue has been fixed.
 
 
 Key information
@@ -50,7 +50,7 @@ Once the community confirms that issue you submitted is a bug, there are many wa
 When the bug is fixed, you can deploy the fixed branch on your own machine or you can wait until the new version is released.
 
 # Submit a request
-If you find that the current SOPS version doesn't meet your demands, feel free to [create an issue] (https://github.com/Tencent/bk-sops/issues/new)
+If you find that the current SOPS version doesn't meet your demands, feel free to [create an issue] (https://github.com/TencentBlueKing/bk-sops/issues/new)
 and tell us your request. Your request should be:
 - able to be applied in a universal scenario.
 - within the scope of application of the SOPS product.

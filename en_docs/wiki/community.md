@@ -9,7 +9,7 @@ Blueking encourages everyone to participate in the SOPS community. Through two w
     - discover a possible feature optimization;
     - want to make some friends...
     
-    Whatever you want to do, you can always [Create an Issue] (https://github.com/Tencent/bk-sops/issues/new) 
+    Whatever you want to do, you can always [Create an Issue] (https://github.com/TencentBlueKing/bk-sops/issues/new) 
     and interact with the community. The community will respond to your issue as soon as possible. We will try our best to help you deal with the issues and the bugs.
     You can also submit PR (Pull Request) to provide a solution to this bug. If you need help from the community, you can submit an issue for us to discuss and review.
     

@@ -10,11 +10,11 @@
 
 RenderForm 组件的结构：
 
-![图片描述](../resource/img/renderform_arch.png)
+![图片描述](img/renderform_arch.png)
 
 标准插件表单的渲染流程：
 
-![图片描述](../resource/img/renderform_flow.png)
+![图片描述](img/renderform_flow.png)
 
 formMixins 函数定义了一些 Tag 组件公共的属性和方法，在添加 Tag 组件调用该方法来混入，可以避免编写重复的声明。
 
@@ -108,8 +108,8 @@ Tag 组件中的所有属性配置都在 `attrs` 字段里声明。
 
 - `updateForm`：触发 `change` 事件更新表单值，并调用校验函数，参数为 `value`
 - `validate`：校验函数
-- `show`：表单隐藏
-- `hide`：表单显示
+- `show`：表单显示
+- `hide`：表单隐藏
 - `get_form_instance`：获取表单实例，FormItem
 - `get_parent`：获取 combine 实例或根元素实例
 - `get_child`：获取表单实例，参数为子表单的 tag_code，支持 RenderForm 或 RenderGroup 组件调用
@@ -476,7 +476,7 @@ ip 选择器，支持静态 ip 或动态 ip 的单选和多选。
 
 **方法**
 
-### 17. TagLogDisplay
+### 18. TagLogDisplay
 
 日志展示
 

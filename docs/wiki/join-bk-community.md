@@ -22,9 +22,9 @@
 
 
 ## 4. 查找指定的蓝鲸项目
-- [蓝鲸配置平台（CMDB）](https://github.com/Tencent/bk-cmdb)
-- [蓝鲸PaaS平台](https://github.com/Tencent/bk-paas)
-- [标准运维（调度编排SaaS）](https://github.com/Tencent/bk-sops)
+- [蓝鲸配置平台（CMDB）](https://github.com/TencentBlueKing/bk-cmdb)
+- [蓝鲸PaaS平台](https://github.com/TencentBlueKing/bk-paas)
+- [标准运维（调度编排SaaS）](https://github.com/TencentBlueKing/bk-sops)
 - CMDB开源交流QQ群: 305496802
 - PaaS平台和SaaS交流QQ群: 878501914
 

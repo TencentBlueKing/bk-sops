@@ -1,12 +1,12 @@
-﻿![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_sops.png)
+﻿![](https://github.com/TencentBlueKing/bk-sops/blob/master/docs/wiki/img/wiki_sops.png)
 # SOPS. A mature, stable flow schedule engine!
 
 ## Introduction
 >SOPS is a SaaS product in the Tencent Blueking product system. It implements cross-system automated scheduling for operation and maintenance demands. Based on a mature and stable flow schedule engine and the capability of the Blueking PaaS API Gateway to connect various system APIs of an enterprise, it can integrate the works among multiple systems within the enterprise into a task flow. It can integrate services within the Tencent Blueking system (such as: CMDB, JOB, Notification Service, etc.) and support custom plugins. The users can connect their own system and achieve one-key automated scheduling.
-![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_product.png)
+![](https://github.com/TencentBlueKing/bk-sops/blob/master/docs/wiki/img/wiki_product.png)
 
 ## Features
-![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_feature.png)
+![](https://github.com/TencentBlueKing/bk-sops/blob/master/docs/wiki/img/wiki_feature.png)
 
 ## Positioning
 Referring to its own development, Tencent Blueking divides the development of operation and maintenance into four stages.
@@ -26,20 +26,20 @@ SOPS shields the difference among the underlying systems, allowing the operation
 
 ## Future
 We hope that through open source, we can improve the cohesion of IT operation and maintenance community and bring more sense of belonging and interactions to the community; We believe that your participation will make this community more powerful and more extraordinary.
-![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_future.png)
+![](https://github.com/TencentBlueKing/bk-sops/blob/master/docs/wiki/img/wiki_future.png)
 
 ## About the open source license
 SOPS uses the MIT open source license. MIT is similar to BSD, it has a high license compatibility. The author only keeps the copyright of the software and puts very limited restriction on the software. The user must include the original license in the release version, whether the software is released in binary or in source code form.
 
 ## Discussion is welcomed
-![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_communication.png)
+![](https://github.com/TencentBlueKing/bk-sops/blob/master/docs/wiki/img/wiki_communication.png)
 
 
 ## Tencent Blueking
 The Tencent Blueking system consists of platform-level products and universal SaaS services. The platforms include control platform, CMDB, JOB, PaaS platform, etc. The universal SaaS includes node management, SOPS, log query, Blueking monitoring, failure correction, etc. It provides one-stop technical solutions for users on various clouds (public, private, and hybrid clouds) with different scenarios and different demands.
 
 Tencent Blueking product structure - Community Edition  
-![](https://github.com/Tencent/bk-sops/blob/master/docs/wiki/img/wiki_blueking.png)
+![](https://github.com/TencentBlueKing/bk-sops/blob/master/docs/wiki/img/wiki_blueking.png)
 
 Description:  
 1. Tencent Blueking is an integrated system, which means each product in the system has to work in conjunction to bring out the system's maximum value.    
@@ -48,7 +48,7 @@ Description:
 4. The SOPS must be used in conjunction with the whole system.
 
 Open source product links  
-SOPS: https://github.com/Tencent/bk-sops  
-PaaS Platform: https://github.com/Tencent/bk-PaaS  
-CMDB: https://github.com/Tencent/bk-cmdb  
-Container Service Platform: https://github.com/Tencent/bk-bcs  
+SOPS: https://github.com/TencentBlueKing/bk-sops  
+PaaS Platform: https://github.com/TencentBlueKing/bk-PaaS  
+CMDB: https://github.com/TencentBlueKing/bk-cmdb  
+Container Service Platform: https://github.com/TencentBlueKing/bk-bcs  

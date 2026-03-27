@@ -22,9 +22,9 @@
 
 
 ## 4. Find a Blueking Project
-- [BlueKing Configuration Management DataBase (CMDB)] (https://github.com/Tencent/bk-cmdb)
-- [Blueking PaaS Platform] (https://github.com/Tencent/bk-paas)
-- [Standard OPS (Scheduling and Arrangement SaaS)] (https://github.com/Tencent/bk-sops)
+- [BlueKing Configuration Management DataBase (CMDB)] (https://github.com/TencentBlueKing/bk-cmdb)
+- [Blueking PaaS Platform] (https://github.com/TencentBlueKing/bk-paas)
+- [Standard OPS (Scheduling and Arrangement SaaS)] (https://github.com/TencentBlueKing/bk-sops)
 - CMDB Open Source QQ Group: 305496802
 - PaaS Platform and SaaS QQ Group: 878501914
 

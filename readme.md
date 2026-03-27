@@ -19,9 +19,9 @@
 > 底层流程引擎 SDK：[bamboo-engine](https://github.com/TencentBlueKing/bamboo-engine)
 
 ## Overview
-- [架构设计](docs/overview/architecture.md)
-- [代码目录](docs/overview/code_structure.md)
-- [使用场景](docs/overview/usecase.md)
+- [架构设计](docs/guide/architecture.md)
+- [代码目录](docs/guide/code_structure.md)
+- [使用场景](docs/guide/usecase.md)
 
 
 ## Features
@@ -36,11 +36,10 @@
 
 
 ## Getting started
-- [开发环境后台部署](docs/install/dev_deploy.md)
-- [开发环境前端部署](docs/install/dev_web.md)
-- [正式环境源码部署](docs/install/source_code_deploy.md)
-- [正式环境上传部署](docs/install/upload_pack_deploy.md)
-- [移动端部署](docs/install/mobile_deploy.md)
+- [开发环境后台部署](docs/develop/dev_deploy.md)
+- [开发环境前端部署](docs/develop/dev_web.md)
+- [正式环境源码部署](docs/deploy/source_code_deploy.md)
+- [正式环境上传部署](docs/deploy/upload_pack_deploy.md)
 - [标准插件开发](docs/develop/dev_plugins.md)
 - [标准插件开发最佳实践](docs/develop/dev_plugin_best_practices.md)
 - [标准运维开发者工具包](docs/develop/bksops-developer-tools.md)
@@ -48,12 +47,11 @@
 
 ## Usage
 - [API使用说明](https://bk.tencent.com/docs/document/6.0/167/13157)
-- [标准插件说明](docs/features/plugin_usage.md)
-- [标准插件远程加载](docs/features/remote_plugins.md)
-- [变量引擎](docs/features/variables_engine.md)
+- [标准插件说明](docs/guide/plugin_usage.md)
+- [标准插件远程加载](docs/guide/remote_plugins.md)
+- [变量引擎](docs/guide/variables_engine.md)
 - [Tag使用和开发说明](docs/develop/tag_usage_dev.md)
-- [移动端使用说明](docs/features/mobile.md)
-- [redis 部署模式支持](docs/features/redis_usage.md)
+- [redis 部署模式支持](docs/guide/redis_usage.md)
 - [版本升级注意事项](docs/ops/version_update_notes.md)
 - [故障排查手册](docs/ops/fault_detection_manual.md)
 
@@ -62,12 +60,12 @@
 
 ## BlueKing Community
 
-- [BK-CMDB](https://github.com/Tencent/bk-cmdb)：蓝鲸配置平台（蓝鲸 CMDB）是一个面向资产及应用的企业级配置管理平台。
-- [BK-CI](https://github.com/Tencent/bk-ci)：蓝鲸持续集成平台是一个开源的持续集成和持续交付系统，可以轻松将你的研发流程呈现到你面前。
-- [BK-BCS](https://github.com/Tencent/bk-bcs)：蓝鲸容器管理平台是以容器技术为基础，为微服务业务提供编排管理的基础服务平台。
-- [BK-PaaS](https://github.com/Tencent/bk-paas)：蓝鲸 PaaS 平台是一个开放式的开发平台，让开发者可以方便快捷地创建、开发、部署和管理 SaaS 应用。
+- [BK-CMDB](https://github.com/TencentBlueKing/bk-cmdb)：蓝鲸配置平台（蓝鲸 CMDB）是一个面向资产及应用的企业级配置管理平台。
+- [BK-CI](https://github.com/TencentBlueKing/bk-ci)：蓝鲸持续集成平台是一个开源的持续集成和持续交付系统，可以轻松将你的研发流程呈现到你面前。
+- [BK-BCS](https://github.com/TencentBlueKing/bk-bcs)：蓝鲸容器管理平台是以容器技术为基础，为微服务业务提供编排管理的基础服务平台。
+- [BK-PaaS](https://github.com/TencentBlueKing/bk-paas)：蓝鲸 PaaS 平台是一个开放式的开发平台，让开发者可以方便快捷地创建、开发、部署和管理 SaaS 应用。
 - [BK-SOPS](https://github.com/TencentBlueKing/bk-sops)：标准运维（SOPS）是通过可视化的图形界面进行任务流程编排和执行的系统，是蓝鲸体系中一款轻量级的调度编排类 SaaS 产品。
-- [BK-JOB](https://github.com/Tencent/bk-job)：蓝鲸作业平台(Job)是一套运维脚本管理系统，具备海量任务并发处理能力。
+- [BK-JOB](https://github.com/TencentBlueKing/bk-job)：蓝鲸作业平台(Job)是一套运维脚本管理系统，具备海量任务并发处理能力。
 
 ## Support
 - [源码](https://github.com/TencentBlueKing/bk-sops/tree/master)

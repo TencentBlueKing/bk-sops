@@ -1,7 +1,7 @@
 # 标准插件开发
 
 ## 标准插件说明
-参考[标准插件说明](../features/plugin_usage.md)
+参考[标准插件说明](../guide/plugin_usage.md)
 
 ## 标准插件开发步骤
 
@@ -517,12 +517,12 @@ class TestCustomComponent(Component):
 应该在 `{CUSTOM PLUGINS NAME}/tests/components/collections/plugins_test` 目录下为每个插件创建对应的文件并编写单元测试。
 另外，测试文件名应该为 `test_{code}.py`，`{code}` 为插件的唯一编码。
 
-单元测试编写指引请参考：[标准插件单元测试编写](../../pipeline/docs/user_guide_component_unit_test.md)。
+单元测试编写指引请参考：[标准插件单元测试编写](https://github.com/TencentBlueKing/bamboo-engine/blob/master/docs/user_guide_component_unit_test.md)。
 
 
 ### 8. 标准插件功能测试
 
-开发完成后，先在根目录下执行 `python manage.py collectstatic –noinput` 收集静态资源。
+开发完成后，先在根目录下执行 `python manage.py collectstatic --noinput` 收集静态资源。
 
 然后新建流程模板，并添加标准插件节点，标准插件类型选择新开发的标准插件，确保展示的输入参数和前端配置项一致，输出参数和后台
 outputs_format 一致，其中执行结果是系统默认，值是 `True` 或 `False`，表示节点执行结果是成功还是失败。

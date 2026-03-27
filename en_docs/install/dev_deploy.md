@@ -10,11 +10,11 @@ The login authentication of SOPS SaaS depends on Blueking PaaS platform. Busines
 - QQ Group: 495299374
 
 2) If you wish to use all open source Blueking products for custom development, you can deploy the open source Blueking PaaS platform and Blueking CMDB.
-- [Blueking PaaS Platform] (https://github.com/Tencent/bk-PaaS)  
-- [Blueking CMDB] (https://github.com/Tencent/bk-cmdb)  
+- [Blueking PaaS Platform] (https://github.com/TencentBlueKing/bk-PaaS)  
+- [Blueking CMDB] (https://github.com/TencentBlueKing/bk-cmdb)  
 
 Please refer to relevant documents of each open-source product to see the deployment instructions. After the Blueking PaaS platform is deployed, you also need to upload and deploy SOPS SaaS, and enable app authentication session whitelist.
-You can [click here] (https://github.com/Tencent/bk-sops/releases) to download the Release version of SOPS, and then go to "Developer Center" -> "S-mart App" on Blueking PaaS platform to upload and deploy the new app.
+You can [click here] (https://github.com/TencentBlueKing/bk-sops/releases) to download the Release version of SOPS, and then go to "Developer Center" -> "S-mart App" on Blueking PaaS platform to upload and deploy the new app.
 You may refer to "User Authentication" in "Developer Center"->"API Gateway"->"Usage Guide"->"About API Calling". Add default SOPS APP_ID, which is bk_sops to app authentication session whitelist.
 
 

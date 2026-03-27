@@ -1,0 +1,98 @@
+---
+description: 文档目录规范：规定各类文档的存放位置和命名规则，AI 生成文档时必须遵循
+alwaysApply: true
+---
+
+# 文档管理规范
+
+## 目录结构
+
+```
+docs/                              ← 面向版本控制、随代码提交的文档
+├── guide/                         ← 用户指南（架构概览、功能特性、使用说明）
+├── develop/                       ← 开发指南（插件开发、Tag 开发、本地环境搭建）
+├── deploy/                        ← 生产部署（源码部署、上传部署）
+├── ops/                           ← 运维手册（故障排查、版本升级等）
+├── apidoc/                        ← API 文档（中英文）
+│   ├── zh_hans/                   ←   中文 API 文档
+│   └── en/                        ←   英文 API 文档
+├── specs/                         ← AI brainstorming 输出的设计文档
+├── plans/                         ← AI writing-plans 输出的实现计划
+├── wiki/                          ← GitHub Wiki 内容（社区参与、FAQ 等）
+└── resource/                      ← 公共图片资源
+```
+
+## 各目录用途与规则
+
+### `docs/guide/` — 用户指南
+
+- **内容**：架构概览、代码结构、使用场景、功能特性说明（移动端、插件、变量引擎、Redis 配置等）
+- **命名**：`<topic>.md`（英文，下划线分隔）
+- **示例**：`architecture.md`、`plugin_usage.md`、`variables_engine.md`
+
+### `docs/develop/` — 开发指南
+
+- **内容**：插件开发教程、Tag 开发说明、开发者工具、本地开发环境搭建、前端开发部署
+- **示例**：`dev_plugins.md`、`tag_usage_dev.md`、`dev_deploy.md`
+
+### `docs/deploy/` — 生产部署
+
+- **内容**：源码部署、上传打包部署等面向部署工程师的文档
+- **示例**：`source_code_deploy.md`、`upload_pack_deploy.md`
+
+### `docs/ops/` — 运维手册
+
+- **内容**：故障排查、版本升级说明、运维操作指南
+- **示例**：`fault_detection_manual.md`、`version_update_notes.md`
+
+### `docs/apidoc/` — API 文档
+
+- **内容**：标准运维对外 API 的接口文档，中英文各一份
+- **命名**：`<api_name>.md`（与接口视图名保持一致）
+- **示例**：`zh_hans/create_task.md`、`en/create_task.md`
+- **约束**：新增或修改 API 时，必须同步更新中英文文档并重新打包 `apigw-docs.tgz`
+
+### `docs/specs/` — 设计文档（AI 生成）
+
+- **内容**：brainstorming skill 输出的设计规格文档
+- **命名**：`YYYY-MM-DD-<topic>-design.md`
+- **示例**：`2026-03-19-gray-upgrade-master-to-hb-design.md`
+- **来源**：brainstorming skill 自动生成
+
+### `docs/plans/` — 实现计划（AI 生成）
+
+- **内容**：writing-plans skill 输出的分步实现计划
+- **命名**：`YYYY-MM-DD-<feature-name>.md`
+- **示例**：`2026-03-17-get-template-info-yaml-format.md`
+- **来源**：writing-plans skill 自动生成
+- **约束**：计划中引用的 spec 文档路径必须指向 `docs/specs/`
+
+### `docs/wiki/` — GitHub Wiki
+
+- **内容**：社区参与指南、Issues 规则、版本号规则、FAQ
+
+## 判断文档归属的决策树
+
+```
+文档是 AI skill 自动生成的吗？
+  ├── 是，brainstorming 的 spec → docs/specs/
+  ├── 是，writing-plans 的 plan → docs/plans/
+  └── 否，人工编写
+       ├── API 接口文档？ → docs/apidoc/{zh_hans,en}/
+       ├── 运维操作手册？ → docs/ops/
+       ├── 项目概览/功能特性？ → docs/guide/
+       ├── 插件开发/本地环境搭建？ → docs/develop/
+       ├── 生产部署？ → docs/deploy/
+       ├── 社区参与/FAQ？ → docs/wiki/
+       └── 公共图片？ → docs/resource/img/
+```
+
+## Code Review 检查项
+
+审查 PR 时，若涉及文档变更，需检查：
+
+1. 文档是否放在了正确的目录
+2. AI 生成的文档是否使用了 `YYYY-MM-DD-` 前缀命名
+3. `docs/plans/` 中引用的 spec 路径是否指向 `docs/specs/`
+4. 不应将 AI 生成的迭代文档放入 `docs/guide/` 或 `docs/develop/`
+5. API 文档变更后 `apigw-docs.tgz` 是否已重新打包
