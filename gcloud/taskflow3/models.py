@@ -919,8 +919,10 @@ class TaskFlowInstance(models.Model):
         return self.function_task.filter(task=self).values_list("claimant", flat=True).first()
 
     # 获取职能化任务认领url
-    def get_function_task_claim_url(self, project_id, task_id):
-        return "%sfunction/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)
+    def get_function_task_claim_url(self):
+        if self.flow_type != "common_func":
+            return None
+        return "%sfunction/execute/%s/?instance_id=%s" % (settings.APP_HOST, self.project_id, self.id)
 
     @classmethod
     def task_url(cls, project_id, task_id):
