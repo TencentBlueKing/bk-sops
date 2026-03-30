@@ -918,6 +918,10 @@ class TaskFlowInstance(models.Model):
         # 如果是职能化任务流程，返回对应的职能化认领单实例
         return self.function_task.filter(task=self).values_list("claimant", flat=True).first()
 
+    # 获取职能化任务认领url
+    def get_function_task_claim_url(self, project_id, task_id):
+        return "%sfunction/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)
+
     @classmethod
     def task_url(cls, project_id, task_id):
         return "%staskflow/execute/%s/?instance_id=%s" % (settings.APP_HOST, project_id, task_id)

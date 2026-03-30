@@ -235,9 +235,11 @@ def create_task(request, template_id, project_id):
         root_pipeline_id=task.pipeline_instance.instance_id,
         pipeline_tree=task.pipeline_instance.execution_data,
     )
-
+    result_data = {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree}
+    if task.flow_type == "common_func":
+        result_data["function_task_claim_url"] = task.get_function_task_claim_url(project_id, task.id)
     return {
         "result": True,
-        "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
+        "data": result_data,
         "code": err_code.SUCCESS.code,
     }
