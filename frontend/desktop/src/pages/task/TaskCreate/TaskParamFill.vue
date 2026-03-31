@@ -60,6 +60,14 @@
                     <span>
                         {{ $t('参数信息') }}
                     </span>
+                    <bk-button
+                        v-if="isHaveLastTimeExecuteParamas"
+                        :text="true"
+                        title="primary"
+                        class="reuse-btn"
+                        @click="handleUseLastParams">
+                        {{ $t('使用上一次参数') }}
+                    </bk-button>
                     <span v-if="reuseTaskId" class="reuse-tip">
                         <bk-popover placement="top-start" theme="light" width="350" :ext-cls="'reuse-rule-tip'">
                             <i class="bk-icon icon-question-circle"></i>
@@ -165,6 +173,7 @@
                 paramsLoading: false,
                 nextBtnDisable: false,
                 disabledButton: true,
+                isHaveLastTimeExecuteParamas: false,
                 tplActions: [],
                 pickerOptions: {
                     disabledDate (date) {
@@ -251,7 +260,8 @@
             ...mapActions('task/', [
                 'getSchemeDetail',
                 'loadPreviewNodeData',
-                'createTask'
+                'createTask',
+                'getLastExecutionConstants'
             ]),
             ...mapMutations([
                 'setFunctionClaimMsg'
@@ -333,6 +343,8 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
+                    console.log('previewData-是否存在上一次参数', previewData, !!previewData.data.last_execution_id)
+                    this.isHaveLastTimeExecuteParamas = !!previewData.data.last_execution_id
                     if ('result' in previewData && !previewData.result) {
                         this.nextBtnDisable = true
                         return
@@ -619,9 +631,46 @@
             },
             paramsLoadingChange (val) {
                 this.paramsLoading = val
+            },
+            /**
+             * 使用上一次参数
+             */
+            async handleUseLastParams () {
+                await this.$bkInfo({
+                    title: this.$t('确认使用上一次参数？'),
+                    subTitle: this.$t('将会使用该流程上一次执行的参数值填充表单'),
+                    confirmFn: async () => {
+                        this.taskMessageLoading = true
+                        try {
+                            const template_source = this.common ? 'common' : 'project'
+                            const response = await this.getLastExecutionConstants({
+                                project_id: this.project_id,
+                                template_id: this.template_id,
+                                template_source
+                            })
+                            if (response.result) {
+                                const lastConstants = response.data.constants
+                                Object.keys(this.pipelineData.constants).forEach(key => {
+                                    if (lastConstants[key]) {
+                                        this.pipelineData.constants[key].value = lastConstants[key].value
+                                    }
+                                })
+                                this.$bkMessage({
+                                    message: this.$t('参数加载成功'),
+                                    theme: 'success'
+                                })
+                            }
+                        } catch (error) {
+                            console.error(error)
+                        } finally {
+                            this.taskMessageLoading = false
+                        }
+                    }
+                })
             }
         }
     }
+
 </script>
 <style lang="scss" scoped>
 @import "@/scss/config.scss";
@@ -652,6 +701,14 @@
         color: #313238;
         border-bottom: 1px solid #cacedb;
         margin-bottom: 16px;
+        .reuse-btn{
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 10px;
+            cursor: pointer;
+            line-height: 32px;
+            height: 32px;
+        }
         .reuse-tip {
             color: #3a84ff;
             font-size: 12px;
