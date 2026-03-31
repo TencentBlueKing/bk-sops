@@ -650,8 +650,21 @@
                             if (response.result) {
                                 const lastConstants = response.data.constants
                                 Object.keys(this.pipelineData.constants).forEach(key => {
-                                    if (lastConstants[key]) {
-                                        this.pipelineData.constants[key].value = lastConstants[key].value
+                                    const lastConstant = lastConstants[key]
+                                    if (lastConstant) {
+                                        const currentConstant = this.pipelineData.constants[key]
+                                        if (lastConstant.custom_type === currentConstant.custom_type) {
+                                            if (Object.prototype.toString.call(currentConstant.value) === '[object Object]') {
+                                                // 对象类型：检查当前值的所有 key 是否都存在于上一次执行的值中
+                                                const match = Object.keys(currentConstant.value).every(k => k in lastConstant.value)
+                                                if (match) {
+                                                    // 结构匹配，可以安全替换
+                                                    this.pipelineData.constants[key].value = lastConstant.value
+                                                }
+                                            } else {
+                                                this.pipelineData.constants[key].value = lastConstant.value
+                                            }
+                                        }
                                     }
                                 })
                                 this.$bkMessage({
