@@ -343,7 +343,6 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    console.log('previewData-是否存在上一次参数', previewData, !!previewData.data.last_execution_id)
                     this.isHaveLastTimeExecuteParamas = !!previewData.data.last_execution_id
                     if ('result' in previewData && !previewData.result) {
                         this.nextBtnDisable = true
