@@ -23,7 +23,7 @@ TARGET_DB_CONFIG = {
 
 # 租户ID配置
 TENANT_CONFIG = {
-    "tenant_id": "tencent",
+    "tenant_id": os.getenv("TENANT_ID", "tencent"),
 }
 
 # 配置说明：
