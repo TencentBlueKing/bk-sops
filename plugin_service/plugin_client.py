@@ -17,6 +17,8 @@ import os
 import requests
 from django.core.files.uploadedfile import UploadedFile
 
+from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
+
 from . import env
 from .client_decorators import check_use_plugin_service, data_parser, json_response_decoder
 from .conf import PLUGIN_CLIENT_LOGGER
@@ -270,6 +272,7 @@ class PluginServiceApiClient:
 
         headers = {
             "X-Bkapi-Authorization": json.dumps(authorization_info),
+            "X-Bk-Tenant-Id": get_current_tenant_id(),
             "Content-Type": "application/json",
         }
         return url, headers
@@ -288,7 +291,10 @@ class PluginServiceApiClient:
             "bk_app_secret": env.PLUGIN_SERVICE_APIGW_APP_SECRET,
         }
 
-        headers = {"X-Bkapi-Authorization": json.dumps(authorization_info)}
+        headers = {
+            "X-Bkapi-Authorization": json.dumps(authorization_info),
+            "X-Bk-Tenant-Id": get_current_tenant_id(),
+        }
 
         if env.PAASV3_APIGW_API_TOKEN:
             headers.update({"Authorization": "Bearer {}".format(env.PAASV3_APIGW_API_TOKEN)})
