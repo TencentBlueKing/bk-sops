@@ -11,12 +11,37 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import logging
+
 from django.apps import AppConfig
+
+logger = logging.getLogger("root")
 
 
 class ExternalPluginsConfig(AppConfig):
-    name = 'gcloud.external_plugins'
-    verbose_name = 'GcloudExternalPlugins'
+    name = "gcloud.external_plugins"
+    verbose_name = "GcloudExternalPlugins"
 
     def ready(self):
+        self._patch_django4_compat()
         from gcloud.external_plugins.signals.handlers import sync_task_post_save_handler  # noqa
+
+    @staticmethod
+    def _patch_django4_compat():
+        """Patch removed Django APIs so legacy remote plugins can still be imported under Django 4.x."""
+        import django.conf.urls
+        import django.utils.translation
+
+        if not hasattr(django.conf.urls, "url"):
+            from django.urls import re_path
+
+            django.conf.urls.url = re_path
+            logger.info("Patched django.conf.urls.url -> django.urls.re_path for legacy remote plugins")
+
+        if not hasattr(django.utils.translation, "ugettext_lazy"):
+            django.utils.translation.ugettext_lazy = django.utils.translation.gettext_lazy
+            logger.info("Patched django.utils.translation.ugettext_lazy -> gettext_lazy for legacy remote plugins")
+
+        if not hasattr(django.utils.translation, "ugettext"):
+            django.utils.translation.ugettext = django.utils.translation.gettext
+            logger.info("Patched django.utils.translation.ugettext -> gettext for legacy remote plugins")
