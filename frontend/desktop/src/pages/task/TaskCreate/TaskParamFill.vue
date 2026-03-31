@@ -61,7 +61,7 @@
                         {{ $t('参数信息') }}
                     </span>
                     <bk-button
-                        v-if="isHaveLastTimeExecuteParamas"
+                        v-if="isHaveLastTimeExecuteParams"
                         :text="true"
                         title="primary"
                         class="reuse-btn"
@@ -173,7 +173,7 @@
                 paramsLoading: false,
                 nextBtnDisable: false,
                 disabledButton: true,
-                isHaveLastTimeExecuteParamas: false,
+                isHaveLastTimeExecuteParams: false,
                 tplActions: [],
                 pickerOptions: {
                     disabledDate (date) {
@@ -343,7 +343,7 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
-                    this.isHaveLastTimeExecuteParamas = !!previewData.data.last_execution_id
+                    this.isHaveLastTimeExecuteParams = !!previewData.data.last_execution_id
                     if ('result' in previewData && !previewData.result) {
                         this.nextBtnDisable = true
                         return
