@@ -560,8 +560,8 @@ const task = {
             return axios.post(`api/v3/taskflow/${data.taskId}/convert_to_common_task/`).then(response => response.data)
         },
         // 获取上一次执行参数
-        getLastExecutionConstants ({ commit }, Data) {
-            const { project_id, template_id, template_source } = Data
+        getLastExecutionConstants ({ commit }, data) {
+            const { project_id, template_id, template_source } = data
             return axios.get(`taskflow/api/last_execution_constants/${project_id}/`, {
                 params: {
                     template_id,
