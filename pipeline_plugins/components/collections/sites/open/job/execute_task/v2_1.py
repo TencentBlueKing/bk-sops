@@ -18,6 +18,8 @@ from gcloud.conf import settings
 
 from .v2_0 import JobExecuteTaskService as JobExecuteTaskServiceV20
 
+__group_name__ = _("作业平台(JOB)")
+
 
 class JobExecuteTaskService(JobExecuteTaskServiceV20):
     """执行作业 v2.1：支持使用节点名称+时间戳作为 job 任务名"""
