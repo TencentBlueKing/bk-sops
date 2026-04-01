@@ -73,7 +73,7 @@ def _fetch_all_plugins_for_tenant(tenant_id, search_term=None, distributor_code_
             return result
         plugins = result["data"]["plugins"]
         all_plugins.extend(plugins)
-        if result["data"]["count"] <= offset + batch_size:
+        if not plugins or len(plugins) < batch_size or result["data"]["count"] <= offset + batch_size:
             break
         offset += batch_size
     return {"result": True, "data": {"plugins": all_plugins}}

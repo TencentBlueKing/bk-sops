@@ -98,9 +98,7 @@
                     const { next_offset, plugins, return_plugin_count } = resp.data
                     const list = plugins.map(item => {
                         const pluginItem = Object.assign({}, item.plugin, item.profile)
-                        if (item.app_tenant_mode) {
-                            pluginItem.app_tenant_mode = item.app_tenant_mode
-                        }
+                        pluginItem.app_tenant_mode = item.app_tenant_mode
                         return pluginItem
                     })
                     this.pluginPageOffset = next_offset
