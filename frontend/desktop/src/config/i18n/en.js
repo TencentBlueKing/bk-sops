@@ -1957,7 +1957,11 @@ const en = {
     '请描述您想要创建的流程': 'Please describe the flow you want to create.',
     '历史任务': 'Task History',
     'AI排版': 'AI Layout',
-    'AI排版完成,原内容在本地快照中': 'AI layout completed, original content in local snapshot'
+    'AI排版完成,原内容在本地快照中': 'AI layout completed, original content in local snapshot',
+    '使用上一次参数': 'Use Last Parameters',
+    '确认使用上一次参数？': 'Use Last Parameters?',
+    '将会使用该流程上一次执行的参数值填充表单': 'The form will be filled with the parameter values from the last execution',
+    '参数加载成功': 'Parameters loaded successfully'
 }
 
 export default en
