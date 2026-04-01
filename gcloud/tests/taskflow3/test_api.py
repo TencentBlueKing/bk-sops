@@ -271,6 +271,7 @@ class APITest(TestCase):
 
         self.assertFalse(result["result"])
 
+    @mock.patch("gcloud.utils.decorators.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     def test_last_execution_constants__invalid_template_source(self):
         request = MockJsonBodyRequest("GET", {})

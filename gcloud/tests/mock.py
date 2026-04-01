@@ -35,11 +35,29 @@ class MockJsonBodyRequest(object):
         self.method = method
         self.body = json.dumps(data)
         self.user = MagicMock(username=username)
+        self.GET = {}  # 添加GET属性支持
 
 
 class MockJsonResponse(object):
     def __call__(self, dct):
-        return dct
+        # 创建一个模拟JsonResponse的对象，同时支持字典访问
+        class MockResponse:
+            def __init__(self, data):
+                self.data = data
+
+            def __getitem__(self, key):
+                # 支持字典式的访问
+                return self.data[key]
+
+            def get(self, key, default=None):
+                # 支持get方法
+                return self.data.get(key, default)
+
+            def __contains__(self, key):
+                # 支持in操作符
+                return key in self.data
+
+        return MockResponse(dct)
 
 
 class MockBusiness(object):
