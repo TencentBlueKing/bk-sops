@@ -21,7 +21,10 @@
         <div v-if="node.plugin_type" class="plugin-item">
             <img class="plugin-logo" :src="node.logo_url" alt="">
             <div>
-                <p class="plugin-title name-wrapper" v-bk-overflow-tips>{{ node.nodeName }}</p>
+                <p class="plugin-title-row">
+                    <span class="plugin-title name-wrapper" v-bk-overflow-tips>{{ node.nodeName }}</span>
+                    <span v-if="node.app_tenant_mode === 'global'" class="global-tenant-tag">{{ $t('全租户') }}</span>
+                </p>
                 <p
                     class="plugin-desc"
                     v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-code-tips', width: 300 }">
@@ -67,13 +70,29 @@
             height: 32px;
             margin-right: 12px;
         }
+        .plugin-title-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
         .plugin-title {
             font-size: 14px;
             font-weight: 700;
             line-height: 19px;
-            margin-bottom: 4px;
             text-overflow: ellipsis;
             overflow: hidden;
+        }
+        .global-tenant-tag {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 6px;
+            height: 18px;
+            line-height: 18px;
+            font-size: 12px;
+            color: #3a84ff;
+            background: #e1ecff;
+            border-radius: 2px;
+            flex-shrink: 0;
         }
         .plugin-desc {
             font-size: 12px;

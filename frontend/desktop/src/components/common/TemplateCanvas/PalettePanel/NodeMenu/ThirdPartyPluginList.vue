@@ -28,7 +28,8 @@
                         group_icon: '',
                         group_name: '',
                         nodeName: plugin.name,
-                        logo_url: plugin.logo_url
+                        logo_url: plugin.logo_url,
+                        app_tenant_mode: plugin.app_tenant_mode
                     }">
                 </node-item>
                 <NoData
@@ -96,11 +97,15 @@
                     const resp = await this.$store.dispatch('atomForm/loadPluginServiceList', params)
                     const { next_offset, plugins, return_plugin_count } = resp.data
                     const list = plugins.map(item => {
-                        return Object.assign({}, item.plugin, item.profile)
+                        const pluginItem = Object.assign({}, item.plugin, item.profile)
+                        if (item.app_tenant_mode) {
+                            pluginItem.app_tenant_mode = item.app_tenant_mode
+                        }
+                        return pluginItem
                     })
                     this.pluginPageOffset = next_offset
                     this.pluginList.push(...list)
-                    this.isCompleteLoading = return_plugin_count < this.pagelimit
+                    this.isCompleteLoading = next_offset === -1 || return_plugin_count < this.pagelimit
                 } catch (error) {
                     console.warn(error)
                 } finally {

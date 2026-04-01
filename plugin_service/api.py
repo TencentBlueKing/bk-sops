@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.conf import settings
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -41,6 +42,42 @@ from plugin_service.serializers import (
 
 logger = logging.getLogger(PLUGIN_LOGGER)
 
+SYSTEM_TENANT_ID = "system"
+
+
+def _resolve_plugin_tenant_id(request):
+    """根据前端传来的 app_tenant_mode 推断插件所在的租户 ID"""
+    app_tenant_mode = request.validated_data.get("app_tenant_mode") or request.query_params.get("app_tenant_mode")
+    if app_tenant_mode == "global":
+        return SYSTEM_TENANT_ID
+    return getattr(request.user, "tenant_id", SYSTEM_TENANT_ID)
+
+
+def _fetch_all_plugins_for_tenant(tenant_id, search_term=None, distributor_code_name=None, **extra_kwargs):
+    """从指定租户拉取全量已部署插件（自动翻页）"""
+    all_plugins = []
+    offset = 0
+    batch_size = 100
+    while True:
+        result = PluginServiceApiClient.get_plugin_detail_list(
+            search_term=search_term,
+            tenant_id=tenant_id,
+            limit=batch_size,
+            offset=offset,
+            order_by="name",
+            include_addresses=0,
+            distributor_code_name=distributor_code_name,
+            **extra_kwargs,
+        )
+        if not result["result"]:
+            return result
+        plugins = result["data"]["plugins"]
+        all_plugins.extend(plugins)
+        if result["data"]["count"] <= offset + batch_size:
+            break
+        offset += batch_size
+    return {"result": True, "data": {"plugins": all_plugins}}
+
 
 @swagger_auto_schema(
     method="GET",
@@ -56,6 +93,7 @@ def get_plugin_list(request: Request):
     limit = request.validated_data.get("limit")
     offset = request.validated_data.get("offset")
     tag_id = request.validated_data.get("tag_id")
+    tenant_id = getattr(request.user, "tenant_id", SYSTEM_TENANT_ID)
     extra_kwargs = {}
     if tag_id is not None:
         extra_kwargs["tag_id"] = tag_id
@@ -64,6 +102,7 @@ def get_plugin_list(request: Request):
         limit=limit,
         offset=offset,
         distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+        tenant_id=tenant_id,
         **extra_kwargs,
     )
     return JsonResponse(result)
@@ -78,7 +117,8 @@ def get_plugin_list(request: Request):
 @api_view(["GET"])
 def get_plugin_tags(request: Request):
     """获取插件tag列表信息"""
-    result = PluginServiceApiClient.get_plugin_tags_list()
+    tenant_id = getattr(request.user, "tenant_id", SYSTEM_TENANT_ID)
+    result = PluginServiceApiClient.get_plugin_tags_list(tenant_id=tenant_id)
     if request.query_params.get("with_unknown_tag") and result.get("result") and isinstance(result["data"], list):
         result["data"].append({"code_name": "OTHER", "name": "未分类", "id": -1})
     return JsonResponse(result)
@@ -93,22 +133,82 @@ def get_plugin_tags(request: Request):
 @api_view(["GET"])
 @validate_params(PluginDetailListQuerySerializer)
 def get_plugin_detail_list(request: Request):
-    """获取插件服务列表及详情信息"""
+    """获取插件服务列表及详情信息
+
+    多租户模式下，需要同时获取 system 租户的全租户插件和用户所在租户的单租户插件，合并后返回。
+    非多租户模式下，行为与原来一致（不传 X-Bk-Tenant-Id）。
+    """
     search_term = request.validated_data.get("search_term")
-    fetch_all = request.validated_data.get("fetch_all")
-    limit = request.validated_data.get("limit")
-    offset = request.validated_data.get("offset")
     exclude_not_deployed = request.validated_data.get("exclude_not_deployed")
     tag_id = request.validated_data.get("tag_id")
     extra_kwargs = {}
     if tag_id is not None:
         extra_kwargs["tag_id"] = tag_id
 
-    # 滚动加载获取已部署对应环境插件
+    enable_multi_tenant = getattr(settings, "ENABLE_MULTI_TENANT_MODE", False)
+    user_tenant_id = getattr(request.user, "tenant_id", None)
+
+    if enable_multi_tenant and user_tenant_id:
+        return _get_plugin_detail_list_multi_tenant(
+            search_term=search_term,
+            exclude_not_deployed=exclude_not_deployed,
+            user_tenant_id=user_tenant_id,
+            **extra_kwargs,
+        )
+
+    return _get_plugin_detail_list_single_tenant(request, search_term, exclude_not_deployed, **extra_kwargs)
+
+
+def _get_plugin_detail_list_multi_tenant(search_term, exclude_not_deployed, user_tenant_id, **extra_kwargs):
+    """多租户模式：从 system 租户和用户租户各拉一次，合并返回全量列表"""
+    common_kwargs = dict(search_term=search_term, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME, **extra_kwargs)
+
+    system_result = _fetch_all_plugins_for_tenant(tenant_id=SYSTEM_TENANT_ID, **common_kwargs)
+    if not system_result["result"]:
+        return JsonResponse(system_result)
+
+    tenant_result = _fetch_all_plugins_for_tenant(tenant_id=user_tenant_id, **common_kwargs)
+    if not tenant_result["result"]:
+        return JsonResponse(tenant_result)
+
+    all_plugins = system_result["data"]["plugins"] + tenant_result["data"]["plugins"]
+
+    # 按 plugin code 去重（理论上不会重复，保险起见）
+    seen_codes = set()
+    unique_plugins = []
+    for plugin in all_plugins:
+        code = plugin.get("plugin", {}).get("code", "")
+        if code not in seen_codes:
+            seen_codes.add(code)
+            unique_plugins.append(plugin)
+
+    if exclude_not_deployed:
+        unique_plugins = [
+            p for p in unique_plugins if p.get("deployed_statuses", {}).get(env.APIGW_ENVIRONMENT, {}).get("deployed")
+        ]
+
+    return JsonResponse(
+        {
+            "result": True,
+            "message": None,
+            "data": {
+                "next_offset": -1,
+                "plugins": unique_plugins,
+                "return_plugin_count": len(unique_plugins),
+            },
+        }
+    )
+
+
+def _get_plugin_detail_list_single_tenant(request, search_term, exclude_not_deployed, **extra_kwargs):
+    """非多租户模式：保持原有分页逻辑"""
+    fetch_all = request.validated_data.get("fetch_all")
+    limit = request.validated_data.get("limit")
+    offset = request.validated_data.get("offset")
+
     if not fetch_all and exclude_not_deployed:
         plugins = []
         cur_offset = offset
-        # 考虑到会有一些未部署到对应环境的情况，这里适当放大limit，减少请求次数
         cur_limit = limit * 2
         while True:
             result = PluginServiceApiClient.get_plugin_detail_list(
@@ -169,16 +269,17 @@ def get_plugin_detail_list(request: Request):
         else result["data"]["plugins"]
     )
 
-    response = {
-        "data": {
-            "next_offset": -1 if fetch_all else limit + offset,
-            "plugins": plugins,
-            "return_plugin_count": len(plugins),
-        },
-        "result": True,
-        "message": None,
-    }
-    return JsonResponse(response)
+    return JsonResponse(
+        {
+            "data": {
+                "next_offset": -1 if fetch_all else limit + offset,
+                "plugins": plugins,
+                "return_plugin_count": len(plugins),
+            },
+            "result": True,
+            "message": None,
+        }
+    )
 
 
 @swagger_auto_schema(
@@ -198,7 +299,10 @@ def get_plugin_detail(request: Request):
     if not plugin_detail["result"]:
         return JsonResponse(plugin_detail)
     if with_app_detail:
-        app_detail = PluginServiceApiClient.get_plugin_app_detail(request.validated_data.get("plugin_code"))
+        tenant_id = _resolve_plugin_tenant_id(request)
+        app_detail = PluginServiceApiClient.get_plugin_app_detail(
+            request.validated_data.get("plugin_code"), tenant_id=tenant_id
+        )
         if not app_detail["result"]:
             return JsonResponse(app_detail)
         plugin_detail["data"]["app"] = app_detail["data"]
@@ -232,7 +336,8 @@ def get_logs(request: Request):
     trace_id = request.validated_data.get("trace_id")
     scroll_id = request.validated_data.get("scroll_id")
     plugin_code = request.validated_data.get("plugin_code")
-    result = PluginServiceApiClient.get_plugin_logs(plugin_code, trace_id, scroll_id)
+    tenant_id = _resolve_plugin_tenant_id(request)
+    result = PluginServiceApiClient.get_plugin_logs(plugin_code, trace_id, scroll_id, tenant_id=tenant_id)
     if result["result"]:
         logs = [
             f'[{log["ts"]}]{log["detail"]["json.levelname"]}-{log["detail"]["json.funcName"]}: '
@@ -253,7 +358,10 @@ def get_logs(request: Request):
 @validate_params(PluginCodeQuerySerializer)
 def get_plugin_app_detail(request: Request):
     """获取插件服务App详情"""
-    result = PluginServiceApiClient.get_plugin_app_detail(request.validated_data.get("plugin_code"))
+    tenant_id = _resolve_plugin_tenant_id(request)
+    result = PluginServiceApiClient.get_plugin_app_detail(
+        request.validated_data.get("plugin_code"), tenant_id=tenant_id
+    )
     return JsonResponse(result)
 
 
@@ -263,8 +371,13 @@ def get_plugin_app_detail(request: Request):
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     """获取插件服务提供的数据接口数据"""
+    app_tenant_mode = request.query_params.get("app_tenant_mode") or request.data.get("app_tenant_mode")
+    if app_tenant_mode == "global":
+        tenant_id = SYSTEM_TENANT_ID
+    else:
+        tenant_id = getattr(request.user, "tenant_id", SYSTEM_TENANT_ID)
     try:
-        client = PluginServiceApiClient(plugin_code)
+        client = PluginServiceApiClient(plugin_code, tenant_id=tenant_id)
     except PluginServiceException as e:
         message = f"[get_plugin_api_data] error: {e}"
         logger.error(message)

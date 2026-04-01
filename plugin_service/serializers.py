@@ -15,6 +15,9 @@ from rest_framework import serializers
 
 class PluginCodeQuerySerializer(serializers.Serializer):
     plugin_code = serializers.CharField(help_text="插件服务编码")
+    app_tenant_mode = serializers.ChoiceField(
+        help_text="插件租户模式(global: 全租户, single: 单租户)", choices=["global", "single"], required=False
+    )
 
 
 class LogQuerySerializer(PluginCodeQuerySerializer):

@@ -95,8 +95,11 @@
                         @click="onSelectThirdPartyPlugin(plugin)">
                         <img class="plugin-logo" :src="plugin.logo_url" alt="">
                         <div>
-                            <p class="plugin-title" v-if="plugin.highlightName" v-html="plugin.highlightName"></p>
-                            <p class="plugin-title" v-else>{{ plugin.name }}</p>
+                            <p class="plugin-title">
+                                <span v-if="plugin.highlightName" v-html="plugin.highlightName"></span>
+                                <span v-else>{{ plugin.name }}</span>
+                                <span v-if="plugin.app_tenant_mode === 'global'" class="global-tenant-tag">{{ $t('全租户') }}</span>
+                            </p>
                             <p
                                 class="plugin-desc"
                                 v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-desc-tips' }">
@@ -221,6 +224,9 @@
                     const pluginTagIds = []
                     let pluginList = plugins.map(item => {
                         const pluginItem = Object.assign({}, item.plugin, item.profile)
+                        if (item.app_tenant_mode) {
+                            pluginItem.app_tenant_mode = item.app_tenant_mode
+                        }
                         if (this.searchStr !== '') {
                             pluginItem.highlightName = item.plugin.name.replace(reg, `<span style="color: #ff9c01;">${this.searchStr}</span>`)
                             pluginTagIds.push(item.profile.tag || -1)
@@ -404,7 +410,10 @@
             },
             async onSelectThirdPartyPlugin (plugin) {
                 try {
-                    const resp = await this.$store.dispatch('atomForm/loadPluginServiceMeta', { plugin_code: plugin.code })
+                    const resp = await this.$store.dispatch('atomForm/loadPluginServiceMeta', {
+                        plugin_code: plugin.code,
+                        app_tenant_mode: plugin.app_tenant_mode
+                    })
                     const { code, versions, description } = resp.data
                     const versionList = versions.sort().map(version => {
                         return { version }
@@ -414,7 +423,8 @@
                         name: plugin.name,
                         list: versionList,
                         desc: description,
-                        id: 'remote_plugin'
+                        id: 'remote_plugin',
+                        app_tenant_mode: plugin.app_tenant_mode
                     }
                     this.$emit('select', data)
                 } catch (error) {
@@ -531,6 +541,21 @@
             font-size: 14px;
             font-weight: 700;
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+        }
+        .global-tenant-tag {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 6px;
+            height: 20px;
+            line-height: 20px;
+            font-size: 12px;
+            font-weight: normal;
+            color: #3a84ff;
+            background: #e1ecff;
+            border-radius: 2px;
+            flex-shrink: 0;
         }
         .plugin-desc {
             width: 375px;
