@@ -218,8 +218,7 @@ const atomForm = {
          * 加载第三方插件
          */
         loadPluginServiceAppDetail ({ commit }, params) {
-            const { plugin_code } = params
-            return axios.get(`/plugin_service/app_detail/?plugin_code=${plugin_code}`).then(response => response.data)
+            return axios.get('/plugin_service/app_detail/', { params }).then(response => response.data)
         },
         /**
          * 加载全量标准插件

@@ -16,9 +16,10 @@ import logging
 from django.http import JsonResponse
 from rest_framework.request import Request
 
-from .conf import PLUGIN_CLIENT_LOGGER
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
+
+from .conf import PLUGIN_CLIENT_LOGGER
 
 logger = logging.getLogger(PLUGIN_CLIENT_LOGGER)
 
@@ -29,8 +30,13 @@ def inject_plugin_client(func):
     @functools.wraps(func)
     def wrapper(request: Request):
         plugin_code = request.validated_data.get("plugin_code")
+        app_tenant_mode = request.validated_data.get("app_tenant_mode") or request.query_params.get("app_tenant_mode")
+        if app_tenant_mode == "global":
+            tenant_id = "system"
+        else:
+            tenant_id = getattr(request.user, "tenant_id", None)
         try:
-            plugin_client = PluginServiceApiClient(plugin_code)
+            plugin_client = PluginServiceApiClient(plugin_code, tenant_id=tenant_id)
         except PluginServiceException as e:
             logger.error(f"[inject_plugin_client] error: {e}")
             return JsonResponse({"message": e, "result": False, "data": None})
