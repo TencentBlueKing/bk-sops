@@ -61,6 +61,7 @@
                     :zoom-ratio="zoomRatio"
                     :is-show-hot-key="isShowHotKey"
                     :is-perspective="isPerspective"
+                    :ai-layout-enabled="aiLayoutEnabled"
                     :ai-format-loading="aiFormatLoading"
                     :ai-format-result="aiFormatResult"
                     @onShowMap="onToggleMapShow"
@@ -268,6 +269,10 @@
             nodeExecRecordInfo: {
                 type: Object,
                 default: () => ({})
+            },
+            aiLayoutEnabled: {
+                type: Boolean,
+                default: false
             },
             aiFormatLoading: {
                 type: Boolean,
