@@ -84,7 +84,7 @@
                 </div>
                 <div
                     class="ai-format-wrap"
-                    v-if="editable">
+                    v-if="editable && aiLayoutEnabled">
                     <div
                         :class="['tool-icon', 'ai-format-icon', { 'disabled': aiFormatLoading }]"
                         v-bk-tooltips="{
@@ -214,6 +214,10 @@
             aiFormatResult: {
                 type: String,
                 default: ''
+            },
+            aiLayoutEnabled: {
+                type: Boolean,
+                default: false
             }
         },
         data () {

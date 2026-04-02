@@ -16,6 +16,7 @@ from copy import deepcopy
 from django.test import Client, TestCase
 from pipeline.utils.uniqid import node_uniqid
 
+from gcloud import err_code
 from gcloud.taskflow3.apis.django import api
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
@@ -270,6 +271,93 @@ class APITest(TestCase):
         result = api.last_execution_constants(request, TEST_PROJECT_ID)
 
         self.assertFalse(result["result"])
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.layout_pipeline_tree")
+    @mock.patch("gcloud.taskflow3.apis.django.api.ProjectConfig.objects.filter")
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskTemplate.objects.get")
+    @mock.patch("gcloud.taskflow3.apis.django.api.Project.objects.get")
+    def test_ai_beautify_layout__feature_enabled(
+        self, mock_project_get, mock_template_get, mock_project_config_filter, mock_layout_pipeline_tree
+    ):
+        mock_project_get.return_value = MagicMock()
+        mock_template_get.return_value = MockBaseTemplate(
+            id=1,
+            pipeline_tree={"location": [{"id": "n1", "x": 1, "y": 2}], "line": [{"id": "l1"}]},
+        )
+        mock_project_config_filter.return_value.first.return_value = MagicMock(
+            custom_display_configs={"enable_ai_layout": True}
+        )
+
+        request = MockRequest(
+            "GET",
+            {
+                "project_id": TEST_PROJECT_ID,
+                "template_id": "1",
+                "canvas_width": "1200",
+            },
+        )
+        result = api.ai_beautify_sops_template_layout(request)
+
+        self.assertTrue(result["result"])
+        self.assertEqual(result["code"], err_code.SUCCESS.code)
+        mock_layout_pipeline_tree.assert_called_once()
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.layout_pipeline_tree")
+    @mock.patch("gcloud.taskflow3.apis.django.api.ProjectConfig.objects.filter")
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskTemplate.objects.get")
+    @mock.patch("gcloud.taskflow3.apis.django.api.Project.objects.get")
+    def test_ai_beautify_layout__feature_disabled(
+        self, mock_project_get, mock_template_get, mock_project_config_filter, mock_layout_pipeline_tree
+    ):
+        mock_project_get.return_value = MagicMock()
+        mock_template_get.return_value = MockBaseTemplate(id=1, pipeline_tree={"location": [], "line": []})
+        mock_project_config_filter.return_value.first.return_value = MagicMock(
+            custom_display_configs={"enable_ai_layout": False}
+        )
+
+        request = MockRequest(
+            "GET",
+            {
+                "project_id": TEST_PROJECT_ID,
+                "template_id": "1",
+                "canvas_width": "1200",
+            },
+        )
+        result = api.ai_beautify_sops_template_layout(request)
+
+        self.assertFalse(result["result"])
+        self.assertEqual(result["message"], "该项目未开启 AI 排版功能")
+        self.assertEqual(result["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        mock_layout_pipeline_tree.assert_not_called()
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.layout_pipeline_tree")
+    @mock.patch("gcloud.taskflow3.apis.django.api.ProjectConfig.objects.filter")
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskTemplate.objects.get")
+    @mock.patch("gcloud.taskflow3.apis.django.api.Project.objects.get")
+    def test_ai_beautify_layout__feature_missing_key(
+        self, mock_project_get, mock_template_get, mock_project_config_filter, mock_layout_pipeline_tree
+    ):
+        mock_project_get.return_value = MagicMock()
+        mock_template_get.return_value = MockBaseTemplate(id=1, pipeline_tree={"location": [], "line": []})
+        mock_project_config_filter.return_value.first.return_value = MagicMock(custom_display_configs={})
+
+        request = MockRequest(
+            "GET",
+            {
+                "project_id": TEST_PROJECT_ID,
+                "template_id": "1",
+                "canvas_width": "1200",
+            },
+        )
+        result = api.ai_beautify_sops_template_layout(request)
+
+        self.assertFalse(result["result"])
+        self.assertEqual(result["message"], "该项目未开启 AI 排版功能")
+        self.assertEqual(result["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        mock_layout_pipeline_tree.assert_not_called()
 
     @mock.patch("gcloud.utils.decorators.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())

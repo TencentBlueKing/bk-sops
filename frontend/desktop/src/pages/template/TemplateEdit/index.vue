@@ -58,6 +58,7 @@
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-variable-info="nodeVariableInfo"
+                    :ai-layout-enabled="aiLayoutEnabled"
                     :ai-format-loading="aiFormatLoading"
                     :ai-format-result="aiFormatResult"
                     @hook:mounted="canvasMounted"
@@ -310,6 +311,7 @@
                 checkedNodes: [],
                 checkedConvergeNodes: [],
                 isolationAtomConfig: {}, // 被隔离插件的基础配置
+                aiLayoutEnabled: false, // AI排版功能开关
                 aiFormatLoading: false, // AI排版加载状态
                 aiFormatResult: '', // AI排版结果状态
                 isReplacingConnectors: false
@@ -517,6 +519,7 @@
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault',
+                'getProjectConfig',
                 'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
@@ -567,6 +570,7 @@
                 this.getSystemVars()
                 this.getSingleAtomList()
                 this.getProjectBaseInfo()
+                this.getAiLayoutEnabledConfig()
                 if (!this.common) {
                     this.getTemplateLabelList()
                 }
@@ -646,6 +650,27 @@
                     console.log(e)
                 } finally {
                     this.projectInfoLoading = false
+                }
+            },
+            /**
+             * 获取 AI 排版功能开关
+             */
+            async getAiLayoutEnabledConfig () {
+                if (!this.project_id) {
+                    this.aiLayoutEnabled = false
+                    return
+                }
+                try {
+                    const resp = await this.getProjectConfig(this.project_id)
+                    if (resp.result) {
+                        const customConfigs = resp.data.custom_display_configs || {}
+                        this.aiLayoutEnabled = !!customConfigs.enable_ai_layout
+                    } else {
+                        this.aiLayoutEnabled = false
+                    }
+                } catch (e) {
+                    this.aiLayoutEnabled = false
+                    console.log(e)
                 }
             },
             /**

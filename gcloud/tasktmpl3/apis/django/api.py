@@ -483,6 +483,21 @@ def ai_beautify_sops_template_layout(request):
         logger.error("beautify_sops_template_layout error: project not found - {}".format(project_id))
         return JsonResponse({"result": False, "message": "project not found", "code": err_code.UNKNOWN_ERROR.code})
 
+    ai_layout_enabled = False
+    project_config = ProjectConfig.objects.filter(project_id=project_id).first()
+    if project_config:
+        custom_configs = project_config.custom_display_configs or {}
+        ai_layout_enabled = custom_configs.get("enable_ai_layout", False)
+
+    if not ai_layout_enabled:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "该项目未开启 AI 排版功能",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
+
     try:
         template_obj = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
     except TaskTemplate.DoesNotExist:
