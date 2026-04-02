@@ -278,8 +278,14 @@ class APITest(TestCase):
     @mock.patch("gcloud.tasktmpl3.apis.django.api.ProjectConfig.objects.filter")
     @mock.patch("gcloud.tasktmpl3.apis.django.api.TaskTemplate.objects.get")
     @mock.patch("gcloud.tasktmpl3.apis.django.api.Project.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.AgentBeautifyTemplateLayoutInterceptor.process")
     def test_ai_beautify_layout__feature_enabled(
-        self, mock_project_get, mock_template_get, mock_project_config_filter, mock_layout_pipeline_tree
+        self,
+        mock_interceptor_process,
+        mock_project_get,
+        mock_template_get,
+        mock_project_config_filter,
+        mock_layout_pipeline_tree,
     ):
         mock_project_get.return_value = MagicMock()
         mock_template_get.return_value = MockBaseTemplate(
@@ -309,8 +315,14 @@ class APITest(TestCase):
     @mock.patch("gcloud.tasktmpl3.apis.django.api.ProjectConfig.objects.filter")
     @mock.patch("gcloud.tasktmpl3.apis.django.api.TaskTemplate.objects.get")
     @mock.patch("gcloud.tasktmpl3.apis.django.api.Project.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.AgentBeautifyTemplateLayoutInterceptor.process")
     def test_ai_beautify_layout__feature_disabled(
-        self, mock_project_get, mock_template_get, mock_project_config_filter, mock_layout_pipeline_tree
+        self,
+        mock_interceptor_process,
+        mock_project_get,
+        mock_template_get,
+        mock_project_config_filter,
+        mock_layout_pipeline_tree,
     ):
         mock_project_get.return_value = MagicMock()
         mock_template_get.return_value = MockBaseTemplate(id=1, pipeline_tree={"location": [], "line": []})
@@ -338,8 +350,14 @@ class APITest(TestCase):
     @mock.patch("gcloud.tasktmpl3.apis.django.api.ProjectConfig.objects.filter")
     @mock.patch("gcloud.tasktmpl3.apis.django.api.TaskTemplate.objects.get")
     @mock.patch("gcloud.tasktmpl3.apis.django.api.Project.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.AgentBeautifyTemplateLayoutInterceptor.process")
     def test_ai_beautify_layout__feature_missing_key(
-        self, mock_project_get, mock_template_get, mock_project_config_filter, mock_layout_pipeline_tree
+        self,
+        mock_interceptor_process,
+        mock_project_get,
+        mock_template_get,
+        mock_project_config_filter,
+        mock_layout_pipeline_tree,
     ):
         mock_project_get.return_value = MagicMock()
         mock_template_get.return_value = MockBaseTemplate(id=1, pipeline_tree={"location": [], "line": []})
