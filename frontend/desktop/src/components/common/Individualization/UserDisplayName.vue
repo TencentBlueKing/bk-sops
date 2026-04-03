@@ -1,9 +1,9 @@
 <template>
-    <div class="user-display-name-container">
+    <span class="user-display-name-container">
         <span v-if="!name">{{ '--' }}</span>
         <bk-user-display-name v-else-if="isMultiTenantMode" :user-id="name" />
         <span v-else>{{ displayName }}</span>
-    </div>
+    </span>
 </template>
 <script>
     import { mapState } from 'vuex'
