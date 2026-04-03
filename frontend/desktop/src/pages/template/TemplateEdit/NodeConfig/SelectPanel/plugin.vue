@@ -105,7 +105,10 @@
                                 v-bk-overflow-tips="{ placement: 'bottom-end', extCls: 'plugin-desc-tips' }">
                                 {{ plugin.introduction || '--' }}
                             </p>
-                            <p class="plugin-contact">{{ $t('由') + ' ' + plugin.contact + ' ' + $t('提供') }}</p>
+                            <p class="plugin-contact">
+                                {{ $t('由') }}
+                                <UserDisplayName :name="plugin.contact" />
+                                {{ $t('提供') }}</p>
                         </div>
                     </div>
                 </template>
@@ -122,12 +125,14 @@
 <script>
     import { SYSTEM_GROUP_ICON } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import CancelRequest from '@/api/cancelRequest.js'
 
     export default {
         name: 'Plugin',
         components: {
-            NoData
+            NoData,
+            UserDisplayName
         },
         props: {
             isThirdParty: Boolean,
