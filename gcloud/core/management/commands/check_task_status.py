@@ -82,7 +82,7 @@ class Command(BaseCommand):
             task_count = DjangoCeleryBeatPeriodicTask.objects.filter(id__in=clocked_task_ids, enabled=True).count()
 
             if task_count == 0:
-                self.stdout.write("所有计划任务已关闭")
+                self.stdout.write("计划任务已关闭")
                 return True
             else:
                 self.stdout.write(f"发现 {task_count} 个未关闭的计划任务")
@@ -93,7 +93,7 @@ class Command(BaseCommand):
             task_count = DjangoCeleryBeatPeriodicTask.objects.filter(id__in=clocked_task_ids, enabled=False).count()
 
             if task_count == 0:
-                self.stdout.write("所有计划任务已启动")
+                self.stdout.write("计划任务已启动")
                 return True
             else:
                 self.stdout.write(f"发现 {task_count} 个未启动的计划任务")
