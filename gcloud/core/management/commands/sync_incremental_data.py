@@ -40,7 +40,7 @@ class Command(BaseCommand):
         lock_acquired = False
 
         for attempt in range(max_retries):
-            if settings.redis_inst.set(lock_key, 1, nx=True, ex=3600):
+            if settings.redis_inst.set(lock_key, 1, nx=True, ex=300):
                 lock_acquired = True
                 break
             self.stdout.write(self.style.WARNING(f"尝试获取锁失败，等待 {retry_interval} 秒后重试 ({attempt + 1}/{max_retries})..."))
