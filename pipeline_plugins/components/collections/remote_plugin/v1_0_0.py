@@ -86,9 +86,10 @@ class RemotePluginService(BasePluginService):
     def plugin_execute(self, data, parent_data):
         plugin_code = data.get_one_of_inputs("plugin_code")
         plugin_version = data.get_one_of_inputs("plugin_version")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
         try:
-            plugin_client = PluginServiceApiClient(plugin_code)
+            plugin_client = PluginServiceApiClient(plugin_code, tenant_id=tenant_id)
         except PluginServiceException as e:
             message = _(f"第三方插件client初始化失败, 错误内容: {e}")
             logger.error(message)
@@ -125,9 +126,7 @@ class RemotePluginService(BasePluginService):
 
         ok, result_data = plugin_client.invoke(plugin_version, {"inputs": data.inputs, "context": plugin_context})
         if not ok:
-            message = _(
-                f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}"
-            )
+            message = _(f"调用第三方插件invoke接口错误, 错误内容: {result_data['message']}, trace_id: {result_data.get('trace_id')}")
             logger.error(message)
             data.set_outputs("ex_data", message)
             return False
@@ -162,8 +161,9 @@ class RemotePluginService(BasePluginService):
             data.set_outputs("ex_data", message)
             return False
 
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         try:
-            plugin_client = PluginServiceApiClient(plugin_code)
+            plugin_client = PluginServiceApiClient(plugin_code, tenant_id=tenant_id)
         except PluginServiceException as e:
             message = _(f"第三方插件client初始化失败, 错误内容: {e}")
             logger.error(message)
