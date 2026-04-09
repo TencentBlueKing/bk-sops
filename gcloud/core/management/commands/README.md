@@ -8,8 +8,7 @@
 
 ## ✅ 前置条件
 
-### 文件准备
-- 将文件拷贝到源环境和目标环境 `/app/gcloud/core/management/commands` 目录
+### 脚本执行
 - 在 `/app` 目录下执行脚本，可在任意 pod 中执行
 
 ### 🛠️ 环境准备
@@ -159,49 +158,9 @@ python manage.py update_appmaker_link_domain --new-domain example.com
 
 ---
 
-### 阶段五：任务迁移
+### 阶段五：增量数据同步（目标环境执行）
 
-#### 5.1 导出旧环境任务（源环境执行）
-```bash
-python manage.py task_backup_restore --export --business-ids 1,2,3 --file <目标路径>
-```
-
-**此脚本会**：
-1. 关闭开启指定业务下的周期任务和未执行的计划任务
-2. 将关闭的任务导出到文件中
-3. 导出模式必须要指定具体的业务ID，不支持全业务操作
-
-**参数说明**：
-- `--business-ids`：操作的具体业务ID
-- `--file`：要导出的文件路径，会在改路径下生成文件
-
-**检测源环境指定业务下任务是否全部关闭**：
-```bash
-python manage.py check_task_status --check-type all_closed --business-ids 1,2,3
-```
-
-#### 5.2 导入新环境任务（目标环境执行）
-```bash
-python manage.py task_backup_restore --import --file <文件路径>
-```
-
-**此脚本需要**：
-1. 需要先将在源环境导出的文件拷贝到目标环境
-2. 在目标环境将文件导入开启任务
-
-**参数说明**：
-- `--file`：要读取的文件所在路径
-
-**检测目标环境中指定业务下任务启动状态**：
-```bash
-python manage.py check_task_status --check-type all_success --business-ids 1,2,3
-```
-
----
-
-### 阶段六：增量数据同步（目标环境执行）
-
-#### 6.1 增量同步配置准备
+#### 5.1 增量同步配置准备
 
 在执行增量同步前，需要确保已正确配置数据库连接信息，并已记录基础数据同步的最大ID。
 
@@ -210,7 +169,7 @@ python manage.py check_task_status --check-type all_success --business-ids 1,2,3
 - ✅ 已执行 `sync_model_max_ids` 记录各表最大ID
 - ✅ 数据库连接配置正确
 
-#### 6.2 执行增量数据同步
+#### 5.2 执行增量数据同步（定时任务执行）
 
 ```bash
 # 基本增量同步（默认批量大小100）
@@ -226,10 +185,35 @@ python manage.py sync_incremental_data --batch-size 200
 **参数说明**：
 - `--batch-size`：每次同步的记录数，默认100，可根据网络和数据库性能调整
 
-#### 6.3 增量同步工作原理
-
 **同步流程**：
 1**按分类同步**：按模型分类依次同步
 2**增量查询**：基于记录的max_id查询新增数据
 3**批量处理**：按指定批量大小分批同步数据
 4**状态更新**：每个分类完成后立即更新增量表记录的的ID
+
+#### 5.3 批量同步数据（迁移业务时执行）
+
+```bash
+python manage.py auto_sync_incremental_data
+```
+
+**功能说明**：
+- 脚本会自动计算源数据库和目标数据库中各表的最大ID差额。
+- 将计算出的最大差额作为 `batch-size` 参数，自动调用 `sync_incremental_data` 脚本执行同步。
+- 脚本会将所有业务数据同步到最新状态，适用于不确定增量数据量，希望系统自动判断并一次性同步完成的场景。
+
+
+### 阶段六：任务迁移（目标环境执行）
+
+```bash
+python manage.py task_backup_restore --business-ids 1,2,3
+```
+
+**此脚本会**：
+1. 直连源数据库，查找指定业务下已开启的周期任务和未执行的计划任务。
+2. 严格校验这些任务是否已完全同步到当前环境（目标环境），数量不一致将报错并终止执行。
+3. 在源数据库中关闭这些任务，并在当前环境中开启它们。
+4. 具备事务和回滚机制，如果当前环境开启失败，会自动回滚源数据库的关闭操作。
+
+**参数说明**：
+- `--business-ids`：操作的具体业务ID，多个用逗号分隔，如：1,2,3。

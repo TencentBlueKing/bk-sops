@@ -2,10 +2,12 @@
 """
 数据库增量同步工具：基于ID记录的增量数据同步
 """
-
 import json
+import os
+import time
 
 import pymysql
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
 
@@ -30,51 +32,68 @@ class Command(BaseCommand):
         batch_size = options["batch_size"]
         dry_run = options["dry_run"]
 
-        self.stdout.write("开始增量同步任务...")
-        if dry_run:
-            self.stdout.write("*** 干运行模式：只检查不实际同步 ***")
+        lock_key = "sync_incremental_data_lock"
+        # 加锁，防止同时多次执行，超时时间设置为1小时
+        # 增加重试逻辑，最多重试6次，每次间隔10秒
+        max_retries = int(os.getenv("MAX_RETRIES", 6))
+        retry_interval = int(os.getenv("RETRY_INTERVAL", 10))
+        lock_acquired = False
 
-        if sync_config is None or not sync_config.SOURCE_DB_CONFIG.get("database"):
-            self.stdout.write(self.style.ERROR("请检查源环境数据库配置"))
+        for attempt in range(max_retries):
+            if settings.redis_inst.set(lock_key, 1, nx=True, ex=300):
+                lock_acquired = True
+                break
+            self.stdout.write(self.style.WARNING(f"尝试获取锁失败，等待 {retry_interval} 秒后重试 ({attempt + 1}/{max_retries})..."))
+            time.sleep(retry_interval)
+
+        if not lock_acquired:
             return
 
         try:
-            # 在同步开始前全局禁用外键约束
-            with connection.cursor() as cursor:
-                cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-            # 连接源数据库
+            self.stdout.write("开始增量同步任务...")
+            if dry_run:
+                self.stdout.write("*** 干运行模式：只检查不实际同步 ***")
+
+            if sync_config is None or not sync_config.SOURCE_DB_CONFIG.get("database"):
+                self.stdout.write(self.style.ERROR("请检查源环境数据库配置"))
+                return
+
             try:
-                source_db = sync_config.SOURCE_DB_CONFIG
-                source_conn = pymysql.connect(
-                    host=source_db["host"],
-                    port=source_db["port"],
-                    user=source_db["user"],
-                    password=source_db["password"],
-                    database=source_db["database"],
-                    charset="utf8mb4",
-                    cursorclass=pymysql.cursors.DictCursor,
-                )
-                self.stdout.write("数据库连接成功")
+                # 在同步开始前全局禁用外键约束
+                with connection.cursor() as cursor:
+                    cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+                # 连接源数据库
+                try:
+                    source_db = sync_config.SOURCE_DB_CONFIG
+                    source_conn = pymysql.connect(
+                        host=source_db["host"],
+                        port=source_db["port"],
+                        user=source_db["user"],
+                        password=source_db["password"],
+                        database=source_db["database"],
+                        charset="utf8mb4",
+                        cursorclass=pymysql.cursors.DictCursor,
+                    )
+                    self.stdout.write("数据库连接成功")
+                except Exception as e:
+                    raise ValueError(f"数据库连接失败: {str(e)}")
+
+                self.sync_data(source_conn, batch_size, dry_run)
+                # 关闭数据库连接
+                source_conn.close()
+
+                self.stdout.write(self.style.SUCCESS("增量同步任务完成！"))
+
             except Exception as e:
-                raise ValueError(f"数据库连接失败: {str(e)}")
-
-            self.sync_data(source_conn, batch_size, dry_run)
-            # 关闭数据库连接
-            source_conn.close()
-
-            # 同步结束后重新启用外键约束
-            with connection.cursor() as cursor:
-                cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
-
-            self.stdout.write(self.style.SUCCESS("增量同步任务完成！"))
-
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f"同步失败: {str(e)}"))
-            raise
+                self.stdout.write(self.style.ERROR(f"同步失败: {str(e)}"))
+                raise
+            finally:
+                # 同步结束后重新启用外键约束
+                with connection.cursor() as cursor:
+                    cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         finally:
-            # 同步结束后重新启用外键约束
-            with connection.cursor() as cursor:
-                cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+            # 处理完成删除锁
+            settings.redis_inst.delete(lock_key)
 
     def sync_data(self, source_conn, batch_size, dry_run):
         """执行增量数据同步 - 按分类同步，每个分类完成后立即更新数据库状态"""
@@ -215,6 +234,10 @@ class Command(BaseCommand):
                 # 特殊处理：为template_commontemplate表添加tenant_id默认值
                 if table_name == "template_commontemplate" and "tenant_id" not in valid_data:
                     valid_data["tenant_id"] = sync_config.TENANT_CONFIG.get("tenant_id", "tencent")
+
+                # 特殊处理：为clocked_task_clockedtask表添加timezone默认值
+                if table_name == "clocked_task_clockedtask" and "timezone" not in valid_data:
+                    valid_data["timezone"] = "Asia/Shanghai"
 
                 processed_results.append(valid_data)
 
