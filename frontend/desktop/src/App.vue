@@ -179,7 +179,8 @@
                 this.$bkMessage({
                     message,
                     theme: 'warning',
-                    offsetY: 80
+                    offsetY: 80,
+                    ellipsisLine: 2
                 })
             })
             // 登录成功后使用快照
