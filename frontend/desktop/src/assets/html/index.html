@@ -69,6 +69,12 @@
         var AI_SOPS_AGENT_URL  = '{{AI_SOPS_AGENT_URL}}'
         // 是否开启AI分析通知配置
         var ENABLE_AI_NOTIFICATION = {{ENABLE_AI_NOTIFICATION}}
+        // 是否开启多租户模式
+        var ENABLE_MULTI_TENANT_MODE = {{ENABLE_MULTI_TENANT_MODE}}
+        var TENANT_ID = {{TENANT_ID}}
+        var DISPLAY_NAME = {{DISPLAY_NAME}}
+        var BKPAAS_USER_URL = {{BKPAAS_USER_URL}}
+
         function getCookie(name) {
             var arr, reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)");
             return (arr = document.cookie.match(reg)) ? unescape(arr[2]) : null;
