@@ -125,6 +125,22 @@ export function setJqueryAjaxConfig () {
                 bus.$emit('showErrorModal', 'default', ajaxContent, i18n.t('提示'))
                 break
             case 403:
+                if (window.ENABLE_MULTI_TENANT_MODE) {
+                    let respData = xhr.responseJSON
+                    if (!respData && xhr.responseText) {
+                        try {
+                            respData = JSON.parse(xhr.responseText)
+                        } catch (e) {
+                            console.error(e)
+                        }
+                    }
+                    if (respData && respData.code === 'TENANT_MISMATCH') {
+                        const tenantId = window.TENANT_ID || ''
+                        const message = i18n.t('您当前的企业空间是【tenant】，无法访问该链接，请您尝试返回登录页面切换其他企业空间访问。', { tenant: tenantId })
+                        bus.$emit('showTenantMismatch', message)
+                        break
+                    }
+                }
                 bus.$emit('showErrorModal', '403')
                 break
             case 405:

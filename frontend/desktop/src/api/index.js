@@ -11,6 +11,7 @@
 */
 import axios from 'axios'
 import bus from '@/utils/bus.js'
+import i18n from '@/config/i18n/index.js'
 import { setJqueryAjaxConfig } from '@/config/setting.js'
 import { generateTraceId } from '@/utils/uuid.js'
 import { showLoginModal } from '@blueking/login-modal'
@@ -71,6 +72,25 @@ axios.interceptors.response.use(
                     message: msg
                 }
                 bus.$emit('showErrMessage', errorInfo)
+                break
+            case 403:
+                // 多租户模式下，检测租户不匹配错误
+                if (window.ENABLE_MULTI_TENANT_MODE) {
+                    let respData = response.data
+                    if (typeof respData === 'string') {
+                        try {
+                            respData = JSON.parse(respData)
+                        } catch (e) {
+                            console.error(e)
+                        }
+                    }
+                    if (respData && respData.code === 'TENANT_MISMATCH') {
+                        const tenantId = window.TENANT_ID || ''
+                        const message = i18n.t('您当前的企业空间是【tenant】，无法访问该链接，请您尝试返回登录页面切换其他企业空间访问。', { tenant: tenantId })
+                        bus.$emit('showTenantMismatch', message)
+                        break
+                    }
+                }
                 break
             case 401:
                 const data = response.data

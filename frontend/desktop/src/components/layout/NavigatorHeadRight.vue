@@ -57,27 +57,8 @@
             <div class="operate-item" data-test-id="navHeader_list_versionLog" @click="onOpenVersion">{{ $t('版本日志') }}</div>
             <div class="operate-item" data-test-id="navHeader_list_feedback" @click="goToFeedback">{{ $t('问题反馈') }}</div>
         </div>
-        <!-- 用户icon -->
-        <div
-            class="user-avatar"
-            v-bk-tooltips="{
-                placement: 'bottom-end',
-                allowHtml: 'true',
-                arrow: false,
-                distance: 25,
-                theme: 'light',
-                hideOnClick: false,
-                extCls: 'logout-tips',
-                content: '#logout-html'
-            }">
-            {{ username }}
-            <i class="bk-icon icon-down-shape"></i>
-        </div>
-        <div id="logout-html">
-            <div class="operate-item" data-test-id="navHeader_list_permissionCenter" @click="handleJumpToCenter('permission')">{{ $t('权限中心') }}</div>
-            <div class="operate-item" data-test-id="navHeader_list_personalCenter" @click="handleJumpToCenter('personal')">{{ $t('个人中心') }}</div>
-            <div class="operate-item" data-test-id="navHeader_list_logout" @click="handleLogout">{{ $t('退出登录') }}</div>
-        </div>
+        <!-- 用户信息 -->
+        <BkLoginUserinfo :userinfo="userinfo" :action-list="actionList" />
         <!-- 日志组件 -->
         <version-log
             ref="versionLog"
@@ -93,6 +74,7 @@
     import { mapActions, mapMutations, mapState } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
+    import BkLoginUserinfo from '@blueking/login-userinfo/vue2'
     import Cookies from 'js-cookie'
     import axios from 'axios'
 
@@ -101,7 +83,8 @@
         inject: ['reload'],
         components: {
             ProjectSelector,
-            VersionLog
+            VersionLog,
+            BkLoginUserinfo
         },
         data () {
             return {
@@ -113,7 +96,11 @@
                 logListLoading: false,
                 logDetailLoading: false,
                 curLanguage: 'chinese',
-                username: window.DISPLAY_NAME
+                userinfo: {
+                    name: window.DISPLAY_NAME || window.USERNAME || '',
+                    organization: window.TENANT_ID,
+                    timezone: window.TIMEZONE
+                }
             }
         },
         computed: {
@@ -139,6 +126,25 @@
                 }
                 const paths = ['/audit/', '/function/']
                 return paths.some(path => this.$route.path.startsWith(path))
+            },
+            actionList () {
+                return [
+                    {
+                        text: this.$t('权限中心'),
+                        href: window.BK_IAM_SAAS_HOST,
+                        target: '_blank'
+                    },
+                    {
+                        text: this.$t('个人中心'),
+                        href: (window.BKPAAS_USER_URL || '') + '/personal-center',
+                        target: '_blank'
+                    },
+                    {
+                        text: this.$t('退出登录'),
+                        theme: 'danger',
+                        handle: this.handleLogout
+                    }
+                ]
             }
         },
         async created () {
@@ -262,18 +268,13 @@
                     loginUrl = /\/$/.test(loginUrl) ? loginUrl : `${loginUrl}/`
                     window.location.replace(`${loginUrl}?is_from_logout=1&c_url=${window.location.href}`)
                 }
-            },
-            handleJumpToCenter (name) {
-                if (name === 'permission') {
-                    window.open(window.BK_IAM_SAAS_HOST, '_blank')
-                } else {
-                    window.open(window.BKPAAS_USER_URL + '/personal-center', '_blank')
-                }
             }
         }
     }
 </script>
 <style lang="scss" scoped>
+    @import '@blueking/login-userinfo/vue2/vue2.css';
+
     .navigator-head-right {
         display: flex;
         align-items: center;
@@ -309,23 +310,6 @@
             font-size: 18px;
             margin-right: 10px;
         }
-        .user-avatar {
-            margin-left: 16px;
-            font-size: 14px;
-            color: #96a2b9;
-            cursor: pointer;
-            .icon-down-shape {
-                position: relative;
-                top: -1px;
-                color: #979ba5;
-            }
-            &:hover {
-                color: #3a84ff;
-                i {
-                    color: #3a84ff;
-                }
-            }
-        }
         ::v-deep .bk-select.is-disabled {
             background: none;
         }
@@ -333,7 +317,6 @@
 </style>
 <style lang="scss">
     .tippy-popper.more-language-tips,
-    .tippy-popper.logout-tips,
     .tippy-popper.more-operation-tips {
         .tippy-tooltip {
             padding: 4px 0;
@@ -345,7 +328,6 @@
             }
         }
         #more-language-html,
-        #logout-html,
         #more-operation-html {
             .operate-item {
                 display: block;
