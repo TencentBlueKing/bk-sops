@@ -13,10 +13,11 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.conf import settings
+from django.http import Http404
 from iam import Action, MultiActionRequest, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import status
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
@@ -178,3 +179,16 @@ class MultiTenantMixin:
             elif self.taskflow_multi_tenant_filter:
                 queryset = queryset.filter(task__project__tenant_id=tenant_id)
         return queryset
+
+    def get_object(self):
+        try:
+            return super().get_object()
+        except Http404 as e:
+            if settings.ENABLE_MULTI_TENANT_MODE:
+                unfiltered_queryset = super().get_queryset()
+                lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+                if lookup_url_kwarg in self.kwargs:
+                    filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
+                    if unfiltered_queryset.filter(**filter_kwargs).exists():
+                        raise PermissionDenied(detail=ErrorDetail("Tenant mismatch", code="TENANT_MISMATCH"))
+            raise e
