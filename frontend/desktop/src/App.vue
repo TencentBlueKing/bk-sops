@@ -178,7 +178,8 @@
             bus.$on('showTenantMismatch', message => {
                 this.$bkMessage({
                     message,
-                    theme: 'warning'
+                    theme: 'warning',
+                    offsetY: 80
                 })
             })
             // 登录成功后使用快照
