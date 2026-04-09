@@ -396,7 +396,7 @@
                 }
                 this.$router.push(url)
             },
-            onCreateTask () {
+            async onCreateTask () {
                 let hasNextPermission = false
                 if (this.common) {
                     if (this.commonTplCreateTaskPermLoading) {
@@ -451,9 +451,11 @@
                 if (this.isSubmit) {
                     return false
                 }
-                // 页面中是否有 TaskParamEdit 组件
-                const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
-                this.$validator.validateAll().then(async (result) => {
+                this.isSubmit = true
+                try {
+                    // 页面中是否有 TaskParamEdit 组件
+                    const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
+                    const result = await this.$validator.validateAll()
                     let formValid = true
                     const pipelineData = tools.deepClone(this.pipelineData)
                     // 取最新参数
@@ -475,6 +477,7 @@
                     if (!result) {
                         const $basicInfo = document.querySelector('.task-basic-info')
                         $basicInfo.scrollIntoView()
+                        this.isSubmit = false
                         return
                     }
 
@@ -492,10 +495,10 @@
                         if ($tipInView) {
                             $tipInView.scrollIntoView()
                         }
+                        this.isSubmit = false
                         return
                     }
 
-                    this.isSubmit = true
                     let flowType
                     if ((this.$route.name === 'functionTemplateStep' && this.entrance === 'function')
                         || this.isSelectFunctionalType) {
@@ -513,96 +516,96 @@
                         'flowType': flowType,
                         'common': this.common
                     }
-                    try {
-                        const taskData = await this.createTask(data)
-                        if (this.isSelectFunctionalType) {
-                            const h = this.$createElement
-                            const self = this
-                            const functionClaimMsg = this.$bkMessage({
-                                extCls: 'func-claim-message',
-                                message: h('div', {
-                                    style: { display: 'flex' }
+                    const taskData = await this.createTask(data)
+                    if (this.isSelectFunctionalType) {
+                        const h = this.$createElement
+                        const self = this
+                        const functionClaimMsg = this.$bkMessage({
+                            extCls: 'func-claim-message',
+                            message: h('div', {
+                                style: { display: 'flex' }
+                            }, [
+                                h('span', {
+                                    style: {
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                        textOverflow: 'ellipsis'
+                                    }
                                 }, [
+                                    this.$t('任务提交成功，请'),
                                     h('span', {
                                         style: {
-                                            overflow: 'hidden',
-                                            whiteSpace: 'nowrap',
-                                            textOverflow: 'ellipsis'
-                                        }
-                                    }, [
-                                        this.$t('任务提交成功，请'),
-                                        h('span', {
-                                            style: {
-                                                flexShrink: 0,
-                                                margin: '0 5px',
-                                                color: '#3a84ff',
-                                                cursor: 'pointer'
-                                            },
-                                            on: {
-                                                click: function () {
-                                                    self.cloneClaimLink(taskData.id)
-                                                }
+                                            flexShrink: 0,
+                                            margin: '0 5px',
+                                            color: '#3a84ff',
+                                            cursor: 'pointer'
+                                        },
+                                        on: {
+                                            click: function () {
+                                                self.cloneClaimLink(taskData.id)
                                             }
-                                        }, this.$t('tips_复制链接')),
-                                        this.$t('通知职能化成员')
-                                    ])
-                                ]),
-                                theme: 'success',
-                                delay: 0
-                            })
-                            this.setFunctionClaimMsg(functionClaimMsg)
-                        }
-                        let url = {}
-                        if (this.viewMode === 'appmaker') {
-                            const { template_id } = this.$route.query
-                            if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
-                                url = {
-                                    name: 'appmakerTaskHome',
-                                    params: { app_id: this.app_id, project_id: this.project_id },
-                                    query: { template_id }
-                                }
-                            } else {
-                                url = {
-                                    name: 'appmakerTaskExecute',
-                                    params: { app_id: this.app_id, project_id: this.project_id },
-                                    query: { instance_id: taskData.id, template_id }
-                                }
-                            }
-                            if (this.isCustomizeType) {
-                                url.params.is_now = true
-                            }
-                        } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                                        }
+                                    }, this.$t('tips_复制链接')),
+                                    this.$t('通知职能化成员')
+                                ])
+                            ]),
+                            theme: 'success',
+                            delay: 0
+                        })
+                        this.setFunctionClaimMsg(functionClaimMsg)
+                    }
+                    let url = {}
+                    if (this.viewMode === 'appmaker') {
+                        const { template_id } = this.$route.query
+                        if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
                             url = {
-                                name: 'functionTaskExecute',
-                                params: { project_id: this.project_id },
-                                query: { instance_id: taskData.id, common: this.common }
+                                name: 'appmakerTaskHome',
+                                params: { app_id: this.app_id, project_id: this.project_id },
+                                query: { template_id }
                             }
                         } else {
                             url = {
-                                name: 'taskExecute',
-                                params: { project_id: this.project_id },
-                                query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
+                                name: 'appmakerTaskExecute',
+                                params: { app_id: this.app_id, project_id: this.project_id },
+                                query: { instance_id: taskData.id, template_id }
                             }
                         }
-                        this.$router.push(url)
-                        // 如果被嵌入了，则像父页面发送事件
-                        if (this.hideHeader) {
-                            window.parent.postMessage({
-                                eventName: 'createTaskEvent',
-                                data: {
-                                    cc_id: this.bizId,
-                                    project_id: this.project_id,
-                                    task_id: taskData.id,
-                                    task_name: taskData.name
-                                }
-                            }, '*')
+                        if (this.isCustomizeType) {
+                            url.params.is_now = true
                         }
-                    } catch (e) {
-                        console.log(e)
-                    } finally {
-                        this.isSubmit = false
+                    } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                        url = {
+                            name: 'functionTaskExecute',
+                            params: { project_id: this.project_id },
+                            query: { instance_id: taskData.id, common: this.common }
+                        }
+                    } else {
+                        url = {
+                            name: 'taskExecute',
+                            params: { project_id: this.project_id },
+                            query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
+                        }
                     }
-                })
+                    // 如果被嵌入了，则向父页面发送事件
+                    if (this.hideHeader) {
+                        window.parent.postMessage({
+                            eventName: 'createTaskEvent',
+                            data: {
+                                cc_id: this.bizId,
+                                project_id: this.project_id,
+                                task_id: taskData.id,
+                                task_name: taskData.name
+                            }
+                        }, '*')
+                    }
+                    this.$router.push(url).catch(err => {
+                        console.log(err)
+                        this.isSubmit = false
+                    })
+                } catch (e) {
+                    console.log(e)
+                    this.isSubmit = false
+                }
             },
             cloneClaimLink (instanceId) {
                 this.functionClaimMsg.close()
