@@ -174,6 +174,14 @@
                 const msg = typeof info.message === 'string' ? info.message : JSON.stringify(info.message)
                 window.show_msg(msg, 'error', '', info.traceId, info.errorSource)
             })
+            // 多租户模式下，企业空间不匹配提示
+            bus.$on('showTenantMismatch', message => {
+                this.$bkMessage({
+                    message,
+                    theme: 'warning',
+                    offsetY: 80
+                })
+            })
             // 登录成功后使用快照
             bus.$on('useSnapshot', data => {
                 this.isUseSnapshot = true
