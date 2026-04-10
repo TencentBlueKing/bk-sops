@@ -598,7 +598,9 @@
                             }
                         }, '*')
                     }
-                    this.$router.push(url).catch(err => {
+                    this.$router.push(url).then(() => {
+                        this.isSubmit = false
+                    }).catch(err => {
                         console.log(err)
                         this.isSubmit = false
                     })
