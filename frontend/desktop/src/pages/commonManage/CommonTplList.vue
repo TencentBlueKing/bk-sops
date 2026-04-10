@@ -1317,7 +1317,7 @@
                     this.isProjectVisibleShow = true
                 }
             },
-            handleProjectVisibleChange ({ project_scope, isSelectAllProjectScope }) {
+            handleProjectVisibleChange ({ project_scope, isSelectAllProjectScope = false }) {
                 this.projectScopeSelectList = isSelectAllProjectScope ? ['*'] : project_scope.map(item => typeof item === 'number' ? String(item) : item)
                 this.setProjectScope(this.projectScopeSelectList)
             },
