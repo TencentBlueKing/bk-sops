@@ -131,16 +131,19 @@
                 return [
                     {
                         text: this.$t('权限中心'),
+                        icon: 'common-icon-authority',
                         href: window.BK_IAM_SAAS_HOST,
                         target: '_blank'
                     },
                     {
                         text: this.$t('个人中心'),
+                        icon: 'bk-icon icon-user',
                         href: (window.BKPAAS_USER_URL || '') + '/personal-center',
                         target: '_blank'
                     },
                     {
                         text: this.$t('退出登录'),
+                        icon: 'common-icon-export',
                         theme: 'danger',
                         handle: this.handleLogout
                     }
