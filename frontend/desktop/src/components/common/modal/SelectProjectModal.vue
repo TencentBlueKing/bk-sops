@@ -176,7 +176,7 @@
                         this.isOutermostAllProjectScope = true
                     } else {
                         this.localProjectScopeList = [...val]
-                        this.isOutermostAllProjectScope = this.localProjectScopeList.length === this.allProjectIds.length
+                        this.isOutermostAllProjectScope = false
                     }
                     if (this.projectList && this.projectList.length && val) {
                         this.initProjects()
@@ -219,7 +219,7 @@
                 } else {
                     this.isOutermostAllProjectScope = false
                     this.localProjectScopeList = [...new Set(result.projectIds)]
-                    this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
+                    this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: false })
                 }
             },
             initProjects () {
@@ -277,7 +277,7 @@
             },
             handleProjectVisibleChange (row) {
                 this.localProjectScopeList = [...new Set(row)]
-                this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
+                this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList })
             },
             handleSelectAllProjectScope (row) {
                 if (row) {
@@ -295,7 +295,7 @@
             },
             handleConfirm () {
                 if (this.isSetProjectVisible) {
-                    this.$emit('onVisibleConfirm', { isSelectAllProjectScope: this.localProjectScopeList.length === this.allProjectIds.length })
+                    this.$emit('onVisibleConfirm', { isSelectAllProjectScope: this.isOutermostAllProjectScope })
                 } else {
                     if (this.confirmLoading) {
                         return
