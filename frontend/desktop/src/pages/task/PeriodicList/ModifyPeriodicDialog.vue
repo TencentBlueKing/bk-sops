@@ -829,6 +829,7 @@
             },
             // 周期任务保存
             onPeriodicConfirm () {
+                if (this.saveLoading) return
                 if (this.hasNoCreatePerm) {
                     const { id, name, auth_actions } = this.templateData
                     const resourceData = {
