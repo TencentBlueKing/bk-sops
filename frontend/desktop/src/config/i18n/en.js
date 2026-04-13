@@ -1961,7 +1961,8 @@ const en = {
     '使用上一次参数': 'Use Last Parameters',
     '确认使用上一次参数？': 'Use Last Parameters?',
     '将会使用该流程上一次执行的参数值填充表单': 'The form will be filled with the parameter values from the last execution',
-    '参数加载成功': 'Parameters loaded successfully'
+    '参数加载成功': 'Parameters loaded successfully',
+    '输入关键词搜索,批量搜索使用逗号分隔': 'Enter keywords to search, batch search using commas to separate'
 }
 
 export default en

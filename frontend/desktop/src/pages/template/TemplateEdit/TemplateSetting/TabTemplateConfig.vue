@@ -128,34 +128,15 @@
                             @change="handleBaseInfoSelectAllProjectScope">
                             {{ $t('全选') }}
                         </bk-checkbox>
-                        <bk-select class="project-select"
-                            :searchable="true"
-                            :clearable="true"
-                            :multiple="true"
-                            :display-tag="true"
-                            :auto-height="false"
-                            :readonly="isViewMode"
-                            ref="projectSelectRef"
+                        <ProjectScopeSelect
+                            :value="baseInfoProjectScopeList"
+                            :project-scope-list="formData.project_scope"
                             :disabled="isOutermostBaseInfoAllProjectScope || isViewMode"
-                            @change="handleBaseInfoProjectVisibleChange"
-                            v-model="baseInfoProjectScopeList">
-                            <bk-option-group
-                                v-for="(group, index) in projects"
-                                :name="group.name"
-                                :key="index"
-                                :show-select-all="true">
-                                <bk-option v-for="item in group.children"
-                                    :key="item.id"
-                                    :id="item.id"
-                                    :name="item.name">
-                                </bk-option>
-                            </bk-option-group>
-                        </bk-select>
-                        <ScopeCopyPaste
+                            :readonly="isViewMode"
                             :show-copy-paste="!isOutermostBaseInfoAllProjectScope"
                             :is-view-mode="isViewMode"
                             :scope-data="currentScopeData"
-                            :all-project-ids="allProjectIds"
+                            @change="handleBaseInfoProjectVisibleChange"
                             @paste="onPasteSuccess" />
                     </bk-form-item>
                 </section>
@@ -320,7 +301,7 @@
 <script>
     import { mapState, mapMutations, mapActions } from 'vuex'
     import MemberSelect from '@/components/common/Individualization/MemberSelect.vue'
-    import ScopeCopyPaste from '@/components/common/ScopeCopyPaste.vue'
+    import ProjectScopeSelect from '@/components/common/modal/ProjectScopeSelect.vue'
     import tools from '@/utils/tools.js'
     import { NAME_REG, STRING_LENGTH, TASK_CATEGORIES, LABEL_COLOR_LIST } from '@/constants/index.js'
     import i18n from '@/config/i18n/index.js'
@@ -333,7 +314,7 @@
         name: 'TabTemplateConfig',
         components: {
             MemberSelect,
-            ScopeCopyPaste,
+            ProjectScopeSelect,
             NotifyTypeConfig,
             AiAnalysisNotifyConfig,
             HttpCallback
@@ -442,10 +423,7 @@
                 proxyPlaceholder: '',
                 isBaseInfoSelectAllProjectScope: false,
                 baseInfoProjectScopeList: [],
-                isOutermostBaseInfoAllProjectScope: false,
-                projects: [],
-                isDropdownOpen: false,
-                isFirstOpen: false
+                isOutermostBaseInfoAllProjectScope: false
             }
         },
         computed: {
@@ -461,13 +439,8 @@
                 'projectList': state => state.userProjectList
             }),
             allProjectIds () {
-                const allIds = []
-                this.projects.forEach((group) => {
-                    group.children.forEach((item) => {
-                        allIds.push(item.id)
-                    })
-                })
-                return allIds
+                if (!this.projectList) return []
+                return this.projectList.map(item => item.id)
             },
             currentScopeData () {
                 return {
@@ -476,25 +449,13 @@
                 }
             }
         },
-        watch: {
-            isDropdownOpen: {
-                handler (val) {
-                    if (!val) {
-                        if (this.formData.project_scope.length > 0) {
-                            this.processingProjectsToTop(this.formData.project_scope, this.projects)
-                        }
-                    }
-                }
-            }
-        },
 
         created () {
             if (this.common) {
-                this.initProjects()
                 if (this.formData.project_scope.includes('*')) {
+                    this.isOutermostBaseInfoAllProjectScope = true
                     this.baseInfoProjectScopeList = this.allProjectIds
                     this.formData.project_scope = this.baseInfoProjectScopeList
-                    this.isOutermostBaseInfoAllProjectScope = true
                 } else {
                     this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
                     this.formData.project_scope = this.baseInfoProjectScopeList
@@ -509,7 +470,6 @@
                 this.setExecutorProxy()
             }
             this.$refs.nameInput.focus()
-            document.addEventListener('click', this.handleClickOutside)
             // 获取通知类型列表
             this.getNotifyTypeList()
         },
@@ -532,69 +492,6 @@
                     this.notifyTypeList = res.data
                 } catch (e) {
                     console.log(e)
-                }
-            },
-            processingProjectsToTop (val, projects) {
-                val.forEach((item) => {
-                    item = typeof item === 'number' ? item : Number(item)
-                    projects.map((group) => {
-                        group.children.map((project, index) => {
-                            if (project.id === item) {
-                                const tempItem = group.children.splice(index, 1)[0]
-                                group.children.unshift(tempItem)
-                            }
-                        })
-                    })
-                })
-                return projects
-            },
-            initProjects () {
-                const projects = []
-                const projectsGroup = [
-                    {
-                        name: i18n.t('业务'),
-                        id: 1,
-                        children: []
-                    },
-                    {
-                        id: 2,
-                        name: i18n.t('项目'),
-                        children: []
-                    }
-                ]
-                this.projectList.forEach(item => {
-                    if (item.from_cmdb) {
-                        projectsGroup[0].children.push(item)
-                    } else {
-                        projectsGroup[1].children.push(item)
-                    }
-                })
-                projectsGroup.forEach(group => {
-                    if (group.children.length) {
-                        projects.push(group)
-                    }
-                })
-                if (this.formData.project_scope.length > 0 && !this.formData.project_scope.includes('*')) {
-                    this.projects = this.processingProjectsToTop(this.formData.project_scope, projects)
-                } else {
-                    this.projects = projects
-                }
-            },
-            handleClickOutside (event) {
-                const isHaveSomeClassName = event.target.classList.contains('bk-option-name') || event.target.classList.contains('bk-group-options') || event.target.classList.contains('bk-option-content-default')
-                if (!isHaveSomeClassName) {
-                    if (this.$refs.projectSelectRef && this.$refs.projectSelectRef.$el.contains(event.target)) {
-                        if (this.isFirstOpen) {
-                            this.isDropdownOpen = true
-                            this.isFirstOpen = false
-                        } else {
-                            this.isDropdownOpen = false
-                            this.isFirstOpen = true
-                        }
-                    } else {
-                        this.isDropdownOpen = false
-                        this.isFirstOpen = true
-                    }
                 }
             },
             handleBaseInfoSelectAllProjectScope (row) {
@@ -862,14 +759,12 @@
                     this.handleBaseInfoSelectAllProjectScope(true)
                 } else {
                     this.isOutermostBaseInfoAllProjectScope = false
-                    this.baseInfoProjectScopeList = result.projectIds
+                    const numericIds = result.projectIds.map(id => typeof id === 'string' ? Number(id) : id)
+                    this.baseInfoProjectScopeList = [...new Set(numericIds)]
                     this.formData.project_scope = this.baseInfoProjectScopeList
                     this.setProjectScope(this.baseInfoProjectScopeList.map(item => String(item)))
                 }
             }
-        },
-        unmounted () {
-            document.removeEventListener('click', this.handleClickOutside)
         }
     }
 </script>
