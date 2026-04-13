@@ -29,33 +29,16 @@
                         {{ $t('全选') }}
                     </bk-checkbox>
                     <template v-if="isSetProjectVisible">
-                        <bk-select class="project-select common-scope-select"
-                            ref="projectSelectRef"
-                            :searchable="true"
-                            :clearable="true"
-                            :multiple="true"
-                            :display-tag="true"
-                            :auto-height="false"
+                        <ProjectScopeSelect
+                            ref="projectScopeSelect"
+                            :value="localProjectScopeList"
+                            :project-scope-list="projectScopeList"
                             :disabled="isOutermostAllProjectScope"
-                            @change="handleProjectVisibleChange"
-                            v-model="localProjectScopeList">
-                            <bk-option-group
-                                v-for="(group, index) in projects"
-                                :name="group.name"
-                                :key="index"
-                                :show-select-all="true">
-                                <bk-option v-for="item in group.children"
-                                    :key="item.id"
-                                    :id="item.id"
-                                    :name="item.name">
-                                </bk-option>
-                            </bk-option-group>
-                        </bk-select>
-                        <ScopeCopyPaste
                             :show-copy-paste="!isOutermostAllProjectScope"
                             :scope-data="currentScopeData"
-                            :all-project-ids="allProjectIds"
                             :is-in-common-list="true"
+                            ext-cls="common-scope-select"
+                            @change="handleProjectVisibleChange"
                             @paste="onPasteSuccess" />
                     </template>
                     <bk-select v-else
@@ -65,7 +48,7 @@
                         :value="id"
                         @change="handleProjectSelect">
                         <bk-option-group
-                            v-for="(group, index) in projects"
+                            v-for="(group, index) in groupedProjectList"
                             :name="group.name"
                             :key="index">
                             <bk-option
@@ -96,13 +79,12 @@
 </template>
 <script>
     import { mapState } from 'vuex'
-    import i18n from '@/config/i18n/index.js'
-    import ScopeCopyPaste from '../ScopeCopyPaste.vue'
+    import ProjectScopeSelect from './ProjectScopeSelect.vue'
 
     export default {
         name: 'SelectProjectModal',
         components: {
-            ScopeCopyPaste
+            ProjectScopeSelect
         },
         props: {
             title: String,
@@ -131,24 +113,28 @@
                 hasError: false,
                 localProjectScopeList: [],
                 isSelectAllProjectScope: false,
-                isOutermostAllProjectScope: false,
-                isDropdownOpen: false,
-                isFirstOpen: true,
-                projects: []
+                isOutermostAllProjectScope: false
             }
         },
         computed: {
             ...mapState('project', {
                 projectList: state => state.userProjectList
             }),
-            allProjectIds () {
-                const allIds = []
-                this.projects.forEach((group) => {
-                    group.children.forEach((item) => {
-                        allIds.push(item.id)
-                    })
+            groupedProjectList () {
+                if (!this.projectList) return []
+                const groups = [
+                    { name: this.$t('业务'), id: 1, children: [] },
+                    { name: this.$t('项目'), id: 2, children: [] }
+                ]
+                this.projectList.forEach(item => {
+                    groups[item.from_cmdb ? 0 : 1].children.push(item)
                 })
-                return allIds
+                return groups.filter(g => g.children.length)
+            },
+            allProjectIds () {
+                return this.$refs.projectScopeSelect
+                    ? this.$refs.projectScopeSelect.allProjectIds
+                    : []
             },
             currentScopeData () {
                 return {
@@ -161,58 +147,23 @@
             project (val) {
                 this.id = val
             },
-            projectList: {
-                handler (val) {
-                    if (val && this.projectScopeList) {
-                        this.initProjects()
-                    }
-                },
-                immediate: true
-            },
             projectScopeList: {
                 handler (val) {
                     if (val.includes('*')) {
-                        this.localProjectScopeList = this.allProjectIds
                         this.isOutermostAllProjectScope = true
+                        // allProjectIds 依赖公共组件挂载，延迟更新
+                        this.$nextTick(() => {
+                            this.localProjectScopeList = this.allProjectIds
+                        })
                     } else {
                         this.localProjectScopeList = [...val]
                         this.isOutermostAllProjectScope = false
                     }
-                    if (this.projectList && this.projectList.length && val) {
-                        this.initProjects()
-                    }
-                },
-                immediate: true
-            },
-            isDropdownOpen: {
-                handler (val) {
-                    if (!val) {
-                        if (this.localProjectScopeList.length > 0) {
-                            this.processingProjectsToTop(this.localProjectScopeList, this.projects)
-                        }
-                    }
                 },
                 immediate: true
             }
-
-        },
-        mounted () {
-            document.addEventListener('click', this.handleClickOutside)
         },
         methods: {
-            processingProjectsToTop (val, projects) {
-                val.forEach((item) => {
-                    projects.map((group) => {
-                        group.children.map((project, index) => {
-                            if (project.id === item) {
-                                const tempItem = group.children.splice(index, 1)[0]
-                                group.children.unshift(tempItem)
-                            }
-                        })
-                    })
-                })
-                return projects
-            },
             onPasteSuccess (result) {
                 if (result.isAllScope) {
                     this.handleSelectAllProjectScope(true)
@@ -220,59 +171,6 @@
                     this.isOutermostAllProjectScope = false
                     this.localProjectScopeList = [...new Set(result.projectIds)]
                     this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: false })
-                }
-            },
-            initProjects () {
-                if (!this.projectList || !this.projectScopeList) {
-                    return []
-                }
-                let projects = []
-                const projectsGroup = [
-                    {
-                        name: i18n.t('业务'),
-                        id: 1,
-                        children: []
-                    },
-                    {
-                        id: 2,
-                        name: i18n.t('项目'),
-                        children: []
-                    }
-                ]
-                if (this.projectList) {
-                    this.projectList.forEach(item => {
-                        if (item.from_cmdb) {
-                            projectsGroup[0].children.push(item)
-                        } else {
-                            projectsGroup[1].children.push(item)
-                        }
-                    })
-                    projectsGroup.forEach(group => {
-                        if (group.children.length) {
-                            projects.push(group)
-                        }
-                    })
-                    if (this.projectScopeList.length > 0 && !this.projectScopeList.includes('*')) {
-                        projects = this.processingProjectsToTop(this.projectScopeList, projects)
-                    }
-                }
-                this.projects = projects
-            },
-            handleClickOutside (event) {
-                const isHaveSomeClassName = event.target.classList.contains('bk-option-name') || event.target.classList.contains('bk-group-options') || event.target.classList.contains('bk-option-content-default')
-                if (!isHaveSomeClassName) {
-                    if (this.$refs.projectSelectRef && this.$refs.projectSelectRef.$el.contains(event.target)) {
-                        if (this.isFirstOpen) {
-                            this.isDropdownOpen = true
-                            this.isFirstOpen = false
-                        } else {
-                            this.isDropdownOpen = false
-                            this.isFirstOpen = true
-                        }
-                    } else {
-                        this.isDropdownOpen = false
-                        this.isFirstOpen = true
-                    }
                 }
             },
             handleProjectVisibleChange (row) {
@@ -317,9 +215,6 @@
                     this.$emit('onCancel')
                 }
             }
-        },
-        unmounted () {
-            document.removeEventListener('click', this.handleClickOutside)
         }
     }
 </script>
@@ -329,13 +224,6 @@
     }
     .project-select {
         width: 300px;
-    }
-    ::v-deep .common-scope-select{
-        .bk-select-dropdown{
-            .bk-tooltip-ref{
-                width: 250px !important;
-            }
-        }
     }
     .select-all-project-scope{
         margin: 0 16px;
