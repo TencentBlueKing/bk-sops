@@ -759,7 +759,8 @@
                     this.handleBaseInfoSelectAllProjectScope(true)
                 } else {
                     this.isOutermostBaseInfoAllProjectScope = false
-                    this.baseInfoProjectScopeList = result.projectIds
+                    const numericIds = result.projectIds.map(id => typeof id === 'string' ? Number(id) : id)
+                    this.baseInfoProjectScopeList = [...new Set(numericIds)]
                     this.formData.project_scope = this.baseInfoProjectScopeList
                     this.setProjectScope(this.baseInfoProjectScopeList.map(item => String(item)))
                 }

@@ -12,8 +12,8 @@
             :readonly="readonly"
             :remote-method="handleRemoteSearch"
             :search-placeholder="$t('输入关键词搜索,批量搜索使用逗号分隔')"
-            @change="handleChange"
-            v-model="localValue">
+            :value="uniqueLocalValue"
+            @change="handleChange">
             <bk-option-group
                 v-for="(group, index) in filteredProjects"
                 :name="group.name"
@@ -87,7 +87,7 @@
         },
         data () {
             return {
-                localValue: [...this.value],
+                localValue: this.value.map(id => typeof id === 'string' ? Number(id) : id),
                 projects: [],
                 filteredProjects: [],
                 isDropdownOpen: false,
@@ -106,11 +106,14 @@
                     })
                 })
                 return allIds
+            },
+            uniqueLocalValue () {
+                return [...new Set(this.localValue)]
             }
         },
         watch: {
             value (val) {
-                this.localValue = [...val]
+                this.localValue = val.map(id => typeof id === 'string' ? Number(id) : id)
             },
             projectList: {
                 handler (val) {
@@ -130,22 +133,39 @@
         },
         mounted () {
             document.addEventListener('click', this.handleClickOutside)
+            // patch bk-select 的 selectOption，从源头阻止 bk-option-group 全选时产生重复值
+            // bk-option-group 的 show-select-all 全选时会逐个调用 selectOption，
+            // 但 selectOption 内部不检查重复，导致 selected 数组出现重复 id，触发 Vue key 重复警告
+            this.$nextTick(() => {
+                const selectRef = this.$refs.projectSelectRef
+                if (selectRef && selectRef.selectOption) {
+                    const originalSelectOption = selectRef.selectOption.bind(selectRef)
+                    selectRef.selectOption = function (option) {
+                        if (Array.isArray(selectRef.selected) && selectRef.selected.includes(option.id)) {
+                            return
+                        }
+                        originalSelectOption(option)
+                    }
+                }
+            })
         },
         beforeDestroy () {
             document.removeEventListener('click', this.handleClickOutside)
         },
         methods: {
             processingProjectsToTop (val, projects) {
-                val.forEach((item) => {
-                    const id = typeof item === 'number' ? item : Number(item)
-                    projects.forEach((group) => {
-                        group.children.forEach((project, index) => {
-                            if (project.id === id) {
-                                const tempItem = group.children.splice(index, 1)[0]
-                                group.children.unshift(tempItem)
-                            }
-                        })
+                const selectedIdSet = new Set(val.map(item => typeof item === 'number' ? item : Number(item)))
+                projects.forEach((group) => {
+                    const selected = []
+                    const unselected = []
+                    group.children.forEach((project) => {
+                        if (selectedIdSet.has(project.id)) {
+                            selected.push(project)
+                        } else {
+                            unselected.push(project)
+                        }
                     })
+                    group.children = [...selected, ...unselected]
                 })
                 return projects
             },
@@ -169,7 +189,12 @@
             },
             handleRemoteSearch (keyword) {
                 if (!keyword) {
-                    this.filteredProjects = this.projects
+                    const selectedIds = this.localValue.length > 0 ? this.localValue : this.projectScopeList
+                    if (selectedIds.length > 0 && !selectedIds.includes('*')) {
+                        this.filteredProjects = this.processingProjectsToTop(selectedIds, this.projects)
+                    } else {
+                        this.filteredProjects = this.projects
+                    }
                     return
                 }
                 // 支持逗号（中英文）分隔
@@ -189,7 +214,8 @@
                 this.filteredProjects = projects
             },
             handleChange (val) {
-                this.localValue = [...new Set(val)]
+                const numericVal = val.map(id => typeof id === 'string' ? Number(id) : id)
+                this.localValue = [...new Set(numericVal)]
                 this.$emit('change', this.localValue)
             },
             handleClickOutside (event) {

@@ -151,7 +151,7 @@
                         this.isOutermostAllProjectScope = true
                         this.localProjectScopeList = this.allProjectIds
                     } else {
-                        this.localProjectScopeList = [...val]
+                        this.localProjectScopeList = val.map(id => typeof id === 'string' ? Number(id) : id)
                         this.isOutermostAllProjectScope = false
                     }
                 },
@@ -164,7 +164,8 @@
                     this.handleSelectAllProjectScope(true)
                 } else {
                     this.isOutermostAllProjectScope = false
-                    this.localProjectScopeList = [...new Set(result.projectIds)]
+                    const numericIds = result.projectIds.map(id => typeof id === 'string' ? Number(id) : id)
+                    this.localProjectScopeList = [...new Set(numericIds)]
                     this.$emit('onVisibleChange', { project_scope: this.localProjectScopeList, isSelectAllProjectScope: false })
                 }
             },
