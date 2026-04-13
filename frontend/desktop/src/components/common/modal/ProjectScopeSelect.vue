@@ -170,16 +170,15 @@
             handleRemoteSearch (keyword) {
                 if (!keyword) {
                     this.filteredProjects = this.projects
+                    return
                 }
                 // 支持逗号（中英文）分隔
                 const keywords = keyword.split(/[,|\uff0c]/).map(k => k.trim()).filter(k => k)
-                console.log('keywords', keywords)
                 const searchList = this.projectList.filter(project => {
                     if (!project.name) return false
                     return keywords.some(kw => project.name.toLowerCase().includes(kw.toLowerCase()))
                 })
                 this.filteredProjects = this.buildGroupedProjects(searchList)
-                console.log('filteredProjects', this.filteredProjects)
             },
             initProjects () {
                 if (!this.projectList) {

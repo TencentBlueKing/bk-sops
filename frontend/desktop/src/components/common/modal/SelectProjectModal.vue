@@ -30,7 +30,6 @@
                     </bk-checkbox>
                     <template v-if="isSetProjectVisible">
                         <ProjectScopeSelect
-                            ref="projectScopeSelect"
                             :value="localProjectScopeList"
                             :project-scope-list="projectScopeList"
                             :disabled="isOutermostAllProjectScope"
@@ -132,9 +131,8 @@
                 return groups.filter(g => g.children.length)
             },
             allProjectIds () {
-                return this.$refs.projectScopeSelect
-                    ? this.$refs.projectScopeSelect.allProjectIds
-                    : []
+                if (!this.projectList) return []
+                return this.projectList.map(item => item.id)
             },
             currentScopeData () {
                 return {
@@ -151,10 +149,7 @@
                 handler (val) {
                     if (val.includes('*')) {
                         this.isOutermostAllProjectScope = true
-                        // allProjectIds 依赖公共组件挂载，延迟更新
-                        this.$nextTick(() => {
-                            this.localProjectScopeList = this.allProjectIds
-                        })
+                        this.localProjectScopeList = this.allProjectIds
                     } else {
                         this.localProjectScopeList = [...val]
                         this.isOutermostAllProjectScope = false

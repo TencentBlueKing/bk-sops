@@ -129,7 +129,6 @@
                             {{ $t('全选') }}
                         </bk-checkbox>
                         <ProjectScopeSelect
-                            ref="projectScopeSelect"
                             :value="baseInfoProjectScopeList"
                             :project-scope-list="formData.project_scope"
                             :disabled="isOutermostBaseInfoAllProjectScope || isViewMode"
@@ -440,9 +439,8 @@
                 'projectList': state => state.userProjectList
             }),
             allProjectIds () {
-                return this.$refs.projectScopeSelect
-                    ? this.$refs.projectScopeSelect.allProjectIds
-                    : []
+                if (!this.projectList) return []
+                return this.projectList.map(item => item.id)
             },
             currentScopeData () {
                 return {
@@ -456,11 +454,8 @@
             if (this.common) {
                 if (this.formData.project_scope.includes('*')) {
                     this.isOutermostBaseInfoAllProjectScope = true
-                    // allProjectIds 依赖公共组件挂载后可用
-                    this.$nextTick(() => {
-                        this.baseInfoProjectScopeList = this.allProjectIds
-                        this.formData.project_scope = this.baseInfoProjectScopeList
-                    })
+                    this.baseInfoProjectScopeList = this.allProjectIds
+                    this.formData.project_scope = this.baseInfoProjectScopeList
                 } else {
                     this.baseInfoProjectScopeList = this.formData.project_scope.map(item => typeof item === 'number' ? item : Number(item))
                     this.formData.project_scope = this.baseInfoProjectScopeList
