@@ -747,8 +747,7 @@ const template = {
                         gatewayNode.outgoing = ''
                     }
                     // 删除默认网关分支连线时需要清除网关处理的default_condition
-                    const tag = `branch_${sourceNode}_${targetNode}`
-                    if (gatewayNode.default_condition && gatewayNode.default_condition.tag === tag) {
+                    if (gatewayNode.default_condition && gatewayNode.default_condition.flow_id === deletedLine.id) {
                         Vue.delete(gatewayNode, 'default_condition')
                     }
                 }
