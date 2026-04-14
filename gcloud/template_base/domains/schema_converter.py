@@ -16,6 +16,7 @@ from abc import ABCMeta, abstractmethod
 
 import jsonschema
 import yaml
+from django.apps import apps
 from django.utils.translation import ugettext_lazy as _
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
@@ -127,7 +128,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            message = _(f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data")
+            message = _(
+                f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data"
+            )
             logger.error(message)
             return {"result": False, "data": yaml_data, "message": message}
         # 检查流程间是否有环引用的情况
@@ -164,7 +167,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     missing_fields -= filled_fields
 
                     if missing_fields:
-                        error.append("节点{}所属的节点类型{}需缺少必须字段：{}".format(node["id"], node["type"], sorted(missing_fields)))
+                        error.append(
+                            "节点{}所属的节点类型{}需缺少必须字段：{}".format(
+                                node["id"], node["type"], sorted(missing_fields)
+                            )
+                        )
                         continue
                 if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                     for condition in node["conditions"].keys():
@@ -204,17 +211,28 @@ class YamlSchemaConverter(BaseSchemaConverter):
             yaml_docs.append({"schema_version": "v1", "meta": meta, "spec": template})
         return {"result": True, "data": yaml_docs, "message": ""}
 
-    def reconvert(self, yaml_docs: list):
-        """将YAML字段流程数据转换成原始字段"""
+    def reconvert(self, yaml_docs: list, template_model_cls=None, project_id=None):
+        """将YAML字段流程数据转换成原始字段
+
+        :param yaml_docs: YAML 文档列表
+        :param template_model_cls: template model class, used to fetch external subprocess constants from DB.
+            When provided, SubProcess nodes referencing templates not defined in the YAML will be looked up
+            in the database. When None (default), all SubProcess template_ids must exist in the YAML.
+        :param project_id: project ID used to restrict subprocess lookup to the same project (security check).
+        """
         validate_result = self.validate_data(yaml_docs)
         if not validate_result["result"]:
             return {"result": False, "data": [], "message": validate_result["message"]}
         yaml_data = validate_result["data"]
         data = copy.deepcopy(yaml_data)
-        templates = {}
         template_order = self._calculate_template_orders(data)
+        # Pre-fetch all external subprocess constants in batch to avoid N+1 queries
+        external_constants_cache = self._prefetch_external_subprocess_constants(
+            data, template_order, template_model_cls, project_id
+        )
+        templates = {}
         for template_id in template_order:
-            templates[template_id] = self._reconvert_template(template_id, data, templates)
+            templates[template_id] = self._reconvert_template(template_id, data, templates, external_constants_cache)
         return {"result": True, "data": {"templates": templates, "template_order": template_order}, "message": []}
 
     @staticmethod
@@ -224,16 +242,28 @@ class YamlSchemaConverter(BaseSchemaConverter):
             yaml.dump_all(yaml_data, yaml_file, allow_unicode=True, sort_keys=False)
         return {"result": True, "data": "", "message": ""}
 
-    def _reconvert_template(self, template_id: str, data: dict, cur_templates: dict):
+    def _reconvert_template(self, template_id: str, data: dict, cur_templates: dict, external_constants_cache: dict):
         """将YAML字段单流程数据转换成原始字段"""
         template = data[template_id]
         reconverted_template = {**self.TEMPLATE_DEFAULT_META}
         reconverted_template.update(template["meta"])
-        reconverted_template["tree"] = self._reconvert_tree(template["spec"], cur_templates)
+        reconverted_template["tree"] = self._reconvert_tree(template["spec"], cur_templates, external_constants_cache)
         return reconverted_template
 
-    def _reconvert_nodes_in_tree(self, nodes: dict, reconverted_tree: dict, cur_templates: dict):
-        """reconvert某流程树中各个节点的字段"""
+    def _reconvert_nodes_in_tree(
+        self,
+        nodes: dict,
+        reconverted_tree: dict,
+        cur_templates: dict,
+        external_constants_cache: dict,
+    ):
+        """reconvert某流程树中各个节点的字段
+
+        :param nodes: YAML nodes list
+        :param reconverted_tree: the reconverted tree being built
+        :param cur_templates: templates already reconverted from the YAML
+        :param external_constants_cache: pre-fetched constants for external subprocess templates
+        """
         for i, node in enumerate(nodes):
             for json_field, yaml_field in self.NODE_FIELD_MAPPING.items():
                 if yaml_field in node:
@@ -292,13 +322,26 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 hooked_inputs = {key: value for key, value in inputs.items() if "key" in value}
                 outputs = node.pop("output") if "output" in node else {}
                 subprocess.update(node)
-                constants = dict(
-                    [
-                        (key, value)
+                if node["template_id"] in cur_templates:
+                    # SubProcess defined within the YAML — use its reconverted constants
+                    constants = {
+                        key: value
                         for key, value in cur_templates[node["template_id"]]["tree"]["constants"].items()
                         if value["source_type"] != "component_outputs"
-                    ]
-                )
+                    }
+                else:
+                    # SubProcess referencing an external existing template — use pre-fetched constants.
+                    # Raise explicitly if the template_id is missing from the cache (e.g. filtered out
+                    # by project_id), rather than silently returning empty constants which would cause
+                    # the subprocess inputs to be lost and only fail at runtime.
+                    if node["template_id"] not in external_constants_cache:
+                        raise ValueError(
+                            "SubProcess references template_id '{}' which was not found or does not belong "
+                            "to the current project. Please verify the template_id is correct.".format(
+                                node["template_id"]
+                            )
+                        )
+                    constants = external_constants_cache[node["template_id"]]
                 constants = copy.deepcopy(constants)
                 for key, constant in constants.items():
                     if key in hooked_inputs:
@@ -380,7 +423,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             if node["type"] in outgoing_str_types:
                 node["outgoing"] = node["outgoing"][0] if node["outgoing"] else ""
 
-    def _reconvert_tree(self, template: dict, cur_templates: dict):
+    def _reconvert_tree(self, template: dict, cur_templates: dict, external_constants_cache: dict):
         """对单流程树从YAML字段恢复为原始字段"""
         reconverted_tree = {
             "activities": {},
@@ -394,7 +437,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             "start_event": {},
         }
         # 恢复节点值
-        self._reconvert_nodes_in_tree(template["nodes"], reconverted_tree, cur_templates)
+        self._reconvert_nodes_in_tree(template["nodes"], reconverted_tree, cur_templates, external_constants_cache)
         nodes = {
             **reconverted_tree["activities"],
             **reconverted_tree["gateways"],
@@ -476,7 +519,10 @@ class YamlSchemaConverter(BaseSchemaConverter):
         for template_id, template in templates.items():
             for node in template["spec"]["nodes"]:
                 if node["type"] == "SubProcess":
-                    children_templates[template_id].append(node["template_id"])
+                    # Only track child templates that are defined within the YAML.
+                    # External (already existing) subprocess references are skipped.
+                    if node["template_id"] in templates:
+                        children_templates[template_id].append(node["template_id"])
         visited = set()
         orders = []
 
@@ -492,6 +538,75 @@ class YamlSchemaConverter(BaseSchemaConverter):
             dfs(template_id)
 
         return orders
+
+    @staticmethod
+    def _prefetch_external_subprocess_constants(
+        data: dict, template_order: list, template_model_cls=None, project_id=None
+    ):
+        """Batch-fetch constants for all external subprocess templates referenced in the YAML.
+
+        Collects all SubProcess template_ids that are NOT defined within the YAML, then queries
+        the database in bulk to build a cache dict, avoiding N+1 queries.
+
+        :param data: parsed YAML template dict
+        :param template_order: topological order of templates defined in the YAML
+        :param template_model_cls: template model class (e.g. TaskTemplate)
+        :param project_id: project ID used to restrict lookup to the same project (security check)
+        :return: dict mapping external template_id -> constants dict
+        """
+        # Collect all external template_ids (referenced but not defined in YAML).
+        # Note: template_order contains exactly the same keys as data (both derived from validate_data),
+        # so iterating either is equivalent. We use template_order here for consistency.
+        external_ids = set()
+        for template_id in template_order:
+            for node in data[template_id]["spec"]["nodes"]:
+                if node["type"] == "SubProcess" and node["template_id"] not in data:
+                    external_ids.add(node["template_id"])
+
+        if not external_ids:
+            return {}
+
+        if template_model_cls is None:
+            raise ValueError(
+                "SubProcess nodes reference external template_ids {}, "
+                "but template_model_cls is not provided to fetch their constants.".format(list(external_ids))
+            )
+
+        cache = {}
+        # Build queryset with optional project_id security filter
+        qs = template_model_cls.objects.filter(pk__in=external_ids)
+        if project_id is not None:
+            qs = qs.filter(project_id=project_id)
+        for template_obj in qs:
+            tree = template_obj.pipeline_tree
+            cache[str(template_obj.pk)] = {
+                key: value
+                for key, value in tree.get("constants", {}).items()
+                if value.get("source_type") != "component_outputs"
+            }
+
+        # Check for any template_ids not found in the primary model.
+        # Fall back to CommonTemplate (public/global templates shared across all projects).
+        # CommonTemplate is intentionally not filtered by project_id because it is a globally
+        # shared resource — any project is allowed to reference a CommonTemplate subprocess.
+        missing_ids = external_ids - set(cache.keys())
+        if missing_ids:
+            CommonTemplate = apps.get_model("template", "CommonTemplate")
+            for template_obj in CommonTemplate.objects.filter(pk__in=missing_ids):
+                tree = template_obj.pipeline_tree
+                cache[str(template_obj.pk)] = {
+                    key: value
+                    for key, value in tree.get("constants", {}).items()
+                    if value.get("source_type") != "component_outputs"
+                }
+            still_missing = missing_ids - set(cache.keys())
+            if still_missing:
+                raise ValueError(
+                    "SubProcess references template_id(s) {} which do not exist "
+                    "in the database. Please create the subprocess templates first.".format(list(still_missing))
+                )
+
+        return cache
 
     @staticmethod
     def _generate_readable_id(yaml_data: dict):
@@ -630,9 +745,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
         sorted_node = dict(
             sorted(
                 converted_node.items(),
-                key=lambda pair: self.NODE_FIELD_ORDER.index(pair[0])
-                if pair[0] in self.NODE_FIELD_ORDER
-                else len(self.NODE_FIELD_ORDER),
+                key=lambda pair: (
+                    self.NODE_FIELD_ORDER.index(pair[0])
+                    if pair[0] in self.NODE_FIELD_ORDER
+                    else len(self.NODE_FIELD_ORDER)
+                ),
             )
         )
         return sorted_node
