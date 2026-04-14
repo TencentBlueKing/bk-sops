@@ -2996,7 +2996,7 @@ paths:
           upstreams: { }
           transformHeaders: { }
         authConfig:
-          userVerifiedRequired: true
+          userVerifiedRequired: false
         disabledStages: []
   /get_task_operate_record/{task_id}/{project_id}/:
     get:
@@ -3387,6 +3387,458 @@ paths:
   /get_task_plugin_log/:
     get:
       operationId: get_task_plugin_log
+      description: 查询插件日志
+      tags: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      logs:
+                        type: string
+                        description: 日志内容
+                      total:
+                        type: number
+                        description: 日志总数
+                      scroll_id:
+                        type: string
+                        description: 翻页标识符，获取下一页时传入该值
+                  result:
+                    type: boolean
+                    description: true/false查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+          description: ''
+      parameters:
+      - in: query
+        name: plugin_code
+        schema:
+          type: string
+        required: true
+        description: 插件服务编码
+      - in: query
+        name: trace_id
+        schema:
+          type: string
+        required: true
+        description: Trace ID
+      - in: query
+        name: scroll_id
+        schema:
+          type: string
+        description: 翻页标识字段
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_plugin_log/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /system/get_task_operate_record/{task_id}/{project_id}/:
+    get:
+      operationId: system_get_task_operate_record
+      description: 获取任务操作记录
+      tags:
+        - 通用接口
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: [ ]
+  /system/apply_webhook_configs/{project_id}/:
+    post:
+      operationId: system_apply_webhook_configs
+      description: 应用模板的webhook配置
+      tags:
+        - 限制接口
+      responses:
+        default:
+          content:
+            application/json:
+              schema: { }
+          description: ''
+      parameters:
+        - in: path
+          name: project_id
+          schema:
+            type: string
+          required: true
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/apply_webhook_configs/{project_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: [ ]
+  /system/get_task_effective_time/{task_id}/{bk_biz_id}/:
+    get:
+      operationId: system_get_task_effective_time
+      description: 统计任务的有效执行时间
+      tags:
+      - 通用接口
+      responses:
+        default:
+          content:
+            application/json:
+              schema: {}
+          description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: ''
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_effective_time/{task_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: []
+  /system/get_mini_app_list/{bk_biz_id}/:
+    get:
+      operationId: system_get_mini_app_list
+      description: 获取轻应用列表
+      tags:
+        - 通用接口
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_mini_app_list/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: [ ]
+  /system/get_functionalization_task_list/:
+    get:
+      operationId: system_get_functionalization_task_list
+      description: 获取职能化任务列表
+      tags:
+        - 通用接口
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_functionalization_task_list/
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: [ ]
+  /system/create_clocked_task/{template_id}/{bk_biz_id}/:
+    post:
+      operationId: system_create_clocked_task
+      description: 创建计划任务
+      tags:
+      - 限制接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: 计划任务 ID
+                      creator:
+                        type: string
+                        description: 创建者
+                      task_id:
+                        type: integer
+                        description: 任务 ID，任务未创建时为 null
+                      task_name:
+                        type: string
+                        description: 任务名
+                      project_id:
+                        type: integer
+                        description: 项目 ID
+                      template_id:
+                        type: integer
+                        description: 模板 ID
+                      template_name:
+                        type: string
+                        description: 模板名称
+                      clocked_task_id:
+                        type: integer
+                        description: 计划任务ID
+                      plan_start_time:
+                        type: string
+                        description: 计划任务开始时间
+                      task_parameters:
+                        type: object
+                        properties:
+                          constants:
+                            type: object
+                            description: 计划任务参数，对应变量key和value
+                            additionalProperties: true
+                          template_schemes_id:
+                            type: array
+                            items:
+                              type: integer
+                            description: 计划任务使用的执行方案列表
+                        description: 任务参数
+                      template_source:
+                        type: string
+                        description: 模板来源
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 用于创建任务的模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 任务所属业务ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - task_name
+              - plan_start_time
+              properties:
+                task_name:
+                  type: string
+                  description: 要创建的计划任务名称
+                plan_start_time:
+                  type: string
+                  description: 计划任务开始时间，推荐带上时区信息，格式如 2022-05-16 20:26:40+0800
+                task_parameters:
+                  type: object
+                  properties:
+                    constants:
+                      type: object
+                      description: 计划任务参数，对应变量key和value，默认为 {}
+                      additionalProperties: true
+                    template_schemes_id:
+                      type: array
+                      items:
+                        type: integer
+                      description: 计划任务使用的执行方案列表，默认为 []，代表执行所有流程节点
+                  description: 任务参数
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/create_clocked_task/{template_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: []
+  /system/apply_job_file_upload_ticket/:
+    get:
+      operationId: system_apply_job_file_upload_ticket
+      description: ''
+      tags:
+      - 限制接口
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/apply_job_file_upload_ticket/
+          matchSubpath: false
+          timeout: 10
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: []
+  /system/job_file_upload/{bk_biz_id}/:
+    post:
+      operationId: system_job_file_upload
+      description: ''
+      tags:
+      - 限制接口
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/job_file_upload/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+        disabledStages: []
+  /system/get_task_node_log/:
+    get:
+      operationId: system_get_task_node_log
+      description: 获取某个节点的执行日志
+      tags: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+                    description: 日志内容
+                  page:
+                    type: object
+                    description: 分页信息
+                  result:
+                    type: boolean
+                    description: true/false查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+          description: ''
+      parameters:
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: true
+        description: 任务中节点ID
+      - in: query
+        name: version
+        schema:
+          type: string
+        required: true
+        description: 版本
+      - in: query
+        name: page
+        schema:
+          type: number
+        description: 页码
+      - in: query
+        name: page_size
+        schema:
+          type: number
+        description: 每页条目数
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_task_node_log/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /system/get_task_plugin_log/:
+    get:
+      operationId: system_get_task_plugin_log
       description: 查询插件日志
       tags: []
       responses:
