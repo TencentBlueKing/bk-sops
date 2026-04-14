@@ -2589,3 +2589,176 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         disabledStages: []
+  /get_clocked_task_list/{bk_biz_id}/:
+    get:
+      operationId: get_clocked_task_list
+      description: 获取计划任务列表
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        auth_actions:
+                          type: array
+                          items:
+                            type: string
+                          description: 用户对该资源有权限的操作
+                        clocked_task_id:
+                          type: integer
+                          description: 计划任务 Celery任务 ID
+                        create_time:
+                          type: string
+                          description: 任务创建时间
+                        creator:
+                          type: string
+                          description: 创建者
+                        edit_time:
+                          type: string
+                          description: 任务编辑时间
+                        editor:
+                          type: string
+                          description: 编辑者
+                        id:
+                          type: integer
+                          description: 任务唯一标识符
+                        plan_start_time:
+                          type: string
+                          description: 计划开始时间
+                        project_id:
+                          type: integer
+                          description: 项目ID
+                        state:
+                          type: string
+                          description: 计划任务状态
+                        task_id:
+                          type: integer
+                          nullable: true
+                          description: taskflow 任务 ID
+                        task_name:
+                          type: string
+                          description: 计划任务名称
+                        task_parameters:
+                          type: object
+                          properties:
+                            constants:
+                              type: object
+                              additionalProperties: true
+                              description: 计划任务参数
+                            template_schemes_id:
+                              type: array
+                              items:
+                                type: integer
+                              description: 计划任务使用的执行方案列表
+                          description: 任务参数
+                        template_id:
+                          type: integer
+                          description: 模板ID
+                        template_name:
+                          type: string
+                          description: 模板名称
+                        template_source:
+                          type: string
+                          description: 模板来源
+                    description: result=true时计划任务列表，item 信息见下面说明
+                  count:
+                    type: integer
+                    description: data列表数量
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: id
+        schema:
+          type: integer
+        required: false
+        description: 根据计划任务ID过滤列表，默认不过滤
+      - in: query
+        name: task_name
+        schema:
+          type: string
+        required: false
+        description: 根据计划任务名称关键词过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: creator
+        schema:
+          type: string
+        required: false
+        description: 根据创建者过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: editor
+        schema:
+          type: string
+        required: false
+        description: 根据编辑者过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: state
+        schema:
+          type: string
+        required: false
+        description: 根据计划任务状态过滤列表，默认不过滤
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 分页，返回列表条目数，默认为100
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 分页，返回列表起始条目下标，默认为0
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_clocked_task_list/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
