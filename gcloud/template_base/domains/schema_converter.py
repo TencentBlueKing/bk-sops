@@ -314,6 +314,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
                                 param.pop(key)
                 reconverted_tree["activities"][node["id"]] = activity
             elif node["type"] == "SubProcess":
+                template_id = str(node["template_id"])
+                cur_template_id = template_id if template_id in cur_templates else node["template_id"]
                 subprocess = {
                     **self.NODE_DEFAULT_FIELD_VALUE["SubProcess"],
                     "outgoing": node.pop("next") if "next" in node else [nodes[i + 1]["id"]],
@@ -322,11 +324,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 hooked_inputs = {key: value for key, value in inputs.items() if "key" in value}
                 outputs = node.pop("output") if "output" in node else {}
                 subprocess.update(node)
-                if node["template_id"] in cur_templates:
+                if cur_template_id in cur_templates:
                     # SubProcess defined within the YAML — use its reconverted constants
                     constants = {
                         key: value
-                        for key, value in cur_templates[node["template_id"]]["tree"]["constants"].items()
+                        for key, value in cur_templates[cur_template_id]["tree"]["constants"].items()
                         if value["source_type"] != "component_outputs"
                     }
                 else:
@@ -334,14 +336,14 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     # Raise explicitly if the template_id is missing from the cache (e.g. filtered out
                     # by project_id), rather than silently returning empty constants which would cause
                     # the subprocess inputs to be lost and only fail at runtime.
-                    if node["template_id"] not in external_constants_cache:
+                    if template_id not in external_constants_cache:
                         raise ValueError(
                             "SubProcess references template_id '{}' which was not found or does not belong "
                             "to the current project. Please verify the template_id is correct.".format(
-                                node["template_id"]
+                                template_id
                             )
                         )
-                    constants = external_constants_cache[node["template_id"]]
+                    constants = external_constants_cache[template_id]
                 constants = copy.deepcopy(constants)
                 for key, constant in constants.items():
                     if key in hooked_inputs:
@@ -521,7 +523,9 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 if node["type"] == "SubProcess":
                     # Only track child templates that are defined within the YAML.
                     # External (already existing) subprocess references are skipped.
-                    if node["template_id"] in templates:
+                    if str(node["template_id"]) in templates:
+                        children_templates[template_id].append(str(node["template_id"]))
+                    elif node["template_id"] in templates:
                         children_templates[template_id].append(node["template_id"])
         visited = set()
         orders = []
@@ -555,13 +559,13 @@ class YamlSchemaConverter(BaseSchemaConverter):
         :return: dict mapping external template_id -> constants dict
         """
         # Collect all external template_ids (referenced but not defined in YAML).
-        # Note: template_order contains exactly the same keys as data (both derived from validate_data),
-        # so iterating either is equivalent. We use template_order here for consistency.
+        # Note: template_id in YAML may be int/str, cast to string for consistent lookup.
+        yaml_template_ids = {str(template_id) for template_id in data.keys()}
         external_ids = set()
         for template_id in template_order:
             for node in data[template_id]["spec"]["nodes"]:
-                if node["type"] == "SubProcess" and node["template_id"] not in data:
-                    external_ids.add(node["template_id"])
+                if node["type"] == "SubProcess" and str(node["template_id"]) not in yaml_template_ids:
+                    external_ids.add(str(node["template_id"]))
 
         if not external_ids:
             return {}
