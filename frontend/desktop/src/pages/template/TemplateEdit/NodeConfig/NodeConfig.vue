@@ -809,10 +809,20 @@
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
-                            const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
-                            basicInfoName = resp.data.name
-                            version = atom.version
-                            desc = atom.desc
+                            try {
+                                const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
+                                basicInfoName = resp.data.name
+                            } catch (e) {
+                                console.error(e)
+                            }
+                            if (atom) {
+                                version = atom.version
+                                desc = atom.desc
+                            } else {
+                                const { data } = component
+                                const curVesion = data && data.plugin_version
+                                version = curVesion && curVesion.value
+                            }
                         } else {
                             let atom = this.atomList.find(item => item.code === component.code)
                             atom = atom || this.isolationAtomConfig
