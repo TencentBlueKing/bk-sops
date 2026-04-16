@@ -68,7 +68,7 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
     tag = "datetime.datetime"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("日期时间变量"))
-    desc = _("输出格式: 2000-04-19 14:45:16+0800")
+    desc = _("输出格式: 2000-04-19 14:45:16, 如需输出格式带时区请使用【日期时间（支持格式自定义）】类型")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -316,7 +316,7 @@ class FormatSupportDateTime(LazyVariable, SelfExplainVariable):
         except ValueError:
             naive_input_format = "%Y-%m-%d %H:%M:%S"
             aware_time = datetime.datetime.strptime(input_time_str, naive_input_format)
-            
+
         return aware_time.strftime(datetime_format)
 
 
