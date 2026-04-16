@@ -11,7 +11,7 @@ Create a project flow template
 |   bk_biz_id    |   string     |   YES   |  the business ID |
 |   name     |   string     |   NO   |  template name, auto-generated if empty (format: new+current timestamp) |
 |   pipeline_tree     |   dict/string     |   YES   |  pipeline tree data. When format=json, supports dict or JSON string; when format=yaml, pass a YAML schema string (same as page export format) |
-|   format     |   string     |   NO   |  input format for pipeline_tree, accepted values: json (default), yaml. When set to yaml, name and description can be auto-extracted from YAML meta. Note: if the YAML contains multiple templates, only the first one will be imported |
+|   format     |   string     |   NO   |  input format for pipeline_tree, accepted values: json (default), yaml. When set to yaml, name and description can be auto-extracted from YAML meta. Note: the YAML must contain exactly one template definition; an error will be returned if multiple templates are found |
 |   description     |   string     |   NO   |  template description, default is empty |
 |   category     |   string     |   NO   |  template category, default is Default |
 |   notify_type     |   dict     |   NO   |  notification type, default is {"success": [], "fail": []} |
@@ -152,6 +152,38 @@ Create a project flow template
     "scope": "cmdb_biz"
 }
 ```
+
+#### Subprocess Reuse with format=yaml
+
+When `format=yaml`, SubProcess nodes in the YAML can reference existing templates in the system via `template_id`, without needing to redefine the subprocess content within the YAML. Usage:
+
+1. First create the subprocess templates via this API or the web UI, and obtain their `template_id`
+2. Reference the `template_id` directly in the SubProcess node of your YAML
+3. The system will automatically fetch the referenced subprocess's parameter definitions (constants) from the database
+
+Example YAML snippet (referencing an existing subprocess):
+
+```yaml
+metadata:
+  version: "v1"
+
+my_template:
+  meta:
+    name: "Main Flow"
+    description: "Example of referencing an existing subprocess"
+  spec:
+    nodes:
+      - id: node_start
+        type: EmptyStartEvent
+      - id: node_subprocess
+        type: SubProcess
+        name: "Call existing subprocess"
+        template_id: "123"  # ID of an existing template
+      - id: node_end
+        type: EmptyEndEvent
+```
+
+> **Note**: The YAML must contain exactly one template definition. If your flow needs to reference subprocesses, please create each subprocess template first via this API, then reference them by `template_id` in the main flow's YAML.
 
 ### Return Result Example
 
