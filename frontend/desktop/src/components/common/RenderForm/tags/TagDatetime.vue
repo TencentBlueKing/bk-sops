@@ -21,7 +21,7 @@
                 :disabled="!editable || disabled"
                 :placeholder="placeholder">
             </el-date-picker>
-            <span class="time-zone" v-if="type !== 'date'">{{ locTimeZone }}</span>
+            <span class="time-zone" v-if="isNeedTimeZone && type !== 'date'">{{ locTimeZone }}</span>
             <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{validateInfo.message}}</span>
         </div>
         <span v-else class="rf-view-value">{{(value === 'undefined' || value === '') ? '--' : value}}</span>
@@ -62,6 +62,11 @@
             type: String,
             required: false,
             default: i18n.t('选中的时间')
+        },
+        isNeedTimeZone: {
+            type: Boolean,
+            default: false,
+            desc: i18n.t('是否显示时区')
         }
     }
     export default {
@@ -73,7 +78,9 @@
                     return this.value
                 },
                 set (val) {
-                    const formatTime = moment(val).tz(window.TIMEZONE || moment.tz.guess()).format('YYYY-MM-DD HH:mm:ssZZ')
+                    const tz = window.TIMEZONE || moment.tz.guess()
+                    const fmt = this.isNeedTimeZone ? 'YYYY-MM-DD HH:mm:ssZZ' : 'YYYY-MM-DD HH:mm:ss'
+                    const formatTime = moment(val).tz(tz).format(fmt)
                     this.updateForm(formatTime)
                 }
             },
