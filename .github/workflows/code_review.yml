@@ -123,6 +123,7 @@ jobs:
           REPO="${{ github.repository }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          API_REVIEW_RULES=$(cat .ai/rules/api-change-checklist.mdc)
           echo "📦 仓库: $REPO"
           echo "📦 PR 编号: $PR_NUMBER"
           echo "📦 Head SHA: $HEAD_SHA"
@@ -144,7 +145,8 @@ jobs:
           - docs/en/ — 英文文档（guide/ develop/ deploy/ wiki/ apidoc/）
           - docs/specs/ — 设计文档（brainstorming 输出）
           - docs/plans/ — 实现计划（writing-plans 输出）
-          - .cursor/rules/docs-management.mdc — 文档目录管理规范
+          - .ai/rules/docs-management.mdc — 文档目录管理规范
+          - .ai/rules/api-change-checklist.mdc — API 变更与网关审查规范
 
           审查时应结合这些文档判断：
           1) 代码变更是否与已有架构设计一致
@@ -160,6 +162,11 @@ jobs:
           3) 已注册接口补全 schema → apigw/bk_apigw_resources_bk-sops_mcp_supplement.yaml 是否已更新
           4) 文档更新后 → apigw-docs.tgz 是否已重新生成
           5) 修改了 Serializer 字段 → 文档中的接口参数表格是否同步更新
+
+          ## API 网关共性审查规则
+
+          重点按以下规则复用检查（对应 `.ai/rules/api-change-checklist.mdc`）：
+          $API_REVIEW_RULES
 
           ## 目标
 
