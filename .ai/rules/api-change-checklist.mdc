@@ -1,0 +1,69 @@
+---
+description: 更新或新增 API 接口时，必须同步完成 API 文档、网关 YAML 配置和文档打包
+globs: gcloud/apigw/**/*.py
+alwaysApply: false
+---
+
+<!-- 仓库级入口: /AGENTS.md；当前主题规则正文维护在本文件 -->
+
+# API 变更同步清单
+
+当新增或修改 `gcloud/apigw/views/` 下的接口时，必须同步完成以下三项工作：
+
+## 1. API 文档（中英文）
+
+- 中文：`docs/zh_hans/apidoc/{api_name}.md`
+- 英文：`docs/en/apidoc/{api_name}.md`
+- 参照已有文档格式，包含：功能描述、接口参数表、请求参数示例、返回结果示例、返回结果说明
+- 参数和返回值必须与源码逐行校验，确保一致
+
+## 2. 网关 YAML 资源定义
+
+- 新增接口或内部接口拆分为对外接口：更新 `apigw/bk_apigw_resources_bk-sops_mcp_additions.yaml`
+- 已注册接口补全 schema（requestBody / responses）：更新 `apigw/bk_apigw_resources_bk-sops_mcp_supplement.yaml`
+- 必须包含完整的 parameters、requestBody（POST 接口）、responses schema
+- 写完后用 `python3 -c "import yaml; yaml.safe_load(open('文件路径')); print('YAML is valid')"` 校验语法
+
+## 3. 文档打包
+
+```bash
+cd /root/Projects/bk-sops
+tmpdir=$(mktemp -d)
+mkdir -p "$tmpdir/zh" "$tmpdir/en"
+cp docs/zh_hans/apidoc/*.md "$tmpdir/zh/"
+cp docs/en/apidoc/*.md "$tmpdir/en/"
+cd "$tmpdir"
+tar -czf /root/Projects/bk-sops/gcloud/apigw/docs/apigw-docs.tgz zh/ en/
+rm -rf "$tmpdir"
+```
+
+打包目录结构：`zh/*.md` + `en/*.md`（注意中文目录是 `zh/` 不是 `zh_hans/`）
+
+- 归档产物只允许更新：`gcloud/apigw/docs/apigw-docs.tgz`
+- 不应将生成产物提交到：`apigw/docs/apigw-docs.tgz`
+- 如果仓库中同时出现两个归档路径，默认视为产物落点错误，需要回退到 `gcloud/apigw/docs/`
+
+## 4. 项目标识语义一致性检查
+
+当接口是“项目级 / 业务级”接口，并且链路中同时存在：
+
+- 路由参数（如 `project_id` / `biz_id`）
+- `project_inject`、scope 解析、对象注入
+- IAM interceptor、权限资源构造、审计/日志等后续处理
+
+必须检查**同一个标识在整条链路中的语义是否一致**，避免出现“一层按业务 ID 解释，另一层又按内部主键解释”的问题。
+
+### 设计要求
+
+- 如果前置步骤已经完成了 scope 解析并注入了标准对象，后续权限/资源构造应复用该标准对象或复用同一套 scope 语义
+- 不要在后续步骤中重新直接解释原始路由参数，除非该步骤明确处理的是另一个独立资源
+- 当接口同时支持多种 scope（如业务 ID、内部项目 ID）时，权限校验、资源构造、审计、日志都必须与前面的 scope 解析保持一致
+
+### Code Review 检查项
+
+审查 `gcloud/apigw/views/` 及其配套 interceptor 时，额外检查：
+
+1. 路由参数的含义是否在 view、decorator、interceptor 中保持一致
+2. 是否存在前面已注入标准对象，后面却再次用原始参数查询资源的逻辑
+3. 是否存在默认 scope 与 IAM 资源构造使用的 ID 类型不一致的情况
+4. 若后续步骤必须重查资源，是否明确复用了相同 scope，而不是隐式按另一种 ID 体系查询
