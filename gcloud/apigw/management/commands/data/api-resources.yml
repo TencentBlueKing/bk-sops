@@ -2589,3 +2589,470 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         disabledStages: []
+  /get_clocked_task_list/{bk_biz_id}/:
+    get:
+      operationId: get_clocked_task_list
+      description: 获取计划任务列表
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        auth_actions:
+                          type: array
+                          items:
+                            type: string
+                          description: 用户对该资源有权限的操作
+                        clocked_task_id:
+                          type: integer
+                          description: 计划任务 Celery任务 ID
+                        create_time:
+                          type: string
+                          description: 任务创建时间
+                        creator:
+                          type: string
+                          description: 创建者
+                        edit_time:
+                          type: string
+                          description: 任务编辑时间
+                        editor:
+                          type: string
+                          description: 编辑者
+                        id:
+                          type: integer
+                          description: 任务唯一标识符
+                        plan_start_time:
+                          type: string
+                          description: 计划开始时间
+                        project_id:
+                          type: integer
+                          description: 项目ID
+                        state:
+                          type: string
+                          description: 计划任务状态
+                        task_id:
+                          type: integer
+                          nullable: true
+                          description: taskflow 任务 ID
+                        task_name:
+                          type: string
+                          description: 计划任务名称
+                        task_parameters:
+                          type: object
+                          properties:
+                            constants:
+                              type: object
+                              additionalProperties: true
+                              description: 计划任务参数
+                            template_schemes_id:
+                              type: array
+                              items:
+                                type: integer
+                              description: 计划任务使用的执行方案列表
+                          description: 任务参数
+                        template_id:
+                          type: integer
+                          description: 模板ID
+                        template_name:
+                          type: string
+                          description: 模板名称
+                        template_source:
+                          type: string
+                          description: 模板来源
+                    description: result=true时计划任务列表，item 信息见下面说明
+                  count:
+                    type: integer
+                    description: data列表数量
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: id
+        schema:
+          type: integer
+        required: false
+        description: 根据计划任务ID过滤列表，默认不过滤
+      - in: query
+        name: task_name
+        schema:
+          type: string
+        required: false
+        description: 根据计划任务名称关键词过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: creator
+        schema:
+          type: string
+        required: false
+        description: 根据创建者过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: editor
+        schema:
+          type: string
+        required: false
+        description: 根据编辑者过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: state
+        schema:
+          type: string
+        required: false
+        description: 根据计划任务状态过滤列表，默认不过滤
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 分页，返回列表条目数，默认为100
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 分页，返回列表起始条目下标，默认为0
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_clocked_task_list/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /modify_template_notify/{template_id}/{bk_biz_id}/:
+    post:
+      operationId: modify_template_notify
+      description: 修改模板通知配置
+      tags:
+        - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      notify_type:
+                        type: object
+                        properties:
+                            success:
+                              type: array
+                              description: 成功通知类型列表
+                            fail:
+                              type: array
+                              description: 失败通知类型列表
+                      notify_receivers:
+                        type: object
+                        properties:
+                          receiver_group:
+                            type: array
+                            description: 通知分组
+                          more_receiver:
+                            type: string
+                            description: 更多接收者
+                          extra_info:
+                            type: object
+                            properties:
+                              bkchat:
+                                type: object
+                                properties:
+                                  success:
+                                    type: string
+                                    description: 成功通知群id
+                                  fail:
+                                    type: string
+                                    description: 失败通知群id
+                      template_id:
+                        type: integer
+                        description: 模板id
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+        - in: path
+          name: template_id
+          schema:
+            type: string
+          required: true
+          description: 模板ID
+        - in: path
+          name: bk_biz_id
+          schema:
+            type: string
+          required: true
+          description: 项目ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notify_type
+                - notify_receivers
+              properties:
+                notify_type:
+                  type: object
+                  description: 流程事件通知方式
+                  properties:
+                    success:
+                      type: array
+                      items:
+                        type: string
+                      description: 成功通知类型列表
+                    fail:
+                      type: array
+                      items:
+                        type: string
+                      description: 失败通知类型列表
+                common:
+                  type: boolean
+                  description: 是否为公用模板, 默认false
+                notify_receivers:
+                  type: object
+                  properties:
+                    receiver_group:
+                      type: array
+                      description: 通知分组
+                    more_receiver:
+                      type: string
+                      description: 更多接收者
+                    extra_info:
+                      type: object
+                      properties:
+                        bkchat:
+                          type: object
+                          properties:
+                            success:
+                              type: string
+                              description: 成功通知群id
+                            fail:
+                              type: string
+                              description: 失败通知群id
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/modify_template_notify/{template_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: [ ]
+  /modify_project_executor_proxy/{bk_biz_id}/:
+    post:
+      operationId: modify_project_executor_proxy
+      description: 修改项目执行代理人配置
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      executor_proxy:
+                        type: string
+                        description: 执行代理人（仅允许设置为调用方本人用户名），允许传空串表示清空该配置
+                      executor_proxy_exempts:
+                        type: string
+                        description: 执行代理人豁免列表，多个用英文逗号分隔；允许传空串表示清空豁免列表
+                      project_id:
+                        type: integer
+                        description: 项目ID
+                    description: result=true 时成功数据
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: integer
+        required: true
+        description: 项目ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - executor_proxy
+              - executor_proxy_exempts
+              properties:
+                executor_proxy:
+                  type: string
+                  description: 执行代理人，必传字段；仅允许设置为调用方本人用户名，传空串表示清空代理人
+                executor_proxy_exempts:
+                  type: string
+                  description: 执行代理人豁免列表，必传字段；多个用英文逗号分隔，传空串表示清空豁免列表
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/modify_project_executor_proxy/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /modify_template_executor_proxy/{template_id}/{bk_biz_id}/:
+    post:
+      operationId: modify_template_executor_proxy
+      description: 修改模板的执行代理人
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      template_id:
+                        type: integer
+                        description: 模板ID
+                      executor_proxy:
+                        type: string
+                        description: 更新后的执行代理人
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - executor_proxy
+              properties:
+                executor_proxy:
+                  type: string
+                  description: 执行代理人用户名，必传参数；仅可设置为当前登录用户本人，传空字符串代表清空代理人
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/modify_template_executor_proxy/{template_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
