@@ -27,13 +27,12 @@ alwaysApply: false
 ## 3. 文档打包
 
 ```bash
-cd /root/Projects/bk-sops
+# 在仓库根目录执行
 tmpdir=$(mktemp -d)
 mkdir -p "$tmpdir/zh" "$tmpdir/en"
 cp docs/zh_hans/apidoc/*.md "$tmpdir/zh/"
 cp docs/en/apidoc/*.md "$tmpdir/en/"
-cd "$tmpdir"
-tar -czf /root/Projects/bk-sops/gcloud/apigw/docs/apigw-docs.tgz zh/ en/
+tar -czf gcloud/apigw/docs/apigw-docs.tgz -C "$tmpdir" zh en
 rm -rf "$tmpdir"
 ```
 
