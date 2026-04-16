@@ -1994,7 +1994,8 @@ const en = {
     'AI 正在生成流程，请稍候...': 'AI is generating flow, please wait...',
     '请描述您想要创建的流程': 'Please describe the flow you want to create.',
     '历史任务': 'Task History',
-    '您当前的企业空间是【tenant】，无法访问该链接，请您尝试返回登录页面切换其他企业空间访问。': 'Your current enterprise space is [{tenant}]. You do not have access to this link. Please try returning to the login page and switching to a different enterprise space to access it.'
+    '您当前的企业空间是【tenant】，无法访问该链接，请您尝试返回登录页面切换其他企业空间访问。': 'Your current enterprise space is [{tenant}]. You do not have access to this link. Please try returning to the login page and switching to a different enterprise space to access it.',
+    '是否显示时区': 'Whether to display timezone'
 }
 
 export default en
