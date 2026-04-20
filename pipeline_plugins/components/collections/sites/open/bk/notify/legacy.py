@@ -20,10 +20,10 @@ from pipeline.core.flow.io import ArrayItemSchema, StringItemSchema
 
 from gcloud.conf import settings
 from gcloud.core.roles import CC_V2_ROLE_MAP
+from gcloud.shortcuts.message_cmsi import normalize_msg_type, send_cmsi_message
 from gcloud.utils.cmdb import get_notify_receivers
 from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 from pipeline_plugins.base import BasePluginService
-from pipeline_plugins.base.utils.inject import supplier_account_for_business
 
 __group_name__ = _("蓝鲸服务(BK)")
 logger = logging.getLogger(__name__)
@@ -117,9 +117,18 @@ class NotifyService(BasePluginService):
             return False
 
         for t in notify_type:
-            kwargs = self._args_gen[t](self, receivers, title, content)
+            kwargs = {}
+            result = {"result": False, "message": "消息发送失败"}
+            operation_name = "v1_send_{}".format(normalize_msg_type(t))
             try:
-                result = getattr(client.api, self._send_func[t])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+                operation_name, kwargs, result = send_cmsi_message(
+                    client=client,
+                    tenant_id=tenant_id,
+                    msg_type=t,
+                    receivers=receivers.split(","),
+                    title=title,
+                    content=content,
+                )
             except Exception:
                 data.set_outputs("ex_data", result.get("message", "消息发送失败"))
                 return False
@@ -130,32 +139,6 @@ class NotifyService(BasePluginService):
         data.set_outputs("code", code)
         data.set_outputs("message", message)
         return True
-
-    def _email_args(self, receivers, title, content):
-        return {
-            "receiver__username": receivers.split(","),
-            "title": title,
-            # 保留通知内容中的换行和空格
-            "content": "<pre>%s</pre>" % content,
-        }
-
-    def _weixin_args(self, receivers, title, content):
-        return {"receiver__username": receivers.split(","), "message_data": {"heading": title, "message": content}}
-
-    def _sms_args(self, receivers, title, content):
-        return {
-            "receiver__username": receivers.split(","),
-            "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
-            "is_content_base64": False,
-        }
-
-    _send_func = {
-        "weixin": "v1_send_weixin",
-        "email": "v1_send_mail",
-        "sms": "v1_send_sms",
-    }
-
-    _args_gen = {"weixin": _weixin_args, "email": _email_args, "sms": _sms_args}
 
 
 class NotifyComponent(Component):
