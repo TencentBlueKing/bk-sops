@@ -17,6 +17,7 @@ import requests
 import ujson as json
 
 from gcloud.conf import settings
+from gcloud.shortcuts.message_cmsi import send_cmsi_message
 from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
@@ -37,54 +38,27 @@ class MessageSender:
 
 class CmsiSender:
     def send(self, executor, tenant_id, notify_type, receivers, title, content, email_content=None):
-        # 兼容旧数据
-        if email_content:
-            content = email_content
-
         client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
-        _send_func = {
-            "weixin": "v1_send_weixin",
-            "mail": "v1_send_mail",
-            "sms": "v1_send_sms",
-            "voice": "v1_send_voice",
-        }
-        _args_gen = {
-            "mail": self._email_args,
-            "weixin": self._weixin_args,
-            "voice": self._voice_args,
-            "sms": self._sms_args,
-        }
         for msg_type in notify_type:
-            kwargs = _args_gen[msg_type](receivers, title, content)
+            kwargs = {}
+            operation_name = ""
             try:
-                getattr(client.api, _send_func[msg_type])(kwargs, headers={"X-Bk-Tenant-Id": tenant_id})
+                operation_name, kwargs, _ = send_cmsi_message(
+                    client=client,
+                    tenant_id=tenant_id,
+                    msg_type=msg_type,
+                    receivers=receivers,
+                    title=title,
+                    content=content,
+                    email_content=email_content,
+                )
             except Exception as e:
-                logger.error("taskflow send message failed, kwargs={}, result={}".format(json.dumps(kwargs), str(e)))
+                logger.error(
+                    "taskflow send message failed, msg_type={}, operation={}, kwargs={}, result={}".format(
+                        msg_type, operation_name, json.dumps(kwargs), str(e)
+                    )
+                )
         return True
-
-    def _email_args(self, receivers, title, content):
-        return {
-            "receiver__username": receivers,
-            "title": title,
-            # 保留通知内容中的换行和空格
-            "content": "<pre>%s</pre>" % content,
-        }
-
-    def _weixin_args(self, receivers, title, content):
-        return {"receiver__username": receivers, "message_data": {"heading": title, "message": content}}
-
-    def _voice_args(self, receivers, title, content):
-        return {
-            "auto_read_message": "蓝鲸通知 {}".format("%s: %s" % (title, content)),
-            "receiver__username": receivers,
-        }
-
-    def _sms_args(self, receivers, title, content):
-        return {
-            "receiver__username": receivers,
-            "content": "《蓝鲸作业平台》通知 {} 该信息如非本人订阅，请忽略本短信。".format("%s: %s" % (title, content)),
-            "is_content_base64": False,
-        }
 
 
 class BkchatSender:
