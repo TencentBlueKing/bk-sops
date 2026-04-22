@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import json
 
 from bamboo_engine import states as bamboo_states
+from django.db import transaction
 from django.core.management import BaseCommand, CommandError
 from pipeline.eri.models import CallbackData
 from pipeline.eri.models import Schedule as DBSchedule
@@ -72,6 +73,8 @@ class Command(BaseCommand):
             blockers.append("当前节点状态不是 RUNNING/FAILED")
         if schedule.finished:
             blockers.append("当前 schedule 已 finished")
+        # expired schedule is replayable here: apply_replay will reactivate it before dispatching
+        # the latest success callback through the formal engine callback path.
         if process_info and getattr(task.pipeline_instance, "instance_id", None) != process_info.root_pipeline_id:
             blockers.append("任务实例与节点所属 root pipeline 不匹配")
 
@@ -107,11 +110,14 @@ class Command(BaseCommand):
 
         runtime = BambooDjangoRuntime()
         if candidate["state"] == bamboo_states.FAILED:
-            DBSchedule.objects.filter(id=candidate["schedule_id"]).update(expired=False)
-            runtime.set_state(node_id=candidate["node_id"], version=candidate["version"], to_state=bamboo_states.READY)
-            runtime.set_state(
-                node_id=candidate["node_id"], version=candidate["version"], to_state=bamboo_states.RUNNING
-            )
+            with transaction.atomic():
+                DBSchedule.objects.filter(id=candidate["schedule_id"]).update(expired=False)
+                runtime.set_state(
+                    node_id=candidate["node_id"], version=candidate["version"], to_state=bamboo_states.READY
+                )
+                runtime.set_state(
+                    node_id=candidate["node_id"], version=candidate["version"], to_state=bamboo_states.RUNNING
+                )
 
         dispatcher = NodeCommandDispatcher(
             engine_ver=candidate["engine_ver"],

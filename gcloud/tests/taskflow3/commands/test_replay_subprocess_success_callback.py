@@ -45,10 +45,13 @@ class ReplaySubprocessSuccessCallbackCommandTestCase(SimpleTestCase):
         self.assertEqual(candidate["schedule_id"], 342957720)
         self.assertEqual(candidate["live_process_id"], 189270456)
 
+    @patch("gcloud.taskflow3.management.commands.replay_subprocess_success_callback.transaction.atomic")
     @patch("gcloud.taskflow3.management.commands.replay_subprocess_success_callback.DBSchedule")
     @patch("gcloud.taskflow3.management.commands.replay_subprocess_success_callback.NodeCommandDispatcher")
     @patch("gcloud.taskflow3.management.commands.replay_subprocess_success_callback.BambooDjangoRuntime")
-    def test_apply_replay_restores_failed_node_before_dispatch(self, runtime_cls, dispatcher_cls, db_schedule_cls):
+    def test_apply_replay_restores_failed_node_before_dispatch(
+        self, runtime_cls, dispatcher_cls, db_schedule_cls, atomic
+    ):
         runtime = runtime_cls.return_value
         dispatcher = dispatcher_cls.return_value
         dispatcher.dispatch.return_value = {"result": True, "message": "ok", "data": None}
@@ -68,6 +71,7 @@ class ReplaySubprocessSuccessCallbackCommandTestCase(SimpleTestCase):
 
         result = Command().apply_replay(candidate)
 
+        atomic.assert_called_once_with()
         db_schedule_cls.objects.filter.assert_called_once_with(id=342957720)
         db_schedule_cls.objects.filter.return_value.update.assert_called_once_with(expired=False)
         runtime.set_state.assert_any_call(
