@@ -1,10 +1,10 @@
-# 开放插件网关部署指南
+# 插件网关部署指南
 
-本文说明开放插件网关上线后，如何完成代码发布、数据库迁移、来源配置初始化，以及 API 网关侧的资源同步。
+本文说明插件网关上线后，如何完成代码发布、数据库迁移、来源配置初始化，以及 API 网关侧的资源同步。
 
 ## 1. 能力概览
 
-当前开放插件网关由以下代码共同承载：
+当前插件网关由以下代码共同承载：
 
 - Django app：`gcloud.plugin_gateway`
 - APIGW 视图：`gcloud.apigw.views.plugin_gateway`
@@ -41,7 +41,7 @@ pip install -r requirements.txt
 
 ### 2.3 执行数据库迁移
 
-开放插件网关新增了以下模型：
+插件网关新增了以下模型：
 
 - `PluginGatewaySourceConfig`
 - `PluginGatewayRun`
@@ -112,7 +112,7 @@ PluginGatewaySourceConfig.objects.update_or_create(
 
 ## 4. API 网关资源与文档同步
 
-开放插件网关接口已统一收敛到 APIGW 体系下，相关产物位于：
+插件网关接口已统一收敛到 APIGW 体系下，相关产物位于：
 
 - 资源定义：`gcloud/apigw/management/commands/data/api-resources.yml`
 - 网关定义：`gcloud/apigw/management/commands/data/api-definition.yml`

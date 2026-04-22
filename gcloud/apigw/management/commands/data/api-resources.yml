@@ -206,9 +206,9 @@ paths:
   /plugin-gateway/categories/:
     get:
       operationId: plugin_gateway_get_categories
-      description: 查询开放插件分类
+      description: 查询插件分类
       tags:
-      - 开放插件网关
+      - 插件网关
       responses:
         '200':
           content:
@@ -260,9 +260,9 @@ paths:
   /plugin-gateway/plugins/:
     get:
       operationId: plugin_gateway_get_plugin_list
-      description: 查询开放插件列表
+      description: 查询插件列表
       tags:
-      - 开放插件网关
+      - 插件网关
       responses:
         '200':
           content:
@@ -340,9 +340,9 @@ paths:
   /plugin-gateway/plugins/{plugin_id}/:
     get:
       operationId: plugin_gateway_get_plugin_detail
-      description: 查询开放插件详情
+      description: 查询插件详情
       tags:
-      - 开放插件网关
+      - 插件网关
       responses:
         '200':
           content:
@@ -413,9 +413,9 @@ paths:
   /plugin-gateway/runs/:
     post:
       operationId: plugin_gateway_create_run
-      description: 创建开放插件执行记录
+      description: 创建插件执行记录
       tags:
-      - 开放插件网关
+      - 插件网关
       responses:
         '200':
           content:
@@ -502,9 +502,9 @@ paths:
   /plugin-gateway/runs/status/:
     get:
       operationId: plugin_gateway_get_run_status
-      description: 查询开放插件执行状态
+      description: 查询插件执行状态
       tags:
-      - 开放插件网关
+      - 插件网关
       responses:
         '200':
           content:
@@ -562,9 +562,9 @@ paths:
   /plugin-gateway/runs/{run_id}/:
     get:
       operationId: plugin_gateway_get_run_detail
-      description: 查询开放插件执行详情
+      description: 查询插件执行详情
       tags:
-      - 开放插件网关
+      - 插件网关
       responses:
         '200':
           content:
@@ -631,9 +631,9 @@ paths:
   /plugin-gateway/runs/{run_id}/cancel/:
     post:
       operationId: plugin_gateway_cancel_run
-      description: 取消开放插件执行记录
+      description: 取消插件执行记录
       tags:
-      - 开放插件网关
+      - 插件网关
       responses:
         '200':
           content:

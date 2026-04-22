@@ -1,6 +1,6 @@
 ### Functional description
 
-Poll the run status of an open plugin execution.
+Poll the status of a plugin gateway run.
 
 #### Interface Parameters
 

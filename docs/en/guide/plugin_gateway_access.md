@@ -1,12 +1,12 @@
-# Open Plugin Gateway Access Guide
+# Plugin Gateway Access Guide
 
-This document explains how external platforms can consume the bk-sops open plugin gateway through API Gateway.
+This document explains how external platforms can consume the bk-sops plugin gateway through API Gateway.
 
 ## 1. Prerequisites
 
 Before integrating, make sure that:
 
-1. the open plugin gateway has been deployed
+1. the plugin gateway has been deployed
 2. `PluginGatewaySourceConfig` has been created
 3. API Gateway resources have been exposed and granted to the consumer app
 4. the consumer owns valid `bk_app_code / bk_app_secret`
@@ -94,7 +94,7 @@ Request body example:
   "plugin_id": "plugin_job_execute",
   "plugin_version": "1.2.0",
   "client_request_id": "task_1_node_1_attempt_1",
-  "callback_url": "https://bkflow.example.com/api/open-plugin/callback",
+  "callback_url": "https://bkflow.example.com/api/plugin-gateway/callback",
   "callback_token": "token-001",
   "inputs": {
     "target_ip": "127.0.0.1"

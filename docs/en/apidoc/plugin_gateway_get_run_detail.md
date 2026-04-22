@@ -1,6 +1,6 @@
 ### Functional description
 
-Get the detail of a single open plugin run.
+Get the detail of a single plugin gateway run.
 
 #### Interface Parameters
 
