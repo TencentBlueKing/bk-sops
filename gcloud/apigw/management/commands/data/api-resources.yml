@@ -343,7 +343,7 @@ paths:
       operationId: plugin_gateway_get_categories
       description: 查询插件分类
       tags:
-      - 插件网关
+      - 限制接口
       responses:
         '200':
           content:
@@ -376,8 +376,8 @@ paths:
                     description: open telemetry trace_id
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP
@@ -397,7 +397,7 @@ paths:
       operationId: plugin_gateway_get_plugin_list
       description: 查询插件列表
       tags:
-      - 插件网关
+      - 限制接口
       responses:
         '200':
           content:
@@ -456,8 +456,8 @@ paths:
                     description: open telemetry trace_id
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP
@@ -477,7 +477,7 @@ paths:
       operationId: plugin_gateway_get_plugin_detail
       description: 查询插件详情
       tags:
-      - 插件网关
+      - 限制接口
       responses:
         '200':
           content:
@@ -529,8 +529,8 @@ paths:
         required: false
         description: 插件版本；不传时使用默认版本
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP
@@ -550,7 +550,7 @@ paths:
       operationId: plugin_gateway_create_run
       description: 创建插件执行记录
       tags:
-      - 插件网关
+      - 限制接口
       responses:
         '200':
           content:
@@ -618,8 +618,8 @@ paths:
         required: true
         description: ''
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP
@@ -639,7 +639,7 @@ paths:
       operationId: plugin_gateway_get_run_status
       description: 查询插件执行状态
       tags:
-      - 插件网关
+      - 限制接口
       responses:
         '200':
           content:
@@ -678,8 +678,8 @@ paths:
         required: true
         description: 运行 ID，对应 open_plugin_run_id
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP
@@ -699,7 +699,7 @@ paths:
       operationId: plugin_gateway_get_run_detail
       description: 查询插件执行详情
       tags:
-      - 插件网关
+      - 限制接口
       responses:
         '200':
           content:
@@ -747,8 +747,8 @@ paths:
         required: true
         description: 运行 ID
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP
@@ -768,7 +768,7 @@ paths:
       operationId: plugin_gateway_cancel_run
       description: 取消插件执行记录
       tags:
-      - 插件网关
+      - 限制接口
       responses:
         '200':
           content:
@@ -803,8 +803,8 @@ paths:
         required: true
         description: 运行 ID
       x-bk-apigateway-resource:
-        isPublic: true
-        allowApplyPermission: true
+        isPublic: false
+        allowApplyPermission: false
         matchSubpath: false
         backend:
           type: HTTP

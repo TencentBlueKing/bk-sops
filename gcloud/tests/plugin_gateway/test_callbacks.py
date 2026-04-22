@@ -81,7 +81,9 @@ class PluginGatewayCallbackServiceTestCase(TestCase):
 
         oversized_outputs = {"payload": "x" * (PluginGatewayCallbackService.MAX_OUTPUT_BYTES + 1)}
 
-        truncated_outputs, truncated, truncated_fields = PluginGatewayCallbackService._truncate_outputs(oversized_outputs)
+        truncated_outputs, truncated, truncated_fields = PluginGatewayCallbackService._truncate_outputs(
+            oversized_outputs
+        )
 
         self.assertTrue(truncated)
         self.assertEqual(truncated_fields, ["outputs"])

@@ -8,7 +8,7 @@ Before integrating, make sure that:
 
 1. the plugin gateway has been deployed
 2. `PluginGatewaySourceConfig` has been created
-3. API Gateway resources have been exposed and granted to the consumer app
+3. API Gateway restricted resources have been granted to the consumer app
 4. the consumer owns valid `bk_app_code / bk_app_secret`
 5. the callback domain is included in `callback_domain_allow_list`
 6. the target plugin id is included in `plugin_allow_list`
@@ -30,6 +30,11 @@ Recommended order:
 6. cancel if needed
 
 All APIs are exposed under `/apigw/plugin-gateway/`.
+
+Additional notes:
+
+- these APIs are currently restricted API Gateway resources and are not publicly open for self-application
+- user login is not required, but app authentication and resource permission are still required
 
 ## 3. Catalog Discovery
 
