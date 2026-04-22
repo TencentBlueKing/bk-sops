@@ -52,6 +52,9 @@ class SubprocessPluginService(BasePluginService):
     __need_schedule__ = True
     runtime = BambooDjangoRuntime()
 
+    def callback_lock_retryable(self, callback_data=None):
+        return bool(callback_data and callback_data.get("task_success") is True)
+
     def outputs_format(self):
         return [
             self.OutputItem(name="任务ID", key="task_id", type="int", schema=IntItemSchema(description="Task ID")),
