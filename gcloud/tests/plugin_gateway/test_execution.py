@@ -1,3 +1,6 @@
+from unittest.mock import patch
+
+from django.db import IntegrityError
 from django.test import TestCase
 
 from gcloud.plugin_gateway.exceptions import PluginGatewayConflictError
@@ -52,3 +55,42 @@ class PluginGatewayExecutionServiceTestCase(TestCase):
 
         with self.assertRaises(PluginGatewayConflictError):
             PluginGatewayExecutionService.create_run("bkflow-app", conflict_payload)
+
+    def test_create_run_rejects_idempotent_conflict_on_token_only(self):
+        PluginGatewayExecutionService.create_run("bkflow-app", self.payload)
+
+        conflict_payload = dict(self.payload)
+        conflict_payload["callback_token"] = "token-different"
+
+        with self.assertRaisesRegex(PluginGatewayConflictError, "callback_token"):
+            PluginGatewayExecutionService.create_run("bkflow-app", conflict_payload)
+
+    def test_create_run_handles_integrity_error_as_idempotent(self):
+        """并发场景下两条请求同时进入 created=True，其中之一被唯一约束拦截，
+        应该被转换为幂等复用而不是 500。"""
+
+        first_run, _ = PluginGatewayExecutionService.create_run("bkflow-app", self.payload)
+
+        def _racy_get_or_create(*args, **kwargs):
+            # 模拟另一条请求已抢先写入后本次 get_or_create 命中唯一约束
+            raise IntegrityError("duplicate key")
+
+        with patch.object(PluginGatewayRun.objects, "get_or_create", side_effect=_racy_get_or_create):
+            run, created = PluginGatewayExecutionService.create_run("bkflow-app", self.payload)
+
+        self.assertFalse(created)
+        self.assertEqual(run.pk, first_run.pk)
+
+    def test_create_run_fast_path_does_not_decrypt_token_on_clear_conflict(self):
+        """当非 token 字段已经不一致时，不应再为比对 token 付出解密成本。"""
+
+        PluginGatewayExecutionService.create_run("bkflow-app", self.payload)
+
+        conflict_payload = dict(self.payload)
+        conflict_payload["plugin_id"] = "plugin_job_status"
+
+        with patch("gcloud.plugin_gateway.services.execution.crypto.decrypt") as mock_decrypt:
+            with self.assertRaises(PluginGatewayConflictError):
+                PluginGatewayExecutionService.create_run("bkflow-app", conflict_payload)
+
+        mock_decrypt.assert_not_called()
