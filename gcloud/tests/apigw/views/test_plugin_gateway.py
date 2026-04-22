@@ -141,6 +141,8 @@ class PluginGatewayAPITest(APITest):
         self.assertFalse(data["result"], msg=data)
         self.assertEqual(data["code"], err_code.INVALID_OPERATION.code)
         self.assertEqual(
-            self.run_model.objects.filter(caller_app_code=TEST_APP_CODE, client_request_id=payload["client_request_id"]).count(),
+            self.run_model.objects.filter(
+                caller_app_code=TEST_APP_CODE, client_request_id=payload["client_request_id"]
+            ).count(),
             1,
         )

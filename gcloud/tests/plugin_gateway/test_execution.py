@@ -33,7 +33,9 @@ class PluginGatewayExecutionServiceTestCase(TestCase):
         self.assertTrue(first_created)
         self.assertTrue(second_created)
         self.assertNotEqual(first_run.pk, second_run.pk)
-        self.assertEqual(PluginGatewayRun.objects.filter(client_request_id=self.payload["client_request_id"]).count(), 2)
+        self.assertEqual(
+            PluginGatewayRun.objects.filter(client_request_id=self.payload["client_request_id"]).count(), 2
+        )
 
     def test_create_run_encrypts_callback_token(self):
         run, created = PluginGatewayExecutionService.create_run("bkflow-app", self.payload)

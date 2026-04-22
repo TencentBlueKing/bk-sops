@@ -8,7 +8,7 @@
 
 1. 标准运维已完成插件网关部署
 2. 标准运维侧已经创建 `PluginGatewaySourceConfig`
-3. API 网关已经开放相关资源并向消费方应用授权
+3. API 网关已将相关受限资源授权给消费方应用
 4. 消费方持有合法的 `bk_app_code / bk_app_secret`
 5. 消费方回调地址的域名已加入 `callback_domain_allow_list`
 6. 目标插件 ID 已加入 `plugin_allow_list`
@@ -30,6 +30,11 @@
 6. 必要时取消执行
 
 所有接口均走 `/apigw/plugin-gateway/` 前缀。
+
+补充说明：
+
+- 这组接口当前属于 API 网关受限资源，不支持在网关侧公开申请
+- 接口免用户登录态，但仍要求应用鉴权和资源权限
 
 ## 3. 插件目录发现
 
