@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 import logging
 from uuid import uuid4
 
+from django.db import IntegrityError, transaction
+
 from gcloud.plugin_gateway.exceptions import PluginGatewayConflictError
 from gcloud.plugin_gateway.models import PluginGatewayRun, PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.context import PluginGatewayContextService
@@ -23,6 +25,10 @@ logger = logging.getLogger("root")
 
 
 class PluginGatewayExecutionService:
+    # 幂等冲突检测按字段优先级排序：前两个字段不涉及解密，可作为快速比对通道；
+    # 只有当其它字段都一致时才解密 callback_token 做最终比对。
+    _IDEMPOTENT_PLAIN_FIELDS = ("source_key", "plugin_id", "plugin_version", "callback_url", "trigger_payload")
+
     @classmethod
     def create_run(cls, caller_app_code, payload):
         source_config = cls._get_source_config(payload["source_key"])
@@ -33,20 +39,33 @@ class PluginGatewayExecutionService:
             payload={"inputs": payload.get("inputs", {}), "project_id": payload.get("project_id")},
         )
 
-        run, created = PluginGatewayRun.objects.get_or_create(
-            caller_app_code=caller_app_code,
-            client_request_id=payload["client_request_id"],
-            defaults={
-                "source_key": payload["source_key"],
-                "plugin_id": payload["plugin_id"],
-                "plugin_version": payload["plugin_version"],
-                "open_plugin_run_id": cls._generate_run_id(),
-                "callback_url": payload["callback_url"],
-                "callback_token": crypto.encrypt(payload["callback_token"]),
-                "run_status": PluginGatewayRun.Status.WAITING_CALLBACK,
-                "trigger_payload": trigger_payload,
-            },
-        )
+        defaults = {
+            "source_key": payload["source_key"],
+            "plugin_id": payload["plugin_id"],
+            "plugin_version": payload["plugin_version"],
+            "open_plugin_run_id": cls._generate_run_id(),
+            "callback_url": payload["callback_url"],
+            "callback_token": crypto.encrypt(payload["callback_token"]),
+            "run_status": PluginGatewayRun.Status.WAITING_CALLBACK,
+            "trigger_payload": trigger_payload,
+        }
+
+        try:
+            with transaction.atomic():
+                run, created = PluginGatewayRun.objects.get_or_create(
+                    caller_app_code=caller_app_code,
+                    client_request_id=payload["client_request_id"],
+                    defaults=defaults,
+                )
+        except IntegrityError:
+            # 并发场景下两条请求同时进入 created=True 分支，其中一条会因唯一约束落空。
+            # 此时记录一定已经存在，直接读取后走幂等冲突检测。
+            run = PluginGatewayRun.objects.get(
+                caller_app_code=caller_app_code,
+                client_request_id=payload["client_request_id"],
+            )
+            created = False
+
         if not created:
             cls._validate_idempotent_conflict(run=run, payload=payload, trigger_payload=trigger_payload)
 
@@ -62,14 +81,7 @@ class PluginGatewayExecutionService:
 
     @classmethod
     def get_run_status(cls, task_tag, caller_app_code):
-        run = cls.get_run_detail(task_tag, caller_app_code)
-        return PluginGatewayRun.objects.only(
-            "open_plugin_run_id",
-            "run_status",
-            "outputs",
-            "error_message",
-            "caller_app_code",
-        ).get(pk=run.pk)
+        return cls.get_run_detail(task_tag, caller_app_code)
 
     @classmethod
     def get_run_detail(cls, open_plugin_run_id, caller_app_code):
@@ -97,26 +109,31 @@ class PluginGatewayExecutionService:
     def _get_source_config(source_key):
         return PluginGatewaySourceConfig.objects.get(source_key=source_key, is_enabled=True)
 
-    @staticmethod
-    def _validate_idempotent_conflict(run, payload, trigger_payload):
-        existing = {
+    @classmethod
+    def _validate_idempotent_conflict(cls, run, payload, trigger_payload):
+        existing_plain = {
             "source_key": run.source_key,
             "plugin_id": run.plugin_id,
             "plugin_version": run.plugin_version,
             "callback_url": run.callback_url,
-            "callback_token": crypto.decrypt(run.callback_token),
             "trigger_payload": run.trigger_payload,
         }
-        current = {
+        current_plain = {
             "source_key": payload["source_key"],
             "plugin_id": payload["plugin_id"],
             "plugin_version": payload["plugin_version"],
             "callback_url": payload["callback_url"],
-            "callback_token": payload["callback_token"],
             "trigger_payload": trigger_payload,
         }
-        conflicts = sorted([field for field, value in current.items() if existing[field] != value])
+        conflicts = [field for field in cls._IDEMPOTENT_PLAIN_FIELDS if existing_plain[field] != current_plain[field]]
+
+        # 非敏感字段一致时再解密 token 做最终比对，避免每次幂等重放都付出解密成本
+        if not conflicts and crypto.decrypt(run.callback_token) != payload["callback_token"]:
+            conflicts.append("callback_token")
+
         if conflicts:
             raise PluginGatewayConflictError(
-                "client_request_id({}) conflicts on fields: {}".format(run.client_request_id, ",".join(conflicts))
+                "client_request_id({}) conflicts on fields: {}".format(
+                    run.client_request_id, ",".join(sorted(conflicts))
+                )
             )
