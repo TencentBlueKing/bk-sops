@@ -32,7 +32,6 @@ class PluginGatewaySourceConfig(models.Model):
 
 class PluginGatewayRun(models.Model):
     class Status:
-        RUNNING = "RUNNING"
         WAITING_CALLBACK = "WAITING_CALLBACK"
         SUCCEEDED = "SUCCEEDED"
         FAILED = "FAILED"
@@ -44,9 +43,12 @@ class PluginGatewayRun(models.Model):
     plugin_id = models.CharField(max_length=128, db_index=True)
     plugin_version = models.CharField(max_length=64)
     client_request_id = models.CharField(max_length=128)
+    # NOTE: open_plugin_run_id / task_tag_key 为 uniform_api v4 协议暴露字段，
+    # 外部插件平台依赖该字段名，不可随插件网关模块重命名而改动。
     open_plugin_run_id = models.CharField(max_length=64, unique=True, db_index=True)
     callback_url = models.URLField(max_length=512)
-    callback_token = models.CharField(max_length=512)
+    callback_token = models.TextField()
+    callback_delivered_at = models.DateTimeField(null=True, blank=True)
     run_status = models.CharField(max_length=32, db_index=True)
     caller_app_code = models.CharField(max_length=64, db_index=True)
     trigger_payload = models.JSONField(default=dict)
