@@ -23,7 +23,7 @@
   "plugin_id": "plugin_job_execute",
   "plugin_version": "1.2.0",
   "client_request_id": "task_1_node_1_attempt_1",
-  "callback_url": "https://bkflow.example.com/api/open-plugin/callback",
+  "callback_url": "https://bkflow.example.com/api/plugin-gateway/callback",
   "callback_token": "token-001",
   "inputs": {
     "target_ip": "127.0.0.1"

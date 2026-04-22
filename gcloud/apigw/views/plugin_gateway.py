@@ -21,7 +21,7 @@ from django.views.decorators.http import require_GET, require_POST
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.conf import settings
-from gcloud.plugin_gateway.exceptions import PluginGatewayConflictError
+from gcloud.plugin_gateway.exceptions import PluginGatewayConflictError, PluginGatewayVersionNotFoundError
 from gcloud.plugin_gateway.models import PluginGatewayRun, PluginGatewaySourceConfig
 from gcloud.plugin_gateway.serializers import PluginGatewayRunCreateSerializer, PluginGatewayRunStatusQuerySerializer
 from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
@@ -37,7 +37,7 @@ def _error_response(message, code):
 def _load_request_body(request):
     try:
         return json.loads(request.body or "{}")
-    except Exception:
+    except (ValueError, TypeError):
         raise ValueError("invalid json format")
 
 
@@ -77,11 +77,15 @@ def get_plugin_gateway_list(request):
 @return_json_response
 @mark_request_whether_is_trust
 def get_plugin_gateway_detail(request, plugin_id):
-    plugin_detail = PluginGatewayCatalogService.get_plugin_detail(
-        request=request,
-        plugin_id=plugin_id,
-        version=request.GET.get("version"),
-    )
+    try:
+        plugin_detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=request,
+            plugin_id=plugin_id,
+            version=request.GET.get("version"),
+        )
+    except PluginGatewayVersionNotFoundError as e:
+        return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code)
+
     if plugin_detail is None:
         return _error_response(
             "plugin gateway plugin({}) does not exist".format(plugin_id),

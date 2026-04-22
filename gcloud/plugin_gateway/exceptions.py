@@ -14,3 +14,7 @@ specific language governing permissions and limitations under the License.
 
 class PluginGatewayConflictError(ValueError):
     """Raised when the same idempotency key is reused with different business payload."""
+
+
+class PluginGatewayVersionNotFoundError(ValueError):
+    """Raised when the requested plugin version is not present in the plugin fixture."""

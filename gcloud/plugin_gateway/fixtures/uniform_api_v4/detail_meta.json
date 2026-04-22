@@ -17,7 +17,7 @@
         "task_tag_key": "open_plugin_run_id",
         "success_tag": {"key": "status", "value": "SUCCEEDED", "data_key": "data.outputs"},
         "fail_tag": {"key": "status", "value": "FAILED", "msg_key": "data.error_message"},
-        "running_tag": {"key": "status", "value": "RUNNING"}
+        "running_tag": {"key": "status", "value": "WAITING_CALLBACK"}
       }
     },
     {
@@ -37,7 +37,7 @@
         "task_tag_key": "open_plugin_run_id",
         "success_tag": {"key": "status", "value": "SUCCEEDED", "data_key": "data.outputs"},
         "fail_tag": {"key": "status", "value": "FAILED", "msg_key": "data.error_message"},
-        "running_tag": {"key": "status", "value": "RUNNING"}
+        "running_tag": {"key": "status", "value": "WAITING_CALLBACK"}
       }
     }
   ]

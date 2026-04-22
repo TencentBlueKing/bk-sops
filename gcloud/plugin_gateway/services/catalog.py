@@ -18,6 +18,7 @@ from cachetools import TTLCache, cached
 from django.urls import reverse
 
 from gcloud.plugin_gateway.constants import PLUGIN_GATEWAY_CATEGORIES, PLUGIN_GATEWAY_FIXTURE_DIR
+from gcloud.plugin_gateway.exceptions import PluginGatewayVersionNotFoundError
 
 
 class PluginGatewayCatalogService:
@@ -44,7 +45,9 @@ class PluginGatewayCatalogService:
 
         selected_version = version or detail.get("default_version")
         if selected_version not in detail.get("versions", []):
-            return None
+            raise PluginGatewayVersionNotFoundError(
+                "plugin({}) version({}) is not available".format(plugin_id, selected_version)
+            )
 
         detail["plugin_version"] = selected_version
         detail["url"] = request.build_absolute_uri(reverse("apigw_plugin_gateway_run_create"))
@@ -52,8 +55,11 @@ class PluginGatewayCatalogService:
         return detail
 
     @staticmethod
-    @cached(cache=TTLCache(maxsize=16, ttl=60))
+    @cached(cache=TTLCache(maxsize=16, ttl=60), key=lambda name: name)
     def _load_fixture(name):
+        # NOTE: 该缓存为进程级，多 worker 部署下每个 worker 独立缓存；ttl=60s 内
+        # 不同 worker 可能短暂返回不同内容。fixture 当前随代码发布，可接受；
+        # 若后续接入动态 fixture（例如从注册中心拉取），需要改造为 Redis 缓存。
         fixture_path = PLUGIN_GATEWAY_FIXTURE_DIR / "{}.json".format(name)
         with fixture_path.open(encoding="utf-8") as fixture:
             return json.load(fixture)

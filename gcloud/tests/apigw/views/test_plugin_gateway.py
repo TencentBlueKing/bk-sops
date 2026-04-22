@@ -3,7 +3,7 @@
 import ujson as json
 
 from gcloud import err_code
-from gcloud.tests.apigw.views.utils import APITest, TEST_APP_CODE
+from gcloud.tests.apigw.views.utils import TEST_APP_CODE, APITest
 
 
 class PluginGatewayAPITest(APITest):
@@ -108,6 +108,22 @@ class PluginGatewayAPITest(APITest):
         data = json.loads(response.content)
         self.assertFalse(data["result"], msg=data)
         self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code)
+
+    def test_get_plugin_detail_rejects_unknown_version(self):
+        response = self.client.get(path="/apigw/plugin-gateway/plugins/plugin_job_execute/?version=0.0.0")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertFalse(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code)
+
+    def test_get_plugin_detail_returns_not_found_for_unknown_plugin(self):
+        response = self.client.get(path="/apigw/plugin-gateway/plugins/does_not_exist/")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertFalse(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.CONTENT_NOT_EXIST.code)
 
     def test_create_run_rejects_idempotent_conflict(self):
         payload = {
