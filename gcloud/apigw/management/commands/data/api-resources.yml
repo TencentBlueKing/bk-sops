@@ -203,6 +203,487 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
+  /plugin-gateway/categories/:
+    get:
+      operationId: plugin_gateway_get_categories
+      description: 查询开放插件分类
+      tags:
+      - 开放插件网关
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      categories:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: 分类 ID
+                            name:
+                              type: string
+                              description: 分类名称
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/plugin-gateway/categories/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /plugin-gateway/plugins/:
+    get:
+      operationId: plugin_gateway_get_plugin_list
+      description: 查询开放插件列表
+      tags:
+      - 开放插件网关
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        description: 插件总数
+                      apis:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: 插件 ID
+                            name:
+                              type: string
+                              description: 插件名称
+                            plugin_source:
+                              type: string
+                              description: 插件来源
+                            plugin_code:
+                              type: string
+                              description: 插件代码
+                            wrapper_version:
+                              type: string
+                              description: 统一协议版本
+                            default_version:
+                              type: string
+                              description: 默认插件版本
+                            latest_version:
+                              type: string
+                              description: 最新插件版本
+                            versions:
+                              type: array
+                              items:
+                                type: string
+                              description: 可选版本列表
+                            meta_url_template:
+                              type: string
+                              description: 查询插件详情的 URL 模板
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/plugin-gateway/plugins/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /plugin-gateway/plugins/{plugin_id}/:
+    get:
+      operationId: plugin_gateway_get_plugin_detail
+      description: 查询开放插件详情
+      tags:
+      - 开放插件网关
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: 插件 ID
+                      plugin_version:
+                        type: string
+                        description: 当前返回的插件版本
+                      url:
+                        type: string
+                        description: 创建执行记录的 URL
+                      methods:
+                        type: array
+                        items:
+                          type: string
+                        description: 可调用方法
+                      polling:
+                        type: object
+                        description: 轮询配置
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: plugin_id
+        schema:
+          type: string
+        required: true
+        description: 插件 ID
+      - in: query
+        name: version
+        schema:
+          type: string
+        required: false
+        description: 插件版本；不传时使用默认版本
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/plugin-gateway/plugins/{plugin_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /plugin-gateway/runs/:
+    post:
+      operationId: plugin_gateway_create_run
+      description: 创建开放插件执行记录
+      tags:
+      - 开放插件网关
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      open_plugin_run_id:
+                        type: string
+                        description: 运行 ID
+                      status:
+                        type: string
+                        description: 当前运行状态
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - source_key
+              - plugin_id
+              - plugin_version
+              - client_request_id
+              - callback_url
+              - callback_token
+              properties:
+                source_key:
+                  type: string
+                  description: 来源标识
+                plugin_id:
+                  type: string
+                  description: 插件 ID
+                plugin_version:
+                  type: string
+                  description: 插件版本
+                client_request_id:
+                  type: string
+                  description: 幂等键
+                callback_url:
+                  type: string
+                  description: 回调地址
+                callback_token:
+                  type: string
+                  description: 回调 token
+                inputs:
+                  type: object
+                  additionalProperties: true
+                  description: 插件输入
+                project_id:
+                  type: integer
+                  description: 项目 ID
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/plugin-gateway/runs/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /plugin-gateway/runs/status/:
+    get:
+      operationId: plugin_gateway_get_run_status
+      description: 查询开放插件执行状态
+      tags:
+      - 开放插件网关
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: 运行状态
+                      outputs:
+                        type: object
+                        additionalProperties: true
+                        description: 输出数据
+                      error_message:
+                        type: string
+                        description: 错误信息
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: query
+        name: task_tag
+        schema:
+          type: string
+        required: true
+        description: 运行 ID，对应 open_plugin_run_id
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/plugin-gateway/runs/status/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /plugin-gateway/runs/{run_id}/:
+    get:
+      operationId: plugin_gateway_get_run_detail
+      description: 查询开放插件执行详情
+      tags:
+      - 开放插件网关
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      open_plugin_run_id:
+                        type: string
+                        description: 运行 ID
+                      status:
+                        type: string
+                        description: 运行状态
+                      plugin_id:
+                        type: string
+                        description: 插件 ID
+                      plugin_version:
+                        type: string
+                        description: 插件版本
+                      outputs:
+                        type: object
+                        additionalProperties: true
+                        description: 输出数据
+                      error_message:
+                        type: string
+                        description: 错误信息
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: run_id
+        schema:
+          type: string
+        required: true
+        description: 运行 ID
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/plugin-gateway/runs/{run_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /plugin-gateway/runs/{run_id}/cancel/:
+    post:
+      operationId: plugin_gateway_cancel_run
+      description: 取消开放插件执行记录
+      tags:
+      - 开放插件网关
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      open_plugin_run_id:
+                        type: string
+                        description: 运行 ID
+                      status:
+                        type: string
+                        description: 更新后的状态
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: run_id
+        schema:
+          type: string
+        required: true
+        description: 运行 ID
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/plugin-gateway/runs/{run_id}/cancel/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
   /fast_create_task/{bk_biz_id}/:
     post:
       operationId: fast_create_task
