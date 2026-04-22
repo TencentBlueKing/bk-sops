@@ -1,6 +1,6 @@
 ### Functional description
 
-Create an execution record in the open plugin gateway.
+Create an execution record in the plugin gateway.
 
 #### Interface Parameters
 

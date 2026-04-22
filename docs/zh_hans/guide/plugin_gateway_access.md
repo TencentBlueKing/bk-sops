@@ -1,12 +1,12 @@
-# 开放插件网关接入指南
+# 插件网关接入指南
 
-本文说明外部平台如何通过 API 网关接入标准运维开放插件网关，并以 BKFlow 作为示例说明典型接入方式。
+本文说明外部平台如何通过 API 网关接入标准运维插件网关，并以 BKFlow 作为示例说明典型接入方式。
 
 ## 1. 接入前提
 
 接入前请先确认：
 
-1. 标准运维已完成开放插件网关部署
+1. 标准运维已完成插件网关部署
 2. 标准运维侧已经创建 `PluginGatewaySourceConfig`
 3. API 网关已经开放相关资源并向消费方应用授权
 4. 消费方持有合法的 `bk_app_code / bk_app_secret`
@@ -157,7 +157,7 @@ POST /apigw/plugin-gateway/runs/
   "plugin_id": "plugin_job_execute",
   "plugin_version": "1.2.0",
   "client_request_id": "task_1_node_1_attempt_1",
-  "callback_url": "https://bkflow.example.com/api/open-plugin/callback",
+  "callback_url": "https://bkflow.example.com/api/plugin-gateway/callback",
   "callback_token": "token-001",
   "inputs": {
     "target_ip": "127.0.0.1"

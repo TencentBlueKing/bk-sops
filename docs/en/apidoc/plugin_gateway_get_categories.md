@@ -1,6 +1,6 @@
 ### Functional description
 
-Get plugin categories exposed by the open plugin gateway.
+Get plugin categories exposed by the plugin gateway.
 
 #### Interface Parameters
 

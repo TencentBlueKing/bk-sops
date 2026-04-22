@@ -1,6 +1,6 @@
-# Open Plugin Gateway Deployment Guide
+# Plugin Gateway Deployment Guide
 
-This document explains how to deploy the open plugin gateway, initialize source configuration, and sync API gateway resources after the feature is released.
+This document explains how to deploy the plugin gateway, initialize source configuration, and sync API gateway resources after the feature is released.
 
 ## 1. Overview
 

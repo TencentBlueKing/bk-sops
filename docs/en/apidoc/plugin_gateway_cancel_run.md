@@ -1,6 +1,6 @@
 ### Functional description
 
-Cancel a single open plugin run record.
+Cancel a single plugin gateway run record.
 
 #### Interface Parameters
 

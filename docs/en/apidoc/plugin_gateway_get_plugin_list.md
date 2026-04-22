@@ -1,6 +1,6 @@
 ### Functional description
 
-Get the list of plugins exposed by the open plugin gateway.
+Get the list of plugins exposed by the plugin gateway.
 
 #### Interface Parameters
 
