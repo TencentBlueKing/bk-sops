@@ -20,8 +20,8 @@ Create an execution record in the plugin gateway.
 ```json
 {
   "source_key": "bkflow",
-  "plugin_id": "plugin_job_execute",
-  "plugin_version": "1.2.0",
+  "plugin_id": "bk_plugin_demo",
+  "plugin_version": "1.1.0",
   "client_request_id": "task_1_node_1_attempt_1",
   "callback_url": "https://bkflow.example.com/api/plugin-gateway/callback",
   "callback_token": "token-001",
@@ -51,3 +51,12 @@ Create an execution record in the plugin gateway.
 |------|------|------|
 | `data.open_plugin_run_id` | `string` | run identifier |
 | `data.status` | `string` | current run status |
+
+### Error Field Description
+
+Failure payloads may include `error_type` for common integration errors:
+
+- `plugin_not_enabled`
+- `plugin_version_unavailable`
+- `plugin_removed`
+- `source_unreachable`

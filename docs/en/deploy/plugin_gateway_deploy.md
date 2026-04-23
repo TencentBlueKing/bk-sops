@@ -23,7 +23,7 @@ Current boundary:
 
 - catalog APIs are ready for external consumption
 - execution APIs currently handle registration, persistence, and callback bridging
-- the gateway does not dispatch requests to the real plugin runtime yet
+- the gateway dispatches exposed third-party standard plugins automatically; polling/callback runtime states fail fast instead of hanging
 
 ## 2. Release Steps
 
@@ -170,4 +170,4 @@ The current release should be treated as a gateway layer:
 
 - catalog discovery is ready
 - registration, polling, detail query, cancellation, and callback are ready
-- automatic dispatch to the real plugin runtime is not included yet
+- exposed third-party standard plugins are dispatched automatically; polling/callback runtime states fail fast

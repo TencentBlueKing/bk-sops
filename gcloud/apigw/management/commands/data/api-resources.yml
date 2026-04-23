@@ -307,6 +307,9 @@ paths:
                               items:
                                 type: string
                               description: 可选版本列表
+                            category:
+                              type: string
+                              description: 插件分类
                             meta_url_template:
                               type: string
                               description: 查询插件详情的 URL 模板
@@ -316,6 +319,9 @@ paths:
                   message:
                     type: string
                     description: result=false 时错误信息
+                  error_type:
+                    type: string
+                    description: 失败类型
                   trace_id:
                     type: string
                     description: open telemetry trace_id
@@ -367,6 +373,16 @@ paths:
                         items:
                           type: string
                         description: 可调用方法
+                      inputs:
+                        type: array
+                        items:
+                          type: object
+                        description: 输入 schema 列表
+                      outputs:
+                        type: array
+                        items:
+                          type: object
+                        description: 输出 schema 列表
                       polling:
                         type: object
                         description: 轮询配置
@@ -376,6 +392,9 @@ paths:
                   message:
                     type: string
                     description: result=false 时错误信息
+                  error_type:
+                    type: string
+                    description: 失败类型
                   trace_id:
                     type: string
                     description: open telemetry trace_id
@@ -438,6 +457,9 @@ paths:
                   message:
                     type: string
                     description: result=false 时错误信息
+                  error_type:
+                    type: string
+                    description: 失败类型
                   trace_id:
                     type: string
                     description: open telemetry trace_id
@@ -675,6 +697,62 @@ paths:
           type: HTTP
           method: post
           path: /{env.api_sub_path}apigw/plugin-gateway/runs/{run_id}/cancel/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: false
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  /plugin-gateway/runs/{run_id}/cancel:
+    post:
+      operationId: plugin_gateway_cancel_run_compat
+      description: 取消插件执行记录（兼容无尾斜杠路径）
+      tags:
+      - 限制接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      open_plugin_run_id:
+                        type: string
+                        description: 运行 ID
+                      status:
+                        type: string
+                        description: 更新后的状态
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: run_id
+        schema:
+          type: string
+        required: true
+        description: 运行 ID
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/plugin-gateway/runs/{run_id}/cancel
           matchSubpath: false
           timeout: 0
           upstreams: {}

@@ -12,7 +12,7 @@ Get the detail of an exposed plugin by plugin id and version.
 ### Request Example
 
 ```text
-GET /apigw/plugin-gateway/plugins/plugin_job_execute/?version=1.2.0
+GET /apigw/plugin-gateway/plugins/bk_plugin_demo/?version=1.1.0
 ```
 
 ### Return Result Example
@@ -21,10 +21,27 @@ GET /apigw/plugin-gateway/plugins/plugin_job_execute/?version=1.2.0
 {
   "result": true,
   "data": {
-    "id": "plugin_job_execute",
-    "plugin_version": "1.2.0",
+    "id": "bk_plugin_demo",
+    "plugin_version": "1.1.0",
     "url": "https://bk-sops.example/apigw/plugin-gateway/runs/",
     "methods": ["POST"],
+    "inputs": [
+      {
+        "key": "biz_id",
+        "name": "Business ID",
+        "type": "integer",
+        "description": "Business ID",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "key": "job_instance_id",
+        "name": "JOB instance ID",
+        "type": "integer",
+        "description": "JOB instance id"
+      }
+    ],
     "polling": {
       "url": "https://bk-sops.example/apigw/plugin-gateway/runs/status/",
       "task_tag_key": "open_plugin_run_id"
@@ -42,5 +59,7 @@ GET /apigw/plugin-gateway/plugins/plugin_job_execute/?version=1.2.0
 | `data.plugin_version` | `string` | resolved plugin version |
 | `data.url` | `string` | execution registration URL |
 | `data.methods` | `list` | allowed methods |
+| `data.inputs` | `list` | input schema list |
+| `data.outputs` | `list` | output schema list |
 | `data.polling.url` | `string` | polling URL |
 | `data.polling.task_tag_key` | `string` | polling task identifier field |

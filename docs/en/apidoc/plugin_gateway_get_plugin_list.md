@@ -18,14 +18,18 @@ GET /apigw/plugin-gateway/plugins/
 {
   "result": true,
   "data": {
-    "total": 2,
+    "total": 1,
     "apis": [
       {
-        "id": "plugin_job_execute",
-        "name": "JOB Execute",
-        "default_version": "1.2.0",
-        "versions": ["1.2.0", "1.3.0"],
-        "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/plugin_job_execute/?version={version}"
+        "id": "bk_plugin_demo",
+        "name": "Demo Plugin",
+        "plugin_source": "third_party",
+        "plugin_code": "bk_plugin_demo",
+        "wrapper_version": "2.0.0",
+        "default_version": "1.1.0",
+        "versions": ["1.0.0", "1.1.0"],
+        "category": "third_party",
+        "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/bk_plugin_demo/?version={version}"
       }
     ]
   },
@@ -41,5 +45,6 @@ GET /apigw/plugin-gateway/plugins/
 | `data.total` | `int` | total number of plugins |
 | `data.apis` | `list` | plugin list |
 | `data.apis[].id` | `string` | plugin id |
+| `data.apis[].category` | `string` | plugin category, currently aligned with `plugin_source` |
 | `data.apis[].versions` | `list` | available versions |
 | `data.apis[].meta_url_template` | `string` | URL template for detail query |

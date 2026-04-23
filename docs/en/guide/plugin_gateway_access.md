@@ -56,14 +56,17 @@ Example payload:
 {
   "result": true,
   "data": {
-    "total": 2,
+    "total": 1,
     "apis": [
       {
-        "id": "plugin_job_execute",
-        "name": "JOB 执行作业",
-        "default_version": "1.2.0",
-        "versions": ["1.2.0", "1.3.0"],
-        "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/plugin_job_execute/?version={version}"
+        "id": "bk_plugin_demo",
+        "name": "Demo Plugin",
+        "plugin_source": "third_party",
+        "plugin_code": "bk_plugin_demo",
+        "default_version": "1.1.0",
+        "versions": ["1.0.0", "1.1.0"],
+        "category": "third_party",
+        "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/bk_plugin_demo/?version={version}"
       }
     ]
   },
@@ -74,7 +77,7 @@ Example payload:
 ### 3.3 Get Plugin Detail
 
 ```bash
-GET /apigw/plugin-gateway/plugins/plugin_job_execute/?version=1.2.0
+GET /apigw/plugin-gateway/plugins/bk_plugin_demo/?version=1.1.0
 ```
 
 The detail response includes:
@@ -96,8 +99,8 @@ Request body example:
 ```json
 {
   "source_key": "bkflow",
-  "plugin_id": "plugin_job_execute",
-  "plugin_version": "1.2.0",
+  "plugin_id": "bk_plugin_demo",
+  "plugin_version": "1.1.0",
   "client_request_id": "task_1_node_1_attempt_1",
   "callback_url": "https://bkflow.example.com/api/plugin-gateway/callback",
   "callback_token": "token-001",
@@ -187,4 +190,4 @@ The current version is a gateway layer, not a full execution proxy. It supports:
 - cancellation
 - callback bridge
 
-Automatic dispatch to the real plugin runtime still needs to be implemented inside bk-sops.
+The current version automatically dispatches exposed third-party standard plugins. If the runtime returns a polling or callback state, the gateway fails fast and reports the reason through `error_message` instead of leaving the caller hanging silently.

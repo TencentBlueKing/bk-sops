@@ -14,6 +14,12 @@ Cancel a single plugin gateway run record.
 POST /apigw/plugin-gateway/runs/run-001/cancel/
 ```
 
+The slashless compatibility path is also accepted:
+
+```text
+POST /apigw/plugin-gateway/runs/run-001/cancel
+```
+
 ### Return Result Example
 
 ```json

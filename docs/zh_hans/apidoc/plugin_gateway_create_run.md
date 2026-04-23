@@ -20,8 +20,8 @@
 ```json
 {
   "source_key": "bkflow",
-  "plugin_id": "plugin_job_execute",
-  "plugin_version": "1.2.0",
+  "plugin_id": "bk_plugin_demo",
+  "plugin_version": "1.1.0",
   "client_request_id": "task_1_node_1_attempt_1",
   "callback_url": "https://bkflow.example.com/api/plugin-gateway/callback",
   "callback_token": "token-001",
@@ -51,3 +51,12 @@
 |------|------|------|
 | `data.open_plugin_run_id` | `string` | 运行 ID |
 | `data.status` | `string` | 当前运行状态 |
+
+### 错误字段说明
+
+失败响应会额外返回 `error_type`，用于区分常见联调错误：
+
+- `plugin_not_enabled`
+- `plugin_version_unavailable`
+- `plugin_removed`
+- `source_unreachable`
