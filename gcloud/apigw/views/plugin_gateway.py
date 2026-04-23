@@ -21,7 +21,13 @@ from django.views.decorators.http import require_GET, require_POST
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.conf import settings
-from gcloud.plugin_gateway.exceptions import PluginGatewayConflictError, PluginGatewayVersionNotFoundError
+from gcloud.plugin_gateway.exceptions import (
+    PluginGatewayConflictError,
+    PluginGatewayPluginNotEnabledError,
+    PluginGatewayPluginNotFoundError,
+    PluginGatewaySourceUnavailableError,
+    PluginGatewayVersionNotFoundError,
+)
 from gcloud.plugin_gateway.models import PluginGatewayRun, PluginGatewaySourceConfig
 from gcloud.plugin_gateway.serializers import PluginGatewayRunCreateSerializer, PluginGatewayRunStatusQuerySerializer
 from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
@@ -29,9 +35,14 @@ from gcloud.plugin_gateway.services.execution import PluginGatewayExecutionServi
 
 logger = logging.getLogger("root")
 
+ERROR_TYPE_PLUGIN_NOT_ENABLED = "plugin_not_enabled"
+ERROR_TYPE_PLUGIN_VERSION_UNAVAILABLE = "plugin_version_unavailable"
+ERROR_TYPE_PLUGIN_REMOVED = "plugin_removed"
+ERROR_TYPE_SOURCE_UNREACHABLE = "source_unreachable"
 
-def _error_response(message, code):
-    return {"result": False, "message": message, "code": code}
+
+def _error_response(message, code, error_type=""):
+    return {"result": False, "message": message, "code": code, "error_type": error_type}
 
 
 def _load_request_body(request):
@@ -64,11 +75,12 @@ def get_plugin_gateway_categories(request):
 @return_json_response
 @mark_request_whether_is_trust
 def get_plugin_gateway_list(request):
-    return {
-        "result": True,
-        "data": PluginGatewayCatalogService.get_plugin_list(request=request),
-        "code": err_code.SUCCESS.code,
-    }
+    try:
+        data = PluginGatewayCatalogService.get_plugin_list(request=request)
+    except PluginGatewaySourceUnavailableError as e:
+        return _error_response(str(e), err_code.INVALID_OPERATION.code, ERROR_TYPE_SOURCE_UNREACHABLE)
+
+    return {"result": True, "data": data, "code": err_code.SUCCESS.code}
 
 
 @login_exempt
@@ -84,12 +96,15 @@ def get_plugin_gateway_detail(request, plugin_id):
             version=request.GET.get("version"),
         )
     except PluginGatewayVersionNotFoundError as e:
-        return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code)
+        return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code, ERROR_TYPE_PLUGIN_VERSION_UNAVAILABLE)
+    except PluginGatewaySourceUnavailableError as e:
+        return _error_response(str(e), err_code.INVALID_OPERATION.code, ERROR_TYPE_SOURCE_UNREACHABLE)
 
     if plugin_detail is None:
         return _error_response(
             "plugin gateway plugin({}) does not exist".format(plugin_id),
             err_code.CONTENT_NOT_EXIST.code,
+            ERROR_TYPE_PLUGIN_REMOVED,
         )
 
     return {"result": True, "data": plugin_detail, "code": err_code.SUCCESS.code}
@@ -119,7 +134,16 @@ def create_plugin_gateway_run(request):
         return _error_response(
             "plugin gateway source({}) does not exist".format(serializer.validated_data["source_key"]),
             err_code.CONTENT_NOT_EXIST.code,
+            ERROR_TYPE_SOURCE_UNREACHABLE,
         )
+    except PluginGatewayPluginNotFoundError as e:
+        return _error_response(str(e), err_code.CONTENT_NOT_EXIST.code, ERROR_TYPE_PLUGIN_REMOVED)
+    except PluginGatewayVersionNotFoundError as e:
+        return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code, ERROR_TYPE_PLUGIN_VERSION_UNAVAILABLE)
+    except PluginGatewayPluginNotEnabledError as e:
+        return _error_response(str(e), err_code.INVALID_OPERATION.code, ERROR_TYPE_PLUGIN_NOT_ENABLED)
+    except PluginGatewaySourceUnavailableError as e:
+        return _error_response(str(e), err_code.INVALID_OPERATION.code, ERROR_TYPE_SOURCE_UNREACHABLE)
     except PluginGatewayConflictError as e:
         return _error_response(str(e), err_code.INVALID_OPERATION.code)
     except ValueError as e:

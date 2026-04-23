@@ -75,18 +75,19 @@ GET /apigw/plugin-gateway/plugins/
 {
   "result": true,
   "data": {
-    "total": 2,
+    "total": 1,
     "apis": [
       {
-        "id": "plugin_job_execute",
-        "name": "JOB 执行作业",
-        "plugin_source": "builtin",
-        "plugin_code": "job_execute_task",
-        "wrapper_version": "v4.0.0",
-        "default_version": "1.2.0",
-        "latest_version": "1.3.0",
-        "versions": ["1.2.0", "1.3.0"],
-        "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/plugin_job_execute/?version={version}"
+        "id": "bk_plugin_demo",
+        "name": "Demo Plugin",
+        "plugin_source": "third_party",
+        "plugin_code": "bk_plugin_demo",
+        "wrapper_version": "2.0.0",
+        "default_version": "1.1.0",
+        "latest_version": "1.1.0",
+        "versions": ["1.0.0", "1.1.0"],
+        "category": "third_party",
+        "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/bk_plugin_demo/?version={version}"
       }
     ]
   },
@@ -111,7 +112,7 @@ GET /apigw/plugin-gateway/plugins/
 请求：
 
 ```bash
-GET /apigw/plugin-gateway/plugins/plugin_job_execute/?version=1.2.0
+GET /apigw/plugin-gateway/plugins/bk_plugin_demo/?version=1.1.0
 ```
 
 返回示例：
@@ -120,15 +121,31 @@ GET /apigw/plugin-gateway/plugins/plugin_job_execute/?version=1.2.0
 {
   "result": true,
   "data": {
-    "id": "plugin_job_execute",
-    "name": "JOB 执行作业",
-    "plugin_source": "builtin",
-    "plugin_code": "job_execute_task",
-    "plugin_version": "1.2.0",
-    "wrapper_version": "v4.0.0",
+    "id": "bk_plugin_demo",
+    "name": "Demo Plugin",
+    "plugin_source": "third_party",
+    "plugin_code": "bk_plugin_demo",
+    "plugin_version": "1.1.0",
+    "wrapper_version": "2.0.0",
     "url": "https://bk-sops.example/apigw/plugin-gateway/runs/",
     "methods": ["POST"],
-    "inputs": [],
+    "inputs": [
+      {
+        "key": "biz_id",
+        "name": "业务 ID",
+        "type": "integer",
+        "description": "业务 ID",
+        "required": true
+      }
+    ],
+    "outputs": [
+      {
+        "key": "job_instance_id",
+        "name": "作业实例 ID",
+        "type": "integer",
+        "description": "JOB instance id"
+      }
+    ],
     "polling": {
       "url": "https://bk-sops.example/apigw/plugin-gateway/runs/status/",
       "task_tag_key": "open_plugin_run_id",
@@ -159,8 +176,8 @@ POST /apigw/plugin-gateway/runs/
 ```json
 {
   "source_key": "bkflow",
-  "plugin_id": "plugin_job_execute",
-  "plugin_version": "1.2.0",
+  "plugin_id": "bk_plugin_demo",
+  "plugin_version": "1.1.0",
   "client_request_id": "task_1_node_1_attempt_1",
   "callback_url": "https://bkflow.example.com/api/plugin-gateway/callback",
   "callback_token": "token-001",
@@ -313,11 +330,11 @@ BKFlow 的典型接入方式如下：
 
 ### 9.1 为什么创建记录成功后状态一直是 `WAITING_CALLBACK`？
 
-因为当前版本只负责登记与等待回调，不会自动调度真实标准插件执行。
+当前版本会自动调度已暴露的第三方标准插件；如果运行时返回轮询态或回调态，网关会快速失败并通过 `error_message` 返回原因，避免调用方静默挂起。
 
 ### 9.2 为什么 `callback_url` 被拒绝？
 
-因为来源配置中的 `callback_domain_allow_list` 未包含当前域名，或者白名单为空。
+因为来源配置中的 `callback_domain_allow_list` 未包含当前域名，或者白名单为空。建议按环境分别预置 BKFlow 的测试、预发、正式域名，并确保调用侧 `source_key` 与 `PluginGatewaySourceConfig.source_key` 完全一致。
 
 ### 9.3 为什么执行时报插件未开放？
 

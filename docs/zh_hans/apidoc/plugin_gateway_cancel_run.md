@@ -14,6 +14,12 @@
 POST /apigw/plugin-gateway/runs/run-001/cancel/
 ```
 
+兼容无尾斜杠路径：
+
+```text
+POST /apigw/plugin-gateway/runs/run-001/cancel
+```
+
 ### 返回结果示例
 
 ```json

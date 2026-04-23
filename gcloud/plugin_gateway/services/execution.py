@@ -16,9 +16,15 @@ from uuid import uuid4
 
 from django.db import IntegrityError, transaction
 
-from gcloud.plugin_gateway.exceptions import PluginGatewayConflictError
+from gcloud.plugin_gateway.exceptions import (
+    PluginGatewayConflictError,
+    PluginGatewayPluginNotFoundError,
+    PluginGatewayVersionNotFoundError,
+)
 from gcloud.plugin_gateway.models import PluginGatewayRun, PluginGatewaySourceConfig
+from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
 from gcloud.plugin_gateway.services.context import PluginGatewayContextService
+from gcloud.plugin_gateway.tasks import dispatch_plugin_gateway_run
 from gcloud.utils import crypto
 
 logger = logging.getLogger("root")
@@ -32,11 +38,17 @@ class PluginGatewayExecutionService:
     @classmethod
     def create_run(cls, caller_app_code, payload):
         source_config = cls._get_source_config(payload["source_key"])
+        plugin_reference = cls._get_plugin_reference(payload["plugin_id"], payload["plugin_version"])
         PluginGatewayContextService.validate_callback_domain(source_config, payload["callback_url"])
         trigger_payload = PluginGatewayContextService.build_trigger_payload(
             source_config=source_config,
             plugin_id=payload["plugin_id"],
-            payload={"inputs": payload.get("inputs", {}), "project_id": payload.get("project_id")},
+            payload={
+                "inputs": payload.get("inputs", {}),
+                "project_id": payload.get("project_id"),
+                "plugin_source": plugin_reference["plugin_source"],
+                "plugin_code": plugin_reference["plugin_code"],
+            },
         )
 
         defaults = {
@@ -68,6 +80,8 @@ class PluginGatewayExecutionService:
 
         if not created:
             cls._validate_idempotent_conflict(run=run, payload=payload, trigger_payload=trigger_payload)
+        else:
+            dispatch_plugin_gateway_run.apply_async(kwargs={"open_plugin_run_id": run.open_plugin_run_id})
 
         logger.info(
             "[plugin_gateway] create run caller_app_code=%s source_key=%s plugin_id=%s run_id=%s created=%s",
@@ -108,6 +122,17 @@ class PluginGatewayExecutionService:
     @staticmethod
     def _get_source_config(source_key):
         return PluginGatewaySourceConfig.objects.get(source_key=source_key, is_enabled=True)
+
+    @staticmethod
+    def _get_plugin_reference(plugin_id, plugin_version):
+        plugin_reference = PluginGatewayCatalogService.get_plugin_reference(plugin_id)
+        if plugin_reference is None:
+            raise PluginGatewayPluginNotFoundError("plugin gateway plugin({}) does not exist".format(plugin_id))
+        if plugin_version not in plugin_reference.get("versions", []):
+            raise PluginGatewayVersionNotFoundError(
+                "plugin({}) version({}) is not available".format(plugin_id, plugin_version)
+            )
+        return plugin_reference
 
     @classmethod
     def _validate_idempotent_conflict(cls, run, payload, trigger_payload):

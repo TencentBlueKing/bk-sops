@@ -17,4 +17,16 @@ class PluginGatewayConflictError(ValueError):
 
 
 class PluginGatewayVersionNotFoundError(ValueError):
-    """Raised when the requested plugin version is not present in the plugin fixture."""
+    """Raised when the requested plugin version is not present in the gateway catalog."""
+
+
+class PluginGatewayPluginNotFoundError(ValueError):
+    """Raised when the requested plugin is not present in the gateway catalog."""
+
+
+class PluginGatewayPluginNotEnabledError(ValueError):
+    """Raised when the requested plugin is not enabled for the caller source."""
+
+
+class PluginGatewaySourceUnavailableError(ValueError):
+    """Raised when the backing plugin source cannot be reached or queried."""
