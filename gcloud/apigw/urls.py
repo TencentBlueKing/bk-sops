@@ -22,6 +22,7 @@ from gcloud.apigw.views.create_periodic_task import create_periodic_task
 from gcloud.apigw.views.create_task import create_task
 from gcloud.apigw.views.create_template import create_template
 from gcloud.apigw.views.fast_create_task import fast_create_task
+from gcloud.apigw.views.get_clocked_task_list import get_clocked_task_list
 from gcloud.apigw.views.get_common_template_info import get_common_template_info
 from gcloud.apigw.views.get_common_template_list import get_common_template_list
 from gcloud.apigw.views.get_functionalization_task_list import get_functionalization_task_list
@@ -59,6 +60,8 @@ from gcloud.apigw.views.modify_constants_for_periodic_task import modify_constan
 from gcloud.apigw.views.modify_constants_for_task import modify_constants_for_task
 from gcloud.apigw.views.modify_cron_for_periodic_task import modify_cron_for_periodic_task
 from gcloud.apigw.views.modify_template_executor_proxy import modify_template_executor_proxy
+from gcloud.apigw.views.modify_project_executor_proxy import modify_project_executor_proxy
+from gcloud.apigw.views.modify_template_notify import modify_template_notify
 from gcloud.apigw.views.node_callback import node_callback
 from gcloud.apigw.views.operate_node import operate_node
 from gcloud.apigw.views.operate_task import operate_task
@@ -78,8 +81,10 @@ urlpatterns = [
         get_template_info,
     ),
     url(r"^get_common_template_list/$", get_common_template_list),
+    url(r"^get_clocked_task_list/(?P<project_id>\d+)/$", get_clocked_task_list),
     url(r"^get_common_template_info/(?P<template_id>\d+)/$", get_common_template_info),
     url(r"^create_task/(?P<template_id>\d+)/(?P<project_id>\d+)/$", create_task),
+    url(r"^modify_template_notify/(?P<template_id>\d+)/(?P<project_id>\d+)/$", modify_template_notify),
     url(r"^create_template/(?P<project_id>\d+)/$", create_template),
     url(r"^fast_create_task/(?P<project_id>\d+)/$", fast_create_task),
     url(r"^start_task/(?P<task_id>\d+)/(?P<project_id>\d+)/$", start_task),
@@ -157,4 +162,5 @@ urlpatterns = [
     url(r"^inner/get_node_job_executed_log/$", get_node_job_executed_log_for_inner),
     url(r"^get_plugin_base_info/(?P<project_id>\d+)/$", get_plugin_base_info),
     url(r"^modify_template_executor_proxy/(?P<template_id>\d+)/(?P<project_id>\d+)/$", modify_template_executor_proxy),
+    url(r"^modify_project_executor_proxy/(?P<project_id>\d+)/$", modify_project_executor_proxy),
 ]
