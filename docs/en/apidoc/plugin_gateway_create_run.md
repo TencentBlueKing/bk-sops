@@ -13,7 +13,7 @@ Create an execution record in the plugin gateway.
 | `callback_url` | `string` | YES | callback URL |
 | `callback_token` | `string` | YES | token written to `X-Callback-Token` |
 | `inputs` | `object` | NO | plugin inputs |
-| `operator` | `string` | NO | optional operator passed to downstream plugin context |
+| `operator` | `string` | NO | optional operator passed to downstream plugin context; when omitted, the gateway reuses the APIGW username if present |
 | `project_id` | `int` | NO | project id |
 
 ### Request Example

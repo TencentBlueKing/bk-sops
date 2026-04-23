@@ -4,7 +4,7 @@ import ujson as json
 from unittest.mock import Mock, patch
 
 from gcloud import err_code
-from gcloud.tests.apigw.views.utils import TEST_APP_CODE, APITest
+from gcloud.tests.apigw.views.utils import TEST_APP_CODE, TEST_USERNAME, APITest
 
 
 class PluginGatewayAPITest(APITest):
@@ -214,6 +214,67 @@ class PluginGatewayAPITest(APITest):
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
         self.assertEqual(data["data"]["open_plugin_run_id"], self.HEX_RUN_ID)
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayExecutionService.create_run")
+    def test_create_run_falls_back_to_apigw_username_for_operator(self, mock_create_run):
+        run = self.run_model(
+            open_plugin_run_id=self.HEX_RUN_ID,
+            run_status="WAITING_CALLBACK",
+            plugin_id="bk_plugin_demo",
+            plugin_version="1.1.0",
+        )
+        mock_create_run.return_value = (run, True)
+        payload = {
+            "source_key": "bkflow",
+            "plugin_id": "bk_plugin_demo",
+            "plugin_version": "1.1.0",
+            "client_request_id": "task_1_node_1_attempt_1",
+            "callback_url": "https://bkflow.example.com/callback",
+            "callback_token": "token-001",
+            "inputs": {"biz_id": 2},
+        }
+
+        response = self.client.post(
+            path="/apigw/plugin-gateway/runs/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_BK_USERNAME=TEST_USERNAME,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        _, kwargs = mock_create_run.call_args
+        self.assertEqual(kwargs["payload"]["operator"], TEST_USERNAME)
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayExecutionService.create_run")
+    def test_create_run_keeps_explicit_operator_over_apigw_username(self, mock_create_run):
+        run = self.run_model(
+            open_plugin_run_id=self.HEX_RUN_ID,
+            run_status="WAITING_CALLBACK",
+            plugin_id="bk_plugin_demo",
+            plugin_version="1.1.0",
+        )
+        mock_create_run.return_value = (run, True)
+        payload = {
+            "source_key": "bkflow",
+            "plugin_id": "bk_plugin_demo",
+            "plugin_version": "1.1.0",
+            "client_request_id": "task_1_node_1_attempt_1",
+            "callback_url": "https://bkflow.example.com/callback",
+            "callback_token": "token-001",
+            "inputs": {"biz_id": 2},
+            "operator": "bkflow-user",
+        }
+
+        response = self.client.post(
+            path="/apigw/plugin-gateway/runs/",
+            data=json.dumps(payload),
+            content_type="application/json",
+            HTTP_BK_USERNAME=TEST_USERNAME,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        _, kwargs = mock_create_run.call_args
+        self.assertEqual(kwargs["payload"]["operator"], "bkflow-user")
 
     def test_caller_app_code_requires_apigw_app(self):
         from gcloud.apigw.views.plugin_gateway import _caller_app_code
