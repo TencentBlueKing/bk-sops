@@ -12,20 +12,20 @@ specific lan
 """
 
 import logging
-from rest_framework import serializers
-from rest_framework.views import APIView
+
+from django.db.models import Max
+from django.utils.translation import ugettext_lazy as _
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import permissions, serializers
 from rest_framework.decorators import action
-from rest_framework import permissions
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
-from drf_yasg.utils import swagger_auto_schema
-
-from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.preview import preview_template_tree_with_schemes
-from django.utils.translation import ugettext_lazy as _
 
 logger = logging.getLogger("root")
 
@@ -92,7 +92,7 @@ class PreviewTaskTreeWithSchemesView(APIView):
             return Response({"result": False, "message": message, "data": {}})
 
         if project_id:
-            last_task = TaskFlowInstance.objects.filter(
+            last_task_id = TaskFlowInstance.objects.filter(
                 project_id=project_id,
                 template_id=str(template_id),
                 template_source=template_source,
@@ -100,8 +100,8 @@ class PreviewTaskTreeWithSchemesView(APIView):
                 is_child_taskflow=False,
                 pipeline_instance__is_started=True,
                 pipeline_instance__isnull=False,
-            ).order_by("-id").only("id").first()
-            data["last_execution_id"] = last_task.id if last_task else None
+            ).aggregate(max_id=Max("id"))["max_id"]
+            data["last_execution_id"] = last_task_id
         else:
             data["last_execution_id"] = None
 
