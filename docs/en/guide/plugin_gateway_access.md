@@ -115,7 +115,7 @@ Request body example:
 }
 ```
 
-`operator` is optional. When present, the gateway passes it through to the downstream plugin context for auth and audit.
+`operator` is optional. When present, the gateway passes it through to the downstream plugin context for auth and audit. If it is omitted and the APIGW request carries a username, the gateway reuses that username as the downstream operator.
 
 Response example:
 

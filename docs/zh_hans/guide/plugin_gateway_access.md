@@ -202,7 +202,7 @@ POST /apigw/plugin-gateway/runs/
 | `callback_url` | 是 | 执行完成后标准运维回调的地址 |
 | `callback_token` | 是 | 回调时写入 `X-Callback-Token` 的 token |
 | `inputs` | 否 | 插件输入 |
-| `operator` | 否 | 可选操作人；下游插件需要鉴权/审计时建议透传 |
+| `operator` | 否 | 可选操作人；下游插件需要鉴权/审计时建议透传；未传时若网关请求里带有用户名，则自动复用 |
 | `project_id` | 否 | 可选项目 ID；未传时可由来源配置自动回填 |
 
 响应示例：

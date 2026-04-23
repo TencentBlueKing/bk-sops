@@ -63,6 +63,17 @@ def _caller_app_code(request):
     return caller_app_code
 
 
+def _caller_username(request):
+    user = getattr(request, "user", None)
+    if user is None:
+        return ""
+
+    username = getattr(user, settings.APIGW_MANAGER_USER_USERNAME_KEY, "")
+    if username:
+        return username
+    return getattr(user, "username", "")
+
+
 @login_exempt
 @require_GET
 @apigw_require
@@ -132,14 +143,17 @@ def create_plugin_gateway_run(request):
     if not serializer.is_valid():
         return _error_response(serializer.errors, err_code.REQUEST_PARAM_INVALID.code)
 
+    payload = dict(serializer.validated_data)
+    payload.setdefault("operator", _caller_username(request))
+
     try:
         run, _ = PluginGatewayExecutionService.create_run(
             caller_app_code=_caller_app_code(request),
-            payload=serializer.validated_data,
+            payload=payload,
         )
     except PluginGatewaySourceConfig.DoesNotExist:
         return _error_response(
-            "plugin gateway source({}) does not exist".format(serializer.validated_data["source_key"]),
+            "plugin gateway source({}) does not exist".format(payload["source_key"]),
             err_code.CONTENT_NOT_EXIST.code,
             ERROR_TYPE_SOURCE_UNREACHABLE,
         )

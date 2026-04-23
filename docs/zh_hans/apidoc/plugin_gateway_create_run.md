@@ -13,7 +13,7 @@
 | `callback_url` | `string` | 是 | 回调地址 |
 | `callback_token` | `string` | 是 | 回调时写入 `X-Callback-Token` 的 token |
 | `inputs` | `object` | 否 | 插件输入 |
-| `operator` | `string` | 否 | 可选操作人；传入后会透传给下游插件上下文 |
+| `operator` | `string` | 否 | 可选操作人；传入后会透传给下游插件上下文；未传时若网关请求里带有用户名，则自动复用 |
 | `project_id` | `int` | 否 | 项目 ID |
 
 ### 请求参数示例
