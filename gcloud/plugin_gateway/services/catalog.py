@@ -26,6 +26,9 @@ from plugin_service.plugin_client import PluginServiceApiClient
 
 
 class PluginGatewayCatalogService:
+    POLLING_STATUS_KEY = "data.status"
+    RUNNING_STATUS_VALUE = "WAITING_CALLBACK"
+
     @classmethod
     def get_categories(cls):
         return copy.deepcopy(PLUGIN_GATEWAY_CATEGORIES)
@@ -73,9 +76,9 @@ class PluginGatewayCatalogService:
             "polling": {
                 "url": "",
                 "task_tag_key": "open_plugin_run_id",
-                "success_tag": {"key": "status", "value": "SUCCEEDED", "data_key": "data.outputs"},
-                "fail_tag": {"key": "status", "value": "FAILED", "msg_key": "data.error_message"},
-                "running_tag": {"key": "status", "value": "RUNNING"},
+                "success_tag": {"key": cls.POLLING_STATUS_KEY, "value": "SUCCEEDED", "data_key": "data.outputs"},
+                "fail_tag": {"key": cls.POLLING_STATUS_KEY, "value": "FAILED", "msg_key": "data.error_message"},
+                "running_tag": {"key": cls.POLLING_STATUS_KEY, "value": cls.RUNNING_STATUS_VALUE},
             },
         }
         detail["url"] = request.build_absolute_uri(reverse("apigw_plugin_gateway_run_create"))

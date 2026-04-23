@@ -35,6 +35,8 @@ Additional notes:
 
 - these APIs are currently restricted API Gateway resources and are not publicly open for self-application
 - user login is not required, but app authentication and resource permission are still required
+- the current runtime scope is limited to exposed third-party standard plugins with synchronous completion
+- if the runtime returns a polling or callback state, the gateway fails fast via `error_message` instead of hanging silently
 
 ## 3. Catalog Discovery
 
@@ -87,6 +89,7 @@ The detail response includes:
 - the selected plugin version
 
 Both `url` and `polling.url` are injected at runtime from the current deployment domain.
+The polling status path is rooted at `data.status`, and the running value is `WAITING_CALLBACK`.
 
 ## 4. Create a Run
 
@@ -107,9 +110,12 @@ Request body example:
   "inputs": {
     "target_ip": "127.0.0.1"
   },
+  "operator": "bkflow-user",
   "project_id": 2001
 }
 ```
+
+`operator` is optional. When present, the gateway passes it through to the downstream plugin context for auth and audit.
 
 Response example:
 
@@ -117,7 +123,7 @@ Response example:
 {
   "result": true,
   "data": {
-    "open_plugin_run_id": "run-001",
+    "open_plugin_run_id": "4f3c2b1a0d9e8f7766554433221100aa",
     "status": "WAITING_CALLBACK"
   },
   "code": 0
@@ -137,13 +143,13 @@ Idempotency is scoped by `(caller_app_code, client_request_id)`.
 Status polling:
 
 ```bash
-GET /apigw/plugin-gateway/runs/status/?task_tag=run-001
+GET /apigw/plugin-gateway/runs/status/?task_tag=4f3c2b1a0d9e8f7766554433221100aa
 ```
 
 Detail query:
 
 ```bash
-GET /apigw/plugin-gateway/runs/run-001/
+GET /apigw/plugin-gateway/runs/4f3c2b1a0d9e8f7766554433221100aa/
 ```
 
 The gateway checks that the caller app matches the app that created the run.
@@ -156,7 +162,7 @@ Internally, bk-sops reports the result through:
 from gcloud.plugin_gateway.services.callbacks import PluginGatewayCallbackService
 
 PluginGatewayCallbackService.callback_run(
-    open_plugin_run_id="run-001",
+    open_plugin_run_id="4f3c2b1a0d9e8f7766554433221100aa",
     run_status="SUCCEEDED",
     outputs={"job_instance_id": 1001},
 )
@@ -174,10 +180,10 @@ If outputs are too large, the gateway returns a truncated payload plus a summary
 ## 7. Cancel
 
 ```bash
-POST /apigw/plugin-gateway/runs/run-001/cancel/
+POST /apigw/plugin-gateway/runs/4f3c2b1a0d9e8f7766554433221100aa/cancel/
 ```
 
-Cancellation only changes the gateway-side run record. It does not stop the real plugin runtime automatically.
+Cancellation marks the gateway-side run record as `CANCELLED` and best-effort notifies the caller again. It still does not stop the real plugin runtime automatically.
 
 ## 8. Current Boundary
 

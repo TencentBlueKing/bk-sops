@@ -13,6 +13,7 @@
 | `callback_url` | `string` | 是 | 回调地址 |
 | `callback_token` | `string` | 是 | 回调时写入 `X-Callback-Token` 的 token |
 | `inputs` | `object` | 否 | 插件输入 |
+| `operator` | `string` | 否 | 可选操作人；传入后会透传给下游插件上下文 |
 | `project_id` | `int` | 否 | 项目 ID |
 
 ### 请求参数示例
@@ -27,7 +28,8 @@
   "callback_token": "token-001",
   "inputs": {
     "target_ip": "127.0.0.1"
-  }
+  },
+  "operator": "bkflow-user"
 }
 ```
 
@@ -37,7 +39,7 @@
 {
   "result": true,
   "data": {
-    "open_plugin_run_id": "run-001",
+    "open_plugin_run_id": "4f3c2b1a0d9e8f7766554433221100aa",
     "status": "WAITING_CALLBACK"
   },
   "code": 0,

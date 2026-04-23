@@ -109,3 +109,31 @@ class PluginGatewayExecutionServiceTestCase(TestCase):
 
         self.assertTrue(created)
         mock_dispatch_task.apply_async.assert_called_once_with(kwargs={"open_plugin_run_id": run.open_plugin_run_id})
+
+    @patch("gcloud.plugin_gateway.services.execution.PluginGatewayCallbackService.callback_run")
+    def test_cancel_run_updates_status_and_triggers_callback(self, mock_callback_run):
+        run = PluginGatewayRun.objects.create(
+            source_key="bkflow",
+            plugin_id="plugin_job_execute",
+            plugin_version="1.2.0",
+            client_request_id="task_1_node_1_attempt_1",
+            open_plugin_run_id="4f3c2b1a0d9e8f7766554433221100aa",
+            callback_url="https://bkflow.example.com/callback",
+            callback_token=crypto.encrypt("token-001"),
+            run_status=PluginGatewayRun.Status.WAITING_CALLBACK,
+            caller_app_code="bkflow-app",
+            trigger_payload={"project_id": 2001},
+        )
+
+        result = PluginGatewayExecutionService.cancel_run(run.open_plugin_run_id, "bkflow-app")
+
+        run.refresh_from_db()
+        self.assertEqual(result.run_status, PluginGatewayRun.Status.CANCELLED)
+        self.assertEqual(run.run_status, PluginGatewayRun.Status.CANCELLED)
+        self.assertEqual(run.error_message, "run cancelled by caller")
+        mock_callback_run.assert_called_once_with(
+            open_plugin_run_id=run.open_plugin_run_id,
+            run_status=PluginGatewayRun.Status.CANCELLED,
+            outputs={},
+            error_message="run cancelled by caller",
+        )

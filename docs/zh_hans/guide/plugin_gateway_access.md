@@ -35,6 +35,8 @@
 
 - 这组接口当前属于 API 网关受限资源，不支持在网关侧公开申请
 - 接口免用户登录态，但仍要求应用鉴权和资源权限
+- 当前执行能力面仅覆盖“已暴露的第三方标准插件 + 同步完成型运行时”
+- 若真实运行时返回轮询态或回调态，网关会快速失败并通过 `error_message` 返回原因，而不会长时间挂起
 
 ## 3. 插件目录发现
 
@@ -149,9 +151,9 @@ GET /apigw/plugin-gateway/plugins/bk_plugin_demo/?version=1.1.0
     "polling": {
       "url": "https://bk-sops.example/apigw/plugin-gateway/runs/status/",
       "task_tag_key": "open_plugin_run_id",
-      "success_tag": {"key": "status", "value": "SUCCEEDED", "data_key": "data.outputs"},
-      "fail_tag": {"key": "status", "value": "FAILED", "msg_key": "data.error_message"},
-      "running_tag": {"key": "status", "value": "RUNNING"}
+      "success_tag": {"key": "data.status", "value": "SUCCEEDED", "data_key": "data.outputs"},
+      "fail_tag": {"key": "data.status", "value": "FAILED", "msg_key": "data.error_message"},
+      "running_tag": {"key": "data.status", "value": "WAITING_CALLBACK"}
     }
   },
   "code": 0
@@ -184,6 +186,7 @@ POST /apigw/plugin-gateway/runs/
   "inputs": {
     "target_ip": "127.0.0.1"
   },
+  "operator": "bkflow-user",
   "project_id": 2001
 }
 ```
@@ -199,6 +202,7 @@ POST /apigw/plugin-gateway/runs/
 | `callback_url` | 是 | 执行完成后标准运维回调的地址 |
 | `callback_token` | 是 | 回调时写入 `X-Callback-Token` 的 token |
 | `inputs` | 否 | 插件输入 |
+| `operator` | 否 | 可选操作人；下游插件需要鉴权/审计时建议透传 |
 | `project_id` | 否 | 可选项目 ID；未传时可由来源配置自动回填 |
 
 响应示例：
@@ -207,7 +211,7 @@ POST /apigw/plugin-gateway/runs/
 {
   "result": true,
   "data": {
-    "open_plugin_run_id": "run-001",
+    "open_plugin_run_id": "4f3c2b1a0d9e8f7766554433221100aa",
     "status": "WAITING_CALLBACK"
   },
   "code": 0
@@ -235,7 +239,7 @@ POST /apigw/plugin-gateway/runs/
 请求：
 
 ```bash
-GET /apigw/plugin-gateway/runs/status/?task_tag=run-001
+GET /apigw/plugin-gateway/runs/status/?task_tag=4f3c2b1a0d9e8f7766554433221100aa
 ```
 
 其中 `task_tag` 直接使用 `open_plugin_run_id`。
@@ -245,7 +249,7 @@ GET /apigw/plugin-gateway/runs/status/?task_tag=run-001
 请求：
 
 ```bash
-GET /apigw/plugin-gateway/runs/run-001/
+GET /apigw/plugin-gateway/runs/4f3c2b1a0d9e8f7766554433221100aa/
 ```
 
 标准运维会校验当前调用方的 `app_code` 与创建记录时的 `caller_app_code` 是否一致，不同应用之间不能互相读取运行状态。
@@ -258,7 +262,7 @@ GET /apigw/plugin-gateway/runs/run-001/
 from gcloud.plugin_gateway.services.callbacks import PluginGatewayCallbackService
 
 PluginGatewayCallbackService.callback_run(
-    open_plugin_run_id="run-001",
+    open_plugin_run_id="4f3c2b1a0d9e8f7766554433221100aa",
     run_status="SUCCEEDED",
     outputs={"job_instance_id": 1001},
 )
@@ -275,7 +279,7 @@ PluginGatewayCallbackService.callback_run(
 
 ```json
 {
-  "open_plugin_run_id": "run-001",
+  "open_plugin_run_id": "4f3c2b1a0d9e8f7766554433221100aa",
   "status": "SUCCEEDED",
   "outputs": {"job_instance_id": 1001},
   "error_message": "",
@@ -305,12 +309,13 @@ PluginGatewayCallbackService.callback_run(
 请求：
 
 ```bash
-POST /apigw/plugin-gateway/runs/run-001/cancel/
+POST /apigw/plugin-gateway/runs/4f3c2b1a0d9e8f7766554433221100aa/cancel/
 ```
 
 当前版本的取消语义仅作用于插件网关执行记录本身：
 
 - 未终态时置为 `CANCELLED`
+- 成功置为 `CANCELLED` 后，会尽力向调用方再投递一次终态回调
 - 已终态时幂等返回
 
 当前版本不会自动反向中止真实标准插件运行时。

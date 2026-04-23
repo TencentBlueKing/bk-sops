@@ -98,17 +98,17 @@ urlpatterns = [
         name="apigw_plugin_gateway_run_status",
     ),
     url(
-        r"^plugin-gateway/runs/(?P<run_id>[\w-]+)/$",
+        r"^plugin-gateway/runs/(?P<run_id>[0-9a-f]{32})/$",
         get_plugin_gateway_run_detail,
         name="apigw_plugin_gateway_run_detail",
     ),
     url(
-        r"^plugin-gateway/runs/(?P<run_id>[\w-]+)/cancel$",
+        r"^plugin-gateway/runs/(?P<run_id>[0-9a-f]{32})/cancel$",
         cancel_plugin_gateway_run,
         name="apigw_plugin_gateway_run_cancel_compat",
     ),
     url(
-        r"^plugin-gateway/runs/(?P<run_id>[\w-]+)/cancel/$",
+        r"^plugin-gateway/runs/(?P<run_id>[0-9a-f]{32})/cancel/$",
         cancel_plugin_gateway_run,
         name="apigw_plugin_gateway_run_cancel",
     ),

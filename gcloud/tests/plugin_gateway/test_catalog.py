@@ -93,6 +93,10 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
 
         self.assertEqual(detail["plugin_version"], "1.1.0")
         self.assertEqual(detail["plugin_source"], PLUGIN_SOURCE_THIRD_PARTY)
+        self.assertEqual(detail["polling"]["success_tag"]["key"], "data.status")
+        self.assertEqual(detail["polling"]["fail_tag"]["key"], "data.status")
+        self.assertEqual(detail["polling"]["running_tag"]["key"], "data.status")
+        self.assertEqual(detail["polling"]["running_tag"]["value"], "WAITING_CALLBACK")
         self.assertEqual(
             detail["inputs"],
             [

@@ -13,6 +13,7 @@ Create an execution record in the plugin gateway.
 | `callback_url` | `string` | YES | callback URL |
 | `callback_token` | `string` | YES | token written to `X-Callback-Token` |
 | `inputs` | `object` | NO | plugin inputs |
+| `operator` | `string` | NO | optional operator passed to downstream plugin context |
 | `project_id` | `int` | NO | project id |
 
 ### Request Example
@@ -27,7 +28,8 @@ Create an execution record in the plugin gateway.
   "callback_token": "token-001",
   "inputs": {
     "target_ip": "127.0.0.1"
-  }
+  },
+  "operator": "bkflow-user"
 }
 ```
 
@@ -37,7 +39,7 @@ Create an execution record in the plugin gateway.
 {
   "result": true,
   "data": {
-    "open_plugin_run_id": "run-001",
+    "open_plugin_run_id": "4f3c2b1a0d9e8f7766554433221100aa",
     "status": "WAITING_CALLBACK"
   },
   "code": 0,

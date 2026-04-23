@@ -53,7 +53,14 @@ def _load_request_body(request):
 
 
 def _caller_app_code(request):
-    return getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY)
+    app = getattr(request, "app", None)
+    if app is None:
+        raise PermissionError("request is not authorized via apigw")
+
+    caller_app_code = getattr(app, settings.APIGW_MANAGER_APP_CODE_KEY, "")
+    if not caller_app_code:
+        raise PermissionError("request app code is missing")
+    return caller_app_code
 
 
 @login_exempt
@@ -148,6 +155,8 @@ def create_plugin_gateway_run(request):
         return _error_response(str(e), err_code.INVALID_OPERATION.code)
     except ValueError as e:
         return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code)
+    except PermissionError as e:
+        return _error_response(str(e), err_code.REQUEST_FORBIDDEN_INVALID.code)
 
     return {
         "result": True,

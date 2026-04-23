@@ -23,6 +23,7 @@ class PluginGatewayRunCreateSerializer(serializers.Serializer):
     callback_token = serializers.CharField(max_length=512)
     inputs = serializers.DictField(required=False, default=dict)
     project_id = serializers.IntegerField(required=False)
+    operator = serializers.CharField(max_length=128, required=False)
 
 
 class PluginGatewayRunStatusQuerySerializer(serializers.Serializer):

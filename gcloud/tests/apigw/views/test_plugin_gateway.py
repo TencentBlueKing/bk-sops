@@ -1,13 +1,15 @@
 """Tests for plugin gateway APIGW endpoints."""
 
 import ujson as json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from gcloud import err_code
 from gcloud.tests.apigw.views.utils import TEST_APP_CODE, APITest
 
 
 class PluginGatewayAPITest(APITest):
+    HEX_RUN_ID = "4f3c2b1a0d9e8f7766554433221100aa"
+
     def url(self):
         return "/apigw/plugin-gateway/plugins/"
 
@@ -186,7 +188,7 @@ class PluginGatewayAPITest(APITest):
     @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayExecutionService.create_run")
     def test_create_run_schedules_dispatch_via_execution_service(self, mock_create_run):
         run = self.run_model(
-            open_plugin_run_id="run-001",
+            open_plugin_run_id=self.HEX_RUN_ID,
             run_status="WAITING_CALLBACK",
             plugin_id="bk_plugin_demo",
             plugin_version="1.1.0",
@@ -211,15 +213,53 @@ class PluginGatewayAPITest(APITest):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
-        self.assertEqual(data["data"]["open_plugin_run_id"], "run-001")
+        self.assertEqual(data["data"]["open_plugin_run_id"], self.HEX_RUN_ID)
 
-    def test_cancel_run_accepts_path_without_trailing_slash(self):
+    def test_caller_app_code_requires_apigw_app(self):
+        from gcloud.apigw.views.plugin_gateway import _caller_app_code
+
+        request = Mock()
+        request.app = None
+
+        with self.assertRaisesRegex(PermissionError, "authorized via apigw"):
+            _caller_app_code(request)
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayExecutionService.create_run")
+    @patch(
+        "gcloud.apigw.views.plugin_gateway._caller_app_code",
+        side_effect=PermissionError("request app code is missing"),
+    )
+    def test_create_run_returns_forbidden_when_apigw_app_code_missing(self, _, mock_create_run):
+        payload = {
+            "source_key": "bkflow",
+            "plugin_id": "bk_plugin_demo",
+            "plugin_version": "1.1.0",
+            "client_request_id": "task_1_node_1_attempt_1",
+            "callback_url": "https://bkflow.example.com/callback",
+            "callback_token": "token-001",
+            "inputs": {"biz_id": 2},
+        }
+
+        response = self.client.post(
+            path="/apigw/plugin-gateway/runs/",
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertFalse(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        mock_create_run.assert_not_called()
+
+    @patch("gcloud.plugin_gateway.services.execution.PluginGatewayCallbackService.callback_run")
+    def test_cancel_run_accepts_path_without_trailing_slash(self, mock_callback_run):
         run = self.run_model.objects.create(
             source_key="bkflow",
             plugin_id="bk_plugin_demo",
             plugin_version="1.1.0",
             client_request_id="task_1_node_1_attempt_1",
-            open_plugin_run_id="run-001",
+            open_plugin_run_id=self.HEX_RUN_ID,
             callback_url="https://bkflow.example.com/callback",
             callback_token="token-001",
             run_status="WAITING_CALLBACK",
@@ -233,3 +273,4 @@ class PluginGatewayAPITest(APITest):
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
         self.assertEqual(data["data"]["status"], "CANCELLED")
+        mock_callback_run.assert_called_once()
