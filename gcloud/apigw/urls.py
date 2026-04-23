@@ -59,6 +59,7 @@ from gcloud.apigw.views.modify_constants_for_periodic_task import modify_constan
 from gcloud.apigw.views.modify_constants_for_task import modify_constants_for_task
 from gcloud.apigw.views.modify_cron_for_periodic_task import modify_cron_for_periodic_task
 from gcloud.apigw.views.modify_template_executor_proxy import modify_template_executor_proxy
+from gcloud.apigw.views.modify_project_executor_proxy import modify_project_executor_proxy
 from gcloud.apigw.views.node_callback import node_callback
 from gcloud.apigw.views.operate_node import operate_node
 from gcloud.apigw.views.operate_task import operate_task
@@ -157,4 +158,5 @@ urlpatterns = [
     url(r"^inner/get_node_job_executed_log/$", get_node_job_executed_log_for_inner),
     url(r"^get_plugin_base_info/(?P<project_id>\d+)/$", get_plugin_base_info),
     url(r"^modify_template_executor_proxy/(?P<template_id>\d+)/(?P<project_id>\d+)/$", modify_template_executor_proxy),
+    url(r"^modify_project_executor_proxy/(?P<project_id>\d+)/$", modify_project_executor_proxy),
 ]
