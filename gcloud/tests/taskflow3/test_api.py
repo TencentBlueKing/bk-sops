@@ -178,9 +178,7 @@ class APITest(TestCase):
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
     def test_preview_task_tree__last_execution_id_exists(self, mock_filter):
-        mock_task = MagicMock()
-        mock_task.id = 999
-        mock_filter.return_value.order_by.return_value.only.return_value.first.return_value = mock_task
+        mock_filter.return_value.aggregate.return_value = {"max_id": 999}
 
         with mock.patch(
             TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
@@ -194,11 +192,12 @@ class APITest(TestCase):
             result = api.preview_task_tree(MockJsonBodyRequest("POST", data), TEST_PROJECT_ID)
             self.assertTrue(result["result"])
             self.assertEqual(result["data"]["last_execution_id"], 999)
+            mock_filter.return_value.aggregate.assert_called_once()
 
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
     def test_preview_task_tree__last_execution_id_none(self, mock_filter):
-        mock_filter.return_value.order_by.return_value.only.return_value.first.return_value = None
+        mock_filter.return_value.aggregate.return_value = {"max_id": None}
 
         with mock.patch(
             TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
@@ -214,8 +213,9 @@ class APITest(TestCase):
             self.assertIsNone(result["data"]["last_execution_id"])
 
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.select_related")
     @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
-    def test_last_execution_constants__success(self, mock_filter):
+    def test_last_execution_constants__success(self, mock_filter, mock_select_related):
         mock_pipeline_instance = MagicMock()
         mock_pipeline_instance.execution_data = {
             "constants": {
@@ -245,7 +245,8 @@ class APITest(TestCase):
         mock_task.id = 123
         mock_task.pipeline_instance = mock_pipeline_instance
 
-        mock_filter.return_value.order_by.return_value.select_related.return_value.first.return_value = mock_task
+        mock_filter.return_value.aggregate.return_value = {"max_id": 123}
+        mock_select_related.return_value.get.return_value = mock_task
 
         request = MockJsonBodyRequest("GET", {})
         request.GET = {"template_id": "1", "template_source": "project"}
@@ -261,11 +262,14 @@ class APITest(TestCase):
         self.assertEqual(returned_ip["value"], "10.0.0.1")
         self.assertEqual(returned_ip["name"], "目标IP")
         self.assertEqual(returned_ip["custom_type"], "input")
+        mock_filter.return_value.aggregate.assert_called_once()
+        mock_select_related.assert_called_once_with("pipeline_instance")
+        mock_select_related.return_value.get.assert_called_once_with(id=123)
 
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
     def test_last_execution_constants__no_history(self, mock_filter):
-        mock_filter.return_value.order_by.return_value.select_related.return_value.first.return_value = None
+        mock_filter.return_value.aggregate.return_value = {"max_id": None}
 
         request = MockJsonBodyRequest("GET", {})
         request.GET = {"template_id": "1", "template_source": "project"}

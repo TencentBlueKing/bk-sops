@@ -7,15 +7,12 @@ from gcloud.taskflow3.apis.drf.viewsets.preview_task_tree import PreviewTaskTree
 
 
 class PreviewTaskTreeWithSchemesLastExecutionTest(TestCase):
-
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.preview_template_tree_with_schemes")
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.TaskFlowInstance.objects.filter")
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.TaskTemplate.objects.get")
     def test_last_execution_id_with_project_id(self, mock_tmpl_get, mock_filter, mock_preview):
         mock_preview.return_value = {"pipeline_tree": {}, "constants_not_referred": {}}
-        mock_task = mock.MagicMock()
-        mock_task.id = 888
-        mock_filter.return_value.order_by.return_value.only.return_value.first.return_value = mock_task
+        mock_filter.return_value.aggregate.return_value = {"max_id": 888}
 
         request = mock.MagicMock()
         request.data = {
@@ -33,6 +30,7 @@ class PreviewTaskTreeWithSchemesLastExecutionTest(TestCase):
 
         self.assertTrue(response.data["result"])
         self.assertEqual(response.data["data"]["last_execution_id"], 888)
+        mock_filter.return_value.aggregate.assert_called_once()
 
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.preview_template_tree_with_schemes")
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.CommonTemplate.objects.get")

@@ -18,6 +18,7 @@ import ujson as json
 from blueapps.account.decorators import login_exempt
 from cryptography.fernet import Fernet
 from django.db import transaction
+from django.db.models import Max
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -425,7 +426,7 @@ def preview_task_tree(request, project_id):
         logger.exception(message)
         return JsonResponse({"result": False, "message": message})
 
-    last_task = TaskFlowInstance.objects.filter(
+    last_task_id = TaskFlowInstance.objects.filter(
         project_id=project_id,
         template_id=str(template_id),
         template_source=template_source,
@@ -433,9 +434,9 @@ def preview_task_tree(request, project_id):
         is_child_taskflow=False,
         pipeline_instance__is_started=True,
         pipeline_instance__isnull=False,
-    ).order_by("-id").only("id").first()
+    ).aggregate(max_id=Max("id"))["max_id"]
 
-    data["last_execution_id"] = last_task.id if last_task else None
+    data["last_execution_id"] = last_task_id
 
     return JsonResponse({"result": True, "data": data})
 
@@ -446,7 +447,7 @@ def last_execution_constants(request, project_id):
     template_id = request.GET.get("template_id")
     template_source = request.GET.get("template_source", PROJECT)
 
-    last_task = TaskFlowInstance.objects.filter(
+    last_task_id = TaskFlowInstance.objects.filter(
         project_id=project_id,
         template_id=str(template_id),
         template_source=template_source,
@@ -454,9 +455,21 @@ def last_execution_constants(request, project_id):
         is_child_taskflow=False,
         pipeline_instance__is_started=True,
         pipeline_instance__isnull=False,
-    ).order_by("-id").select_related("pipeline_instance").first()
+    ).aggregate(max_id=Max("id"))["max_id"]
 
-    if not last_task or not last_task.pipeline_instance:
+    if not last_task_id:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    try:
+        last_task = TaskFlowInstance.objects.select_related("pipeline_instance").get(id=last_task_id)
+    except TaskFlowInstance.DoesNotExist:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    if not last_task.pipeline_instance:
         return JsonResponse(
             {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
         )
