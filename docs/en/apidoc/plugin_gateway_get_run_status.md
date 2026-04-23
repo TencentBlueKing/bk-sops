@@ -11,7 +11,7 @@ Poll the status of a plugin gateway run.
 ### Request Example
 
 ```text
-GET /apigw/plugin-gateway/runs/status/?task_tag=run-001
+GET /apigw/plugin-gateway/runs/status/?task_tag=4f3c2b1a0d9e8f7766554433221100aa
 ```
 
 ### Return Result Example

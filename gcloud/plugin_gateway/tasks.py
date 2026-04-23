@@ -127,7 +127,7 @@ def _build_context(run, detail_data):
         for key, value in run.trigger_payload.items()
         if key not in {"inputs", "plugin_source", "plugin_code"}
     }
-    operator = getattr(settings, "SYSTEM_USE_API_ACCOUNT", "admin")
+    operator = run.trigger_payload.get("operator") or getattr(settings, "SYSTEM_USE_API_ACCOUNT", "admin")
     available_context.update(
         {
             "source_key": run.source_key,

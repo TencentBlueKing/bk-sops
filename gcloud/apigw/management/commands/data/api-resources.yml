@@ -502,6 +502,9 @@ paths:
                 project_id:
                   type: integer
                   description: 项目 ID
+                operator:
+                  type: string
+                  description: 可选操作人；用于下游插件鉴权与审计
         required: true
         description: ''
       x-bk-apigateway-resource:

@@ -11,7 +11,7 @@ Get the detail of a single plugin gateway run.
 ### Request Example
 
 ```text
-GET /apigw/plugin-gateway/runs/run-001/
+GET /apigw/plugin-gateway/runs/4f3c2b1a0d9e8f7766554433221100aa/
 ```
 
 ### Return Result Example
@@ -20,7 +20,7 @@ GET /apigw/plugin-gateway/runs/run-001/
 {
   "result": true,
   "data": {
-    "open_plugin_run_id": "run-001",
+    "open_plugin_run_id": "4f3c2b1a0d9e8f7766554433221100aa",
     "status": "SUCCEEDED",
     "plugin_id": "plugin_job_execute",
     "plugin_version": "1.2.0",

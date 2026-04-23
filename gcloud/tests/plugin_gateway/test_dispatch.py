@@ -62,3 +62,21 @@ class PluginGatewayDispatchTaskTestCase(TestCase):
         self.assertEqual(kwargs["open_plugin_run_id"], run.open_plugin_run_id)
         self.assertEqual(kwargs["run_status"], PluginGatewayRun.Status.FAILED)
         self.assertIn("asynchronous state", kwargs["error_message"])
+
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayCallbackService.callback_run")
+    @patch("gcloud.plugin_gateway.tasks.PluginServiceApiClient")
+    def test_dispatch_run_prefers_operator_from_trigger_payload(self, mock_client_cls, mock_callback_run):
+        run = self._create_run(trigger_payload={"project_id": 2001, "operator": "bkflow-user", "inputs": {"biz_id": 2}})
+        mock_client = Mock()
+        mock_client.get_detail.return_value = {
+            "result": True,
+            "data": {"context_inputs": {"properties": {"project_id": {}, "operator": {}, "executor": {}}}},
+        }
+        mock_client.invoke.return_value = (True, {"state": 4, "outputs": {"job_instance_id": 123}})
+        mock_client_cls.return_value = mock_client
+
+        dispatch_plugin_gateway_run(open_plugin_run_id=run.open_plugin_run_id)
+
+        _, invoke_payload = mock_client.invoke.call_args[0]
+        self.assertEqual(invoke_payload["context"]["operator"], "bkflow-user")
+        self.assertEqual(invoke_payload["context"]["executor"], "bkflow-user")

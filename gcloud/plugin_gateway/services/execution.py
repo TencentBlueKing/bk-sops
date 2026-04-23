@@ -22,6 +22,7 @@ from gcloud.plugin_gateway.exceptions import (
     PluginGatewayVersionNotFoundError,
 )
 from gcloud.plugin_gateway.models import PluginGatewayRun, PluginGatewaySourceConfig
+from gcloud.plugin_gateway.services.callbacks import PluginGatewayCallbackService
 from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
 from gcloud.plugin_gateway.services.context import PluginGatewayContextService
 from gcloud.plugin_gateway.tasks import dispatch_plugin_gateway_run
@@ -46,6 +47,7 @@ class PluginGatewayExecutionService:
             payload={
                 "inputs": payload.get("inputs", {}),
                 "project_id": payload.get("project_id"),
+                "operator": payload.get("operator"),
                 "plugin_source": plugin_reference["plugin_source"],
                 "plugin_code": plugin_reference["plugin_code"],
             },
@@ -111,7 +113,14 @@ class PluginGatewayExecutionService:
             return run
 
         run.run_status = PluginGatewayRun.Status.CANCELLED
-        run.save(update_fields=["run_status", "update_time"])
+        run.error_message = run.error_message or "run cancelled by caller"
+        run.save(update_fields=["run_status", "error_message", "update_time"])
+        PluginGatewayCallbackService.callback_run(
+            open_plugin_run_id=open_plugin_run_id,
+            run_status=PluginGatewayRun.Status.CANCELLED,
+            outputs=run.outputs or {},
+            error_message=run.error_message,
+        )
         logger.info("[plugin_gateway] cancel run run_id=%s caller_app_code=%s", open_plugin_run_id, caller_app_code)
         return run
 
