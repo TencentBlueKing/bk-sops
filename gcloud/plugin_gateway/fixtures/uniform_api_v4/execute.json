@@ -1,0 +1,8 @@
+{
+  "plugin_id": "plugin_job_execute",
+  "plugin_version": "1.2.0",
+  "client_request_id": "task-1-node-1-attempt-1",
+  "inputs": {
+    "target_ip": "127.0.0.1"
+  }
+}
