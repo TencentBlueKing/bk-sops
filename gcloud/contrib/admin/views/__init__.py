@@ -11,7 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .templates import *  # noqa
-from .taskflow import *  # noqa
-from .search import search  # noqa
+from . import diagnostics  # noqa
 from .command import *  # noqa
+from .search import search  # noqa
+from .taskflow import *  # noqa
+from .templates import *  # noqa
