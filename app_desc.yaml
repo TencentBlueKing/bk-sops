@@ -48,6 +48,9 @@ modules:
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
+            - key: C_FORCE_ROOT
+              value: 1
+              description: celery5 fit
         processes:
             web:
                 command: bin/start_web.sh
@@ -113,6 +116,9 @@ modules:
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
+            - key: C_FORCE_ROOT
+              value: 1
+              description: celery5 fit
         processes:
             web:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
@@ -174,6 +180,9 @@ modules:
             - key: CELERY_RESTART_INTERVAL
               value: 604800
               description: Celery worker 基础重启间隔（秒），7天
+            - key: C_FORCE_ROOT
+              value: 1
+              description: celery5 fit
         processes:
             v1-engine:
                 command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q api_task_queue_pipeline_priority,api_task_queue_service_schedule_priority,periodic_task_queue_pipeline_priority,periodic_task_queue_service_schedule_priority,pipeline,pipeline_priority,service_schedule,service_schedule_priority -n v1_engine@%h -c 100 -l info
@@ -281,6 +290,9 @@ modules:
             - key: ENABLE_METRICS
               value: 1
               description: 是否启动 metrics server
+            - key: C_FORCE_ROOT
+              value: 1
+              description: celery5 fit
         processes:
             web:
                 command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
