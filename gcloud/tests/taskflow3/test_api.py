@@ -117,6 +117,18 @@ class APITest(TestCase):
         self.client = Client()
 
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch(
+        "gcloud.iam_auth.view_interceptors.taskflow.res_factory.resources_for_flow",
+        MagicMock(return_value=[]),
+    )
+    @mock.patch(
+        "gcloud.iam_auth.view_interceptors.taskflow.res_factory.resources_for_common_flow",
+        MagicMock(return_value=[]),
+    )
+    @mock.patch(
+        "gcloud.iam_auth.view_interceptors.taskflow.allow_or_raise_auth_failed",
+        MagicMock(return_value=None),
+    )
     def test_preview_task_tree__constants_not_referred(self):
 
         with mock.patch(

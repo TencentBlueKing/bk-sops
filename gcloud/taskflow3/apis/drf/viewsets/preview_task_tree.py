@@ -15,6 +15,8 @@ import logging
 
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -22,10 +24,13 @@ from rest_framework.views import APIView
 
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.preview import preview_template_tree_with_schemes
 
 logger = logging.getLogger("root")
+
+iam = get_iam_client()
 
 
 class PreviewTaskTreeWithSchemesSerializer(serializers.Serializer):
@@ -67,6 +72,16 @@ class PreviewTaskTreeWithSchemesView(APIView):
         version = serializer.data["version"]
         template_source = serializer.data["template_source"]
         scheme_id_list = serializer.data["scheme_id_list"]
+
+        # 模板级 IAM 鉴权，避免未授权用户通过本接口读取敏感模板数据
+        subject = Subject("user", request.user.username)
+        if template_source == PROJECT:
+            iam_action = Action(IAMMeta.FLOW_VIEW_ACTION)
+            resources = res_factory.resources_for_flow(template_id)
+        else:
+            iam_action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
+            resources = res_factory.resources_for_common_flow(template_id)
+        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, iam_action, resources, cache=True)
 
         try:
             if template_source == PROJECT:
