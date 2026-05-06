@@ -569,6 +569,26 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
 
 class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
+    TASKFLOW_INSTANCE_TABLE_SQL = "`taskflow3_taskflowinstance`"
+    IGNORE_PRIMARY_INDEX_HINT_SQL = "IGNORE INDEX (`PRIMARY`)"
+
+    @classmethod
+    def _inject_ignore_primary_index_hint(cls, sql):
+        table_with_hint = "{} {}".format(cls.TASKFLOW_INSTANCE_TABLE_SQL, cls.IGNORE_PRIMARY_INDEX_HINT_SQL)
+        if table_with_hint in sql:
+            return sql
+
+        return sql.replace("FROM {}".format(cls.TASKFLOW_INSTANCE_TABLE_SQL), "FROM {}".format(table_with_hint), 1)
+
+    def fetch_task_list_page_ignore_primary_index(self, queryset, limit, offset):
+        sliced_queryset = queryset[offset : offset + limit]
+        if connection.vendor != "mysql":
+            return list(sliced_queryset)
+
+        sql, params = sliced_queryset.query.sql_with_params()
+        sql = self._inject_ignore_primary_index_hint(sql)
+        return list(self.raw(sql, params))
+
     @staticmethod
     def create_pipeline_instance(template, **kwargs):
         independent_subprocess = kwargs.pop(
