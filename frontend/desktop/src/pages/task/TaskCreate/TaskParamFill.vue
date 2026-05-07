@@ -126,6 +126,7 @@
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
+    import axios from 'axios'
 
     export default {
         name: 'TaskParamFill',
@@ -654,17 +655,38 @@
                             })
                             if (response.result) {
                                 const lastConstants = response.data.constants
-                                Object.keys(this.pipelineData.constants).forEach(key => {
+                                for (const key of Object.keys(this.pipelineData.constants)) {
                                     const lastConstant = lastConstants[key]
                                     if (lastConstant) {
                                         const currentConstant = this.pipelineData.constants[key]
                                         if (lastConstant.custom_type === currentConstant.custom_type) {
                                             if (lastConstant.custom_type === 'select') { // 下拉框不限制value结构是否匹配
-                                                // 判断上一次的值是否在当前下拉框的选项列表中存在
-                                                const items = JSON.parse(currentConstant.value.items_text || '[]')
-                                                const isValueInOptions = items.some(item => item.value === lastConstant.value)
-                                                if (isValueInOptions) {
-                                                    this.pipelineData.constants[key].value.default = lastConstant.value
+                                                let items = []
+                                                try {
+                                                    if (currentConstant.value.datasource === '0') {
+                                                        items = JSON.parse(currentConstant.value.items_text) || []
+                                                    } else {
+                                                        const proxyUrl = window.SITE_URL + 'pipeline/variable_select_source_data_proxy/?url=' + encodeURIComponent(currentConstant.value.items_text)
+                                                        const resp = await axios.get(proxyUrl)
+                                                        items = resp.data || []
+                                                    }
+                                                } catch (e) {
+                                                    console.warn(e)
+                                                    items = []
+                                                }
+                                                if (items.length > 0) {
+                                                    const isMultiSelect = currentConstant.value.type === '1'
+                                                    const lastVal = lastConstant.value
+                                                    // 判断上一次的值是否在当前选项列表中
+                                                    const isInOptions = isMultiSelect && Array.isArray(lastVal)
+                                                        ? lastVal.every(v => items.some(item => item.value === v))
+                                                        : items.some(item => item.value === lastVal)
+                                                    if (isInOptions) {
+                                                        // select 组件的 default 字段要求：单选为字符串，多选为逗号分隔字符串
+                                                        this.pipelineData.constants[key].value.default = isMultiSelect && Array.isArray(lastVal)
+                                                            ? lastVal.join(',')
+                                                            : lastVal
+                                                    }
                                                 }
                                             } else {
                                                 if (Object.prototype.toString.call(currentConstant.value) === '[object Object]') {
@@ -680,7 +702,7 @@
                                             }
                                         }
                                     }
-                                })
+                                }
                                 this.$bkMessage({
                                     message: this.$t('参数加载成功'),
                                     theme: 'success'
