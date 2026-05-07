@@ -45,6 +45,7 @@ from gcloud.iam_auth.view_interceptors.taskflow import (
     DetailViewInterceptor,
     GetNodeLogInterceptor,
     NodesActionInterceptor,
+    PreviewTaskTreeInterceptor,
     SpecNodesTimerResetInpterceptor,
     StatusViewInterceptor,
     TaskActionInterceptor,
@@ -435,6 +436,7 @@ def task_func_claim(request, project_id):
 
 @require_POST
 @request_validate(PreviewTaskTreeValidator)
+@iam_intercept(PreviewTaskTreeInterceptor())
 def preview_task_tree(request, project_id):
     """
     @summary: 调整可选节点后预览任务流程，这里不创建任何实例，只返回调整后的pipeline_tree

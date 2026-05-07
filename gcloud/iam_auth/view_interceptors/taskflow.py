@@ -15,7 +15,9 @@ import abc
 
 import ujson as json
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
+from iam.shortcuts import allow_or_raise_auth_failed
 
+from gcloud.constants import PROJECT, NON_COMMON_TEMPLATE_TYPES
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
 from iam import Action, Request, Subject
@@ -122,3 +124,27 @@ class BatchStatusViewInterceptor(ViewInterceptor):
 
         if not_allowed_list:
             raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)
+
+
+class PreviewTaskTreeInterceptor(ViewInterceptor):
+    """
+    preview_task_tree 接口模板级 IAM 鉴权：
+    - template_source 为项目流程时，校验 FLOW_VIEW_ACTION
+    - template_source 为公共流程时，校验 COMMON_FLOW_VIEW_ACTION
+    """
+
+    def process(self, request, *args, **kwargs):
+        params = json.loads(request.body)
+        template_source = params.get("template_source", PROJECT)
+        template_id = params.get("template_id")
+
+        subject = Subject("user", request.user.username)
+
+        if template_source in NON_COMMON_TEMPLATE_TYPES:
+            action = Action(IAMMeta.FLOW_VIEW_ACTION)
+            resources = res_factory.resources_for_flow(template_id)
+        else:
+            action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
+            resources = res_factory.resources_for_common_flow(template_id)
+
+        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
