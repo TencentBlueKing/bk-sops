@@ -659,15 +659,24 @@
                                     if (lastConstant) {
                                         const currentConstant = this.pipelineData.constants[key]
                                         if (lastConstant.custom_type === currentConstant.custom_type) {
-                                            if (Object.prototype.toString.call(currentConstant.value) === '[object Object]') {
-                                                // 对象类型：检查当前值的所有 key 是否都存在于上一次执行的值中
-                                                const match = Object.keys(currentConstant.value).every(k => k in lastConstant.value)
-                                                if (match) {
-                                                    // 结构匹配，可以安全替换
-                                                    this.pipelineData.constants[key].value = lastConstant.value
+                                            if (lastConstant.custom_type === 'select') { // 下拉框不限制value结构是否匹配
+                                                // 判断上一次的值是否在当前下拉框的选项列表中存在
+                                                const items = JSON.parse(currentConstant.value.items_text || '[]')
+                                                const isValueInOptions = items.some(item => item.value === lastConstant.value)
+                                                if (isValueInOptions) {
+                                                    this.pipelineData.constants[key].value.default = lastConstant.value
                                                 }
                                             } else {
-                                                this.pipelineData.constants[key].value = lastConstant.value
+                                                if (Object.prototype.toString.call(currentConstant.value) === '[object Object]') {
+                                                    // 对象类型：检查当前值的所有 key 是否都存在于上一次执行的值中
+                                                    const match = Object.keys(currentConstant.value).every(k => k in lastConstant.value)
+                                                    if (match) {
+                                                        // 结构匹配，可以安全替换
+                                                        this.pipelineData.constants[key].value = lastConstant.value
+                                                    }
+                                                } else {
+                                                    this.pipelineData.constants[key].value = lastConstant.value
+                                                }
                                             }
                                         }
                                     }
