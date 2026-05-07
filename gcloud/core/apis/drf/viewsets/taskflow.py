@@ -344,7 +344,12 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             self.paginator.offset = self.paginator.get_offset(request)
             self.paginator.count = -1
             self.paginator.request = request
-            page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
+            if self._should_ignore_primary_index_for_task_list(request):
+                page = TaskFlowInstance.objects.fetch_task_list_page_ignore_primary_index(
+                    queryset=queryset, limit=self.paginator.limit, offset=self.paginator.offset
+                )
+            else:
+                page = list(queryset[self.paginator.offset : self.paginator.offset + self.paginator.limit])
         else:
             page = self.paginate_queryset(queryset)
 
@@ -561,6 +566,18 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         new_query = re.sub("ORDER BY (.*?) DESC", "ORDER BY `pipeline_pipelineinstance`.`create_time` DESC", new_query)
         new_query += f" LIMIT {limit} OFFSET {offset}"
         return TaskFlowInstance.objects.raw(new_query, params)
+
+    @staticmethod
+    def _should_ignore_primary_index_for_task_list(request):
+        """
+        优化任务列表按名称关键词检索时 MySQL 误选 PRIMARY 倒序扫描的问题。
+        """
+        query_params = request.query_params
+        return bool(
+            query_params.get("project__id")
+            and query_params.get("pipeline_instance__name__icontains")
+            and not query_params.get("order_by")
+        )
 
     @swagger_auto_schema(
         method="GET",

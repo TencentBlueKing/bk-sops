@@ -21,6 +21,7 @@ from django_test_toolkit.mixins.account import SuperUserMixin
 from django_test_toolkit.mixins.blueking import LoginExemptMixin, StandardResponseAssertionMixin
 from django_test_toolkit.mixins.drf import DrfPermissionExemptMixin
 from django_test_toolkit.testcases import ToolkitApiTestCase
+from mock import patch
 from pipeline.eri.models import State
 from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 
@@ -135,6 +136,26 @@ class TestTaskInstanceView(
         resp = self.client.get(path=self.task_url, data=query_params)
         self.assertTrue(resp.data["result"])
         self.assertEqual(resp.data["data"]["count"], 1)
+
+    def test_task_name_search_without_count_uses_ignore_primary_index_hint(self):
+        query_params = {
+            "project__id": self.test_project.id,
+            "pipeline_instance__name__icontains": "tlogd",
+            "is_child_taskflow": False,
+            "without_count": True,
+            "limit": 15,
+            "offset": 0,
+        }
+
+        with patch.object(
+            TaskFlowInstance.objects, "fetch_task_list_page_ignore_primary_index", return_value=[]
+        ) as mock_fetch:
+            resp = self.client.get(path=self.task_url, data=query_params)
+
+        self.assertTrue(resp.data["result"])
+        mock_fetch.assert_called_once()
+        self.assertEqual(mock_fetch.call_args[1]["limit"], 15)
+        self.assertEqual(mock_fetch.call_args[1]["offset"], 0)
 
     def test_task_list_filter_days_disabled(self):
         """测试当项目配置了 task_list_filter_days 为 False 时，跳过日期过滤"""
