@@ -41,9 +41,26 @@
                 context: { ...$.context }
             }
         },
+        computed: {
+            numberKeys () {
+                return Object.keys(this.inputs.properties).filter(
+                    key => this.inputs.properties[key].type === 'number'
+                )
+            }
+        },
         watch: {
-            value (val) {
-                this.inputFormData = tools.deepClone(val)
+            value: {
+                handler (val) {
+                    const formData = tools.deepClone(val)
+                    this.numberKeys.forEach(key => {
+                        if (formData[key] !== undefined) {
+                            formData[key] = Number(formData[key])
+                        }
+                    })
+                    this.inputFormData = formData
+                },
+                immediate: true,
+                deep: true
             }
         },
         methods: {
