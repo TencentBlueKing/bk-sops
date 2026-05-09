@@ -18,7 +18,7 @@ import ujson as json
 from blueapps.account.decorators import login_exempt
 from cryptography.fernet import Fernet
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Value
 from django.http import JsonResponse
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -242,7 +242,9 @@ def get_job_instance_log(request, biz_cc_id):
     job_result = client.job.get_job_instance_log(log_kwargs)
 
     if not job_result["result"]:
-        message = _(f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}] 异常信息: {job_result['message']} | get_job_instance_log")
+        message = _(
+            f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}] 异常信息: {job_result['message']} | get_job_instance_log"
+        )
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -422,7 +424,9 @@ def preview_task_tree(request, project_id):
     try:
         data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id)
     except Exception as e:
-        message = _(f"任务数据请求失败: 请求任务数据发生异常: {e}. 请重试, 如多次失败可联系管理员处理 | preview_task_tree")
+        message = _(
+            f"任务数据请求失败: 请求任务数据发生异常: {e}. 请重试, 如多次失败可联系管理员处理 | preview_task_tree"
+        )
         logger.exception(message)
         return JsonResponse({"result": False, "message": message})
 
@@ -430,8 +434,8 @@ def preview_task_tree(request, project_id):
         project_id=project_id,
         template_id=str(template_id),
         template_source=template_source,
-        is_deleted=False,
-        is_child_taskflow=False,
+        is_deleted=Value(0),
+        is_child_taskflow=Value(0),
         pipeline_instance__is_started=True,
         pipeline_instance__isnull=False,
     ).aggregate(max_id=Max("id"))["max_id"]
@@ -451,8 +455,8 @@ def last_execution_constants(request, project_id):
         project_id=project_id,
         template_id=str(template_id),
         template_source=template_source,
-        is_deleted=False,
-        is_child_taskflow=False,
+        is_deleted=Value(0),
+        is_child_taskflow=Value(0),
         pipeline_instance__is_started=True,
         pipeline_instance__isnull=False,
     ).aggregate(max_id=Max("id"))["max_id"]
@@ -546,7 +550,9 @@ def get_node_log(request, project_id, node_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if not task.has_node(node_id):
-        message = _(f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log")
+        message = _(
+            f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "data": None, "message": message})
 
@@ -581,7 +587,9 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        message = _(f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback")
+        message = _(
+            f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "message": message}, status=400)
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest import mock
 
+from django.db.models import Value
 from django.test import TestCase
 
 from gcloud.taskflow3.apis.drf.viewsets.preview_task_tree import PreviewTaskTreeWithSchemesView
@@ -31,6 +32,11 @@ class PreviewTaskTreeWithSchemesLastExecutionTest(TestCase):
         self.assertTrue(response.data["result"])
         self.assertEqual(response.data["data"]["last_execution_id"], 888)
         mock_filter.return_value.aggregate.assert_called_once()
+        filter_kwargs = mock_filter.call_args[1]
+        self.assertIsInstance(filter_kwargs["is_deleted"], Value)
+        self.assertIsInstance(filter_kwargs["is_child_taskflow"], Value)
+        self.assertEqual(filter_kwargs["is_deleted"].value, 0)
+        self.assertEqual(filter_kwargs["is_child_taskflow"].value, 0)
 
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.preview_template_tree_with_schemes")
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.CommonTemplate.objects.get")
