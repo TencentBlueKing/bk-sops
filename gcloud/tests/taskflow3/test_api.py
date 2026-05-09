@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from copy import deepcopy
 
+from django.db.models import Value
 from django.test import Client, TestCase
 from pipeline.utils.uniqid import node_uniqid
 
@@ -116,6 +117,13 @@ class APITest(TestCase):
         self.PREVIEW_TASK_TREE_URL = "/taskflow/api/preview_task_tree/{biz_cc_id}/"
         self.client = Client()
 
+    def assert_last_execution_boolean_filters(self, mock_filter):
+        filter_kwargs = mock_filter.call_args[1]
+        self.assertIsInstance(filter_kwargs["is_deleted"], Value)
+        self.assertIsInstance(filter_kwargs["is_child_taskflow"], Value)
+        self.assertEqual(filter_kwargs["is_deleted"].value, 0)
+        self.assertEqual(filter_kwargs["is_child_taskflow"].value, 0)
+
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
     def test_preview_task_tree__constants_not_referred(self, mock_filter):
@@ -193,6 +201,7 @@ class APITest(TestCase):
             self.assertTrue(result["result"])
             self.assertEqual(result["data"]["last_execution_id"], 999)
             mock_filter.return_value.aggregate.assert_called_once()
+            self.assert_last_execution_boolean_filters(mock_filter)
 
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
@@ -263,6 +272,7 @@ class APITest(TestCase):
         self.assertEqual(returned_ip["name"], "目标IP")
         self.assertEqual(returned_ip["custom_type"], "input")
         mock_filter.return_value.aggregate.assert_called_once()
+        self.assert_last_execution_boolean_filters(mock_filter)
         mock_select_related.assert_called_once_with("pipeline_instance")
         mock_select_related.return_value.get.assert_called_once_with(id=123)
 
