@@ -17,6 +17,7 @@ from cryptography.fernet import Fernet
 from django.test import TestCase
 
 import env
+from gcloud.utils.callback_security import verify_and_split_token
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 from gcloud.conf import settings
 
@@ -29,20 +30,26 @@ class UtilsTestCase(TestCase):
         f = Fernet(settings.CALLBACK_KEY)
         expect_prefix = "%staskflow/api/v4/nodes/callback" % env.BKAPP_INNER_CALLBACK_HOST
         url = get_node_callback_url(root_pipeline_id=root_pipeline_id, node_id=node_id)
-        actual_prefix, token = url[:-1].rsplit("/", 1)
+        actual_prefix, signed_token = url[:-1].rsplit("/", 1)
         self.assertEqual(expect_prefix, actual_prefix)
+        ok, token = verify_and_split_token(signed_token)
+        self.assertTrue(ok)
         self.assertEqual("root_pipeline_id:1:{}:".format(node_id), f.decrypt(bytes(token, encoding="utf8")).decode())
         url = get_node_callback_url(root_pipeline_id=root_pipeline_id, node_id=node_id, node_version=node_version)
-        actual_prefix, token = url[:-1].rsplit("/", 1)
+        actual_prefix, signed_token = url[:-1].rsplit("/", 1)
         self.assertEqual(expect_prefix, actual_prefix)
+        ok, token = verify_and_split_token(signed_token)
+        self.assertTrue(ok)
         self.assertEqual(
             "root_pipeline_id:2:{}:{}".format(node_id, node_version), f.decrypt(bytes(token, encoding="utf8")).decode()
         )
 
         with mock.patch("gcloud.conf.settings.RUN_MODE", "PRODUCT"):
             url = get_node_callback_url(root_pipeline_id=root_pipeline_id, node_id=node_id)
-            actual_prefix, token = url[:-1].rsplit("/", 1)
+            actual_prefix, signed_token = url[:-1].rsplit("/", 1)
             self.assertEqual(expect_prefix, actual_prefix)
+            ok, token = verify_and_split_token(signed_token)
+            self.assertTrue(ok)
             self.assertEqual(
                 "root_pipeline_id:1:{}:".format(node_id), f.decrypt(bytes(token, encoding="utf8")).decode()
             )
