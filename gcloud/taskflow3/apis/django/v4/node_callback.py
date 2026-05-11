@@ -31,7 +31,6 @@ from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.celery.tasks import async_node_callback_retry, is_schedule_not_found_error, is_sleep_process_error
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.utils.callback_security import verify_and_split_token
 
 iam = get_iam_client()
 
@@ -45,22 +44,9 @@ logger = logging.getLogger("root")
 def node_callback(request, token):
     logger.info("[node_callback]callback body for token({}): {}".format(token, request.body))
 
-    # HMAC 二次签名校验，通过后拆出原始 Fernet token
-    ok, fernet_token = verify_and_split_token(token)
-    if not ok:
-        logger.warning("[node_callback] invalid signed token %s", token)
-        return JsonResponse({"result": False, "message": "invalid token"}, status=400)
-
     try:
         f = Fernet(settings.CALLBACK_KEY)
-        # 增加 TTL 校验，利用 Fernet 内置时间戳
-        ttl = getattr(settings, "NODE_CALLBACK_TOKEN_TTL", None)
-        raw = (
-            f.decrypt(bytes(fernet_token, encoding="utf8"), ttl=ttl)
-            if ttl
-            else f.decrypt(bytes(fernet_token, encoding="utf8"))
-        )
-        back_load = raw.decode().split(":")
+        back_load = f.decrypt(bytes(token, encoding="utf8")).decode().split(":")
 
         # 不带 root_pipeline_id 的回调 payload
         if len(back_load) == 3:
@@ -76,7 +62,6 @@ def node_callback(request, token):
             )
         else:
             logger.error("invalid backload: %s" % back_load)
-            return JsonResponse({"result": False, "message": "invalid token"}, status=400)
     except Exception:
         logger.warning("invalid token %s" % token)
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)

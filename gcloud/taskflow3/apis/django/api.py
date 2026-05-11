@@ -73,7 +73,6 @@ from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance, TimeoutNodeConfig
 from gcloud.taskflow3.utils import extract_nodes_by_statuses, fetch_node_id__auto_retry_info_map
-from gcloud.utils.callback_security import verify_and_split_token
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.throttle import check_task_operation_throttle, get_task_operation_frequence
 from pipeline_web.preview import preview_template_tree
@@ -533,22 +532,14 @@ def node_callback(request, token):
     """
     logger.info("[old_node_callback]callback body for token({}): {}".format(token, request.body))
 
-    # HMAC 二次签名校验，通过后拆出原始 Fernet token
-    ok, fernet_token = verify_and_split_token(token)
-    if not ok:
-        logger.warning("[node_callback] invalid signed token %s", token)
-        return JsonResponse({"result": False, "message": "invalid token"}, status=400)
-
     try:
         f = Fernet(settings.CALLBACK_KEY)
-        # 旧入口同样启用 TTL 校验，避免历史 token 永久有效
-        ttl = getattr(settings, "NODE_CALLBACK_TOKEN_TTL", None)
-        fernet_token_bytes = fernet_token.encode("utf-8")
-        node_id = (f.decrypt(fernet_token_bytes, ttl=ttl) if ttl else f.decrypt(fernet_token_bytes)).decode()
+        node_id = f.decrypt(bytes(token, encoding="utf8")).decode()
     except Exception:
         logger.warning("invalid token %s" % token)
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)
 
+    # 老的回调接口，一定是老引擎的接口
     try:
         callback_data = json.loads(request.body)
     except Exception:

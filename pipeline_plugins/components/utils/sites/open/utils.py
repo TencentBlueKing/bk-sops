@@ -24,7 +24,6 @@ from pipeline.models import PipelineInstance
 import env
 from gcloud.conf import settings
 from gcloud.core.models import EngineConfig
-from gcloud.utils.callback_security import sign_callback_token
 from gcloud.utils import cmdb
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex, get_ipv6_and_cloud_id_from_ipv6_cloud_str
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
@@ -459,12 +458,12 @@ def get_node_callback_url(root_pipeline_id, node_id, node_version=""):
     callback_entry = (
         env.BKAPP_INNER_CALLBACK_ENTRY or env.BKAPP_INNER_CALLBACK_HOST + "taskflow/api/v4/nodes/callback/%s/"
     )
-    fernet_token = f.encrypt(
-        bytes("{}:{}:{}:{}".format(root_pipeline_id, engine_ver, node_id, node_version), encoding="utf8")
-    ).decode()
-
-    signed_token = sign_callback_token(fernet_token)
-    return callback_entry % signed_token
+    return (
+        callback_entry
+        % f.encrypt(
+            bytes("{}:{}:{}:{}".format(root_pipeline_id, engine_ver, node_id, node_version), encoding="utf8")
+        ).decode()
+    )
 
 
 def get_job_task_name(root_pipeline_id, node_id):

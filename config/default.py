@@ -522,18 +522,10 @@ for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
 
-from django.core.exceptions import ImproperlyConfigured  # noqa: E402
-
-# HMAC 二次签名密钥校验：必须存在且与 CALLBACK_KEY 不相同，避免单点密钥失陷
-CALLBACK_SIGN_SECRET = env.BKAPP_CALLBACK_SIGN_SECRET.encode("utf-8") if env.BKAPP_CALLBACK_SIGN_SECRET else b""
-if not CALLBACK_SIGN_SECRET:
-    raise ImproperlyConfigured(
-        "[node_callback] 环境变量 BKAPP_CALLBACK_SIGN_SECRET 未配置，" "请生成不少于 32 字节的随机字符串并通过环境变量注入后再启动服务。"
-    )
-if CALLBACK_SIGN_SECRET == CALLBACK_KEY:
-    raise ImproperlyConfigured("[node_callback] BKAPP_CALLBACK_SIGN_SECRET 不允许与 BKAPP_CALLBACK_KEY 相同，" "请使用两组独立的随机密钥。")
-
-NODE_CALLBACK_TOKEN_TTL = env.BKAPP_NODE_CALLBACK_TOKEN_TTL
+# 若用户通过环境变量配置了 BKAPP_CALLBACK_KEY，则覆盖 ver_settings 中的默认值；
+# 未配置时沿用 ver_settings 内置的默认密钥（仅建议本地开发使用，生产部署请务必显式配置）
+if env.BKAPP_CALLBACK_KEY:
+    CALLBACK_KEY = env.BKAPP_CALLBACK_KEY.encode("utf-8")
 
 # version log config
 VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True, "LANGUAGE_MAPPINGS": {"en": "en"}}
