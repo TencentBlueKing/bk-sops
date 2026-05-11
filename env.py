@@ -58,6 +58,12 @@ BK_NODE_LOG_PERSISTENT_DAYS = int(os.getenv("BKAPP_NODE_LOG_PERSISTENT_DAYS", 30
 # CALLBACK 回调入口，处理走网关回调的场景
 BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 
+# node_callback 相关安全配置
+# 用于 callback token 二次 HMAC 签名的独立密钥（与 BKAPP_CALLBACK_KEY 必须不同）
+BKAPP_CALLBACK_SIGN_SECRET = os.getenv("BKAPP_CALLBACK_SIGN_SECRET", "")
+# callback token 有效期（秒），默认 7 天
+BKAPP_NODE_CALLBACK_TOKEN_TTL = int(os.getenv("BKAPP_NODE_CALLBACK_TOKEN_TTL", 7 * 24 * 3600))
+
 # 网关管理员
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
 
