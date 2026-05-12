@@ -132,7 +132,7 @@
                                     type="number"
                                     :placeholder="' '"
                                     :disabled="isViewMode || !formData.autoRetry.enable"
-                                    :max="10"
+                                    :max="60"
                                     :min="0"
                                     :precision="0"
                                     @change="updateData">
@@ -347,7 +347,7 @@
                                         type="number"
                                         :placeholder="' '"
                                         :disabled="isViewMode || !formData.autoRetry.enable"
-                                        :max="10"
+                                        :max="60"
                                         :min="0"
                                         :precision="0"
                                         @change="updateData">
