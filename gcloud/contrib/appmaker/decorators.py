@@ -14,11 +14,16 @@ specific language governing permissions and limitations under the License.
 from functools import wraps
 
 from django.http import HttpResponseForbidden
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.contrib.appmaker.models import AppMaker
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+
+iam = get_iam_client()
 
 
-def check_db_object_exists(model):
+def check_db_object_exists(model, iam_action=None):
     """
     @summary 请求的DB数据是否存在
     @return:
@@ -30,9 +35,18 @@ def check_db_object_exists(model):
             project_id = kwargs.get("project_id")
             if model == "AppMaker":
                 app_id = kwargs.get("app_id")
-                if not AppMaker.objects.filter(pk=app_id, project_id=project_id, is_deleted=False).exists():
+                app_maker = AppMaker.objects.filter(pk=app_id, project_id=project_id, is_deleted=False).first()
+                if not app_maker:
                     # return HttpResponseNotFound() 返回404不能显示404.html
                     return HttpResponseForbidden()
+                if iam_action:
+                    allow_or_raise_auth_failed(
+                        iam=iam,
+                        system=IAMMeta.SYSTEM_ID,
+                        subject=Subject("user", request.user.username),
+                        action=Action(iam_action),
+                        resources=res_factory.resources_for_mini_app_obj(app_maker),
+                    )
             return view_func(request, *args, **kwargs)
 
         return _wrapped_view
