@@ -58,6 +58,11 @@ BK_NODE_LOG_PERSISTENT_DAYS = int(os.getenv("BKAPP_NODE_LOG_PERSISTENT_DAYS", 30
 # CALLBACK 回调入口，处理走网关回调的场景
 BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 
+# node_callback 相关安全配置
+# 用于 callback token 加解密的 Fernet 密钥（URL-safe base64 编码的 32 字节随机串）
+# 配置后将覆盖 ver_settings 中的默认 CALLBACK_KEY；未配置则沿用代码内置默认值（仅建议用于本地开发）
+BKAPP_CALLBACK_KEY = os.getenv("BKAPP_CALLBACK_KEY", "")
+
 # 网关管理员
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
 

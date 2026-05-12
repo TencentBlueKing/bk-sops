@@ -539,6 +539,7 @@ def node_callback(request, token):
         logger.warning("invalid token %s" % token)
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)
 
+    # 老的回调接口，一定是老引擎的接口
     try:
         callback_data = json.loads(request.body)
     except Exception:

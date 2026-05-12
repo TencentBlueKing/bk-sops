@@ -522,6 +522,11 @@ for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
 
+# 若用户通过环境变量配置了 BKAPP_CALLBACK_KEY，则覆盖 ver_settings 中的默认值；
+# 未配置时沿用 ver_settings 内置的默认密钥（仅建议本地开发使用，生产部署请务必显式配置）
+if env.BKAPP_CALLBACK_KEY:
+    CALLBACK_KEY = env.BKAPP_CALLBACK_KEY.encode("utf-8")
+
 # version log config
 VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True, "LANGUAGE_MAPPINGS": {"en": "en"}}
 

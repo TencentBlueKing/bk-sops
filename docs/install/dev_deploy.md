@@ -53,7 +53,21 @@ export BKAPP_API_JWT_EXEMPT="1"
 export BKAPP_IAM_SKIP="True"
 export BK_IAM_HOST="{开发环境 权限中心 域名}"
 ```
-注意：如果启动项目、登录成功后，转发《标准运维》页面失败，请给{开发环境PAAS域名}添加http协议
+注意：如果启动项目、登录成功后，转发《标准运维》页面失败，请给 `{开发环境 PAAS 域名}` 添加 http 协议
+
+
+2) 可选环境变量配置
+
+支持通过环境变量自定义以下密钥配置，若未配置则使用默认值：
+
+| 环境变量 | 说明 |
+| --- | --- |
+| `CALLBACK_KEY` | 回调安全校验密钥 |
+| `RSA_PUB_KEY` | RSA 公钥 |
+| `RSA_PRIV_KEY` | RSA 私钥 |
+| `SM2_PUB_KEY` | SM2 公钥 |
+| `SM2_PRIV_KEY` | SM2 私钥 |
+
 
 2) 在项目根目录下添加本地配置 local_settings.py
 
