@@ -785,8 +785,10 @@
                     this.isUpdatePipelineTree = true
                     const { id, version } = this.templateData
                     await this.getPreviewNodeData(id, version, true, true)
-                    this.selectedNodes = Object.keys(this.updatedPipelineData.activities)
-                    this.templateData.pipeline_tree = this.updatedPipelineData
+                    if (this.updatedPipelineData && this.updatedPipelineData.activities) {
+                        this.selectedNodes = Object.keys(this.updatedPipelineData.activities)
+                        this.templateData.pipeline_tree = this.updatedPipelineData
+                    }
                     this.formData.is_latest = true
                     this.$bkMessage({
                         'message': i18n.t('流程更新成功'),
