@@ -14,7 +14,6 @@ import templateList from './templateList.js'
 import task from './task.js'
 import taskList from './taskList.js'
 import atomForm from './atomForm.js'
-import atomDev from './atomDev.js'
 import appmaker from './appmaker'
 import project from './project'
 import functionTask from './function.js'
@@ -31,7 +30,6 @@ const modules = {
     task,
     taskList,
     atomForm,
-    atomDev,
     appmaker,
     functionTask,
     auditTask,
