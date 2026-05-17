@@ -52,6 +52,7 @@
                 items: [
                     {"name": gettext("LINUX"), "value": "linux"},
                     {"name": gettext("WINDOWS"), "value": "windows"},
+                    {"name": gettext("DARWIN"), "value": "darwin"},
                 ],
                 default: "linux",
                 validation: [
