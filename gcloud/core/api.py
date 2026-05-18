@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import keyword
 import logging
 import re
@@ -30,6 +31,7 @@ from gcloud.core import roles
 from gcloud.core.api_adapter import get_all_users
 from gcloud.core.footer import FOOTER, FOOTER_INFO
 from gcloud.core.models import ProjectCounter, UserDefaultProject
+from gcloud.iam_auth.utils import get_user_projects
 from gcloud.openapi.schema import AnnotationAutoSchema
 
 logger = logging.getLogger("root")
@@ -43,6 +45,9 @@ def change_default_project(request, project_id):
     """
     @summary: 切换用户默认项目
     """
+    if not get_user_projects(request.user.username).filter(id=project_id, is_disable=False).exists():
+        return JsonResponse({"result": False, "data": {}, "message": _("用户无权限访问该项目")})
+
     UserDefaultProject.objects.update_or_create(
         username=request.user.username, defaults={"default_project_id": project_id}
     )
