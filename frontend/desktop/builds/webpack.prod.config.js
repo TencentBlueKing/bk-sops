@@ -17,7 +17,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const TerserPlugin = require('terser-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const webpackBaseConfig = require('./webpack.base.js')
-const CopyPlugin = require('copy-webpack-plugin')
 
 // const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
 
@@ -80,18 +79,17 @@ module.exports = merge(webpackBaseConfig, {
             template: './src/assets/html/index.html',
             filename: path.posix.join('index.html')
         }),
+        new HtmlWebpackPlugin({
+            template: './src/assets/html/login_success.html',
+            filename: path.posix.join('login_success.html'),
+            inject: false
+        }),
         // 只打 moment.js 中文包，减小体积
         new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /zh-cn/),
         new MiniCssExtractPlugin({
             filename: 'css/[name].[contenthash:10].css',
             ignoreOrder: true
-        }),
-        new CopyPlugin([
-            {
-                from: path.resolve(__dirname, '../src/assets/html/login_success.html'),
-                to: path.resolve(__dirname, '../static/')
-            }
-        ])
+        })
         // new BundleAnalyzerPlugin()
     ],
     optimization: {

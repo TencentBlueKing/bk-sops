@@ -77,7 +77,6 @@
     "case-sensitive-paths-webpack-plugin": "^2.3.0",
     "chokidar": "^3.2.2",
     "clean-webpack-plugin": "^0.1.19",
-    "copy-webpack-plugin": "^4.6.0",
     "core-js": "^3.10.2",
     "cross-env": "^5.1.6",
     "css-loader": "^6.10.0",
