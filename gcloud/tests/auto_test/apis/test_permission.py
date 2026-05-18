@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
+import importlib
+import os
+import sys
+import types
 import unittest
+from unittest.mock import patch
 
 from django.conf import settings
+from django.core.exceptions import FieldDoesNotExist
 from django.test import override_settings
 from rest_framework.exceptions import AuthenticationFailed, PermissionDenied
 
@@ -10,6 +16,7 @@ if not settings.configured:
         AUTO_TEST_ENABLE=False,
         AUTO_TEST_SECRET_KEY="",
         AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS=600,
+        DATABASES={"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": ":memory:"}},
     )
 
 from gcloud.auto_test.apis.permission import (
@@ -20,6 +27,22 @@ from gcloud.auto_test.apis.permission import (
     generate_token,
     is_auto_test_enabled,
 )
+
+_drf_yasg_utils = types.ModuleType("drf_yasg.utils")
+_drf_yasg_utils.swagger_auto_schema = lambda *args, **kwargs: lambda func: func
+_drf_yasg = types.ModuleType("drf_yasg")
+_drf_yasg.utils = _drf_yasg_utils
+_gcloud_core_viewsets = types.ModuleType("gcloud.core.apis.drf.viewsets")
+_gcloud_core_viewsets.ApiMixin = object
+with patch.dict(
+    sys.modules,
+    {
+        "drf_yasg": _drf_yasg,
+        "drf_yasg.utils": _drf_yasg_utils,
+        "gcloud.core.apis.drf.viewsets": _gcloud_core_viewsets,
+    },
+):
+    from gcloud.auto_test.apis.mixin import BatchDeleteMixin
 
 
 class AutoTestPermissionTestCase(unittest.TestCase):
@@ -79,6 +102,54 @@ class AutoTestPermissionTestCase(unittest.TestCase):
             self.assertTrue(TestTokenPermission().has_permission(request=valid_request, view=valid_scope_view))
 
 
+class AutoTestBatchDeleteTestCase(unittest.TestCase):
+    def test_batch_delete_uses_soft_delete_when_model_has_is_deleted_field(self):
+        queryset = _QuerySet(field_names={"is_deleted"})
+        view = _BatchDeleteView(queryset=queryset)
+
+        response = view.batch_delete(_Request(headers={}, data={"ids_list": [1, 2]}))
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(queryset.filter_calls, [{"id__in": [1, 2]}])
+        self.assertEqual(queryset.update_calls, [{"is_deleted": True}])
+        self.assertEqual(queryset.delete_call_count, 0)
+
+    def test_batch_delete_hard_deletes_only_when_model_has_no_is_deleted_field(self):
+        queryset = _QuerySet(field_names=set())
+        view = _BatchDeleteView(queryset=queryset)
+
+        response = view.batch_delete(_Request(headers={}, data={"ids_list": [1, 2]}))
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(queryset.update_calls, [])
+        self.assertEqual(queryset.delete_call_count, 1)
+
+    def test_batch_delete_does_not_fallback_to_hard_delete_when_soft_delete_fails(self):
+        queryset = _QuerySet(field_names={"is_deleted"}, update_exception=RuntimeError("db error"))
+        view = _BatchDeleteView(queryset=queryset)
+
+        with self.assertRaises(RuntimeError):
+            view.batch_delete(_Request(headers={}, data={"ids_list": [1, 2]}))
+
+        self.assertEqual(queryset.update_calls, [{"is_deleted": True}])
+        self.assertEqual(queryset.delete_call_count, 0)
+
+
+class AutoTestEnvTestCase(unittest.TestCase):
+    def test_invalid_token_max_expire_seconds_falls_back_to_default(self):
+        dummy_env_v2 = types.ModuleType("env_v2")
+        dummy_env_v2.json = __import__("json")
+
+        with patch.dict(sys.modules, {"env_v2": dummy_env_v2}):
+            with patch.dict(os.environ, {"BKAPP_AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS": "disabled"}):
+                sys.modules.pop("env", None)
+
+                env = importlib.import_module("env")
+
+        self.assertEqual(env.AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS, 600)
+        sys.modules.pop("env", None)
+
+
 class _Request:
     def __init__(self, headers, data=None):
         self.headers = headers
@@ -89,3 +160,44 @@ class _View:
     def __init__(self, **attrs):
         for key, value in attrs.items():
             setattr(self, key, value)
+
+
+class _BatchDeleteView(BatchDeleteMixin):
+    def __init__(self, queryset):
+        self.queryset = queryset
+
+
+class _QuerySet:
+    def __init__(self, field_names, update_exception=None):
+        self.model = _Model(field_names)
+        self.update_exception = update_exception
+        self.filter_calls = []
+        self.update_calls = []
+        self.delete_call_count = 0
+
+    def filter(self, **kwargs):
+        self.filter_calls.append(kwargs)
+        return self
+
+    def update(self, **kwargs):
+        self.update_calls.append(kwargs)
+        if self.update_exception:
+            raise self.update_exception
+
+    def delete(self):
+        self.delete_call_count += 1
+
+
+class _Model:
+    def __init__(self, field_names):
+        self._meta = _Meta(field_names)
+
+
+class _Meta:
+    def __init__(self, field_names):
+        self.field_names = field_names
+
+    def get_field(self, name):
+        if name not in self.field_names:
+            raise FieldDoesNotExist(name)
+        return name

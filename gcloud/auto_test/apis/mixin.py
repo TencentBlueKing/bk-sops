@@ -12,6 +12,8 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.core.exceptions import FieldDoesNotExist
+from django.db import transaction
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -24,6 +26,14 @@ from .authentication import CsrfExemptSessionAuthentication
 from .permission import EnablePermission, TestTokenPermission
 
 logger = logging.getLogger("root")
+
+
+def _queryset_has_field(queryset, field_name):
+    try:
+        queryset.model._meta.get_field(field_name)
+    except FieldDoesNotExist:
+        return False
+    return True
 
 
 class BaseAutoTestMixin(ApiMixin):
@@ -54,10 +64,11 @@ class BatchDeleteMixin(AutoTestMixin):
                 raise ValidationError({"project_id": "当前资源批量删除必须传入项目ID"})
             target_queryset = target_queryset.filter(project_id=project_id)
 
-        try:
-            target_queryset.update(is_deleted=True)
-            logger.info(f"自动化测试({self.__doc__})使用(update)批量删除了{ids_list}")
-        except Exception:  # noqa
-            target_queryset.delete()
-            logger.info(f"自动化测试({self.__doc__})使用(delete)批量删除了{ids_list}")
+        with transaction.atomic():
+            if _queryset_has_field(target_queryset, "is_deleted"):
+                target_queryset.update(is_deleted=True)
+                logger.info(f"自动化测试({self.__doc__})使用(update)批量删除了{ids_list}")
+            else:
+                target_queryset.delete()
+                logger.info(f"自动化测试({self.__doc__})使用(delete)批量删除了{ids_list}")
         return Response(status=204)

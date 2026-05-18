@@ -23,6 +23,18 @@ if IS_OPEN_V3:
 else:
     from env_v2 import *  # noqa
 
+
+def _get_int_env(name, default):
+    value = os.getenv(name)
+    if value in (None, ""):
+        return default
+
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 # 蓝鲸监控自定义上报配置
 BK_MONITOR_REPORT_ENABLE = int(os.getenv("MONITOR_REPORT_ENABLE", 0)) == 1
 BK_MONITOR_REPORT_URL = os.getenv("MONITOR_REPORT_URL")
@@ -182,7 +194,7 @@ ALLOWED_LIMITED_API_APPS = [app for app in os.getenv("BKAPP_ALLOWED_LIMITED_API_
 # 自动化测试辅助接口配置
 AUTO_TEST_ENABLE = os.getenv("BKAPP_AUTO_TEST_ENABLE", "").strip().lower() in {"1", "true", "yes", "on"}
 AUTO_TEST_SECRET_KEY = os.getenv("BKAPP_AUTO_TEST_SECRET_KEY", "").strip()
-AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS = int(os.getenv("BKAPP_AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS", 600))
+AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS = _get_int_env("BKAPP_AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS", 600)
 
 # 报错联系助手链接
 MESSAGE_HELPER_URL = os.getenv("BKAPP_MESSAGE_HELPER_URL", "")
