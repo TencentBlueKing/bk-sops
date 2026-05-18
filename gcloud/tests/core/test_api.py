@@ -96,6 +96,22 @@ class CommonProjectViewSetTestCase(TestCase):
         project_ids = {item["project"]["id"] for item in response.data["data"]["results"]}
         self.assertEqual(project_ids, {self.allowed_project.id})
 
+    def test_list_initializes_common_projects_with_single_user_project_lookup(self):
+        ProjectCounter.objects.all().delete()
+        request = self.factory.get("/api/v3/common_project/")
+        request.user = SimpleNamespace(username=self.username, is_authenticated=True, is_active=True)
+        view = CommonProjectViewSet.as_view({"get": "list"})
+
+        with patch(
+            "gcloud.core.apis.drf.viewsets.common_project.get_user_projects",
+            return_value=Project.objects.filter(id=self.allowed_project.id),
+        ) as mock_get_user_projects:
+            response = view(request)
+
+        project_ids = {item["project"]["id"] for item in response.data["data"]["results"]}
+        self.assertEqual(project_ids, {self.allowed_project.id})
+        self.assertEqual(mock_get_user_projects.call_count, 1)
+
 
 class GetDefaultProjectForUserTestCase(TestCase):
     def setUp(self):

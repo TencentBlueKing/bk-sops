@@ -38,14 +38,13 @@ class CommonProjectViewSet(GcloudListViewSet):
     filterset_class = CommonProjectFilter
 
     @staticmethod
-    def get_default_projects(username):
+    def get_default_projects(username, projects=None):
         """初始化并返回用户有权限的项目"""
 
-        projects = get_user_projects(username)
-        if not projects:
+        projects = projects if projects is not None else get_user_projects(username)
+        project_ids = list(projects.values_list("id", flat=True))
+        if not project_ids:
             return ProjectCounter.objects.none()
-
-        project_ids = projects.values_list("id", flat=True)
 
         # 初始化用户有权限的项目
         ProjectCounter.objects.bulk_create(
@@ -55,12 +54,13 @@ class CommonProjectViewSet(GcloudListViewSet):
         return ProjectCounter.objects.filter(username=username, project_id__in=project_ids, project__is_disable=False)
 
     def list(self, request, *args, **kwargs):
-        user_project_ids = get_user_projects(request.user.username).values_list("id", flat=True)
+        user_projects = get_user_projects(request.user.username)
+        user_project_ids = user_projects.values_list("id", flat=True)
         self.queryset = self.queryset.filter(
             username=request.user.username, project_id__in=user_project_ids, project__is_disable=False
         )
 
         # 第一次访问或无被授权的项目
         if not self.queryset.exists():
-            self.queryset = self.get_default_projects(request.user.username)
+            self.queryset = self.get_default_projects(request.user.username, user_projects)
         return super(CommonProjectViewSet, self).list(request, *args, **kwargs)
