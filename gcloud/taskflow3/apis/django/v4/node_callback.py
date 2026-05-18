@@ -22,18 +22,12 @@ from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 
 import env
 from gcloud.core.trace import CallFrom, start_trace
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.taskflow3.celery.tasks import async_node_callback_retry, is_schedule_not_found_error, is_sleep_process_error
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
-
-iam = get_iam_client()
-
 
 logger = logging.getLogger("root")
 
@@ -62,6 +56,7 @@ def node_callback(request, token):
             )
         else:
             logger.error("invalid backload: %s" % back_load)
+            return JsonResponse({"result": False, "message": "invalid token"}, status=400)
     except Exception:
         logger.warning("invalid token %s" % token)
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)
@@ -80,11 +75,6 @@ def node_callback(request, token):
         if qs.exists():
             taskflow_id = qs[0]["id"]
             project_id = qs[0]["project_id"]
-
-    subject = Subject("user", request.user.username)
-    action = Action(IAMMeta.TASK_OPERATE_ACTION)
-    resources = res_factory.resources_for_task(taskflow_id)
-    allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
 
     dispatchers = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=taskflow_id)
 
