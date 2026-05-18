@@ -12,44 +12,33 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
-from mock import MagicMock
-from pipeline.component_framework.test import (
-    CallAssertion,
-    ComponentTestCase,
-    ComponentTestMixin,
-    ExecuteAssertion,
-    Patcher,
-    ScheduleAssertion,
-)
+from mock import MagicMock, patch
 
-from pipeline_plugins.components.collections.common import HttpComponent
+from pipeline_plugins.components.collections.common import HttpRequestService
 
 
-class LegacyHttpComponentValidateTestCase(TestCase, ComponentTestMixin):
-    def cases(self):
-        return [HTTP_CALL_REQUEST_VALIDATE_CASE]
+class LegacyHttpComponentValidateTestCase(TestCase):
+    def test_domain_validator_rejects_request_before_http_call(self):
+        data = MagicMock()
+        data.get_one_of_inputs.side_effect = {
+            "bk_http_request_method": "GET",
+            "bk_http_request_url": "http://127.0.0.1",
+            "bk_http_request_body": "",
+        }.get
+        data.outputs = {}
+        data.set_outputs.side_effect = data.outputs.__setitem__
 
-    def component_cls(self):
-        return HttpComponent
+        parent_data = MagicMock()
+        parent_data.get_one_of_inputs.return_value = None
 
+        with patch(
+            "pipeline_plugins.components.collections.common.DomainValidator.validate",
+            return_value=(False, ["bk.example.com"]),
+        ), patch("pipeline_plugins.components.collections.common.requests.request") as request:
+            service = HttpRequestService()
+            service.logger = MagicMock()
+            result = service.plugin_schedule(data, parent_data)
 
-HTTP_REQUEST = "pipeline_plugins.components.collections.common.requests.request"
-HTTP_VALIDATE = "pipeline_plugins.components.collections.common.DomainValidator.validate"
-
-
-HTTP_CALL_REQUEST_VALIDATE_CASE = ComponentTestCase(
-    name="legacy http call request validate error case",
-    inputs={
-        "bk_http_request_method": "GET",
-        "bk_http_request_url": "http://127.0.0.1",
-        "bk_http_request_body": "",
-    },
-    parent_data={},
-    execute_assertion=ExecuteAssertion(success=True, outputs={}),
-    schedule_assertion=ScheduleAssertion(success=False, outputs={"ex_data": "仅允许访问域名(bk.example.com)下的URL"}),
-    schedule_call_assertion=[CallAssertion(func=HTTP_REQUEST, calls=[])],
-    patchers=[
-        Patcher(target=HTTP_VALIDATE, return_value=(False, ["bk.example.com"])),
-        Patcher(target=HTTP_REQUEST, return_value=MagicMock()),
-    ],
-)
+        self.assertFalse(result)
+        self.assertEqual(data.outputs["ex_data"], "仅允许访问域名(bk.example.com)下的URL")
+        request.assert_not_called()
