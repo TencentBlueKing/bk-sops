@@ -10,14 +10,14 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import permissions
 
-from gcloud.core.models import ProjectCounter
-from gcloud.iam_auth.utils import get_user_projects
+from rest_framework import permissions
 
 from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
 from gcloud.core.apis.drf.serilaziers import CommonProjectSerializer
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet
+from gcloud.core.models import ProjectCounter
+from gcloud.iam_auth.utils import get_user_projects
 
 
 class CommonProjectFilter(AllLookupSupportFilterSet):
@@ -38,14 +38,13 @@ class CommonProjectViewSet(GcloudListViewSet):
     filterset_class = CommonProjectFilter
 
     @staticmethod
-    def get_default_projects(username):
+    def get_default_projects(username, projects=None):
         """初始化并返回用户有权限的项目"""
 
-        projects = get_user_projects(username)
-        if not projects:
+        projects = projects if projects is not None else get_user_projects(username)
+        project_ids = list(projects.values_list("id", flat=True))
+        if not project_ids:
             return ProjectCounter.objects.none()
-
-        project_ids = projects.values_list("id", flat=True)
 
         # 初始化用户有权限的项目
         ProjectCounter.objects.bulk_create(
@@ -55,9 +54,13 @@ class CommonProjectViewSet(GcloudListViewSet):
         return ProjectCounter.objects.filter(username=username, project_id__in=project_ids, project__is_disable=False)
 
     def list(self, request, *args, **kwargs):
-        self.queryset = self.queryset.filter(username=request.user.username, project__is_disable=False)
+        user_projects = get_user_projects(request.user.username)
+        user_project_ids = user_projects.values_list("id", flat=True)
+        self.queryset = self.queryset.filter(
+            username=request.user.username, project_id__in=user_project_ids, project__is_disable=False
+        )
 
         # 第一次访问或无被授权的项目
         if not self.queryset.exists():
-            self.queryset = self.get_default_projects(request.user.username)
+            self.queryset = self.get_default_projects(request.user.username, user_projects)
         return super(CommonProjectViewSet, self).list(request, *args, **kwargs)
