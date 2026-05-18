@@ -16,8 +16,9 @@ import logging
 import os
 import re
 
+import pytz
 from django.conf import settings
-from django.utils import timezone, translation
+from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
@@ -112,7 +113,7 @@ class SleepTimerService(BasePluginService):
         # 项目时区获取
         project = Project.objects.get(id=parent_data.inputs.project_id)
 
-        project_tz = timezone.pytz.timezone(project.time_zone)
+        project_tz = pytz.timezone(project.time_zone)
         data.outputs.business_tz = project_tz
 
         now = datetime.datetime.now(tz=project_tz)
