@@ -713,7 +713,11 @@
                                 source: "nodemgr_operation_type",
                                 type: "change",
                                 action: function (value) {
-                                    is_upgrade_or_restart_op(this, value);
+                                    if (this.get_parent().get_child("nodemgr_force_restart").value === false) {
+                                        is_upgrade_or_restart_op(this, value);
+                                    } else {
+                                        this.hide();
+                                    }
                                 }
                             },
                             {
