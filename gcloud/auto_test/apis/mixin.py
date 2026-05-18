@@ -11,13 +11,17 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
+
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from gcloud.core.apis.drf.viewsets import ApiMixin
+
 from gcloud.auto_test.apis.serilaziers.common import IdsListSerializer
-from .permission import EnablePermission, TestTokenPermission
+from gcloud.core.apis.drf.viewsets import ApiMixin
+
 from .authentication import CsrfExemptSessionAuthentication
+from .permission import EnablePermission, TestTokenPermission
 
 logger = logging.getLogger("root")
 
@@ -32,6 +36,8 @@ class AutoTestMixin(BaseAutoTestMixin):
 
 
 class BatchDeleteMixin(AutoTestMixin):
+    auto_test_require_project_id = False
+
     @swagger_auto_schema(method="delete", request_body=IdsListSerializer, responses={204: None})
     @action(methods=["delete"], detail=False)
     def batch_delete(self, request, *args, **kwargs):
@@ -40,11 +46,18 @@ class BatchDeleteMixin(AutoTestMixin):
         body_serializer = IdsListSerializer(data=data)
         body_serializer.is_valid(raise_exception=True)
         ids_list = body_serializer.validated_data.get("ids_list")
+        project_id = body_serializer.validated_data.get("project_id")
+
+        target_queryset = self.queryset.filter(id__in=ids_list)
+        if self.auto_test_require_project_id:
+            if not project_id:
+                raise ValidationError({"project_id": "当前资源批量删除必须传入项目ID"})
+            target_queryset = target_queryset.filter(project_id=project_id)
 
         try:
-            self.queryset.filter(id__in=ids_list).update(is_deleted=True)
+            target_queryset.update(is_deleted=True)
             logger.info(f"自动化测试({self.__doc__})使用(update)批量删除了{ids_list}")
         except Exception:  # noqa
-            self.queryset.filter(id__in=ids_list).delete()
+            target_queryset.delete()
             logger.info(f"自动化测试({self.__doc__})使用(delete)批量删除了{ids_list}")
         return Response(status=204)

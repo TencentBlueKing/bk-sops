@@ -12,12 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from blueapps.account.decorators import login_exempt
 from django.utils.decorators import method_decorator
 
-from blueapps.account.decorators import login_exempt
 from gcloud.periodictask.models import PeriodicTask
 
 from ..mixin import BatchDeleteMixin
+from ..permission import AUTO_TEST_SCOPE_PERIODIC_TASK
 
 logger = logging.getLogger("root")
 
@@ -27,3 +28,5 @@ class PeriodicTaskViewSet(BatchDeleteMixin):
     """周期任务"""
 
     queryset = PeriodicTask.objects.all()
+    auto_test_scope = AUTO_TEST_SCOPE_PERIODIC_TASK
+    auto_test_require_project_id = True

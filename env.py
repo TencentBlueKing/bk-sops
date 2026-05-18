@@ -179,6 +179,11 @@ PERIODIC_TASK_ITERATION = int(os.getenv("PERIODIC_TASK_ITERATION", 10))
 # 支持限制接口的 app
 ALLOWED_LIMITED_API_APPS = [app for app in os.getenv("BKAPP_ALLOWED_LIMITED_API_APPS", "").split(",") if app]
 
+# 自动化测试辅助接口配置
+AUTO_TEST_ENABLE = os.getenv("BKAPP_AUTO_TEST_ENABLE", "").strip().lower() in {"1", "true", "yes", "on"}
+AUTO_TEST_SECRET_KEY = os.getenv("BKAPP_AUTO_TEST_SECRET_KEY", "").strip()
+AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS = int(os.getenv("BKAPP_AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS", 600))
+
 # 报错联系助手链接
 MESSAGE_HELPER_URL = os.getenv("BKAPP_MESSAGE_HELPER_URL", "")
 
