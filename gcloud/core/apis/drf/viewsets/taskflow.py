@@ -484,6 +484,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         serializer = self.get_serializer(instance)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, instance)
+        self._inject_template_related_info(request, [data])
         data["task_webhook_history"] = get_webhook_delivery_history_by_delivery_id(str(instance.id))
         bk_audit_add_event(
             username=request.user.username,
