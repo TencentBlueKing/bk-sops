@@ -16,6 +16,7 @@
             :scheme="formsScheme"
             :hooked="hooked"
             :constants="isSubflow ? subflowForms : constants"
+            :association-constants="constants"
             :form-option="option"
             :form-data="formData"
             :render-config="renderConfig"
