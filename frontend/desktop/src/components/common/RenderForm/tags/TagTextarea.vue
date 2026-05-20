@@ -107,8 +107,8 @@
             constantArr: {
                 get () {
                     let KeyList = []
-                    if (this.constants) {
-                        KeyList = [...Object.values(this.constants)]
+                    if (this.associationConstants) {
+                        KeyList = [...Object.values(this.associationConstants)]
                     }
                     if (this.internalVariable) {
                         KeyList = [...KeyList, ...Object.values(this.internalVariable)]
