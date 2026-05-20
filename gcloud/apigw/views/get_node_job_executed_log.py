@@ -20,14 +20,12 @@ from pipeline.eri.runtime import BambooDjangoRuntime
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject
-from gcloud.apigw.views.utils import logger
+from gcloud.apigw.log_auth import get_execution_data_for_node, get_taskflow_for_log, validate_task_node
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from gcloud.taskflow3.models import TaskFlowInstance
 from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
 
 node_logger = logging.getLogger("root")
@@ -48,21 +46,24 @@ JOB_INST_ID_IN_LIST_MAP = {
 }
 
 
-def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_code=None, job_scope_type=None):
+def fetch_node_job_executed_log(
+    node_id, bk_biz_id, target_ip=None, component_code=None, job_scope_type=None, execution_data=None
+):
     """获取节点JOB执行日志的核心逻辑，供内外接口共用"""
     if job_scope_type is None:
         job_scope_type = JobBizScopeType.BIZ.value
     client = settings.ESB_GET_CLIENT_BY_USER(settings.SYSTEM_USE_API_ACCOUNT)
-    runtime = BambooDjangoRuntime()
-    try:
-        execution_data = runtime.get_execution_data(node_id=node_id)
-    except bamboo_exceptions.NotFoundError:
-        node_logger.warning("execution data not found for node_id: %s", node_id)
-        return {
-            "result": False,
-            "message": "execution data not found for node_id: {}".format(node_id),
-            "logs": "",
-        }
+    if execution_data is None:
+        runtime = BambooDjangoRuntime()
+        try:
+            execution_data = runtime.get_execution_data(node_id=node_id)
+        except bamboo_exceptions.NotFoundError:
+            node_logger.warning("execution data not found for node_id: %s", node_id)
+            return {
+                "result": False,
+                "message": "execution data not found for node_id: {}".format(node_id),
+                "logs": "",
+            }
 
     if component_code and component_code in JOB_INST_ID_IN_LIST_MAP:
         job_instance_id_list = execution_data.outputs.get("job_inst_id_list") or []
@@ -115,19 +116,18 @@ def fetch_node_job_executed_log(node_id, bk_biz_id, target_ip=None, component_co
 @iam_intercept(TaskViewInterceptor())
 def get_node_job_executed_log(request, task_id, project_id):
     project = request.project
-    try:
-        TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
-    except TaskFlowInstance.DoesNotExist:
-        message = (
-            "[API] get_node_job_executed_log task[id={task_id}] "
-            "of project[project_id={project_id}, biz_id={biz_id}] does not exist".format(
-                task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
-            )
-        )
-        logger.exception(message)
-        return Response({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
+    taskflow, error_response = get_taskflow_for_log("get_node_job_executed_log", task_id, project)
+    if error_response is not None:
+        return error_response
 
     node_id = request.GET.get("node_id")
     target_ip = request.GET.get("target_ip")
+    error_response = validate_task_node("get_node_job_executed_log", taskflow, node_id)
+    if error_response is not None:
+        return error_response
 
-    return Response(fetch_node_job_executed_log(node_id, project.bk_biz_id, target_ip))
+    execution_data, error_response = get_execution_data_for_node("get_node_job_executed_log", node_id)
+    if error_response is not None:
+        return error_response
+
+    return Response(fetch_node_job_executed_log(node_id, project.bk_biz_id, target_ip, execution_data=execution_data))
