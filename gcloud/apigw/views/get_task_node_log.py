@@ -17,13 +17,11 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject
-from gcloud.apigw.views.utils import logger
+from gcloud.apigw.log_auth import get_taskflow_for_log, validate_task_node
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.domains.node_log import NodeLogDataSourceFactory
-from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.utils.handlers import handle_plain_log
 
 DEFAULT_PAGE = 1
@@ -54,21 +52,16 @@ def fetch_task_node_log(node_id, version, page=DEFAULT_PAGE, page_size=DEFAULT_P
 @iam_intercept(TaskViewInterceptor())
 def get_task_node_log(request, task_id, project_id):
     project = request.project
-    try:
-        TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
-    except TaskFlowInstance.DoesNotExist:
-        message = (
-            "[API] get_task_node_log task[id={task_id}] "
-            "of project[project_id={project_id}, biz_id={biz_id}] does not exist".format(
-                task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
-            )
-        )
-        logger.exception(message)
-        return Response({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
+    taskflow, error_response = get_taskflow_for_log("get_task_node_log", task_id, project)
+    if error_response is not None:
+        return error_response
 
     node_id = request.GET.get("node_id")
     version = request.GET.get("version")
     page = request.GET.get("page", DEFAULT_PAGE)
     page_size = request.GET.get("page_size", DEFAULT_PAGE_SIZE)
+    error_response = validate_task_node("get_task_node_log", taskflow, node_id)
+    if error_response is not None:
+        return error_response
 
     return Response(fetch_task_node_log(node_id, version, page=page, page_size=page_size))
