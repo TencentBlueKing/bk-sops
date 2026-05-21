@@ -15,6 +15,7 @@ import re
 
 from django.conf import settings
 from pipeline.core.flow.activity import Service
+from gcloud.utils import crypto
 
 from gcloud.core.trace import (
     PLUGIN_SCHEDULE_COUNT_KEY,
@@ -27,6 +28,8 @@ from gcloud.core.trace import (
 )
 
 logger = logging.getLogger("root")
+
+PASSWORD_MASK_VALUE = "******"
 
 
 def _camel_to_snake(name):
@@ -172,6 +175,78 @@ class BasePluginService(Service):
         # 避免这些非用户需要的内置属性出现在流程任务的输出中
         clean_plugin_span_outputs(data)
 
+    def _auto_decrypt_password_inputs(self, data):
+        """
+        自动识别并解密 data.inputs 中的密码变量值，并返回被解密字段的 key 集合
+
+        当用户在普通输入字段引用了密码类型的全局变量时，bamboo_engine 在
+        ServiceActivityHandler 阶段会把变量整体 hydrate 进来，得到形如：
+            {"type": "password_value", "tag": "value", "value": "", "rsa_str": "..."}
+        的结构化对象（rsa_str 为 RSA 加密后的密文）。本方法会扫描所有 inputs，
+        将这类结构体替换为解密后的明文字符串，让所有继承本基类的插件无需修改
+        即可直接使用密码变量。
+
+        解密失败时保留原值并打印 warning 日志，不影响主流程。
+
+        :param data: 插件数据对象
+        :return: list，被成功解密的字段名列表
+        """
+        decrypted_keys = []
+        try:
+            inputs = data.get_inputs()
+        except Exception:
+            return decrypted_keys
+
+        if not inputs:
+            return decrypted_keys
+
+        plugin_name = _camel_to_snake(self.__class__.__name__)
+        for key, value in list(inputs.items()):
+            if not (isinstance(value, dict) and value.get("type") == "password_value"):
+                continue
+
+            cipher = value.get("value")  # 获取加密后的数据，cipher最终形如：rsa_str:::*****
+            if not cipher or not isinstance(cipher, str):
+                logger.warning(
+                    "[%s] auto decrypt password input skipped, empty cipher, key=%s", plugin_name, key
+                )
+                continue
+
+            try:
+                plain = crypto.decrypt(cipher)
+            except Exception:
+                # 解密失败保留原值，避免影响老插件/兼容场景
+                logger.warning(
+                    "[%s] auto decrypt password input failed, key=%s", plugin_name, key
+                )
+                continue
+
+            # 替换为明文供插件使用，并记录 key 以便执行结束后做掩码处理
+            inputs[key] = plain
+            decrypted_keys.append(key)
+
+        return decrypted_keys
+
+    def _mask_password_inputs(self, data, decrypted_keys):
+        """
+        将 _auto_decrypt_password_inputs 解密的 inputs 字段值替换为掩码字符串
+
+        :param data: 插件数据对象
+        :param decrypted_keys: _auto_decrypt_password_inputs 返回的字段名列表
+        """
+        if not decrypted_keys:
+            return
+        try:
+            inputs = data.get_inputs()
+            if not inputs:
+                return
+            for key in decrypted_keys:
+                if key in inputs:
+                    inputs[key] = PASSWORD_MASK_VALUE
+        except Exception:
+            plugin_name = _camel_to_snake(self.__class__.__name__)
+            logger.warning("[%s] mask password inputs failed", plugin_name)
+
     def execute(self, data, parent_data):
         """
         执行插件，包装原有逻辑并添加 Span 追踪
@@ -182,22 +257,29 @@ class BasePluginService(Service):
         """
         self._start_plugin_span(data, parent_data)
 
+        # 自动解密 inputs 中引用的全局密码变量，使所有插件都支持输入全局密码变量
+        # 返回被解密的字段列表，执行完后将这些字段值替换为掩码，避免明文落库
+        decrypted_keys = self._auto_decrypt_password_inputs(data)
+
         trace_context = self._get_trace_context(data, parent_data)
         method_attrs = self._get_method_span_attributes(data, parent_data)
 
-        if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
-            with plugin_method_span(
-                method_name="execute",
-                trace_id=trace_context.get("trace_id"),
-                parent_span_id=trace_context.get("parent_span_id"),
-                plugin_span_id=trace_context.get("plugin_span_id"),
-                **method_attrs,
-            ) as span_result:
+        try:
+            if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
+                with plugin_method_span(
+                    method_name="execute",
+                    trace_id=trace_context.get("trace_id"),
+                    parent_span_id=trace_context.get("parent_span_id"),
+                    plugin_span_id=trace_context.get("plugin_span_id"),
+                    **method_attrs,
+                ) as span_result:
+                    result = self.plugin_execute(data, parent_data)
+                    if not result:
+                        span_result.set_error(self._get_error_message(data))
+            else:
                 result = self.plugin_execute(data, parent_data)
-                if not result:
-                    span_result.set_error(self._get_error_message(data))
-        else:
-            result = self.plugin_execute(data, parent_data)
+        finally:
+            self._mask_password_inputs(data, decrypted_keys)
 
         if not result:
             self._end_plugin_span(data, success=False, error_message=self._get_error_message(data))
@@ -216,26 +298,34 @@ class BasePluginService(Service):
         :param callback_data: 回调数据
         :return: 调度结果
         """
+
+        # 自动解密 inputs 中引用的全局密码变量，使所有插件都支持输入全局密码变量
+        # 返回被解密的字段列表，调度完后将这些字段值替换为掩码，避免明文落库
+        decrypted_keys = self._auto_decrypt_password_inputs(data)
+
         trace_context = self._get_trace_context(data, parent_data)
         method_attrs = self._get_method_span_attributes(data, parent_data)
 
-        if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
-            schedule_count = data.get_one_of_outputs(PLUGIN_SCHEDULE_COUNT_KEY, 0) + 1
-            data.set_outputs(PLUGIN_SCHEDULE_COUNT_KEY, schedule_count)
-            method_attrs["schedule_count"] = schedule_count
+        try:
+            if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
+                schedule_count = data.get_one_of_outputs(PLUGIN_SCHEDULE_COUNT_KEY, 0) + 1
+                data.set_outputs(PLUGIN_SCHEDULE_COUNT_KEY, schedule_count)
+                method_attrs["schedule_count"] = schedule_count
 
-            with plugin_method_span(
-                method_name="schedule",
-                trace_id=trace_context.get("trace_id"),
-                parent_span_id=trace_context.get("parent_span_id"),
-                plugin_span_id=trace_context.get("plugin_span_id"),
-                **method_attrs,
-            ) as span_result:
+                with plugin_method_span(
+                    method_name="schedule",
+                    trace_id=trace_context.get("trace_id"),
+                    parent_span_id=trace_context.get("parent_span_id"),
+                    plugin_span_id=trace_context.get("plugin_span_id"),
+                    **method_attrs,
+                ) as span_result:
+                    result = self.plugin_schedule(data, parent_data, callback_data)
+                    if not result:
+                        span_result.set_error(self._get_error_message(data))
+            else:
                 result = self.plugin_schedule(data, parent_data, callback_data)
-                if not result:
-                    span_result.set_error(self._get_error_message(data))
-        else:
-            result = self.plugin_schedule(data, parent_data, callback_data)
+        finally:
+            self._mask_password_inputs(data, decrypted_keys)
 
         if not result:
             self._end_plugin_span(data, success=False, error_message=self._get_error_message(data))
