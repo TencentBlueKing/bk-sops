@@ -15,6 +15,7 @@ import re
 
 from django.conf import settings
 from pipeline.core.flow.activity import Service
+from gcloud.utils import crypto
 
 from gcloud.core.trace import (
     PLUGIN_SCHEDULE_COUNT_KEY,
@@ -172,6 +173,49 @@ class BasePluginService(Service):
         # 避免这些非用户需要的内置属性出现在流程任务的输出中
         clean_plugin_span_outputs(data)
 
+    def _auto_decrypt_password_inputs(self, data):
+        """
+        自动识别并解密 data.inputs 中的密码变量值
+
+        当用户在普通输入字段引用了密码类型的全局变量时，bamboo_engine 在
+        ServiceActivityHandler 阶段会把变量整体 hydrate 进来，得到形如：
+            {"type": "password_value", "tag": "value", "value": "", "rsa_str": "..."}
+        的结构化对象（rsa_str 为 RSA 加密后的密文）。本方法会扫描所有 inputs，
+        将这类结构体替换为解密后的明文字符串，让所有继承本基类的插件无需修改
+        即可直接使用密码变量。
+
+        解密失败时保留原值并打印 warning 日志，不影响主流程。
+
+        :param data: 插件数据对象
+        """
+        try:
+            inputs = data.get_inputs()
+        except Exception:
+            return
+
+        if not inputs:
+            return
+
+        plugin_name = _camel_to_snake(self.__class__.__name__)
+        for key, value in list(inputs.items()):
+            if not (isinstance(value, dict) and value.get("type") == "password_value"):
+                continue
+
+            cipher = value.get("value")  # 获取加密后的数据，形如：rsa_str:::*****
+            if not cipher or not isinstance(cipher, str):
+                logger.warning(
+                    "[%s] auto decrypt password input skipped, empty cipher, key=%s", plugin_name, key
+                )
+                continue
+
+            try:
+                inputs[key] = crypto.decrypt(cipher)
+            except Exception as e:
+                # 解密失败保留原值，避免影响老插件/兼容场景
+                logger.warning(
+                    "[%s] auto decrypt password input failed, key=%s, err=%s", plugin_name, key, e
+                )
+
     def execute(self, data, parent_data):
         """
         执行插件，包装原有逻辑并添加 Span 追踪
@@ -181,6 +225,9 @@ class BasePluginService(Service):
         :return: 执行结果
         """
         self._start_plugin_span(data, parent_data)
+
+        # 自动解密 inputs 中引用的全局密码变量，使所有插件都支持输入全局密码变量
+        self._auto_decrypt_password_inputs(data)
 
         trace_context = self._get_trace_context(data, parent_data)
         method_attrs = self._get_method_span_attributes(data, parent_data)
