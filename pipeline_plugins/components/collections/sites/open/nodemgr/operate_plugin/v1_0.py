@@ -52,6 +52,7 @@ class NodemgrOperatePluginService(NodemgrBaseService):
         elif operation_type == "uninstall":
             hosts = []
             batch = operation_info.get("nodemgr_batch_uninstall")
+            networkarea_id = batch.get("bk_networkarea_id")
             for ip in split_ip_list(batch.get("inner_ip")):
                 host = {
                     "inner_ip": ip,
