@@ -17,7 +17,6 @@ from pipeline_plugins.components.query.sites.open.gsekit import gsekit_urlpatter
 from pipeline_plugins.components.query.sites.open.itsm import itsm_urlpatterns
 from pipeline_plugins.components.query.sites.open.job import job_urlpatterns
 from pipeline_plugins.components.query.sites.open.nodeman import nodeman_urlpatterns
-from pipeline_plugins.components.query.sites.open.nodemgr import nodemgr_urlpatterns
 from pipeline_plugins.components.query.sites.open.monitor import monitor_urlpatterns
 
 urlpatterns = cc_urlpatterns
@@ -25,6 +24,5 @@ urlpatterns += file_upload_urlpatterns
 urlpatterns += gsekit_urlpatterns
 urlpatterns += job_urlpatterns
 urlpatterns += nodeman_urlpatterns
-urlpatterns += nodemgr_urlpatterns
 urlpatterns += monitor_urlpatterns
 urlpatterns += itsm_urlpatterns
