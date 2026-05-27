@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import datetime
 import json
 import logging
+import requests
 from typing import List
 
 from django.conf import settings
@@ -27,6 +28,7 @@ from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import get_notify_receivers
+from gcloud.utils.validate import DomainValidator
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
@@ -192,10 +194,53 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     def process_meta_value(self, meta_data, info_value):
         if meta_data["value"]["datasource"] == "1":
             # 远程数据源模式下需要记录拉取的数据而不是 URL
-            meta_value = meta_data["value"]["remote_data"]
+            meta_value = meta_data["value"].get("remote_data")
+            # 计划任务等场景下，pipeline_tree 直接来源于模板，未携带前端运行时拉取的 remote_data，
+            # 这里基于 items_text 配置的 URL 进行懒加载请求，保证取值正常
+            if not meta_value:
+                remote_url = meta_data["value"].get("items_text")
+                meta_value = TextValueSelect._fetch_remote_data(remote_url)
         else:
             meta_value = meta_data["value"]["items_text"]
         return {"meta_data": meta_value, "info_value": info_value}
+
+    @staticmethod
+    def _fetch_remote_data(url):
+        """根据下拉框变量配置的远程 URL 拉取数据，返回与 remote_data 一致的 JSON 字符串"""
+        fallback = json.dumps([{"text": "", "value": ""}])
+        if not url or not isinstance(url, str):
+            return fallback
+
+        valid_url, allowed_domains = DomainValidator.validate(url)
+        if not valid_url:
+            logger.error(
+                f"[TextValueSelect] remote url not in allowed domains, url={url}, allowed_domains={allowed_domains}"
+            )
+            return fallback
+
+        try:
+            response = requests.get(url=url, verify=False, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            logger.exception(
+                "[TextValueSelect] fetch remote data failed, url={url}, error={error}".format(url=url, error=e)
+            )
+            return fallback
+        post_process_function = getattr(settings, "REMOTE_SOURCE_DATA_TRANSFORM_FUNCTION", None)
+        if post_process_function and callable(post_process_function):
+            try:
+                data = post_process_function(data)
+            except Exception as e:
+                logger.exception(
+                    "[TextValueSelect] transform remote data failed, url={url}, error={error}".format(url=url, error=e)
+                )
+                return fallback
+        try:
+            return json.dumps(data)
+        except Exception:
+            logger.exception("[TextValueSelect] dump remote data to json string failed, url={url}".format(url=url))
+            return fallback
 
 
 class FormatSupportCurrentTime(LazyVariable, SelfExplainVariable):

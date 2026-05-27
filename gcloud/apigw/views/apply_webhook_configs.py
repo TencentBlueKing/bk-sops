@@ -31,6 +31,7 @@ from gcloud.apigw.views.utils import logger
 from gcloud.constants import WebhookScopeType
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs import ApplyWebhookConfigs
+from gcloud.utils.webhook import clear_scope_webhooks
 
 
 @login_exempt
@@ -45,11 +46,13 @@ def apply_webhook_configs(request, project_id):
     """
     全量应用webhook配置，会覆盖原有配置
     {
+       "enable_webhook": true,
        "endpoint": "https://xxx",
        "events": ["*"],
        "extra_info": {},
        "template_ids": ["1"]
     }
+    当 enable_webhook 为 false 时，会清空指定 template_ids 的所有webhook配置
     """
     data = json.loads(request.body)
     ser = WebhookSerializer(data=data)
@@ -57,8 +60,23 @@ def apply_webhook_configs(request, project_id):
         return {"result": False, "message": ser.errors, "code": err_code.VALIDATION_ERROR.code}
 
     webhook_configs = ser.validated_data
-    events = webhook_configs.pop("events")
+    enable_webhook = webhook_configs.pop("enable_webhook", True)
     template_ids = webhook_configs.pop("template_ids")
+
+    # 关闭webhook：清空指定模板的所有webhook配置
+    if not enable_webhook:
+        scope_codes = [str(template_id) for template_id in template_ids]
+        clear_result = clear_scope_webhooks(scope_codes)
+        if not clear_result["result"]:
+            logger.error(f"apply_webhook_configs disable error: {clear_result['message']}")
+            return {
+                "result": False,
+                "message": clear_result["message"],
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+        return {"result": True, "message": "success", "code": err_code.SUCCESS.code}
+
+    events = webhook_configs.pop("events")
 
     try:
         # 查询已存在的webhook记录
