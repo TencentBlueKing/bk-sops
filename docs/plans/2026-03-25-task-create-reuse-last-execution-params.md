@@ -8,7 +8,7 @@
 
 **Tech Stack:** Django, DRF, Python 3, pipeline engine (PipelineInstance)
 
-**Spec:** `docs/superpowers/specs/2026-03-25-task-create-reuse-last-execution-params-design.md`
+**Spec:** `docs/specs/2026-03-25-task-create-reuse-last-execution-params-design.md`
 
 ---
 

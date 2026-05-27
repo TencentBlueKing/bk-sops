@@ -25,6 +25,11 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_AND_START_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
+from gcloud.apigw.views.task_node_selector import (
+    TaskNodeSelectionValidationError,
+    normalize_template_scheme_params,
+    resolve_exclude_task_nodes_id,
+)
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
@@ -118,11 +123,15 @@ def create_and_start_task(request, template_id, project_id):
         params.setdefault("template_source", BUSINESS)
         params.setdefault("constants", {})
         params.setdefault("exclude_task_nodes_id", [])
+        params.setdefault("template_schemes_id", [])
         jsonschema.validate(params, APIGW_CREATE_AND_START_TASK_PARAMS)
+        normalize_template_scheme_params(params)
     except jsonschema.ValidationError as e:
         logger.warning("[API] create_and_start_task raise params error: %s" % e)
         message = "task parmas is invalid: %s" % e
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
+    except TaskNodeSelectionValidationError as e:
+        return {"result": False, "message": str(e), "code": err_code.REQUEST_PARAM_INVALID.code}
 
     # 创建pipeline_instance
     pipeline_instance_kwargs = {
@@ -130,9 +139,19 @@ def create_and_start_task(request, template_id, project_id):
         "creator": request.user.username,
         "description": params.get("description", ""),
     }
+    pipeline_tree = tmpl.pipeline_tree
+    try:
+        exclude_task_nodes_id = resolve_exclude_task_nodes_id(tmpl, pipeline_tree, params)
+    except TaskNodeSelectionValidationError as e:
+        return {
+            "result": False,
+            "message": str(e),
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
+
     try:
         data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-            tmpl, pipeline_instance_kwargs, params["constants"], params["exclude_task_nodes_id"]
+            tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id
         )
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}

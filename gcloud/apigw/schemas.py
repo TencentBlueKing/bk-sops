@@ -22,6 +22,12 @@ APIGW_CREATE_TASK_PARAMS = {
         "constants": {"type": "object"},
         "exclude_task_nodes_id": {"type": "array"},
         "execute_task_nodes_id": {"type": "array"},
+        "template_schemes_id": {
+            "oneOf": [
+                {"type": "string", "minLength": 1},
+                {"type": "array", "items": {"type": "string"}},
+            ],
+        },
     },
 }
 
@@ -44,6 +50,12 @@ APIGW_CREATE_AND_START_TASK_PARAMS = {
         "flow_type": {"type": "string", "enum": list(TASK_FLOW.keys())},
         "constants": {"type": "object"},
         "exclude_task_nodes_id": {"type": "array"},
+        "template_schemes_id": {
+            "oneOf": [
+                {"type": "string", "minLength": 1},
+                {"type": "array", "items": {"type": "string"}},
+            ],
+        },
         "template_source": {"type": "string"},
     },
 }
