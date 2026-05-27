@@ -10,12 +10,15 @@
 |---------------|------------|--------|------------------|
 |   bk_biz_id    |   string     |   是   |  模板所属业务ID |
 |   template_id     |   string     |   是   |  模板ID |
+| scope | string | 否 | bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目 |
 |   template_source | string   | 否         | 流程模板来源，business:默认值，业务流程，common：公共流程 |
 |   name     |   string     |   是   |  任务名称 |
 |   flow_type     |   string     |   否   |  任务流程类型，common: 常规流程，common_func：职能化流程 |
 |   constants     |   dict     |   否   |  任务全局参数，详细信息见下面说明 |
 |   exclude_task_nodes_id | list |   否   |  跳过执行的节点ID列表 |
+|   template_schemes_id | list/string | 否 | 执行方案 ID 列表或单个执行方案 ID，ID 来源于 get_template_schemes 接口；与 exclude_task_nodes_id 同时存在非空值时会返回参数错误 |
 | description           | string | 否   | pipeline_instance的描述信息                               |
+| callback_url | string | 否 | 任务执行完成后的回调地址 |
 
 #### constants KEY
 
@@ -36,14 +39,17 @@
     "template_id":"xxx",
     "template_source": "business",
     "bk_biz_id":"xxx",
+    "scope": "cmdb_biz",
     "name": "tasktest",
-    "flow_type": "common"
+    "flow_type": "common",
     "constants": {
         "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
     },
-    "exclude_task_nodes_id":[1, 2, 3],
+    "exclude_task_nodes_id": [],
+    "template_schemes_id": ["1-方案A"],
+    "callback_url": "http://xxx.com",
     "description":"description"
 }
 ```

@@ -160,6 +160,14 @@ paths:
                   items:
                     type: string
                   description: 跳过执行的节点ID列表（与execute_task_nodes_id同时存在时execute_task_nodes_id优先）
+                template_schemes_id:
+                  oneOf:
+                  - type: string
+                    minLength: 1
+                  - type: array
+                    items:
+                      type: string
+                  description: 执行方案ID列表或单个执行方案ID，ID来源于get_template_schemes接口；不能与pipeline_tree同时使用；与exclude_task_nodes_id、execute_task_nodes_id同时存在非空值时会返回参数错误
                 execute_task_nodes_id:
                   type: array
                   items:
@@ -175,6 +183,121 @@ paths:
           type: HTTP
           method: post
           path: /{env.api_sub_path}apigw/create_task/{template_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  /create_and_start_task/{template_id}/{bk_biz_id}/:
+    post:
+      operationId: create_and_start_task
+      description: 通过业务流程模板创建并开始执行任务
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: integer
+                        description: 任务实例ID
+                      task_url:
+                        type: string
+                        description: 任务实例链接
+                      pipeline_tree:
+                        type: object
+                        description: 任务实例树
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: 任务名称
+                constants:
+                  type: object
+                  description: 任务全局参数，key为变量KEY（${key}格式），value为变量值
+                  additionalProperties: true
+                flow_type:
+                  type: string
+                  default: common
+                  description: '任务流程类型，common: 常规流程，common_func：职能化流程'
+                description:
+                  type: string
+                  description: 任务描述
+                template_source:
+                  type: string
+                  default: business
+                  description: 流程模板来源，business:默认值，业务流程，common：公共流程
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+                callback_url:
+                  type: string
+                  description: 任务执行完成后的回调地址
+                exclude_task_nodes_id:
+                  type: array
+                  items:
+                    type: string
+                  description: 跳过执行的节点ID列表
+                template_schemes_id:
+                  oneOf:
+                  - type: string
+                    minLength: 1
+                  - type: array
+                    items:
+                      type: string
+                  description: 执行方案ID列表或单个执行方案ID，ID来源于get_template_schemes接口；与exclude_task_nodes_id同时存在非空值时会返回参数错误
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/create_and_start_task/{template_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}

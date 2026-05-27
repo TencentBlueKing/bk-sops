@@ -15,6 +15,7 @@ Create a task with a flow template
 |   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow. Default is common |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
 |   exclude_task_nodes_id | list |   NO   | nodes id not be executed, which are set ignore in flow(if you have execute_task_nodes_id and exclude_task_nodes_id, then execute_task_nodes_id will be using.) |
+| template_schemes_id | list/string | NO | execution scheme ID list or single execution scheme ID from get_template_schemes. It cannot be used together with pipeline_tree, non-empty exclude_task_nodes_id, or non-empty execute_task_nodes_id |
 | scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project'|
 |   simplify_vars    |   list       |   NO    |  list of constants key for type simplify.(after the task is created, the simplified constants will lose the type originally configured in the template, and they will all become variables of this textarea. By using this option, the difference in value format of different types of constants can be shielded when API calls are made, and they are uniformly passed through the text type. value) |
 | execute_task_nodes_id | list | NO | nodes id only be executed.(if you have execute_task_nodes_id and exclude_task_nodes_id, then execute_task_nodes_id will be using.) |
@@ -47,8 +48,9 @@ constant value, the type of value should be same with data from API[get_template
         "${script_timeout}": 20
     },
     "simplify_vars": ["${k1}", "${k2}", "${ip}", "${force_check}"],
-    "execute_task_nodes_id": [1, 2, 3],
-    "exclude_task_nodes_id": [4, 5, 6],
+    "execute_task_nodes_id": [],
+    "exclude_task_nodes_id": [],
+    "template_schemes_id": ["1-方案A"],
     "scope": "cmdb_biz",
     "callback_url": "http://xxx.com"
 }

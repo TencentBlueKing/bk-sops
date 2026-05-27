@@ -10,12 +10,15 @@ Create a task with a flow template
 |---------------|------------|--------|------------------|
 |   bk_biz_id    |   string     |   YES   |  the business ID |
 |   template_id  |   string     |   YES   |  the flow template ID |
+| scope | string | NO | bk_biz_id scope. default value is 'cmdb_biz' and bk_sops will find a project which relate cmdb business id equal to bk_biz_id. otherwise, bk_sops will find a project which id equal to bk_biz_id when scope value is 'project' |
 |   template_source | string   | NO    | source of flow，default value is business. business: from business, common: from common flow |
 |   name         |   string     |   YES   |  task name |
 |   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow. Default is common |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
 |   exclude_task_nodes_id | list |   NO   |  nodes id not be executed, which are set ignore in flow |
+| template_schemes_id | list/string | NO | execution scheme ID list or single execution scheme ID from get_template_schemes. It cannot be used together with non-empty exclude_task_nodes_id |
 | description           | string | NO       | pipeline_instance's description                              |
+| callback_url | string | NO | callback url when task is finished. |
 
 #### constants KEY
 
@@ -36,14 +39,17 @@ constant value, the type of value should be same with data from API[get_template
     "template_id":"xxx",
     "template_source": "business",
     "bk_biz_id":"xxx",
+    "scope": "cmdb_biz",
     "name": "tasktest",
-    "flow_type": "common"
+    "flow_type": "common",
     "constants": {
         "${content}": "echo 1",
         "${params}": "",
         "${script_timeout}": 20
     },
-    "exclude_task_nodes_id":[1, 2, 3],
+    "exclude_task_nodes_id": [],
+    "template_schemes_id": ["1-方案A"],
+    "callback_url": "http://xxx.com",
     "description":"description"
 }
 ```
