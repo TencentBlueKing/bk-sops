@@ -172,6 +172,8 @@ def send_task_message(pipeline_id, node_id, msg_type):
         extra_info = {
             "delivery_id": taskflow.id,
             "project_id": taskflow.project.id,
+            "project_name": taskflow.project.name,
+            "bk_biz_id": taskflow.project.bk_biz_id,
             "task_id": taskflow.id,
             "task_name": taskflow.pipeline_instance.name,
             "input_data": resp_data["data"],
