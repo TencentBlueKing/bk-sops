@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from iam import Action, Subject
 from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response_for_resources_list
 from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import permissions
@@ -18,7 +19,6 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.models import DefaultTemplateScheme
-from iam import Action, Subject
 
 iam = get_iam_client()
 
@@ -69,7 +69,9 @@ class SchemeEditPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.detail:
             return True
-        action = "edit" if view.action == "create" else "view"
+        # batch_operate 会批量创建/更新/删除执行方案，属于写操作，需校验编辑权限，
+        # 避免仅有查看权限的用户越权修改方案
+        action = "edit" if view.action in ("create", "batch_operate") else "view"
         self.scheme_allow_or_raise_auth_failed(request, action=action)
         return True
 

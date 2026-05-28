@@ -11,25 +11,55 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.http import QueryDict
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import mixins, permissions, viewsets
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
-from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
-from gcloud.core.models import ResourceConfig
 from gcloud.core.apis.drf.serilaziers import ResourceConfigSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
-from gcloud.iam_auth import res_factory, IAMMeta
+from gcloud.core.models import ResourceConfig
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+
+iam = get_iam_client()
 
 
-class ResourceConfigPermission(IamPermission):
-    resource_func = res_factory.resources_for_project
-    actions = {
-        "list": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
-        "create": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
-        "update": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
-        "retrieve": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
-        "partial_update": IamPermissionInfo(IAMMeta.PROJECT_VIEW_ACTION, resource_func, id_field="project_id"),
-    }
+class ResourceConfigPermission(permissions.BasePermission):
+    """资源配置权限校验
+
+    - list/create 通过请求参数中的 project_id 校验项目级权限；
+    - retrieve/update/partial_update 通过对象自身的 project_id 校验，避免攻击者借助
+      请求参数中的 project_id 越权读取/修改其它项目的资源配置（IDOR）；
+    - 写操作要求 project_edit，而非 project_view。
+    """
+
+    @staticmethod
+    def _auth_project(request, action, project_id):
+        if not project_id:
+            raise PermissionDenied
+        allow_or_raise_auth_failed(
+            iam=iam,
+            system=IAMMeta.SYSTEM_ID,
+            subject=Subject("user", request.user.username),
+            action=Action(action),
+            resources=res_factory.resources_for_project(project_id),
+        )
+
+    def has_permission(self, request, view):
+        if view.action == "list":
+            project_id = request.query_params.get("project_id")
+            self._auth_project(request, IAMMeta.PROJECT_VIEW_ACTION, project_id)
+        elif view.action == "create":
+            project_id = request.data.get("project_id")
+            self._auth_project(request, IAMMeta.PROJECT_EDIT_ACTION, project_id)
+        # retrieve/update/partial_update 交由 has_object_permission 基于对象校验
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        action = IAMMeta.PROJECT_VIEW_ACTION if view.action == "retrieve" else IAMMeta.PROJECT_EDIT_ACTION
+        self._auth_project(request, action, obj.project_id)
+        return True
 
 
 class ResourceConfigViewSet(

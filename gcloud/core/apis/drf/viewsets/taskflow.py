@@ -271,7 +271,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         "destroy": IamPermissionInfo(
             IAMMeta.TASK_DELETE_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
-        "enable_fill_retry_params": IamPermissionInfo(pass_all=True),
+        "enable_fill_retry_params": IamPermissionInfo(
+            IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
+        ),
         "node_snapshot_config": IamPermissionInfo(
             IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
@@ -695,8 +697,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     @swagger_auto_schema(method="GET", operation_summary="查询任务是否支持重试填参")
     @action(methods=["GET"], detail=True)
     def enable_fill_retry_params(self, request, *args, **kwargs):
-        task_id = kwargs["pk"]
-        return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task_id)})
+        # 通过 get_object 触发对象级 task_view 权限校验，避免任意用户探测他人任务配置
+        task = self.get_object()
+        return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task.id)})
 
     @swagger_auto_schema(
         method="GET",

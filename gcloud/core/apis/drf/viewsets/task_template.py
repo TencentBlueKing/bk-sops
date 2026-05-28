@@ -91,7 +91,7 @@ class TaskTemplatePermission(IamPermission):
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
         "verify_webhook_configuration": IamPermissionInfo(
-            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project_id"
         ),
     }
 
@@ -426,6 +426,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         verify_data = serializer.validated_data.copy()
+        verify_data.pop("project_id", None)
         verify_data["url"] = verify_data.pop("endpoint")
 
         try:
