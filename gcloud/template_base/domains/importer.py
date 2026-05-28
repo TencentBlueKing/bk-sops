@@ -58,7 +58,7 @@ class TemplateImporter:
         pipeline_version_map = {}
         source_info_map = {}
         common_child_templates = {}
-        with transaction.atomic():
+        with (transaction.atomic()):
             for td in template_data:
                 override_template_id = td["override_template_id"]
                 refer_template_config = td["refer_template_config"]
@@ -91,9 +91,11 @@ class TemplateImporter:
                             result = CommonTemplate.objects.check_template_project_scope(project_id, template_id)
                             if not result["result"]:
                                 raise Exception(f"流程导入失败，{result['message']}")
+                            # 引用公共子流程时，template 取自 CommonTemplate，避免后续访问 template 时未定义
+                            template = CommonTemplate.objects.get(id=template_id)
                         else:
                             template = self.template_model_cls.objects.get(id=template_id)
-                    except self.template_model_cls.DoesNotExist as e:
+                    except (self.template_model_cls.DoesNotExist, CommonTemplate.DoesNotExist) as e:
                         message = _(
                             f"流程导入失败: 文件解析异常, [ID: {template_id}]的流程不存在. 请修复后重试或联系管理员处理. "
                             f"错误内容: {e} | import_template"
