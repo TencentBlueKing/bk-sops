@@ -790,6 +790,7 @@
                         this.templateData.pipeline_tree = this.updatedPipelineData
                     }
                     this.formData.is_latest = true
+                    this.formData.schemeId = this.schemeList.length ? [0] : []
                     this.$bkMessage({
                         'message': i18n.t('流程更新成功'),
                         'theme': 'success'
