@@ -59,12 +59,17 @@ class CollectionViewSet(GcloudReadOnlyViewSet, mixins.CreateModelMixin, mixins.D
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
+        # 强制将 username 锁定为当前登录用户，避免攻击者通过请求体伪造他人 username
+        # 在他人收藏列表中写入数据（污染他人个人面板的未授权写入）
+        current_username = request.user.username
         for item in serializer.validated_data:
-            username = item["username"]
+            item["username"] = current_username
             category = item["category"]
             instance_id = item["instance_id"]
-            if Collection.objects.filter(username=username, category=category, instance_id=instance_id).exists():
-                message = _(f"重复收藏: {username}实例ID: {category}, 类别: {instance_id}, 已经收藏过了, 无需再次收藏")
+            if Collection.objects.filter(
+                username=current_username, category=category, instance_id=instance_id
+            ).exists():
+                message = _(f"重复收藏: {current_username}实例ID: {category}, 类别: {instance_id}, 已经收藏过了, 无需再次收藏")
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
         self.perform_create(serializer)
