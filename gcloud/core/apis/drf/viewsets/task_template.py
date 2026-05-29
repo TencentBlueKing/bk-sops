@@ -22,7 +22,7 @@ from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateRelationship, TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from webhook.api import verify_webhook_endpoint
@@ -395,6 +395,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     def enable_independent_subprocess(self, request, *args, **kwargs):
         template_id = kwargs.get("pk")
         project_id = request.query_params.get("project_id")
+        # 鉴权仅校验了请求参数 project_id 的 project_view，需进一步确认 template 确属该项目，
+        # 避免借自有项目权限跨项目读取其它项目模板的子流程配置(IDOR)；
+        # template_id=-1 为新建未保存场景，无归属可校验，直接放行
+        if template_id and str(template_id) != "-1":
+            if not TaskTemplate.objects.filter(id=template_id, project_id=project_id).exists():
+                raise PermissionDenied("template does not belong to the specified project")
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
 
@@ -402,6 +408,11 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()
+        # 鉴权基于请求参数 project__id 的 project_view，但 get_object 按 pk 取任意模板，
+        # 需确认 template 确属该项目，避免借自有项目权限跨项目读取流程名称/执行方案(IDOR)
+        project_id = request.query_params.get("project__id")
+        if str(template.project_id) != str(project_id):
+            raise PermissionDenied("template does not belong to the specified project")
         schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})

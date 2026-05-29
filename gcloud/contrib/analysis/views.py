@@ -43,12 +43,14 @@ def get_task_category(request):
 
 
 @require_GET
+@iam_intercept(StatisticsViewInpterceptor())
 def get_biz_useage(request, query):
     """
     @summary 获取正在使用业务数量、总业务数量
     :param request:
     :param query:模板/任务
-    :return:
+
+    与其它统计接口一致校验 STATISTICS_VIEW，避免任意登录用户读取平台级业务使用聚合数据(信息泄露)
     """
     total = Project.objects.all().count()
     if query == "template":

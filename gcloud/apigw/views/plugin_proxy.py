@@ -13,16 +13,16 @@ specific language governing permissions and limitations under the License.
 from urllib.parse import urlsplit
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.test import RequestFactory
-from django.urls import resolve, Resolver404
+from django.urls import Resolver404, resolve
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.views.utils import logger
-from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
@@ -39,7 +39,16 @@ def dispatch_plugin_query(request):
         "method": 'GET|POST',
         "data": data, POST请求的数据
     }
+
+    该接口会解析并直接调用任意可路由的内部视图，仅允许处于 APIGW 信任名单(is_trust)的应用调用，
+    避免任意网关应用借此转发器触达内部视图、绕过网关边界造成越权或内部接口滥用(BAC)
     """
+    if not request.is_trust:
+        return {
+            "result": False,
+            "message": "you have no permission to call this api.",
+            "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+        }
 
     try:
         params = json.loads(request.body)

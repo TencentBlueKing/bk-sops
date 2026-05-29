@@ -11,17 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Subject, Request
+from iam import Action, Request, Subject
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
-from gcloud.utils.strings import string_to_boolean
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import read_template_data_file
-
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import res_factory
-from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.template_base.utils import read_template_data_file
+from gcloud.utils.strings import string_to_boolean
 
 iam = get_iam_client()
 
@@ -79,6 +76,22 @@ class ExportInterceptor(ViewInterceptor):
 
         if not_allowed_list:
             raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)
+
+
+class CheckBeforeImportInterceptor(ViewInterceptor):
+    """公共流程导入前置检测接口的鉴权。
+
+    与正式导入接口(ImportInterceptor)的创建权限保持一致，要求 COMMON_FLOW_CREATE，
+    避免攻击者借助预检接口在无任何公共流程权限的情况下探测导入冲突/覆盖信息(BAC)。
+    """
+
+    def process(self, request, *args, **kwargs):
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.COMMON_FLOW_CREATE_ACTION)
+        create_request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
+
+        if not iam.is_allowed(create_request):
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
 
 
 class ImportInterceptor(ViewInterceptor):
