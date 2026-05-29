@@ -40,10 +40,10 @@ class PluginServiceApiClient:
 
     @data_parser
     @json_response_decoder
-    def invoke(self, version, data):
+    def invoke(self, version, data, timeout=None):
         url, headers = self._prepare_apigw_api_request(path_params=["invoke", version])
 
-        return requests.post(url, data=json.dumps(data), headers=headers)
+        return requests.post(url, data=json.dumps(data), headers=headers, timeout=timeout)
 
     @json_response_decoder
     def dispatch_plugin_api_request(self, request_params, inject_headers=None, inject_authorization: dict = None):
@@ -78,17 +78,17 @@ class PluginServiceApiClient:
         return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
 
     @json_response_decoder
-    def get_detail(self, version):
+    def get_detail(self, version, timeout=None):
         url = os.path.join(self.plugin_host, "detail", version)
 
-        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", timeout=timeout)
 
     @data_parser
     @json_response_decoder
-    def get_schedule(self, trace_id):
+    def get_schedule(self, trace_id, timeout=None):
         url = os.path.join(self.plugin_host, "schedule", trace_id)
 
-        return PluginServiceApiClient._request_api_and_error_retry(url, method="get")
+        return PluginServiceApiClient._request_api_and_error_retry(url, method="get", timeout=timeout)
 
     @staticmethod
     @check_use_plugin_service
