@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 from datetime import timedelta
+from unittest.mock import patch
 
 import factory
 from bamboo_engine import states
@@ -24,6 +25,7 @@ from django_test_toolkit.testcases import ToolkitApiTestCase
 from pipeline.eri.models import State
 from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 
+from gcloud.core.apis.drf.viewsets.taskflow import TaskFLowStatusFilterHandler
 from gcloud.core.models import Project, ProjectConfig
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -81,13 +83,15 @@ class TestTaskInstanceView(
             "task_instance_status": "failed",
         }
 
+        # 状态筛选仅支持 v2 引擎任务，v1 引擎任务会被静默过滤，不计入结果
         self.taskflow_instance.engine_ver = 1
         self.taskflow_instance.save()
 
         resp = self.client.get(path=self.task_url, data=query_params)
-        self.assertFalse(resp.data["result"])
-        self.assertEqual(resp.data["message"], "最近180天有v1引擎的任务, 不支持筛选")
+        self.assertTrue(resp.data["result"])
+        self.assertEqual(resp.data["data"]["count"], 0)
 
+        # v2 引擎但不存在失败状态时返回空
         self.taskflow_instance.engine_ver = 2
         self.taskflow_instance.save()
 
@@ -95,6 +99,7 @@ class TestTaskInstanceView(
         self.assertTrue(resp.data["result"])
         self.assertEqual(resp.data["data"]["count"], 0)
 
+        # v2 引擎且存在失败状态时返回该任务
         self.state.name = states.FAILED
         self.state.save()
 
@@ -132,7 +137,11 @@ class TestTaskInstanceView(
             "task_instance_status": "running",
         }
 
-        resp = self.client.get(path=self.task_url, data=query_params)
+        # 运行态筛选会通过线程池并发调用引擎查询任务状态(batch_call)，该路径依赖真实引擎，
+        # 且在 sqlite 测试库下并发访问会触发 "database table is locked"，这里 mock 掉待处理任务查询，
+        # 聚焦验证“运行中任务被正确返回”的筛选逻辑
+        with patch.object(TaskFLowStatusFilterHandler, "_fetch_pending_process_taskflow_ids", return_value=[]):
+            resp = self.client.get(path=self.task_url, data=query_params)
         self.assertTrue(resp.data["result"])
         self.assertEqual(resp.data["data"]["count"], 1)
 
