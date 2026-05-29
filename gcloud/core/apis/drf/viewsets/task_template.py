@@ -22,7 +22,7 @@ from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateRelationship, TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from webhook.api import verify_webhook_endpoint
@@ -90,8 +90,11 @@ class TaskTemplatePermission(IamPermission):
         "update_template_labels": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        # 该接口为 detail=False 的 POST，会驱动服务端向外部 URL 发起验证请求(出站请求/潜在 SSRF 入口)，
+        # 因此不能下放到 PROJECT_VIEW(任意项目查看者均可触发出站请求)。受限于 detail=False 无法做对象级
+        # FLOW_EDIT，这里收敛为项目级的写意图权限 FLOW_CREATE(具备在该项目下编排流程的权限方可校验 webhook)。
         "verify_webhook_configuration": IamPermissionInfo(
-            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+            IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project_id"
         ),
     }
 
@@ -395,6 +398,12 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     def enable_independent_subprocess(self, request, *args, **kwargs):
         template_id = kwargs.get("pk")
         project_id = request.query_params.get("project_id")
+        # 鉴权仅校验了请求参数 project_id 的 project_view，需进一步确认 template 确属该项目，
+        # 避免借自有项目权限跨项目读取其它项目模板的子流程配置(IDOR)；
+        # template_id=-1 为新建未保存场景，无归属可校验，直接放行
+        if template_id and str(template_id) != "-1":
+            if not TaskTemplate.objects.filter(id=template_id, project_id=project_id).exists():
+                raise PermissionDenied("template does not belong to the specified project")
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
 
@@ -402,6 +411,11 @@ class TaskTemplateViewSet(GcloudModelViewSet):
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()
+        # 鉴权基于请求参数 project__id 的 project_view，但 get_object 按 pk 取任意模板，
+        # 需确认 template 确属该项目，避免借自有项目权限跨项目读取流程名称/执行方案(IDOR)
+        project_id = request.query_params.get("project__id")
+        if str(template.project_id) != str(project_id):
+            raise PermissionDenied("template does not belong to the specified project")
         schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})
@@ -426,6 +440,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         verify_data = serializer.validated_data.copy()
+        verify_data.pop("project_id", None)
         verify_data["url"] = verify_data.pop("endpoint")
 
         try:

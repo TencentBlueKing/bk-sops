@@ -271,7 +271,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         "destroy": IamPermissionInfo(
             IAMMeta.TASK_DELETE_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
-        "enable_fill_retry_params": IamPermissionInfo(pass_all=True),
+        "enable_fill_retry_params": IamPermissionInfo(
+            IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
+        ),
         "node_snapshot_config": IamPermissionInfo(
             IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task_obj, HAS_OBJECT_PERMISSION
         ),
@@ -631,21 +633,29 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     @action(methods=["GET"], detail=False)
     def list_children_taskflow(self, request, *args, **kwargs):
         root_task_id = request.query_params.get("root_task_id")
+        # 鉴权(IamUserTypeBasedValidator)接受 project__id / project_id，但 TaskFlowFilterSet 仅识别
+        # project__id，导致仅传 project_id 时子任务未按项目收敛，可跨项目读取他人任务的子任务数据(IDOR)。
+        # 这里显式按已鉴权项目过滤子任务及关系，确保数据作用域与鉴权作用域一致。
+        # 空串归一化为 None：filter(project_id=None) 走 IS NULL 返回空集(拒绝)，避免 filter(project_id="")
+        # 触发整型转换 ValueError 导致 500。
+        project_id = request.query_params.get("project__id") or request.query_params.get("project_id") or None
         children_task_info = TaskFlowRelation.objects.filter(root_task_id=root_task_id).values(
             "task_id", "parent_task_id"
         )
         children_task_ids = [info["task_id"] for info in children_task_info]
         queryset = TaskFlowInstance.objects.filter(
-            id__in=children_task_ids, pipeline_instance__isnull=False, is_deleted=Value(0)
+            id__in=children_task_ids, project_id=project_id, pipeline_instance__isnull=False, is_deleted=Value(0)
         )
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)
         data = self.injection_auth_actions(request, serializer.data, queryset)
         self._inject_template_related_info(request, data)
 
+        allowed_task_ids = {item["id"] for item in data}
         relations = {}
         for info in children_task_info:
-            relations.setdefault(info["parent_task_id"], []).append(info["task_id"])
+            if info["task_id"] in allowed_task_ids:
+                relations.setdefault(info["parent_task_id"], []).append(info["task_id"])
         return Response({"tasks": data, "relations": relations})
 
     @swagger_auto_schema(
@@ -659,10 +669,16 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         task_ids = request.query_params.get("task_ids") or []
         if task_ids:
             task_ids = [int(task_id) for task_id in task_ids.split(",")]
-        root_task_ids = TaskFlowRelation.objects.filter(root_task_id__in=task_ids).values_list(
-            "root_task_id", flat=True
+        # 仅统计属于已鉴权项目的任务，避免跨项目探测他人任务的子流程结构(IDOR)；
+        # 不属于该项目的 task_id 一律返回 False。空串归一化为 None 避免 filter(project_id="") 触发 500。
+        project_id = request.query_params.get("project__id") or request.query_params.get("project_id") or None
+        valid_task_ids = set(
+            TaskFlowInstance.objects.filter(id__in=task_ids, project_id=project_id).values_list("id", flat=True)
         )
-        root_task_info = {task_id: True if task_id in root_task_ids else False for task_id in task_ids}
+        root_task_ids = set(
+            TaskFlowRelation.objects.filter(root_task_id__in=valid_task_ids).values_list("root_task_id", flat=True)
+        )
+        root_task_info = {task_id: task_id in root_task_ids for task_id in task_ids}
         return Response({"has_children_taskflow": root_task_info})
 
     @swagger_auto_schema(
@@ -695,8 +711,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     @swagger_auto_schema(method="GET", operation_summary="查询任务是否支持重试填参")
     @action(methods=["GET"], detail=True)
     def enable_fill_retry_params(self, request, *args, **kwargs):
-        task_id = kwargs["pk"]
-        return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task_id)})
+        # 通过 get_object 触发对象级 task_view 权限校验，避免任意用户探测他人任务配置
+        task = self.get_object()
+        return Response({"enable": TaskConfig.objects.enable_fill_retry_params(task.id)})
 
     @swagger_auto_schema(
         method="GET",

@@ -18,6 +18,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.taskflow import StatusViewInterceptor
 from gcloud.taskflow3.apis.django.validators import StatusValidator
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -28,6 +30,7 @@ logger = logging.getLogger("root")
 
 @require_GET
 @request_validate(StatusValidator)
+@iam_intercept(StatusViewInterceptor())
 def root_state(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
@@ -35,9 +38,7 @@ def root_state(request, project_id):
     try:
         task = TaskFlowInstance.objects.get(pk=instance_id, project_id=project_id, is_deleted=False)
     except Exception as e:
-        message = _(
-            f"任务状态请求失败: 请求任务[ID: {instance_id}]的状态发生错误: {e}. 请重试, 如持续失败可联系管理员处理 | get_task_status"
-        )
+        message = _(f"任务状态请求失败: 请求任务[ID: {instance_id}]的状态发生错误: {e}. 请重试, 如持续失败可联系管理员处理 | get_task_status")
         logger.error(message)
         return {
             "result": False,

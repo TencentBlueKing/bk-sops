@@ -24,6 +24,7 @@ from gcloud import err_code
 from gcloud.contrib.analysis.analyse_items import task_template
 from gcloud.core.models import ProjectConfig
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.project import ProjectFlowCreateInterceptor, ProjectViewInterceptor
 from gcloud.iam_auth.view_interceptors.template import (
     AgentGenerateProcessInterceptor,
     BatchFormInterceptor,
@@ -197,6 +198,7 @@ def import_templates(request, project_id):
 )
 @api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
+@iam_intercept(ProjectFlowCreateInterceptor())
 def check_before_import(request, project_id):
     """
     检测 DAT 文件是否支持导入
@@ -246,6 +248,7 @@ def replace_all_templates_tree_node_id(request):
 
 @require_GET
 @request_validate(GetTemplateCountValidator)
+@iam_intercept(ProjectViewInterceptor())
 def get_template_count(request, project_id):
     group_by = request.GET.get("group_by", "category")
     result_dict = check_and_rename_params({}, group_by)
@@ -287,6 +290,7 @@ def draw_pipeline(request):
 
 
 @require_GET
+@iam_intercept(ProjectViewInterceptor())
 def get_templates_with_expired_subprocess(request, project_id):
     return JsonResponse(
         {

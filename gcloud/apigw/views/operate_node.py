@@ -73,7 +73,16 @@ def operate_node(request, project_id, task_id):
         "inputs": inputs,
         "flow_id": req_data.get("flow_id", ""),
     }
-    task = TaskFlowInstance.objects.get(pk=task_id)
+    try:
+        task = TaskFlowInstance.objects.get(pk=task_id, project_id=request.project.id)
+    except TaskFlowInstance.DoesNotExist:
+        return {
+            "result": False,
+            "message": "task[id={task_id}] of project[id={project_id}] does not exist".format(
+                task_id=task_id, project_id=request.project.id
+            ),
+            "code": err_code.CONTENT_NOT_EXIST.code,
+        }
     result = task.nodes_action(action, node_id, username, **kwargs)
     result["code"] = err_code.SUCCESS.code if result["result"] else err_code.UNKNOWN_ERROR.code
     return result

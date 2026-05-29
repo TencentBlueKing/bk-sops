@@ -17,6 +17,8 @@ from blueapps.account.decorators import login_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from gcloud import err_code
+from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.views.get_task_plugin_log import fetch_task_plugin_log
 from plugin_service.api_decorators import validate_params
 from plugin_service.serializers import LogQuerySerializer
@@ -25,12 +27,25 @@ from plugin_service.serializers import LogQuerySerializer
 @login_exempt
 @api_view(["GET"])
 @apigw_require
+@mark_request_whether_is_trust
 @validate_params(LogQuerySerializer)
 def get_task_plugin_log_for_inner(request):
     """
     内部接口，仅限于内部使用
     免去用户登录、iam鉴权等操作
+
+    仅允许处于 APIGW 信任名单（is_trust）的应用调用，避免任意网关应用借此
+    绕过用户 IAM 校验读取插件日志（BAC / 信息泄露）
     """
+    if not request.is_trust:
+        return Response(
+            {
+                "result": False,
+                "message": "you have no permission to call this api.",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
+
     trace_id = request.validated_data.get("trace_id")
     scroll_id = request.validated_data.get("scroll_id")
     plugin_code = request.validated_data.get("plugin_code")
