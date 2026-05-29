@@ -12,8 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from iam import Action, Subject
+from iam.exceptions import AuthFailedException
 from iam.shortcuts import allow_or_raise_auth_failed
 
+from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
 
@@ -37,12 +39,25 @@ class _ProjectActionInterceptor(ViewInterceptor):
             project_id = request.GET.get("project_id") or request.POST.get("project_id")
 
         subject = Subject("user", request.user.username)
+        action = Action(self.action)
+
+        # project_id 缺失或指向不存在的项目时，统一按鉴权失败(403)处理：
+        # 1. 避免 resources_for_project 内部 Project.objects.get(id=None/不存在) 抛
+        #    DoesNotExist 造成 500，攻击者可借 500/403 差异探测拦截器是否挂载；
+        # 2. 缺少项目作用域的请求本就无法通过对象级鉴权，直接拒绝更安全。
+        if not project_id:
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
+        try:
+            resources = res_factory.resources_for_project(project_id)
+        except Project.DoesNotExist:
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
+
         allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,
             subject=subject,
-            action=Action(self.action),
-            resources=res_factory.resources_for_project(project_id),
+            action=action,
+            resources=resources,
             cache=True,
         )
 

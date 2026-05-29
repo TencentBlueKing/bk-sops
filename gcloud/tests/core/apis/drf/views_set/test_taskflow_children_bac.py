@@ -51,6 +51,25 @@ class RootTaskInfoProjectScopeTestCase(TestCase):
 
         self.assertEqual(response.data["has_children_taskflow"], {1: True, 2: False, 3: False})
 
+    def test_root_task_info__empty_project_id_normalized_to_none(self):
+        """空串 project_id 应归一化为 None(filter(project_id=None) 走 IS NULL 返回空集)，
+        避免 filter(project_id="") 触发整型转换 ValueError 导致 500。"""
+        view = _build_view("root_task_info", {"task_ids": "1,2", "project_id": ""})
+
+        instance_qs = MagicMock()
+        instance_qs.values_list.return_value = []
+        relation_qs = MagicMock()
+        relation_qs.values_list.return_value = []
+        instance_filter = MagicMock(return_value=instance_qs)
+
+        with patch(INSTANCE_FILTER, instance_filter):
+            with patch(RELATION_FILTER, MagicMock(return_value=relation_qs)):
+                response = view.root_task_info(view.request)
+
+        _, filter_kwargs = instance_filter.call_args
+        self.assertIsNone(filter_kwargs.get("project_id"))
+        self.assertEqual(response.data["has_children_taskflow"], {1: False, 2: False})
+
 
 class ListChildrenTaskflowProjectScopeTestCase(TestCase):
     """BAC: list_children_taskflow 的鉴权接受 project_id/project__id，但过滤器仅识别 project__id，
@@ -90,3 +109,28 @@ class ListChildrenTaskflowProjectScopeTestCase(TestCase):
         # 只有真正返回（属于该项目）的 task 1 才会出现在 tasks / relations 中，task 2 被剔除
         self.assertEqual(response.data["tasks"], [{"id": 1}])
         self.assertEqual(response.data["relations"], {500: [1]})
+
+    def test_list_children__empty_project_id_normalized_to_none(self):
+        """空串 project_id 应归一化为 None，避免 filter(project_id="") 触发 500。"""
+        view = _build_view("list_children_taskflow", {"root_task_id": "500", "project_id": ""})
+
+        relation_qs = MagicMock()
+        relation_qs.values.return_value = [{"task_id": 1, "parent_task_id": 500}]
+        instance_filter = MagicMock(return_value="CHILDREN_QS")
+
+        with patch(RELATION_FILTER, MagicMock(return_value=relation_qs)):
+            with patch(INSTANCE_FILTER, instance_filter):
+                with patch.object(TaskFlowInstanceViewSet, "filter_queryset", side_effect=lambda qs: qs):
+                    with patch.object(TaskFlowInstanceViewSet, "get_serializer", return_value=SimpleNamespace(data=[])):
+                        with patch.object(
+                            TaskFlowInstanceViewSet,
+                            "injection_auth_actions",
+                            side_effect=lambda request, data, qs: data,
+                        ):
+                            with patch.object(TaskFlowInstanceViewSet, "_inject_template_related_info"):
+                                response = view.list_children_taskflow(view.request)
+
+        _, filter_kwargs = instance_filter.call_args
+        self.assertIsNone(filter_kwargs.get("project_id"))
+        self.assertEqual(response.data["tasks"], [])
+        self.assertEqual(response.data["relations"], {})

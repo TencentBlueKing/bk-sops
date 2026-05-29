@@ -90,8 +90,11 @@ class TaskTemplatePermission(IamPermission):
         "update_template_labels": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        # 该接口为 detail=False 的 POST，会驱动服务端向外部 URL 发起验证请求(出站请求/潜在 SSRF 入口)，
+        # 因此不能下放到 PROJECT_VIEW(任意项目查看者均可触发出站请求)。受限于 detail=False 无法做对象级
+        # FLOW_EDIT，这里收敛为项目级的写意图权限 FLOW_CREATE(具备在该项目下编排流程的权限方可校验 webhook)。
         "verify_webhook_configuration": IamPermissionInfo(
-            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project_id"
+            IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project_id"
         ),
     }
 

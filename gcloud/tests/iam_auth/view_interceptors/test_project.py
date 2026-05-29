@@ -14,6 +14,9 @@ specific language governing permissions and limitations under the License.
 from types import SimpleNamespace
 from unittest import TestCase, mock
 
+from iam.exceptions import AuthFailedException
+
+from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.view_interceptors.project import ProjectFlowCreateInterceptor, ProjectViewInterceptor
 
@@ -100,3 +103,28 @@ class ProjectInterceptorTestCase(TestCase):
         ProjectViewInterceptor().process(request, project_id=1)
 
         mocked_resources_for_project.assert_called_once_with(1)
+
+    @mock.patch(RESOURCES_FOR_PROJECT_PATH, return_value=["project-resource"])
+    @mock.patch(ALLOW_OR_RAISE_PATH)
+    def test_project_view__missing_project_id_raises_auth_failed_not_500(
+        self, mocked_allow_or_raise, mocked_resources_for_project
+    ):
+        """kwargs/GET/POST 均无 project_id 时，应直接按鉴权失败处理，
+        不能进入 resources_for_project(None) 触发 Project.DoesNotExist 造成 500。"""
+        with self.assertRaises(AuthFailedException):
+            ProjectViewInterceptor().process(self.request)
+
+        mocked_resources_for_project.assert_not_called()
+        mocked_allow_or_raise.assert_not_called()
+
+    @mock.patch(RESOURCES_FOR_PROJECT_PATH, side_effect=Project.DoesNotExist)
+    @mock.patch(ALLOW_OR_RAISE_PATH)
+    def test_project_view__nonexistent_project_raises_auth_failed_not_500(
+        self, mocked_allow_or_raise, mocked_resources_for_project
+    ):
+        """指向不存在项目的 project_id 应按鉴权失败(403)处理，而非把 DoesNotExist 暴露为 500。"""
+        with self.assertRaises(AuthFailedException):
+            ProjectViewInterceptor().process(self.request, project_id=999999)
+
+        mocked_resources_for_project.assert_called_once_with(999999)
+        mocked_allow_or_raise.assert_not_called()

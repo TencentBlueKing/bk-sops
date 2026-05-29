@@ -635,8 +635,10 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         root_task_id = request.query_params.get("root_task_id")
         # 鉴权(IamUserTypeBasedValidator)接受 project__id / project_id，但 TaskFlowFilterSet 仅识别
         # project__id，导致仅传 project_id 时子任务未按项目收敛，可跨项目读取他人任务的子任务数据(IDOR)。
-        # 这里显式按已鉴权项目过滤子任务及关系，确保数据作用域与鉴权作用域一致
-        project_id = request.query_params.get("project__id") or request.query_params.get("project_id")
+        # 这里显式按已鉴权项目过滤子任务及关系，确保数据作用域与鉴权作用域一致。
+        # 空串归一化为 None：filter(project_id=None) 走 IS NULL 返回空集(拒绝)，避免 filter(project_id="")
+        # 触发整型转换 ValueError 导致 500。
+        project_id = request.query_params.get("project__id") or request.query_params.get("project_id") or None
         children_task_info = TaskFlowRelation.objects.filter(root_task_id=root_task_id).values(
             "task_id", "parent_task_id"
         )
@@ -668,8 +670,8 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         if task_ids:
             task_ids = [int(task_id) for task_id in task_ids.split(",")]
         # 仅统计属于已鉴权项目的任务，避免跨项目探测他人任务的子流程结构(IDOR)；
-        # 不属于该项目的 task_id 一律返回 False
-        project_id = request.query_params.get("project__id") or request.query_params.get("project_id")
+        # 不属于该项目的 task_id 一律返回 False。空串归一化为 None 避免 filter(project_id="") 触发 500。
+        project_id = request.query_params.get("project__id") or request.query_params.get("project_id") or None
         valid_task_ids = set(
             TaskFlowInstance.objects.filter(id__in=task_ids, project_id=project_id).values_list("id", flat=True)
         )

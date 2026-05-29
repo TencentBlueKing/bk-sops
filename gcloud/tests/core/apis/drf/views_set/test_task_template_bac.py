@@ -17,7 +17,8 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from rest_framework.exceptions import PermissionDenied
 
-from gcloud.core.apis.drf.viewsets.task_template import TaskTemplateViewSet
+from gcloud.core.apis.drf.viewsets.task_template import TaskTemplatePermission, TaskTemplateViewSet
+from gcloud.iam_auth import IAMMeta
 
 TASK_TEMPLATE_FILTER = "gcloud.core.apis.drf.viewsets.task_template.TaskTemplate.objects.filter"
 TASK_CONFIG_ENABLE = "gcloud.core.apis.drf.viewsets.task_template.TaskConfig.objects.enable_independent_subprocess"
@@ -31,6 +32,16 @@ def _build_view(action, query_params, kwargs=None):
     view.kwargs = kwargs or {}
     view.format_kwarg = None
     return view
+
+
+class VerifyWebhookConfigurationPermissionTestCase(TestCase):
+    """BAC/SSRF: verify_webhook_configuration 会驱动服务端向外部 URL 发起请求，
+    不能仅要求 PROJECT_VIEW(任意项目查看者均可触发出站请求)，应至少要求项目级写意图权限。"""
+
+    def test_verify_webhook_requires_flow_create_not_project_view(self):
+        info = TaskTemplatePermission.actions["verify_webhook_configuration"]
+        self.assertEqual(info.iam_action, IAMMeta.FLOW_CREATE_ACTION)
+        self.assertNotEqual(info.iam_action, IAMMeta.PROJECT_VIEW_ACTION)
 
 
 class CommonInfoProjectBindingTestCase(TestCase):
