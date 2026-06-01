@@ -39,7 +39,7 @@ Both `create_task` and `create_and_start_task` will accept a new optional reques
 }
 ```
 
-`template_schemes_id` accepts either a list of execution scheme unique IDs or one scheme unique ID string returned by `get_template_schemes`. A single string is normalized to a single-item list before node selection.
+`template_schemes_id` accepts either a list of execution scheme IDs or one scheme ID. String IDs are resolved as `TemplateScheme.unique_id`; integer IDs are resolved as `TemplateScheme.id`. A single string or integer is normalized to a single-item list before node selection.
 
 The field name intentionally matches the existing `create_clocked_task` parameter instead of the DRF preview API's `scheme_id_list`, because these are APIGW-facing create-task APIs.
 
@@ -79,9 +79,9 @@ Responsibilities:
 
 - Read `template_schemes_id`, `exclude_task_nodes_id`, and optionally `execute_task_nodes_id`.
 - Validate that no incompatible node-selection methods are mixed.
-- Validate that `template_schemes_id` is either a list or a non-empty string.
-- Normalize a string `template_schemes_id` into a single-item list.
-- Resolve scheme unique IDs against the current template's `pipeline_template.id`.
+- Validate that `template_schemes_id` is either a list, a non-empty string, or a positive integer.
+- Normalize a string or integer `template_schemes_id` into a single-item list.
+- Resolve string scheme IDs as `unique_id` and integer scheme IDs as primary keys against the current template's `pipeline_template.id`.
 - Fail if any requested scheme does not exist or belongs to another template.
 - Convert the resolved scheme records to an `exclude_task_nodes_id` list by reusing `PipelineTemplateWebPreviewer.get_template_exclude_task_nodes_with_schemes`.
 - Convert `execute_task_nodes_id` to `exclude_task_nodes_id` using the existing `get_exclude_nodes_by_execute_nodes` behavior for `create_task`.
@@ -99,14 +99,14 @@ The resolver should raise a narrow validation exception or return a structured e
 
 ## Scheme ID Semantics
 
-`get_template_schemes` returns `TemplateScheme.unique_id` as `id`. The new create-task fields must use those same values.
+`get_template_schemes` returns `TemplateScheme.unique_id` as `id`, while the template scheme DRF APIs expose integer `TemplateScheme.id`. The create-task fields accept both forms for compatibility.
 
 The resolver should query schemes by:
 
-- `template_id=template.pipeline_template.id`
-- `unique_id__in=params["template_schemes_id"]`
+- `template_id=template.pipeline_template.id` plus `unique_id__in` for string IDs
+- `template_id=template.pipeline_template.id` plus `id__in` for integer IDs
 
-It should not expose or require database primary keys. The existing preview helper consumes database primary keys, so the resolver will map unique IDs to primary keys before calling that helper.
+The existing preview helper consumes database primary keys, so the resolver maps all supported input forms to primary keys before calling that helper.
 
 ## Integration Points
 
@@ -138,7 +138,7 @@ Use the returned `exclude_task_nodes_id` in the existing task creation path, the
 
 Return `REQUEST_PARAM_INVALID` for:
 
-- `template_schemes_id` is neither a list nor a non-empty string.
+- `template_schemes_id` is neither a list, non-empty string, nor positive integer.
 - `template_schemes_id` contains unknown scheme IDs.
 - `template_schemes_id` contains schemes from another template.
 - `template_schemes_id` is combined with non-empty `exclude_task_nodes_id`.
@@ -151,7 +151,7 @@ Keep existing `UNKNOWN_ERROR` behavior for unexpected pipeline preview or pipeli
 
 Add focused unit tests for the resolver:
 
-- Resolves scheme unique IDs to excluded optional nodes.
+- Resolves string unique IDs and integer scheme IDs to excluded optional nodes.
 - Rejects unknown scheme IDs.
 - Rejects mixed node-selection methods.
 - Preserves non-optional nodes through the existing previewer behavior.

@@ -13,6 +13,13 @@ specific language governing permissions and limitations under the License.
 
 from gcloud.constants import TASK_FLOW, PERIOD_TASK_NAME_MAX_LENGTH, TASK_NAME_MAX_LENGTH
 
+TEMPLATE_SCHEME_ID = {
+    "oneOf": [
+        {"type": "string", "minLength": 1},
+        {"type": "integer", "minimum": 1},
+    ],
+}
+
 APIGW_CREATE_TASK_PARAMS = {
     "type": "object",
     "required": ["name"],
@@ -24,8 +31,8 @@ APIGW_CREATE_TASK_PARAMS = {
         "execute_task_nodes_id": {"type": "array"},
         "template_schemes_id": {
             "oneOf": [
-                {"type": "string", "minLength": 1},
-                {"type": "array", "items": {"type": "string"}},
+                TEMPLATE_SCHEME_ID,
+                {"type": "array", "items": TEMPLATE_SCHEME_ID},
             ],
         },
     },
@@ -52,8 +59,8 @@ APIGW_CREATE_AND_START_TASK_PARAMS = {
         "exclude_task_nodes_id": {"type": "array"},
         "template_schemes_id": {
             "oneOf": [
-                {"type": "string", "minLength": 1},
-                {"type": "array", "items": {"type": "string"}},
+                TEMPLATE_SCHEME_ID,
+                {"type": "array", "items": TEMPLATE_SCHEME_ID},
             ],
         },
         "template_source": {"type": "string"},

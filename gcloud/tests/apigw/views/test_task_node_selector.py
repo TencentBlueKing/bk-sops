@@ -52,6 +52,44 @@ class TaskNodeSelectorTestCase(TestCase):
         self.assertEqual(params["template_schemes_id"], ["47-1"])
         self.assertEqual(result, ["node3"])
 
+    def test_resolve_with_template_schemes_id_integer(self):
+        template = SimpleNamespace(pipeline_template=SimpleNamespace(id=47))
+        pipeline_tree = {PE.activities: {"node1": {}, "node2": {}, "node3": {}}}
+        params = {"template_schemes_id": [243]}
+
+        with patch("gcloud.apigw.views.task_node_selector.TemplateScheme") as template_scheme:
+            with patch("gcloud.apigw.views.task_node_selector.PipelineTemplateWebPreviewer") as previewer:
+                template_scheme.objects.filter.return_value = [SimpleNamespace(id=243, unique_id="47-1")]
+                previewer.get_template_exclude_task_nodes_with_schemes = MagicMock(return_value=["node3"])
+
+                result = resolve_exclude_task_nodes_id(template, pipeline_tree, params)
+
+        template_scheme.objects.filter.assert_called_once_with(template_id=47, id__in=[243])
+        previewer.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
+            pipeline_tree, [243], check_schemes_exist=True
+        )
+        self.assertEqual(params["template_schemes_id"], [243])
+        self.assertEqual(result, ["node3"])
+
+    def test_resolve_with_template_schemes_id_integer_value(self):
+        template = SimpleNamespace(pipeline_template=SimpleNamespace(id=47))
+        pipeline_tree = {PE.activities: {"node1": {}, "node2": {}, "node3": {}}}
+        params = {"template_schemes_id": 243}
+
+        with patch("gcloud.apigw.views.task_node_selector.TemplateScheme") as template_scheme:
+            with patch("gcloud.apigw.views.task_node_selector.PipelineTemplateWebPreviewer") as previewer:
+                template_scheme.objects.filter.return_value = [SimpleNamespace(id=243, unique_id="47-1")]
+                previewer.get_template_exclude_task_nodes_with_schemes = MagicMock(return_value=["node3"])
+
+                result = resolve_exclude_task_nodes_id(template, pipeline_tree, params)
+
+        template_scheme.objects.filter.assert_called_once_with(template_id=47, id__in=[243])
+        previewer.get_template_exclude_task_nodes_with_schemes.assert_called_once_with(
+            pipeline_tree, [243], check_schemes_exist=True
+        )
+        self.assertEqual(params["template_schemes_id"], [243])
+        self.assertEqual(result, ["node3"])
+
     def test_reject_unknown_template_scheme(self):
         template = SimpleNamespace(pipeline_template=SimpleNamespace(id=47))
         pipeline_tree = {PE.activities: {}}

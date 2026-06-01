@@ -55,11 +55,15 @@ class CreateTaskAPITest(APITest):
             APIGW_CREATE_TASK_PARAMS,
         )
 
-        with self.assertRaises(jsonschema.ValidationError):
-            jsonschema.validate(
-                {"name": "name", "template_schemes_id": [1]},
-                APIGW_CREATE_TASK_PARAMS,
-            )
+        jsonschema.validate(
+            {"name": "name", "template_schemes_id": [1]},
+            APIGW_CREATE_TASK_PARAMS,
+        )
+
+        jsonschema.validate(
+            {"name": "name", "template_schemes_id": 1},
+            APIGW_CREATE_TASK_PARAMS,
+        )
 
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
     @mock.patch(
