@@ -16,7 +16,7 @@
 |   flow_type     |   string     |   否   |  任务流程类型，common: 常规流程，common_func：职能化流程 |
 |   constants     |   dict     |   否   |  任务全局参数，详细信息见下面说明 |
 |   exclude_task_nodes_id | list |   否   |  跳过执行的节点ID列表 |
-|   template_schemes_id | list/string | 否 | 执行方案 ID 列表或单个执行方案 ID，ID 来源于 get_template_schemes 接口；与 exclude_task_nodes_id 同时存在非空值时会返回参数错误 |
+|   template_schemes_id | list/string/integer | 否 | 执行方案 ID 列表或单个执行方案 ID，支持 get_template_schemes 返回的字符串 ID 和执行方案整型 ID；与 exclude_task_nodes_id 同时存在非空值时会返回参数错误 |
 | description           | string | 否   | pipeline_instance的描述信息                               |
 | callback_url | string | 否 | 任务执行完成后的回调地址 |
 

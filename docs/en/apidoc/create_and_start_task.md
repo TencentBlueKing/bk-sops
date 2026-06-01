@@ -16,7 +16,7 @@ Create a task with a flow template
 |   flow_type    |   string     |   NO    |  flow type，common: common flow，common_func：functional flow. Default is common |
 |   constants    |   dict       |   NO    |  global variables，details are described below |
 |   exclude_task_nodes_id | list |   NO   |  nodes id not be executed, which are set ignore in flow |
-| template_schemes_id | list/string | NO | execution scheme ID list or single execution scheme ID from get_template_schemes. It cannot be used together with non-empty exclude_task_nodes_id |
+| template_schemes_id | list/string/integer | NO | execution scheme ID list or single execution scheme ID. Supports string IDs returned by get_template_schemes and integer TemplateScheme IDs. It cannot be used together with non-empty exclude_task_nodes_id |
 | description           | string | NO       | pipeline_instance's description                              |
 | callback_url | string | NO | callback url when task is finished. |
 

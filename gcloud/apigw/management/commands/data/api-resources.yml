@@ -164,10 +164,16 @@ paths:
                   oneOf:
                   - type: string
                     minLength: 1
+                  - type: integer
+                    minimum: 1
                   - type: array
                     items:
-                      type: string
-                  description: 执行方案ID列表或单个执行方案ID，ID来源于get_template_schemes接口；不能与pipeline_tree同时使用；与exclude_task_nodes_id、execute_task_nodes_id同时存在非空值时会返回参数错误
+                      oneOf:
+                      - type: string
+                        minLength: 1
+                      - type: integer
+                        minimum: 1
+                  description: 执行方案ID列表或单个执行方案ID，支持get_template_schemes返回的字符串ID和执行方案整型ID；不能与pipeline_tree同时使用；与exclude_task_nodes_id、execute_task_nodes_id同时存在非空值时会返回参数错误
                 execute_task_nodes_id:
                   type: array
                   items:
@@ -284,10 +290,16 @@ paths:
                   oneOf:
                   - type: string
                     minLength: 1
+                  - type: integer
+                    minimum: 1
                   - type: array
                     items:
-                      type: string
-                  description: 执行方案ID列表或单个执行方案ID，ID来源于get_template_schemes接口；与exclude_task_nodes_id同时存在非空值时会返回参数错误
+                      oneOf:
+                      - type: string
+                        minLength: 1
+                      - type: integer
+                        minimum: 1
+                  description: 执行方案ID列表或单个执行方案ID，支持get_template_schemes返回的字符串ID和执行方案整型ID；与exclude_task_nodes_id同时存在非空值时会返回参数错误
         required: true
         description: ''
       x-bk-apigateway-resource:

@@ -350,8 +350,8 @@ Modify `APIGW_CREATE_TASK_PARAMS` in `gcloud/apigw/schemas.py`:
 ```python
         "template_schemes_id": {
             "oneOf": [
-                {"type": "string", "minLength": 1},
-                {"type": "array", "items": {"type": "string"}},
+                TEMPLATE_SCHEME_ID,
+                {"type": "array", "items": TEMPLATE_SCHEME_ID},
             ]
         },
 ```
@@ -559,8 +559,8 @@ Modify `APIGW_CREATE_AND_START_TASK_PARAMS` in `gcloud/apigw/schemas.py`:
 ```python
         "template_schemes_id": {
             "oneOf": [
-                {"type": "string", "minLength": 1},
-                {"type": "array", "items": {"type": "string"}},
+                TEMPLATE_SCHEME_ID,
+                {"type": "array", "items": TEMPLATE_SCHEME_ID},
             ]
         },
 ```
@@ -650,13 +650,13 @@ Expected: commit succeeds.
 In `docs/zh_hans/apidoc/create_task.md`, add this parameter row after `exclude_task_nodes_id`:
 
 ```markdown
-|   template_schemes_id | list/string |   否   | 执行方案 ID 列表或单个执行方案 ID，ID 来源于 get_template_schemes 接口；与 exclude_task_nodes_id、execute_task_nodes_id 同时存在非空值时会返回参数错误 |
+|   template_schemes_id | list/string/integer |   否   | 执行方案 ID 列表或单个执行方案 ID，支持 get_template_schemes 返回的字符串 ID 和执行方案整型 ID；与 exclude_task_nodes_id、execute_task_nodes_id 同时存在非空值时会返回参数错误 |
 ```
 
 In `docs/en/apidoc/create_task.md`, add this parameter row after `exclude_task_nodes_id`:
 
 ```markdown
-| template_schemes_id | list/string | NO | execution scheme ID list or single execution scheme ID from get_template_schemes. It cannot be used together with non-empty exclude_task_nodes_id or execute_task_nodes_id |
+| template_schemes_id | list/string/integer | NO | execution scheme ID list or single execution scheme ID. Supports string IDs returned by get_template_schemes and integer TemplateScheme IDs. It cannot be used together with non-empty exclude_task_nodes_id or execute_task_nodes_id |
 ```
 
 Add `"template_schemes_id": ["1-方案A"]` to both request examples.
@@ -666,13 +666,13 @@ Add `"template_schemes_id": ["1-方案A"]` to both request examples.
 In `docs/zh_hans/apidoc/create_and_start_task.md`, add this parameter row after `exclude_task_nodes_id`:
 
 ```markdown
-|   template_schemes_id | list/string | 否 | 执行方案 ID 列表或单个执行方案 ID，ID 来源于 get_template_schemes 接口；与 exclude_task_nodes_id 同时存在非空值时会返回参数错误 |
+|   template_schemes_id | list/string/integer | 否 | 执行方案 ID 列表或单个执行方案 ID，支持 get_template_schemes 返回的字符串 ID 和执行方案整型 ID；与 exclude_task_nodes_id 同时存在非空值时会返回参数错误 |
 ```
 
 In `docs/en/apidoc/create_and_start_task.md`, add this parameter row after `exclude_task_nodes_id`:
 
 ```markdown
-| template_schemes_id | list/string | NO | execution scheme ID list or single execution scheme ID from get_template_schemes. It cannot be used together with non-empty exclude_task_nodes_id |
+| template_schemes_id | list/string/integer | NO | execution scheme ID list or single execution scheme ID. Supports string IDs returned by get_template_schemes and integer TemplateScheme IDs. It cannot be used together with non-empty exclude_task_nodes_id |
 ```
 
 Add `"template_schemes_id": ["1-方案A"]` to both request examples.
@@ -683,10 +683,19 @@ In `gcloud/apigw/management/commands/data/api-resources.yml`, under `/create_tas
 
 ```yaml
                 template_schemes_id:
-                  type: array
-                  items:
-                    type: string
-                  description: 执行方案ID列表，ID来源于get_template_schemes接口；与exclude_task_nodes_id、execute_task_nodes_id同时存在非空值时会返回参数错误
+                  oneOf:
+                  - type: string
+                    minLength: 1
+                  - type: integer
+                    minimum: 1
+                  - type: array
+                    items:
+                      oneOf:
+                      - type: string
+                        minLength: 1
+                      - type: integer
+                        minimum: 1
+                  description: 执行方案ID列表或单个执行方案ID，支持get_template_schemes返回的字符串ID和执行方案整型ID；与exclude_task_nodes_id、execute_task_nodes_id同时存在非空值时会返回参数错误
 ```
 
 - [ ] **Step 4: Locate or add `create_and_start_task` resource schema**
@@ -703,10 +712,19 @@ If a resource is found, add:
 
 ```yaml
                 template_schemes_id:
-                  type: array
-                  items:
-                    type: string
-                  description: 执行方案ID列表，ID来源于get_template_schemes接口；与exclude_task_nodes_id同时存在非空值时会返回参数错误
+                  oneOf:
+                  - type: string
+                    minLength: 1
+                  - type: integer
+                    minimum: 1
+                  - type: array
+                    items:
+                      oneOf:
+                      - type: string
+                        minLength: 1
+                      - type: integer
+                        minimum: 1
+                  description: 执行方案ID列表或单个执行方案ID，支持get_template_schemes返回的字符串ID和执行方案整型ID；与exclude_task_nodes_id同时存在非空值时会返回参数错误
 ```
 
 If no resource is found, add the missing `create_and_start_task` resource to `gcloud/apigw/management/commands/data/api-resources.yml`. Place it near the other task operation resources with this structure:
