@@ -12,14 +12,22 @@ def _is_scheme_pk(value):
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def _normalize_scheme_id(value):
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    return value
+
+
 def normalize_template_scheme_params(params):
     template_schemes_id = params.get("template_schemes_id", [])
 
     if isinstance(template_schemes_id, str) or _is_scheme_pk(template_schemes_id):
         template_schemes_id = [template_schemes_id]
-        params["template_schemes_id"] = template_schemes_id
-    else:
-        params.setdefault("template_schemes_id", template_schemes_id)
+
+    if isinstance(template_schemes_id, list):
+        template_schemes_id = [_normalize_scheme_id(scheme_id) for scheme_id in template_schemes_id]
+
+    params["template_schemes_id"] = template_schemes_id
 
     return template_schemes_id
 
