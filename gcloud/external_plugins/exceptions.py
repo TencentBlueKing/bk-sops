@@ -26,3 +26,9 @@ class OriginalSourceTypeError(GcloudExternalPluginsError):
 
 class CacheSourceTypeError(GcloudExternalPluginsError):
     pass
+
+
+class ForbiddenExternalPluginSourceError(GcloudExternalPluginsError):
+    """远程插件包源地址不合法(命中危险协议/参数注入等), 拒绝加载。"""
+
+    pass

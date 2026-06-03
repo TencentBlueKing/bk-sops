@@ -28,6 +28,7 @@ from gcloud.iam_auth.view_interceptors.project import ProjectFlowCreateIntercept
 from gcloud.iam_auth.view_interceptors.template import (
     AgentGenerateProcessInterceptor,
     BatchFormInterceptor,
+    ConstantPreviewInterceptor,
     ExportInterceptor,
     FetchPipelineTreeInterceptor,
     FormInterceptor,
@@ -303,8 +304,19 @@ def get_templates_with_expired_subprocess(request, project_id):
 
 
 @require_POST
+@iam_intercept(ConstantPreviewInterceptor())
 def get_constant_preview_result(request):
-    params = json.loads(request.body)
+    try:
+        params = json.loads(request.body)
+    except ValueError as e:
+        logger.warning("get_constant_preview_result: Invalid JSON format - {}".format(str(e)))
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "Invalid JSON format: {}".format(str(e)),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+        )
     constants = params.get("constants", {})
     extra_data = params.get("extra_data", {})
 
