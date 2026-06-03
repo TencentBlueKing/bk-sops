@@ -235,7 +235,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
         webhook_configs = serializer.validated_data.pop("webhook_configs", {})
-        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
+        enable_webhook = serializer.validated_data.pop("enable_webhook", None)
         with transaction.atomic():
             result = manager.create_pipeline(
                 name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
@@ -249,7 +249,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template_id"] = result["data"].template_id
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
-            if enable_webhook and webhook_configs:
+            if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
@@ -296,7 +296,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
         webhook_configs = serializer.validated_data.pop("webhook_configs", {})
-        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
+        enable_webhook = serializer.validated_data.pop("enable_webhook", None)
         with transaction.atomic():
             result = manager.update_pipeline(
                 pipeline_template=template.pipeline_template,
@@ -313,13 +313,13 @@ class TaskTemplateViewSet(GcloudModelViewSet):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
-            if enable_webhook and webhook_configs:
+            if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
                     logger.error(message)
                     raise ValidationException(message)
-            elif not enable_webhook and get_webhook_configs(str(serializer.instance.id)):
+            elif enable_webhook is False:
                 clear_scope_webhooks([str(serializer.instance.id)])
 
             self.perform_update(serializer)
