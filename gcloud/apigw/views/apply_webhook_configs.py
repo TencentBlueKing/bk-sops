@@ -31,7 +31,6 @@ from gcloud.apigw.views.utils import logger
 from gcloud.constants import WebhookScopeType
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs import ApplyWebhookConfigs
-from gcloud.utils.webhook import clear_scope_webhooks
 
 
 @login_exempt
@@ -66,14 +65,7 @@ def apply_webhook_configs(request, project_id):
     # 关闭webhook：清空指定模板的所有webhook配置
     if not enable_webhook:
         scope_codes = [str(template_id) for template_id in template_ids]
-        clear_result = clear_scope_webhooks(scope_codes)
-        if not clear_result["result"]:
-            logger.error(f"apply_webhook_configs disable error: {clear_result['message']}")
-            return {
-                "result": False,
-                "message": clear_result["message"],
-                "code": err_code.UNKNOWN_ERROR.code,
-            }
+        WebhookModel.objects.filter(scope_type="template", scope_code__in=scope_codes).update(enable_webhook=False)
         return {"result": True, "message": "success", "code": err_code.SUCCESS.code}
 
     events = webhook_configs.pop("events")
@@ -116,6 +108,7 @@ def apply_webhook_configs(request, project_id):
                         "name": webhook_name,
                         "scope_type": WebhookScopeType.TEMPLATE.value,
                         "scope_code": template_id,
+                        "enable_webhook": True,
                     }
                 )
                 webhook = Webhook(**webhook_config)

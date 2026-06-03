@@ -55,6 +55,7 @@ from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
 from gcloud.utils.webhook import apply_webhook_configs, get_webhook_configs, clear_scope_webhooks
 from gcloud.core.apis.drf.exceptions import ValidationException
 from webhook.api import verify_webhook_endpoint
+from webhook.models import Webhook
 
 logger = logging.getLogger("root")
 manager = TemplateManager(template_model_cls=TaskTemplate)
@@ -217,8 +218,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
         webhook_configs = get_webhook_configs(scope_code=str(instance.id))
+        data["enable_webhook"] = webhook_configs.pop("enable_webhook", False)
         data["webhook_configs"] = webhook_configs
-        data["enable_webhook"] = True if webhook_configs else False
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.FLOW_VIEW_ACTION,
@@ -313,14 +314,18 @@ class TaskTemplateViewSet(GcloudModelViewSet):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
-            if enable_webhook is True and webhook_configs:
+
+            if enable_webhook is not None:
+                Webhook.objects.filter(scope_type="template", scope_code=str(serializer.instance.id)).update(
+                    enable_webhook=enable_webhook
+                )
+
+            if webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
                     logger.error(message)
                     raise ValidationException(message)
-            elif enable_webhook is False:
-                clear_scope_webhooks([str(serializer.instance.id)])
 
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
