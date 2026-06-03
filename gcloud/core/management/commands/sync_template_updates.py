@@ -14,7 +14,7 @@
 """
 import pymysql
 from django.core.management.base import BaseCommand
-from django.db import connection
+from django.db import connection, transaction
 
 try:
     from . import sync_config
@@ -104,40 +104,41 @@ class Command(BaseCommand):
     # 核心流程
     # ------------------------------------------------------------------
     def do_update(self, source_conn, biz_id, dry_run):
-        """根据 bk_biz_id 拉取源端该业务的所有流程，逐条覆盖更新"""
+        """循环目标环境中该业务下已存在的流程，从源端拉取最新数据覆盖更新"""
 
-        # 1. 在源端通过 bk_biz_id 查找 project_id
-        project_ids = self.fetch_project_ids(source_conn, biz_id)
+        # 1. 在目标端通过 bk_biz_id 查找 project_id
+        project_ids = self.fetch_local_project_ids(biz_id)
         if not project_ids:
-            self.stdout.write(self.style.WARNING(f"源端找不到 bk_biz_id={biz_id} 对应的项目"))
+            self.stdout.write(self.style.WARNING(f"目标端找不到 bk_biz_id={biz_id} 对应的项目"))
             return
-        self.stdout.write(f"源端找到 {len(project_ids)} 个项目: {project_ids}")
+        self.stdout.write(f"目标端找到 {len(project_ids)} 个项目: {project_ids}")
 
-        # 2. 拉取这些项目下的所有 tasktmpl3_tasktemplate
-        task_templates = self.fetch_task_templates_by_projects(source_conn, project_ids)
-        if not task_templates:
-            self.stdout.write(self.style.WARNING(f"源端 bk_biz_id={biz_id} 下没有任何项目流程"))
+        # 2. 从目标端拉取这些项目下所有已存在的 tasktmpl3_tasktemplate
+        local_task_templates = self.fetch_local_task_templates(project_ids)
+        if not local_task_templates:
+            self.stdout.write(self.style.WARNING(f"目标端 bk_biz_id={biz_id} 下没有任何项目流程，请先执行全量同步"))
             return
-        self.stdout.write(f"源端共找到 {len(task_templates)} 个项目流程")
+        self.stdout.write(f"目标端共找到 {len(local_task_templates)} 个项目流程，开始从源端拉取最新数据覆盖更新")
 
-        # 3. 拉取关联的 pipeline_template 和 current_version
-        pipeline_template_ids = [t["pipeline_template_id"] for t in task_templates]
-        pipeline_templates = self.fetch_pipeline_templates(source_conn, pipeline_template_ids)
+        # 3. 从源端拉取对应的 pipeline_template 和 task_template 最新数据
+        pipeline_template_ids = [t["pipeline_template_id"] for t in local_task_templates]
+        source_pipeline_templates = self.fetch_pipeline_templates(source_conn, pipeline_template_ids)
+        source_task_templates = self.fetch_task_templates_by_pipeline_ids(source_conn, pipeline_template_ids)
 
-        # 4. 逐条覆盖
+        # 4. 逐条覆盖更新
         success, skipped = 0, 0
-        for task_row in task_templates:
-            template_id = task_row["pipeline_template_id"]
-            pipeline_row = pipeline_templates.get(template_id)
+        for local_task_row in local_task_templates:
+            template_id = local_task_row["pipeline_template_id"]
 
-            if pipeline_row is None:
-                self.stdout.write(
-                    self.style.WARNING(f"[跳过] 源端无 pipeline_template={template_id}（task_template id={task_row['id']}）")
-                )
+            source_pipeline_row = source_pipeline_templates.get(template_id)
+            source_task_row = source_task_templates.get(template_id)
+
+            if source_pipeline_row is None:
+                self.stdout.write(self.style.WARNING(f"[跳过] 源端无 pipeline_template={template_id}，可能已在源端删除"))
                 skipped += 1
                 continue
 
-            ok = self.update_one(task_row, pipeline_row, dry_run)
+            ok = self.update_one(local_task_row, source_pipeline_row, source_task_row, dry_run)
             if ok:
                 success += 1
             else:
@@ -146,22 +147,43 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"处理完成：成功 {success} 个，跳过 {skipped} 个"))
 
     # ------------------------------------------------------------------
-    # 源端数据抓取
+    # 目标端数据查询
     # ------------------------------------------------------------------
-    def fetch_project_ids(self, source_conn, bk_biz_id):
+    def fetch_local_project_ids(self, bk_biz_id):
+        """从目标端 core_project 表根据 bk_biz_id 查找 project_id，返回 id 列表"""
         sql = "SELECT id FROM core_project WHERE bk_biz_id = %s"
-        with source_conn.cursor() as cursor:
+        with connection.cursor() as cursor:
             cursor.execute(sql, (bk_biz_id,))
-            return [row["id"] for row in cursor.fetchall()]
+            return [row[0] for row in cursor.fetchall()]
 
-    def fetch_task_templates_by_projects(self, source_conn, project_ids):
+    def _fetchall_dict(self, cursor):
+        """将 cursor 的 tuple 结果转为 dict 列表（兼容 Django 默认游标）"""
+        columns = [col[0] for col in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    def fetch_local_task_templates(self, project_ids):
+        """从目标端 tasktmpl3_tasktemplate 表拉取指定项目下的所有流程，返回 dict 列表"""
         if not project_ids:
             return []
         placeholders = ", ".join(["%s"] * len(project_ids))
         sql = f"SELECT * FROM tasktmpl3_tasktemplate WHERE project_id IN ({placeholders})"
-        with source_conn.cursor() as cursor:
+        with connection.cursor() as cursor:
             cursor.execute(sql, project_ids)
-            return list(cursor.fetchall())
+            return self._fetchall_dict(cursor)
+
+    # ------------------------------------------------------------------
+    # 源端数据抓取
+    # ------------------------------------------------------------------
+
+    def fetch_task_templates_by_pipeline_ids(self, source_conn, pipeline_template_ids):
+        """从源端拉取指定 pipeline_template_id 对应的 tasktmpl3_tasktemplate 记录"""
+        if not pipeline_template_ids:
+            return {}
+        placeholders = ", ".join(["%s"] * len(pipeline_template_ids))
+        sql = f"SELECT * FROM tasktmpl3_tasktemplate WHERE pipeline_template_id IN ({placeholders})"
+        with source_conn.cursor() as cursor:
+            cursor.execute(sql, pipeline_template_ids)
+            return {row["pipeline_template_id"]: row for row in cursor.fetchall()}
 
     def fetch_pipeline_templates(self, source_conn, template_ids):
         if not template_ids:
@@ -175,33 +197,25 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # 写入目标库
     # ------------------------------------------------------------------
-    def update_one(self, task_row, pipeline_row, dry_run):
-        template_id = pipeline_row["template_id"]
+    def update_one(self, local_task_row, source_pipeline_row, source_task_row, dry_run):
+        """用源端最新数据覆盖更新目标端记录
 
-        # 校验目标库是否已存在该流程（不存在则跳过，由全量同步处理新增）
-        if not self._exists(
-            "SELECT 1 FROM pipeline_pipelinetemplate WHERE template_id = %s",
-            (template_id,),
-        ):
-            self.stdout.write(self.style.WARNING(f"[跳过] 目标库无 pipeline_template={template_id}，留待全量同步处理"))
-            return False
-
-        # 校验目标库 task_template 是否存在
-        if not self._exists(
-            "SELECT 1 FROM tasktmpl3_tasktemplate WHERE id = %s",
-            (task_row["id"],),
-        ):
-            self.stdout.write(self.style.WARNING(f"[跳过] 目标库无 tasktmpl3_tasktemplate id={task_row['id']}，留待全量同步处理"))
-            return False
+        :param local_task_row: 目标端已有的 tasktmpl3_tasktemplate 记录（含 id、pipeline_template_id）
+        :param source_pipeline_row: 源端 pipeline_pipelinetemplate 最新记录
+        :param source_task_row: 源端 tasktmpl3_tasktemplate 最新记录
+        """
+        template_id = local_task_row["pipeline_template_id"]
+        local_task_id = local_task_row["id"]
 
         if dry_run:
-            self.stdout.write(f"[dry-run] 将更新 template_id={template_id} (name={pipeline_row.get('name')})")
+            self.stdout.write(f"[dry-run] 将更新 template_id={template_id} (name={source_pipeline_row.get('name')})")
             return True
 
         try:
-            self._update_pipeline_template(pipeline_row)
-            self._update_task_template(task_row)
-            self.stdout.write(f"[ok] 已更新 template_id={template_id} (name={pipeline_row.get('name')})")
+            with transaction.atomic():
+                self._update_pipeline_template(source_pipeline_row)
+                self._update_task_template(local_task_id, source_task_row)
+            self.stdout.write(f"[ok] 已更新 template_id={template_id} (name={source_pipeline_row.get('name')})")
             return True
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"[失败] template_id={template_id}: {str(e)}"))
@@ -215,15 +229,10 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             cursor.execute(sql, values)
 
-    def _update_task_template(self, row):
+    def _update_task_template(self, local_task_id, source_row):
         set_clause = ", ".join([f"`{f}` = %s" for f in TASK_TEMPLATE_UPDATE_FIELDS])
-        values = [row.get(f) for f in TASK_TEMPLATE_UPDATE_FIELDS]
-        values.append(row["id"])
+        values = [source_row.get(f) for f in TASK_TEMPLATE_UPDATE_FIELDS]
+        values.append(local_task_id)
         sql = f"UPDATE `tasktmpl3_tasktemplate` SET {set_clause} WHERE `id` = %s"
         with connection.cursor() as cursor:
             cursor.execute(sql, values)
-
-    def _exists(self, sql, params):
-        with connection.cursor() as cursor:
-            cursor.execute(sql, params)
-            return cursor.fetchone() is not None
