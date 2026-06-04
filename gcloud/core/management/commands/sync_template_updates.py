@@ -279,7 +279,7 @@ class Command(BaseCommand):
         if not project_ids:
             return []
         placeholders = ", ".join(["%s"] * len(project_ids))
-        sql = f"SELECT * FROM tasktmpl3_tasktemplate WHERE project_id IN ({placeholders})"
+        sql = f"SELECT * FROM tasktmpl3_tasktemplate WHERE project_id IN ({placeholders}) AND id < 500000"
         with connection.cursor() as cursor:
             cursor.execute(sql, project_ids)
             return self._fetchall_dict(cursor)
