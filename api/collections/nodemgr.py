@@ -21,9 +21,15 @@ class BKNodemgrClient(BKComponentClient):
     def __init__(self, *args, **kwargs):
         super(BKNodemgrClient, self).__init__(*args, **kwargs)
 
-        self.base_url = env.BK_NODEMGR_API_ENTRY.rstrip("/")
-        self.app_code = env.APP_ID
-        self.app_secret = env.APP_TOKEN
+        api_entry = getattr(env, "BK_NODEMGR_API_ENTRY", "") or ""
+        if not api_entry:
+            raise RuntimeError(
+                "BK_NODEMGR_API_ENTRY is not configured; please set the environment "
+                "variable before using the Nodemgr plugin."
+            )
+        self.base_url = api_entry.rstrip("/")
+        # app_code / app_secret 已由父类 BKComponentClient.__init__ 处理，
+        # 默认回落到 settings.APP_CODE / settings.SECRET_KEY，无需在此覆盖。
 
     def _pre_process_headers(self, headers):
         """使用 X-Bkapi-Authorization header 传递认证信息，而非注入 body
