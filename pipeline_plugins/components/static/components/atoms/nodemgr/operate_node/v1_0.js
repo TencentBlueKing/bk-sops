@@ -103,11 +103,18 @@
                             show_msg(resp.message, "error");
                         }
 
+                        // 仅在当前未回填值时执行自动选择，避免覆盖已保存的用户选项
+                        var current_value = this.value;
+                        var is_empty = current_value === "" || current_value === undefined || current_value === null;
                         if (resp.data.length === 1) {
-                            this._set_value(resp.data[0].value);
+                            if (is_empty) {
+                                this._set_value(resp.data[0].value);
+                            }
                         } else if (resp.data.length > 1 && this.get_parent().get_parent().get_child("nodemgr_node_role").value === "agent") {
-                            this._set_value(-1);
                             resp.data.unshift({"text": gettext("自动选择"), "value": -1});
+                            if (is_empty) {
+                                this._set_value(-1);
+                            }
                         }
 
                         return resp.data;
@@ -866,11 +873,18 @@
                                                 show_msg(resp.message, "error");
                                             }
 
+                                            // 仅在当前未回填值时执行自动选择，避免覆盖已保存的用户选项
+                                            var current_value = this.value;
+                                            var is_empty = current_value === "" || current_value === undefined || current_value === null;
                                             if (resp.data.length === 1) {
-                                                this._set_value(resp.data[0].value);
+                                                if (is_empty) {
+                                                    this._set_value(resp.data[0].value);
+                                                }
                                             } else if (resp.data.length > 1 && this.get_parent().get_parent().get_child("nodemgr_node_role").value === "agent") {
                                                 resp.data.unshift({"text": gettext("自动选择"), "value": -1});
-                                                this._set_value(-1);
+                                                if (is_empty) {
+                                                    this._set_value(-1);
+                                                }
                                             }
 
                                             return resp.data;
