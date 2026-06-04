@@ -56,7 +56,7 @@ class NodemgrOperateNodeService(NodemgrBaseService):
                 batch = operation_info.get("nodemgr_batch_install")
 
                 inner_ip_list = split_ip_list(batch.get("inner_ip"), strip=False)
-                login_ip_list = split_ip_list(batch.get("login_ip"), strip=False)
+                login_ip_list = [ip for ip in split_ip_list(batch.get("login_ip"), strip=False) if ip.strip()]
                 if len(login_ip_list) != 0 and len(login_ip_list) != len(inner_ip_list):
                     raise Exception("login_ip数量不匹配")
 
@@ -291,6 +291,11 @@ class NodemgrOperateNodeService(NodemgrBaseService):
             elif host.get("login_mode") == "keyfile":
                 install_host["login_key_file"] = self.encrypt_credit(
                     username=username, auth_info=host.get("login_password"))
+            elif host.get("login_mode") == "password_vault":
+                # 密码库(TJJ)模式: login_mode 透传 password_vault，凭据由 Nodemgr 侧从密码库读取，
+                # 此处不携带 login_password / login_key_file（显式置空，避免上游用旧值）。
+                install_host["login_password"] = ""
+                install_host["login_key_file"] = ""
 
             # proxy 节点额外的参数内容
             if node_role == "proxy":

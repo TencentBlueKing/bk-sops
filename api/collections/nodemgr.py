@@ -21,7 +21,13 @@ class BKNodemgrClient(BKComponentClient):
     def __init__(self, *args, **kwargs):
         super(BKNodemgrClient, self).__init__(*args, **kwargs)
 
-        self.base_url = env.BK_NODEMGR_API_ENTRY.rstrip("/")
+        api_entry = getattr(env, "BK_NODEMGR_API_ENTRY", "") or ""
+        if not api_entry:
+            raise RuntimeError(
+                "BK_NODEMGR_API_ENTRY is not configured; please set the environment "
+                "variable before using the Nodemgr plugin."
+            )
+        self.base_url = api_entry.rstrip("/")
         # app_code / app_secret 已由父类 BKComponentClient.__init__ 处理，
         # 默认回落到 settings.APP_CODE / settings.SECRET_KEY，无需在此覆盖。
 

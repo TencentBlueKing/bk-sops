@@ -303,7 +303,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'install', '插件名称不可为空');
+                                                    return validate_not_empty(this, value, 'uninstall', '插件名称不可为空');
                                                 }
                                             }
                                         ],
