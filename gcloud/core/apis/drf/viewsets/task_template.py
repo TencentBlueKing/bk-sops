@@ -320,7 +320,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
                     enable_webhook=enable_webhook
                 )
 
-            if webhook_configs:
+            if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]

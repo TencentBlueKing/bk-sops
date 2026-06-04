@@ -63,7 +63,7 @@ def apply_webhook_configs(request, project_id):
     template_ids = webhook_configs.pop("template_ids")
 
     # 关闭webhook：关闭指定模板的所有webhook开关
-    if not enable_webhook:
+    if enable_webhook is False:
         scope_codes = [str(template_id) for template_id in template_ids]
         WebhookModel.objects.filter(scope_type="template", scope_code__in=scope_codes).update(enable_webhook=False)
         return {"result": True, "message": "success", "code": err_code.SUCCESS.code}
