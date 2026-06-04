@@ -51,7 +51,7 @@ def apply_webhook_configs(request, project_id):
        "extra_info": {},
        "template_ids": ["1"]
     }
-    当 enable_webhook 为 false 时，会清空指定 template_ids 的所有webhook配置
+    当 enable_webhook 为 false 时，会关闭指定 template_ids 的所有webhook开关
     """
     data = json.loads(request.body)
     ser = WebhookSerializer(data=data)
@@ -62,7 +62,7 @@ def apply_webhook_configs(request, project_id):
     enable_webhook = webhook_configs.pop("enable_webhook", True)
     template_ids = webhook_configs.pop("template_ids")
 
-    # 关闭webhook：清空指定模板的所有webhook配置
+    # 关闭webhook：关闭指定模板的所有webhook开关
     if not enable_webhook:
         scope_codes = [str(template_id) for template_id in template_ids]
         WebhookModel.objects.filter(scope_type="template", scope_code__in=scope_codes).update(enable_webhook=False)
@@ -136,7 +136,9 @@ def apply_webhook_configs(request, project_id):
             if webhooks_to_create:
                 WebhookModel.objects.bulk_create(webhooks_to_create)
             if webhooks_to_update:
-                WebhookModel.objects.bulk_update(webhooks_to_update, fields=["code", "name", "endpoint", "extra_info"])
+                WebhookModel.objects.bulk_update(
+                    webhooks_to_update, fields=["code", "name", "endpoint", "extra_info", "enable_webhook"]
+                )
             Subscription.objects.bulk_create(subscriptions_to_create)
 
     except Exception as e:
