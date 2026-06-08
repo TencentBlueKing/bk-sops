@@ -1636,6 +1636,58 @@ paths:
       description: 获取模板的执行方案列表
       tags:
       - 通用接口
+      parameters:
+      - name: with_constants
+        in: query
+        description: 是否需要返回执行方案的变量详情
+        schema:
+          type: string
+          default: "false"
+          enum:
+          - "true"
+          - "false"
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: 执行方案ID
+                        name:
+                          type: string
+                          description: 执行方案名称
+                        data:
+                          type: string
+                          description: 执行方案中包含的节点ID列表（JSON字符串）
+                        detail:
+                          type: object
+                          description: 执行方案详情，包含输入参数信息
+                          properties:
+                            constants:
+                              type: object
+                              description: 执行方案对应的输入参数
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
