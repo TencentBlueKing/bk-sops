@@ -299,6 +299,7 @@ class NodemgrOperateNodeService(NodemgrBaseService):
 
             # proxy 节点额外的参数内容
             if node_role == "proxy":
+                install_host["proxy_install_origin_unit_id"] = host.get("bk_networkunit_id")
                 install_host["relay_callback_port"] = self.proxy_info.get("relay_callback_port", 28302)
                 install_host["relay_download_port"] = self.proxy_info.get("relay_download_port", 28303)
                 install_host["proxy_tags"] = self.proxy_info.get("proxy_tags", [
