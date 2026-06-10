@@ -255,10 +255,11 @@ class NodemgrOperatePluginService(NodemgrBaseService):
         return True
 
 
-class NodemgrOperatePluginComponent(Component):
-    name = _("插件操作")
-    code = "nodemgr_operate_plugin"
-    bound_service = NodemgrOperatePluginService
-    form = "%scomponents/atoms/nodemgr/operate_plugin/v1_0.js" % settings.STATIC_URL
-    version = "v1.0"
-    desc = _("节点管理器插件操作（安装/升级/卸载/应用配置）")
+if env.BK_NODEMGR_ENABLE:
+    class NodemgrOperatePluginComponent(Component):
+        name = _("插件操作")
+        code = "nodemgr_operate_plugin"
+        bound_service = NodemgrOperatePluginService
+        form = "%scomponents/atoms/nodemgr/operate_plugin/v1_0.js" % settings.STATIC_URL
+        version = "v1.0"
+        desc = _("节点管理器插件操作（安装/升级/卸载/应用配置）")
