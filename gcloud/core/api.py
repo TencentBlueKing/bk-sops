@@ -165,7 +165,7 @@ def get_msg_types(request):
     else:
         result = {"result": True, "data": result["data"], "message": "获取消息通道列表成功"}
 
-    if settings.ENABLE_BK_CHAT_CHANNEL and not request.GET.get("only_cmsi"):
+    if settings.ENABLE_BK_CHAT_CHANNEL and not request.GET.get("only_cmsi") and request.user.tenant_id == "tencent":
         bk_chat = {
             "type": "bkchat",
             "icon": "iVBORw0KGgoAAAANSUhEUgAAACQAAAAgCAMAAABNTyq8AAAAAXNSR0IArs4c6QAAAAlwSFlzAAAWJQAAFiUBSVIk8AAAAOpQTF"

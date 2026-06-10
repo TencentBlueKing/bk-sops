@@ -63,10 +63,10 @@ class CmsiSender:
 
 class BkchatSender:
     def _get_bkchat_api(self):
-        return "{}/{}".format(BK_CHAT_API_ENTRY, "prod/im/api/v1/send_msg")
+        """获取 BK Chat API 地址"""
+        return "{}/{}/im/api/v1/send_msg".format(BK_CHAT_API_ENTRY, settings.BK_APIGW_STAGE_NAME)
 
     def send(self, notify, content):
-        params = {"bk_app_code": settings.BK_CHAT_APP_CODE, "bk_app_secret": settings.BK_CHAT_APP_SECRET_KEY}
 
         data = {
             "im": "WEWORK",
@@ -75,7 +75,14 @@ class BkchatSender:
             "receiver": {"receiver_type": "group", "receiver_ids": notify},
         }
 
-        result = requests.post(url=self._get_bkchat_api(), params=params, json=data)
+        headers = {
+            "X-Bkapi-Authorization": json.dumps(
+                {"bk_app_code": settings.BK_CHAT_APP_CODE, "bk_app_secret": settings.BK_CHAT_APP_SECRET_KEY}
+            ),
+            "X-Bk-Tenant-Id": "tencent",
+        }
+
+        result = requests.post(url=self._get_bkchat_api(), json=data, headers=headers)
         send_result = result.json()
         if send_result.get("code") != 0:
             logger.error(
