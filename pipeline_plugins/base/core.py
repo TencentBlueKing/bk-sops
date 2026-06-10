@@ -373,23 +373,39 @@ class BasePluginService(Service):
         """
         self._start_plugin_span(data, parent_data)
 
-        input_password_refs = self._get_raw_password_map()  # 获取密码变量key-对应的加密后的value
-
         trace_context = self._get_trace_context(data, parent_data)
         method_attrs = self._get_method_span_attributes(data, parent_data)
 
-        # 自动解密 inputs 中引用的全局密码变量，使所有插件都支持输入全局密码变量
-        copy_data = copy.deepcopy(data)
-        copy_parent_data = copy.deepcopy(parent_data)
-        self._auto_decrypt_password_inputs(data, input_password_refs=input_password_refs)
-        self._auto_decrypt_password_inputs(parent_data, input_password_refs=input_password_refs)
+        # 预检：检查是否需要密码解密逻辑
+        # 使用 json.dumps 快速检查 inputs 中是否包含密码变量引用
+        try:
+            inputs_str = json.dumps(data.get_inputs(), default=str) + json.dumps(parent_data.get_inputs(), default=str)
+            need_password_handle = "password_value" in inputs_str
+        except Exception:
+            need_password_handle = True  # 如果检查失败，保守处理，执行密码解密逻辑
 
-        # 另外拷贝一份出来做掩码处理，
-        copy_data_mask = copy.deepcopy(copy_data)
-        copy_parent_data_mask = copy.deepcopy(copy_parent_data)
-        self._auto_decrypt_password_inputs(copy_data_mask, input_password_refs=input_password_refs, mask_flag=True)
-        self._auto_decrypt_password_inputs(copy_parent_data_mask, input_password_refs=input_password_refs,
-                                           mask_flag=True)
+        input_password_refs = {}
+        copy_data = None
+        copy_parent_data = None
+        copy_data_mask = None
+        copy_parent_data_mask = None
+
+        if need_password_handle:
+            input_password_refs = self._get_raw_password_map()  # 获取密码变量key-对应的加密后的value
+
+            # 自动解密 inputs 中引用的全局密码变量，使所有插件都支持输入全局密码变量
+            copy_data = copy.deepcopy(data)
+            copy_parent_data = copy.deepcopy(parent_data)
+            self._auto_decrypt_password_inputs(data, input_password_refs=input_password_refs)
+            self._auto_decrypt_password_inputs(parent_data, input_password_refs=input_password_refs)
+
+            # 另外拷贝一份出来做掩码处理
+            copy_data_mask = copy.deepcopy(copy_data)
+            copy_parent_data_mask = copy.deepcopy(copy_parent_data)
+            self._auto_decrypt_password_inputs(copy_data_mask, input_password_refs=input_password_refs, mask_flag=True)
+            self._auto_decrypt_password_inputs(copy_parent_data_mask, input_password_refs=input_password_refs,
+                                               mask_flag=True)
+
         result = False
         try:
             if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
@@ -407,22 +423,22 @@ class BasePluginService(Service):
                 result = self.plugin_execute(data, parent_data)
         finally:
             # 对data的 input做掩码处理,同时outputs需要继承解密后的数据，方便后续调用
-            self._sync_new_fields(copy_data.inputs, data.inputs)
-            self._sync_new_fields(copy_data_mask.inputs, data.inputs)
-            self._deep_update(data.inputs, copy_data_mask.inputs)
-            _mask_meta_system_mask_info = {
-                'decrypt_input_data': copy_data.inputs,
-            }
-            data.inputs._mask_meta_system_mask_info = _mask_meta_system_mask_info
+            if need_password_handle:
+                self._sync_new_fields(copy_data.inputs, data.inputs)
+                self._sync_new_fields(copy_data_mask.inputs, data.inputs)
+                self._deep_update(data.inputs, copy_data_mask.inputs)
+                _mask_meta_system_mask_info = {
+                    'decrypt_input_data': copy_data.inputs,
+                }
+                data.inputs._mask_meta_system_mask_info = _mask_meta_system_mask_info
 
-            # 更新parent相关
-            self._sync_new_fields(copy_parent_data.inputs, parent_data.inputs)
-            self._sync_new_fields(copy_parent_data_mask.inputs, parent_data.inputs)
-            self._deep_update(parent_data.inputs, copy_parent_data_mask.inputs)
-            _mask_meta_system_parent_mask_info = {
-                'decrypt_input_data': copy_parent_data.inputs,
-            }
-            parent_data.inputs._mask_meta_system_parent_mask_info = _mask_meta_system_parent_mask_info
+                self._sync_new_fields(copy_parent_data.inputs, parent_data.inputs)
+                self._sync_new_fields(copy_parent_data_mask.inputs, parent_data.inputs)
+                self._deep_update(parent_data.inputs, copy_parent_data_mask.inputs)
+                _mask_meta_system_parent_mask_info = {
+                    'decrypt_input_data': copy_parent_data.inputs,
+                }
+                parent_data.inputs._mask_meta_system_parent_mask_info = _mask_meta_system_parent_mask_info
 
         if not result:
             self._end_plugin_span(data, success=False, error_message=self._get_error_message(data))
@@ -444,29 +460,45 @@ class BasePluginService(Service):
 
         trace_context = self._get_trace_context(data, parent_data)
         method_attrs = self._get_method_span_attributes(data, parent_data)
-        input_password_refs = self._get_raw_password_map()  # 获取密码变量key-对应的加密后的value
 
         # schedule里面每次判断是否有 is_mask ，来恢复 data的输入数据
         _mask_meta_system_mask_info = data.inputs.get("_mask_meta_system_mask_info")
         if _mask_meta_system_mask_info:
             data.inputs = FancyDict(_mask_meta_system_mask_info.get("decrypt_input_data"))
 
-        # 对于data进行解密，同时生成一份掩码版本
-        copy_data = copy.deepcopy(data)
-        copy_data_mask = copy.deepcopy(data)  # 用于schedule执行完做掩码处理
-        self._auto_decrypt_password_inputs(data, input_password_refs=input_password_refs)
-        self._auto_decrypt_password_inputs(copy_data_mask, input_password_refs=input_password_refs, mask_flag=True)
-
         # 对于parent_data可能需要解密
         _mask_meta_system_parent_mask_info = parent_data.inputs.get("_mask_meta_system_parent_mask_info")
         if _mask_meta_system_parent_mask_info:
             parent_data.inputs = FancyDict(_mask_meta_system_parent_mask_info.get("decrypt_input_data"))
 
-        copy_parent_data = copy.deepcopy(parent_data)
-        copy_parent_data_mask = copy.deepcopy(parent_data)
-        self._auto_decrypt_password_inputs(parent_data, input_password_refs=input_password_refs)
-        self._auto_decrypt_password_inputs(copy_parent_data_mask, input_password_refs=input_password_refs,
-                                           mask_flag=True)
+        # 预检：检查是否需要密码解密逻辑
+        # 使用 json.dumps 快速检查 inputs 中是否包含密码变量引用
+        try:
+            inputs_str = json.dumps(data.get_inputs(), default=str) + json.dumps(parent_data.get_inputs(), default=str)
+            need_password_handle = "password_value" in inputs_str
+        except Exception:
+            need_password_handle = True  # 如果检查失败，保守处理，执行密码解密逻辑
+
+        input_password_refs = {}
+        copy_data = None
+        copy_parent_data = None
+        copy_data_mask = None
+        copy_parent_data_mask = None
+
+        if need_password_handle:
+            input_password_refs = self._get_raw_password_map()  # 获取密码变量key-对应的加密后的value
+
+            # 对于data进行解密，同时生成一份掩码版本
+            copy_data = copy.deepcopy(data)
+            copy_data_mask = copy.deepcopy(data)  # 用于schedule执行完做掩码处理
+            self._auto_decrypt_password_inputs(data, input_password_refs=input_password_refs)
+            self._auto_decrypt_password_inputs(copy_data_mask, input_password_refs=input_password_refs, mask_flag=True)
+
+            copy_parent_data = copy.deepcopy(parent_data)
+            copy_parent_data_mask = copy.deepcopy(parent_data)
+            self._auto_decrypt_password_inputs(parent_data, input_password_refs=input_password_refs)
+            self._auto_decrypt_password_inputs(copy_parent_data_mask, input_password_refs=input_password_refs,
+                                               mask_flag=True)
         result = False
         try:
             if self.enable_plugin_span and settings.ENABLE_OTEL_TRACE:
@@ -487,24 +519,26 @@ class BasePluginService(Service):
             else:
                 result = self.plugin_schedule(data, parent_data, callback_data)
         finally:
-            # 对data的 input做掩码处理,同时outputs需要继承解密后的数据，方便后续调用
-            self._sync_new_fields(copy_data.inputs, data.inputs)
-            self._sync_new_fields(copy_data_mask.inputs, data.inputs)
-            self._deep_update(data.inputs, copy_data_mask.inputs)
+            if need_password_handle:
 
-            _mask_meta_system_mask_info = {
-                'decrypt_input_data': copy_data.inputs,
-            }
-            data.inputs._mask_meta_system_mask_info = _mask_meta_system_mask_info
+                # 对data的 input做掩码处理,同时outputs需要继承解密后的数据，方便后续调用
+                self._sync_new_fields(copy_data.inputs, data.inputs)
+                self._sync_new_fields(copy_data_mask.inputs, data.inputs)
+                self._deep_update(data.inputs, copy_data_mask.inputs)
 
-            # 更新parent相关
-            self._sync_new_fields(copy_parent_data.inputs, parent_data.inputs)
-            self._sync_new_fields(copy_parent_data_mask.inputs, parent_data.inputs)
-            self._deep_update(parent_data.inputs, copy_parent_data_mask.inputs)
-            _mask_meta_system_parent_mask_info = {
-                'decrypt_input_data': copy_parent_data.inputs,
-            }
-            parent_data.inputs._mask_meta_system_parent_mask_info = _mask_meta_system_parent_mask_info
+                _mask_meta_system_mask_info = {
+                    'decrypt_input_data': copy_data.inputs,
+                }
+                data.inputs._mask_meta_system_mask_info = _mask_meta_system_mask_info
+
+                # 更新parent相关
+                self._sync_new_fields(copy_parent_data.inputs, parent_data.inputs)
+                self._sync_new_fields(copy_parent_data_mask.inputs, parent_data.inputs)
+                self._deep_update(parent_data.inputs, copy_parent_data_mask.inputs)
+                _mask_meta_system_parent_mask_info = {
+                    'decrypt_input_data': copy_parent_data.inputs,
+                }
+                parent_data.inputs._mask_meta_system_parent_mask_info = _mask_meta_system_parent_mask_info
 
         if not result:
             self._end_plugin_span(data, success=False, error_message=self._get_error_message(data))
