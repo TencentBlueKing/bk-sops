@@ -69,6 +69,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.operate_record",
     "gcloud.contrib.template_market",
     "gcloud.apigw",
+    "gcloud.plugin_gateway",
     "gcloud.common_template",
     "gcloud.label",
     "gcloud.contrib.cleaner",
