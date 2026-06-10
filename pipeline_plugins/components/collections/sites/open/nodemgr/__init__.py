@@ -11,5 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from .operate_node.v1_0 import NodemgrOperateNodeService, NodemgrOperateNodeComponent  # noqa
-from .operate_plugin.v1_0 import NodemgrOperatePluginService, NodemgrOperatePluginComponent  # noqa
+import env
+
+if env.BK_NODEMGR_ENABLE:
+    from .operate_node.v1_0 import NodemgrOperateNodeService, NodemgrOperateNodeComponent  # noqa
+    from .operate_plugin.v1_0 import NodemgrOperatePluginService, NodemgrOperatePluginComponent  # noqa

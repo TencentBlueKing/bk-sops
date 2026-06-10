@@ -576,10 +576,11 @@ class NodemgrOperateNodeService(NodemgrBaseService):
         return True
 
 
-class NodemgrOperateNodeComponent(Component):
-    name = _("节点操作")
-    code = "nodemgr_operate_node"
-    bound_service = NodemgrOperateNodeService
-    form = "%scomponents/atoms/nodemgr/operate_node/v1_0.js" % settings.STATIC_URL
-    version = "v1.0"
-    desc = _("节点管理器节点操作（安装/升级/重启/重配/卸载）")
+if env.BK_NODEMGR_ENABLE:
+    class NodemgrOperateNodeComponent(Component):
+        name = _("节点操作")
+        code = "nodemgr_operate_node"
+        bound_service = NodemgrOperateNodeService
+        form = "%scomponents/atoms/nodemgr/operate_node/v1_0.js" % settings.STATIC_URL
+        version = "v1.0"
+        desc = _("节点管理器节点操作（安装/升级/重启/重配/卸载）")
