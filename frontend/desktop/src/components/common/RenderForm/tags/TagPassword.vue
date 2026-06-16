@@ -195,12 +195,11 @@
             // 输入框失焦后执行加密逻辑
             handleBlur () {
                 this.inputDisplayText = this.textareaMode ? this.localVal.value.replace(/[^\n]/g, '·') : this.localVal.value
-                const curVal = this.localVal.value
                 const encryptedVal = this.encryptPassword()
                 this.localVal.value = encryptedVal
                 this.change()
                 this.$nextTick(() => {
-                    this.$parent.$parent.$emit(`${this.tagCode}_change`, curVal)
+                    this.onChange()
                 })
             },
             handleToggleEye () {
