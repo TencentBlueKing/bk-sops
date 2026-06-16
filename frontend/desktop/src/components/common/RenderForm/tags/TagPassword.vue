@@ -198,6 +198,7 @@
                 const encryptedVal = this.encryptPassword()
                 this.localVal.value = encryptedVal
                 this.change()
+                this.onChange()
             },
             handleToggleEye () {
                 this.showInputVal = !this.showInputVal
