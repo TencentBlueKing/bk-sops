@@ -261,7 +261,8 @@ def get_plugin_app_detail(request: Request):
 
 
 @swagger_auto_schema(
-    methods=["GET", "POST", "PUT", "PATCH", "DELETE"], operation_summary="获取插件服务提供的数据接口数据", responses={200: "插件数据接口返回"}
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"], operation_summary="获取插件服务提供的数据接口数据",
+    responses={200: "插件数据接口返回"}
 )
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
@@ -275,7 +276,7 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
 
     # 解密 request.data 中的密码字段
     try:
-        data = _decrypt_request_data(request.data, plugin_code)
+        data, sensitive_data = _decrypt_request_data(request.data, plugin_code)
     except PluginServiceException as e:
         message = f"[get_plugin_api_data] decrypt error: {e}"
         logger.error(message)
@@ -298,7 +299,7 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     token = request.COOKIES.get(env.APIGW_USER_AUTH_KEY_NAME)
     inject_authorization = {env.APIGW_USER_AUTH_KEY_NAME: token} if token else {}
     result = client.dispatch_plugin_api_request(
-        params, inject_headers=http_headers, inject_authorization=inject_authorization
+        params, inject_headers=http_headers, inject_authorization=inject_authorization, sensitive_data=sensitive_data
     )
     # 如果请求成功，只返回接口原始data数据
     result = result["data"] if result.get("result") else result
@@ -314,10 +315,10 @@ def _decrypt_request_data(data, plugin_code: str):
 
     :param data: 请求数据，格式为 dict
     :param plugin_code: 插件代码，用于日志记录
-    :return: 解密后的数据（新字典，不修改原始数据）
+    :return: 元组 (解密后的数据, 敏感数据掩码后的数据)
     """
     if not isinstance(data, dict):
-        return data
+        return data, {}
 
     # 先检测是否需要解密
     need_password_handle = any(
@@ -326,10 +327,11 @@ def _decrypt_request_data(data, plugin_code: str):
     )
 
     if not need_password_handle:
-        return data
+        return data, {}
 
     # 创建数据的深拷贝，避免修改原始数据
     decrypted_data = copy.deepcopy(data)
+    sensitive_data = copy.deepcopy(data)
 
     for key, value in decrypted_data.items():
         # 检查是否为密码结构体，暂不考虑深层嵌套情况
@@ -346,6 +348,7 @@ def _decrypt_request_data(data, plugin_code: str):
             try:
                 plain = crypto.decrypt(cipher)
                 decrypted_data[key] = plain
+                sensitive_data[key] = "******"
                 logger.debug(
                     "[_decrypt_request_data] plugin_code: %s, key: %s, decrypt success",
                     plugin_code,
@@ -362,4 +365,4 @@ def _decrypt_request_data(data, plugin_code: str):
                 )
                 raise PluginServiceException(error_msg)
 
-    return decrypted_data
+    return decrypted_data, sensitive_data
