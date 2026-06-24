@@ -752,8 +752,23 @@
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
                         if (!variable.meta) {
+                            const originalValue = this.inputsParamValue[key]
                             variable.meta = tools.deepClone(variable)
-                            variable.value = formItemConfig.attrs.value
+                            // 检查原值是否引用父流程变量
+                            if (typeof originalValue === 'string' && originalValue.startsWith('${') && originalValue.endsWith('}')) {
+                                const parentVarKey = originalValue
+                                const parentVar = this.constants[parentVarKey] // 获取父流程变量配置
+                                // 如果父流程变量存在，并且类型一致，则保持引用值
+                                if (parentVar && variable.meta.custom_type === parentVar.custom_type && variable.meta.source_tag === parentVar.source_tag) {
+                                    variable.value = originalValue
+                                } else {
+                                    // 类型不一致或父流程变量不存在，用插件配置的默认值覆盖
+                                    variable.value = formItemConfig.attrs.value
+                                }
+                            } else {
+                                // 未引用父流程全局变量-用插件配置的默认值覆盖
+                                variable.value = formItemConfig.attrs.value
+                            }
                         }
                     }
                     // 特殊处理逻辑，针对子流程节点，如果为自定义类型的下拉框变量，默认开始支持用户创建不存在的选项配置项
@@ -784,6 +799,7 @@
                     if (variable.show_type === 'hide') {
                         return
                     }
+                    console.log('variable-formItemConfig', { variable, formItemConfig })
                     return formItemConfig
                 }))
 
@@ -1173,6 +1189,9 @@
                         }
                         return acc
                     }, {})
+                    console.log('this.subflowForms', { subflowForms: this.subflowForms, oldForms: oldForms })
+                    console.log('this.inputsRenderConfig', this.inputsRenderConfig)
+                    console.log('this.inputsParamValue', this.inputsParamValue)
                     this.subflowUpdated = true
                 })
             },
@@ -1185,6 +1204,8 @@
             async subflowUpdateParamsChange () {
                 this.isUpdateConstants = true
                 this.variableCited = await this.getVariableCitedData() || {}
+                console.log('变量引用列表variableCited：', this.variableCited)
+                console.log('当前全局变量this.localConstants', this.localConstants)
                 const nodeId = this.nodeConfig.id
                 for (const key in this.localConstants) {
                     const varItem = this.localConstants[key]
