@@ -799,7 +799,6 @@
                     if (variable.show_type === 'hide') {
                         return
                     }
-                    console.log('variable-formItemConfig', { variable, formItemConfig })
                     return formItemConfig
                 }))
 
@@ -1189,9 +1188,6 @@
                         }
                         return acc
                     }, {})
-                    console.log('this.subflowForms', { subflowForms: this.subflowForms, oldForms: oldForms })
-                    console.log('this.inputsRenderConfig', this.inputsRenderConfig)
-                    console.log('this.inputsParamValue', this.inputsParamValue)
                     this.subflowUpdated = true
                 })
             },
@@ -1204,8 +1200,6 @@
             async subflowUpdateParamsChange () {
                 this.isUpdateConstants = true
                 this.variableCited = await this.getVariableCitedData() || {}
-                console.log('变量引用列表variableCited：', this.variableCited)
-                console.log('当前全局变量this.localConstants', this.localConstants)
                 const nodeId = this.nodeConfig.id
                 for (const key in this.localConstants) {
                     const varItem = this.localConstants[key]
