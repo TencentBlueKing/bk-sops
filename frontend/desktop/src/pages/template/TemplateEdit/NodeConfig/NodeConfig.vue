@@ -1722,12 +1722,24 @@
                         this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
                     }
                     const inputRef = this.$refs.inputParams
+                    // 被复用的父流程变量key
+                    const reusedKeys = []
+                    for (const key in this.inputsParamValue) {
+                        const val = this.inputsParamValue[key]
+                        if (typeof val === 'string' && val.startsWith('${') && val.endsWith('}')) {
+                            if (!reusedKeys.includes(val)) {
+                                reusedKeys.push(val)
+                            }
+                        }
+                    }
                     // 更新子流程已勾选的变量值
                     Object.keys(this.localConstants).forEach(key => {
                         const constantValue = this.localConstants[key]
                         // 复用变量不去更新变量配置和值
-                        if (constantValue.reuse) {
-                            delete constantValue.reuse
+                        if (constantValue.reuse || reusedKeys.includes(key)) {
+                            if (constantValue.reuse) {
+                                delete constantValue.reuse
+                            }
                             return
                         }
                         // 根据source_info中获取勾选的表单项code
