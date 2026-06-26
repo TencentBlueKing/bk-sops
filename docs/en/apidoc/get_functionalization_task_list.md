@@ -15,11 +15,14 @@ Get functionalization task list, support filtering with functionalization task s
 
 | Field             | Type   | Required | Description                                                                                       |
 |-------------------|--------|----------|---------------------------------------------------------------------------------------------------|
-| status            | string | NO       | functionalization task status. (submitted, claimed, rejected, executed, finished)                 |
+| status            | string | NO       | functionalization task status (task stage). (submitted, claimed, rejected, executed, finished)                 |
+| execute_status    | string | NO       | task execution status, optional values: nonExecution (not executed), running (not finished), revoked (terminated), finished (completed). Default is no filter.                 |
 | id_in             | string | NO       | functionalization task id list for filtering, separated by `,`                                    |
 | task_id_in        | string | NO       | original task id list for filtering, separated by `,`（corresponding to "Task ID" in the web page） |
 | expected_timezone | string | NO       | expected timezone of time related field in response, e.g. Asia/Shanghai                           |
 | project_id        | int    | NO       | project id for filtering, only support sops project id, not ccid                                  |
+| creator           | string | NO       | filter by task creator, support fuzzy search (using `icontains`), default is no filter. **Note: multiple users filtering is not supported**                                |
+| claimant          | string | NO       | filter by task claimant, support fuzzy search (using `icontains`), default is no filter. **Note: multiple users filtering is not supported**                               |
 | limit             | int    | NO       | pagination, the number of tasks in the task list in each result. default is 100                   |
 | offset            | int    | NO       | pagination, the start index of task in the task list in each result. default is 0                 |
 

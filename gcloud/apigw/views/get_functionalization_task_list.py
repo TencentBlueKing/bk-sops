@@ -39,12 +39,32 @@ def get_functionalization_task_list(request):
         "task_id_in": "task_id__in",
         "status": "status",
         "project_id": "task__project_id",
+        "creator": "creator__icontains",
+        "claimant": "claimant__icontains",
     }
     filter_kwargs = {}
     for param, filter_key in param_mappings.items():
         param_value = params_validator.cleaned_data.get(param)
         if param_value:
             filter_kwargs[filter_key] = param_value
+
+    # 处理执行状态筛选
+    execute_status = params_validator.cleaned_data.get("execute_status")
+    if execute_status:
+        if execute_status == "nonExecution":
+            # 未执行：流程未启动
+            filter_kwargs["task__pipeline_instance__is_started"] = False
+        elif execute_status == "running":
+            # 未完成：已启动但未完成且未撤销
+            filter_kwargs["task__pipeline_instance__is_started"] = True
+            filter_kwargs["task__pipeline_instance__is_finished"] = False
+            filter_kwargs["task__pipeline_instance__is_revoked"] = False
+        elif execute_status == "revoked":
+            # 终止：已撤销
+            filter_kwargs["task__pipeline_instance__is_revoked"] = True
+        elif execute_status == "finished":
+            # 完成：已完成
+            filter_kwargs["task__pipeline_instance__is_finished"] = True
 
     function_tasks = FunctionTask.objects.select_related("task").filter(**filter_kwargs)
     try:
