@@ -2449,6 +2449,69 @@ paths:
       description: 获取职能化任务列表
       tags:
       - 通用接口
+      parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+        required: false
+        description: 根据职能化任务阶段过滤任务列表，可选值：submitted（未认领）、claimed（已认领）、rejected（已驳回）、executed（已执行）、finished（完成），默认不过滤
+      - in: query
+        name: execute_status
+        schema:
+          type: string
+        required: false
+        description: 根据任务执行状态过滤任务列表，可选值：nonExecution（未执行）、running（未完成）、revoked（终止）、finished（完成），默认不过滤
+      - in: query
+        name: id_in
+        schema:
+          type: string
+        required: false
+        description: 职能化任务筛选id来源列表，以逗号`,`分隔，默认不过滤
+      - in: query
+        name: task_id_in
+        schema:
+          type: string
+        required: false
+        description: 职能化任务筛选原任务id来源列表，以逗号`,`分隔（对应页面"任务ID"），默认不过滤
+      - in: query
+        name: project_id
+        schema:
+          type: integer
+        required: false
+        description: 根据项目id过滤任务列表，仅支持标准运维项目id，非ccid，默认不过滤
+      - in: query
+        name: creator
+        schema:
+          type: string
+        required: false
+        description: 根据提单人过滤任务列表，支持模糊搜索（使用`icontains`），默认不过滤。**注意：不支持多个用户同时筛选**
+      - in: query
+        name: claimant
+        schema:
+          type: string
+        required: false
+        description: 根据认领人过滤任务列表，支持模糊搜索（使用`icontains`），默认不过滤。**注意：不支持多个用户同时筛选**
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 任务时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 分页，返回任务列表任务数，默认为100
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 分页，返回任务列表起始任务下标，默认为0
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
