@@ -660,7 +660,7 @@
                                     if (lastConstant) {
                                         const currentConstant = this.pipelineData.constants[key]
                                         if (lastConstant.custom_type === currentConstant.custom_type) {
-                                            if (lastConstant.custom_type === 'select') { // 下拉框不限制value结构是否匹配
+                                            if (['text_value_select', 'select'].includes(lastConstant.custom_type)) { // 下拉框不限制value结构是否匹配
                                                 let items = []
                                                 try {
                                                     if (currentConstant.value.datasource === '0') {
