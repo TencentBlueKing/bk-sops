@@ -43,6 +43,7 @@ from gcloud.constants import JobBizScopeType
 from gcloud.utils.handlers import handle_api_error
 from pipeline_plugins.base import BasePluginService
 from pipeline_plugins.components.utils.common import batch_execute_func
+from pipeline_plugins.components.utils.sites.open.utils import get_job_instance_url
 
 # 作业状态码: 1.未执行; 2.正在执行; 3.执行成功; 4.执行失败; 5.跳过; 6.忽略错误; 7.等待用户; 8.手动结束;
 # 9.状态异常; 10.步骤强制终止中; 11.步骤强制终止成功; 12.步骤强制终止失败
@@ -975,4 +976,191 @@ class GetJobHistoryResultMixin(object):
         )
         data.set_outputs("log_outputs", log_outputs)
         self.logger.info(data.outputs)
+        return True
+
+
+class Jobv4ScheduleService(JobService):
+    __need_schedule__ = True
+
+    interval = StaticIntervalGenerator(5)
+
+    need_show_failure_inst_url = False
+
+    def plugin_schedule(self, data, parent_data, callback_data=None):
+        if hasattr(data.outputs, "requests_error") and data.outputs.requests_error:
+            data.outputs.ex_data = "{}\n Get Result Error:\n".format(data.outputs.requests_error)
+        else:
+            data.outputs.ex_data = ""
+
+        params_list = [
+            {
+                "bk_scope_type": self.biz_scope_type,
+                "bk_scope_id": str(data.inputs.biz_cc_id),
+                "bk_biz_id": data.inputs.biz_cc_id,
+                "job_instance_id": job_id,
+            }
+            for job_id in data.outputs.job_id_of_batch_execute
+        ]
+        client = get_client_by_user(parent_data.inputs.executor)
+
+        batch_result_list = batch_execute_func(client.jobv3.get_job_instance_status, params_list, interval_enabled=True)
+
+        self.logger.info("批量请求get_job_instance_log 结果为:{}".format(batch_result_list))
+
+        # 重置查询 job_id
+        data.outputs.job_id_of_batch_execute = []
+
+        # 解析查询结果
+        running_task_list = []
+
+        failure_inst_url = []
+
+        # 记录需要重试的任务参数和对应的旧job_id用于后续替换
+        need_retry_params_list = []
+        retry_task_info_list = []
+
+        # 获取滚动配置
+        job_rolling_config = getattr(data.inputs, "job_rolling_config", {})
+        job_rolling_mode = job_rolling_config.get("job_rolling_mode", 1)
+        job_rolling_execute = job_rolling_config.get("job_rolling_execute", [])
+
+        # 只有滚动执行开启且滚动机制为4（按失败ip重试三次）时才启用重试
+        enable_retry = job_rolling_execute and job_rolling_mode == 4
+
+        # 初始化重试状态（使用下划线前缀，不展示在前端）
+        if not hasattr(data.outputs, "_retry_count_map"):
+            data.outputs._retry_count_map = {}
+        if not hasattr(data.outputs, "_original_params_map"):
+            data.outputs._original_params_map = {}
+        for job_result in batch_result_list:
+            result = job_result["result"]
+            job_id_str = job_result["params"]["job_instance_id"]
+            job_urls = [url for url in data.outputs.job_inst_url if str(job_id_str) in url]
+            job_detail_url = job_urls[0] if job_urls else ""
+            if result["result"]:
+                job_status = result["data"]["job_instance"]["status"]
+                # 成功状态
+                if job_status == 3:
+                    data.outputs.success_count += 1
+                    # 成功了删除旧job的 original_params 和 retry_count_map
+                    if job_id_str and job_id_str in data.outputs._original_params_map:
+                        del data.outputs._original_params_map[job_id_str]
+
+                    if job_id_str and job_id_str in data.outputs._retry_count_map:
+                        del data.outputs._retry_count_map[job_id_str]
+                # 失败状态
+                elif job_status > 3:
+                    self.logger.info("Job {} failed, checking retry...".format(job_id_str))
+                    # 检查是否需要重试（enable_retry为False则直接失败）
+                    if enable_retry:
+                        retry_count = data.outputs._retry_count_map.get(job_id_str, 0)
+                        if retry_count < 3:
+                            # 需要重试，记录重试次数和原始参数
+                            data.outputs._retry_count_map[job_id_str] = retry_count + 1
+                            self.logger.info(
+                                "Job {} will retry {}/3".format(job_id_str, retry_count + 1)
+                            )
+                            # 获取原始参数并加入重试列表
+                            original_params = data.outputs._original_params_map.get(job_id_str)
+                            if original_params:
+                                need_retry_params_list.append(original_params)
+                                retry_task_info_list.append(job_id_str)
+                            else:
+                                # 没有原始参数，记录失败
+                                failure_inst_url.append(job_detail_url)
+                                data.outputs.ex_data += (
+                                    "任务执行失败，"
+                                    "<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n"
+                                ).format(
+                                    job_detail_url
+                                )
+                        else:
+                            # 已达到最大重试次数
+                            self.logger.error(
+                                "Job {} failed after {} retries, giving up".format(job_id_str, retry_count))
+                            failure_inst_url.append(job_detail_url)
+                            data.outputs.ex_data += (
+                                "任务执行失败（已重试{}次），"
+                                "<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n"
+                            ).format(
+                                retry_count, job_detail_url
+                            )
+                    else:
+                        # 重试未开启，直接失败
+                        failure_inst_url.append(job_detail_url)
+                        data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                            job_detail_url
+                        )
+                else:
+                    running_task_list.append(job_id_str)
+            else:
+                failure_inst_url.append(job_detail_url)
+                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                    job_detail_url
+                )
+                self.logger.error("请求job_id({}),结果为:{}".format(job_id_str, result.get("message")))
+
+        # 如果有需要重试的任务，重新发起请求
+        if need_retry_params_list:
+            self.logger.info("Retrying {} tasks...".format(len(need_retry_params_list)))
+            retry_result_list = batch_execute_func(
+                client.jobv3.fast_transfer_file, need_retry_params_list, interval_enabled=True
+            )
+            for index, res in enumerate(retry_result_list):
+                retry_result = res["result"]
+                retry_params = res.get("params", {})
+
+                if retry_result["result"]:
+                    new_job_id = retry_result["data"]["job_instance_id"]
+                    running_task_list.append(new_job_id)
+
+                    # 根据index找到新job对应的旧job_id，因为 batch_execute_func 里面是for顺序执行的
+                    old_job_id = retry_task_info_list[index]
+
+                    # 记录新任务的原始参数，用于后续重试
+                    data.outputs._original_params_map[new_job_id] = retry_params
+                    # 删除旧job的 original_params
+                    if old_job_id and old_job_id in data.outputs._original_params_map:
+                        del data.outputs._original_params_map[old_job_id]
+
+                    # 传递旧job的retry_count到新job
+                    if old_job_id and old_job_id in data.outputs._retry_count_map:
+                        data.outputs._retry_count_map[new_job_id] = data.outputs._retry_count_map[old_job_id]
+                        # 删除旧job记录
+                        del data.outputs._retry_count_map[old_job_id]
+                    else:
+                        data.outputs._retry_count_map[new_job_id] = 0
+
+                    # 处理 data.outputs 里面的 job_inst_url
+                    job_urls = [url for url in data.outputs.job_inst_url if str(old_job_id) in url]
+                    old_job_detail_url = job_urls[0] if job_urls else ""
+                    if old_job_detail_url != "":
+                        data.outputs.job_inst_url.remove(old_job_detail_url)
+                    new_job_detail_url = get_job_instance_url(data.inputs.biz_cc_id, new_job_id)
+                    data.outputs.job_inst_url.append(new_job_detail_url)
+
+                    # 处理 data.outputs.job_instance_id_list
+                    if old_job_id and old_job_id in data.outputs.job_instance_id_list:
+                        data.outputs.job_instance_id_list.remove(old_job_id)
+                    data.outputs.job_instance_id_list.append(new_job_id)
+
+                    self.logger.info("Retry success, new job_id: {} (from old: {})".format(new_job_id, old_job_id))
+                else:
+                    message = job_handle_api_error("jobv3.fast_transfer_file", retry_params, retry_result)
+                    self.logger.error(message)
+                    data.outputs.requests_error += "{}\n".format(message)
+
+        # 需要继续轮询的任务
+        data.outputs.job_id_of_batch_execute = running_task_list
+        # 结束调度
+        if not data.outputs.job_id_of_batch_execute:
+            # 没有报错信息
+            if not data.outputs.ex_data:
+                del data.outputs.ex_data
+            if self.need_show_failure_inst_url:
+                data.outputs.failure_inst_url = failure_inst_url
+            self.finish_schedule()
+            return data.outputs.final_res and data.outputs.success_count == data.outputs.request_success_count
+
+        # 任务仍在运行，继续轮询，返回 True 表示当前无错误
         return True
