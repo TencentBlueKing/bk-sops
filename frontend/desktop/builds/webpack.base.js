@@ -69,25 +69,25 @@ module.exports = {
                 ]
             },
             {
-                test: /\.mjs$/,
+                test: /\.m?js$/,
                 include: [
                     path.join(__dirname, '../node_modules/@blueking/ai-blueking')
                 ],
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        presets: [
-                            [
-                                '@babel/preset-env',
-                                {
-                                    modules: false
-                                }
-                            ]
-                        ],
+                        presets: [],
                         plugins: [
                             '@babel/plugin-proposal-nullish-coalescing-operator',
-                            '@babel/plugin-proposal-optional-chaining'
-                        ]
+                            '@babel/plugin-proposal-optional-chaining',
+                            '@babel/plugin-transform-logical-assignment-operators',
+                            '@babel/plugin-proposal-class-properties',
+                            '@babel/plugin-transform-class-static-block'
+                        ],
+                        compact: true,
+                        sourceType: 'unambiguous',
+                        babelrc: false, // 避免叠加项目.babelrc 中的preset-env
+                        configFile: false
                     }
                 }
             },
