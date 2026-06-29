@@ -789,7 +789,7 @@
                         this.formData.autoRetry.times = 1
                     }
                     if (type === 'ignorable' && val) {
-                        this.formData.skippable = false
+                        this.formData.skippable = true
                         this.formData.retryable = false
                         this.formData.autoRetry.enable = false
                     }
