@@ -1482,6 +1482,7 @@ const en = {
     'task_任务名': 'Name',
     'ID/任务名/创建人/执行人/状态/执行方式/执行代理人': 'ID/Name/Created At/Created By/Status/Source/Representative',
     'ID/任务名/创建人/更新人/状态': 'ID/Task Name/Creator/Editor/Status',
+    'ID/任务名/创建人/更新人/状态/流程更新': 'ID/Task Name/Project/Creator/Editor/Status/Flow Changed',
     '应用名': 'App Name',
     '应用名/更新人': 'App Name/Modified By',
     'ID/任务名/所属项目/提单人/认领人/认领状态/执行状态': 'ID/Task Name/Project/Created By/Taked By/Take Status/Execution Status',
@@ -1962,7 +1963,9 @@ const en = {
     '确认使用上一次参数？': 'Use Last Parameters?',
     '将会使用该流程上一次执行的参数值填充表单': 'The form will be filled with the parameter values from the last execution',
     '参数加载成功': 'Parameters loaded successfully',
-    '输入关键词搜索,批量搜索使用逗号分隔': 'Enter keywords to search, batch search using commas to separate'
+    '输入关键词搜索,批量搜索使用逗号分隔': 'Enter keywords to search, batch search using commas to separate',
+    '个周期任务涉及到子流程的更新，请及时处理。': 'scheduled tasks involving sub-process updates, please handle them in time.',
+    '流程更新': 'Process Update'
 }
 
 export default en

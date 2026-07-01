@@ -33,6 +33,10 @@
             num: {
                 type: Number,
                 default: 0
+            },
+            isPeriodicTaskTips: {
+                type: Boolean,
+                default: false
             }
         },
         data () {
@@ -42,6 +46,9 @@
         },
         computed: {
             content () {
+                if (this.isPeriodicTaskTips) {
+                    return this.num + i18n.t('个周期任务涉及到子流程的更新，请及时处理。')
+                }
                 return this.num + i18n.t(' 个流程涉及到子流程的更新，请及时处理。')
             }
         },

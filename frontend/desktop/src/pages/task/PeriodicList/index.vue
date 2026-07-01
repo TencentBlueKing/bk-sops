@@ -13,6 +13,11 @@
     <div class="periodic-container">
         <skeleton :loading="firstLoading" loader="taskList">
             <div class="list-wrapper">
+                <list-page-tips-title
+                    :num="tplUpdateList.length"
+                    :is-periodic-task-tips="true"
+                    @viewClick="handleTplUpdateFilter">
+                </list-page-tips-title>
                 <div class="search-wrapper mb20">
                     <bk-button
                         v-if="!adminView"
@@ -27,7 +32,7 @@
                     <search-select
                         ref="searchSelect"
                         id="periodicList"
-                        :placeholder="$t('ID/任务名/创建人/更新人/状态')"
+                        :placeholder="$t('ID/任务名/创建人/更新人/状态/流程更新')"
                         v-model="searchSelectValue"
                         :search-list="searchList"
                         @change="handleSearchValueChange">
@@ -260,6 +265,7 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import Translate from '@/utils/cron.js'
     import CancelRequest from '@/api/cancelRequest.js'
+    import ListPageTipsTitle from '@/pages/template/ListPageTipsTitle.vue'
 
     const SEARCH_LIST = [
         {
@@ -285,6 +291,14 @@
             children: [
                 { id: 'true', name: i18n.t('启动') },
                 { id: 'false', name: i18n.t('暂停') }
+            ]
+        },
+        {
+            id: 'template_expired',
+            name: i18n.t('流程更新'),
+            children: [
+                { id: 'true', name: i18n.t('是') },
+                { id: 'false', name: i18n.t('否') }
             ]
         }
     ]
@@ -348,7 +362,8 @@
             NoData,
             TaskCreateDialog,
             ModifyPeriodicDialog,
-            BootRecordDialog
+            BootRecordDialog,
+            ListPageTipsTitle
         },
         mixins: [permission],
         props: {
@@ -371,7 +386,8 @@
                 task_id = '',
                 last_run_at = '',
                 create_time = '',
-                edit_time = ''
+                edit_time = '',
+                template_expired = ''
             } = this.$route.query
             const searchList = [
                 ...SEARCH_LIST,
@@ -419,7 +435,8 @@
                     task_id,
                     last_run_at: last_run_at ? last_run_at.split(',') : ['', ''],
                     create_time: create_time ? create_time.split(',') : ['', ''],
-                    edit_time: edit_time ? edit_time.split(',') : ['', '']
+                    edit_time: edit_time ? edit_time.split(',') : ['', ''],
+                    template_expired
                 },
                 pagination: {
                     current: Number(page),
@@ -436,7 +453,8 @@
                 editTask: true, // 编辑/创建周期任务
                 curRow: {}, // 当前选中行的数据
                 searchList: toolsUtils.deepClone(SEARCH_LIST),
-                searchSelectValue
+                searchSelectValue,
+                tplUpdateList: []
             }
         },
         computed: {
@@ -457,6 +475,7 @@
         async created () {
             this.getFields()
             this.getBizBaseInfo()
+            this.getTplUpdateData()
             await this.getPeriodicList()
             this.firstLoading = false
         },
@@ -469,15 +488,26 @@
                 'loadPeriodicList',
                 'setPeriodicEnable',
                 'getPeriodic',
-                'deletePeriodic'
+                'deletePeriodic',
+                'getTplUpdatePeriodicCount'
             ]),
             ...mapActions('template/', [
                 'loadProjectBaseInfo'
             ]),
+            async getTplUpdateData () {
+                try {
+                    const resp = await this.getTplUpdatePeriodicCount(this.project_id)
+                    if (resp.result) {
+                        this.tplUpdateList = resp.data
+                    }
+                } catch (e) {
+                    console.error(e)
+                }
+            },
             async getPeriodicList () {
                 this.listLoading = true
                 try {
-                    const { creator, enabled, taskName, task_id, editor, last_run_at, create_time, edit_time } = this.requestData
+                    const { creator, enabled, taskName, task_id, editor, last_run_at, create_time, edit_time, template_expired } = this.requestData
                     const data = {
                         limit: this.pagination.limit,
                         offset: (this.pagination.current - 1) * this.pagination.limit,
@@ -485,7 +515,8 @@
                         task__creator: creator || undefined,
                         task__name__icontains: taskName || undefined,
                         id: task_id || undefined,
-                        editor: editor || undefined
+                        editor: editor || undefined,
+                        template_expired: template_expired !== '' ? template_expired : ''
                     }
 
                     if (last_run_at && last_run_at[0] && last_run_at[1]) {
@@ -723,7 +754,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { creator, enabled, taskName, task_id, last_run_at, create_time, edit_time } = this.requestData
+                const { creator, enabled, taskName, task_id, last_run_at, create_time, edit_time, template_expired } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
@@ -733,7 +764,8 @@
                     task_id,
                     last_run_at: last_run_at && last_run_at.every(item => item) ? last_run_at.join(',') : '',
                     create_time: create_time && create_time.every(item => item) ? create_time.join(',') : '',
-                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : ''
+                    edit_time: edit_time && edit_time.every(item => item) ? edit_time.join(',') : '',
+                    template_expired
                 }
                 const query = {}
                 Object.keys(filterObj).forEach(key => {
@@ -909,6 +941,16 @@
                 } finally {
                     this.collectingId = ''
                 }
+            },
+            handleTplUpdateFilter () {
+                const subFlowInfo = this.searchSelectValue.find(item => item.id === 'template_expired')
+                if (subFlowInfo) {
+                    subFlowInfo.values = [{ id: 'true', name: this.$t('是') }]
+                } else {
+                    const form = this.searchList.find(item => item.id === 'template_expired')
+                    this.searchSelectValue.push({ ...form, values: [{ id: 'true', name: this.$t('是') }] })
+                }
+                this.handleSearchValueChange(this.searchSelectValue)
             }
         }
     }
