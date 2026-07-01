@@ -296,6 +296,10 @@ class PeriodicTask(models.Model):
         notify_type = json.loads(self.template.notify_type)
         return notify_type if isinstance(notify_type, dict) else {"success": notify_type, "fail": notify_type}
 
+    @property
+    def template_expired(self):
+        """返回周期任务的流程是否已过期"""
+        return self.template_version!=self.template.version
 
 class PeriodicTaskHistoryManager(models.Manager):
     def record_history(self, periodic_history):

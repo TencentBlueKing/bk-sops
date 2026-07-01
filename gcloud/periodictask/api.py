@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from gcloud import err_code
 from gcloud.core.models import Project
@@ -82,3 +82,18 @@ def modify_constants(request, project_id, task_id):
         )
 
     return JsonResponse({"result": True, "message": "success", "data": new_constants, "code": err_code.SUCCESS.code})
+
+
+@require_GET
+def get_period_tasks_with_expired_template(request, project_id):
+    """
+    获取具有过期模板的周期性任务
+    """
+    periodic_tasks = PeriodicTask.objects.filter(project__id=project_id)
+    expired_task_ids = []
+    for task in periodic_tasks:
+        if task.template_expired:
+            expired_task_ids.append(task.id)
+
+    return JsonResponse(
+        {"result": True, "data": expired_task_ids, "code": err_code.SUCCESS.code, "message": ""})
