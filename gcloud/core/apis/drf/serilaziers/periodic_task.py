@@ -78,6 +78,7 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
     template_scheme_ids = serializers.SerializerMethodField(
         help_text="任务创建时执行方案列表，任务创建以pipeline_tree为准，仅供参考", read_only=True
     )
+    template_expired = serializers.BooleanField(read_only=True, help_text="周期任务的流程是否已过时")
 
     def get_is_latest(self, obj):
         return obj.template_version == obj.template.version if obj.template_version else None
@@ -111,6 +112,7 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
             "is_latest",
             "template_scheme_ids",
             "template_version",
+            "template_expired",
         ]
 
 
@@ -136,6 +138,7 @@ class PeriodicTaskListReadOnlySerializer(PeriodicTaskReadOnlySerializer):
             "is_latest",
             "template_scheme_ids",
             "template_version",
+            "template_expired",
         ]
 
 
