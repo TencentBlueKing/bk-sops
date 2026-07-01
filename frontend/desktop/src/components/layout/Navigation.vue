@@ -309,7 +309,6 @@
         &.hide-header-border {
             & ::v-deep .container-header {
                 border-color: transparent;
-                box-shadow: 0;
                 box-shadow: none;
             }
         }
