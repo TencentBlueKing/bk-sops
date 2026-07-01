@@ -97,6 +97,10 @@ const periodic = {
         // 公共流程列表
         loadCommonTemplateList ({ commit }, params) {
             return axios.get('api/v3/common_template/list_for_periodic_task/', { params }).then(response => response.data.data)
+        },
+        // 获取周期任务中流程更新的数量
+        getTplUpdatePeriodicCount ({ commit }, project_id) {
+            return axios.get(`periodictask/api/get_period_tasks_with_expired_template/${project_id}/`).then(response => response.data)
         }
     }
 }
