@@ -516,7 +516,7 @@
                         task__name__icontains: taskName || undefined,
                         id: task_id || undefined,
                         editor: editor || undefined,
-                        template_expired: template_expired !== '' ? template_expired : ''
+                        template_expired: template_expired !== '' ? template_expired : undefined
                     }
 
                     if (last_run_at && last_run_at[0] && last_run_at[1]) {
@@ -945,7 +945,7 @@
             handleTplUpdateFilter () {
                 const subFlowInfo = this.searchSelectValue.find(item => item.id === 'template_expired')
                 if (subFlowInfo) {
-                    subFlowInfo.values = [{ id: 'true', name: this.$t('是') }]
+                    this.$set(subFlowInfo, 'values', [{ id: 'true', name: this.$t('是') }])
                 } else {
                     const form = this.searchList.find(item => item.id === 'template_expired')
                     this.searchSelectValue.push({ ...form, values: [{ id: 'true', name: this.$t('是') }] })
