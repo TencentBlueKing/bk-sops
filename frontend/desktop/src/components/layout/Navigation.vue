@@ -3,7 +3,7 @@
         navigation-type="left-right"
         :side-title="appName"
         :need-menu="true"
-        :class="$route.name === 'taskList' ? 'hide-header-border' : ''"
+        :class="['taskList', 'processHome', 'processCommon'].includes($route.name) ? 'hide-header-border' : ''"
         :default-open="sideNavOpen"
         @toggle="toggleSideNav">
         <div slot="side-icon" class="logo-area">
@@ -309,7 +309,7 @@
         &.hide-header-border {
             & ::v-deep .container-header {
                 border-color: transparent;
-                box-shadow: 0;
+                box-shadow: none;
             }
         }
         & ::v-deep {
@@ -333,6 +333,7 @@
                 }
                 .container-header {
                     justify-content: space-between;
+                    z-index: 1000;
                 }
             }
             .bk-navigation-menu-group,

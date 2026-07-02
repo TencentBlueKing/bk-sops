@@ -27,14 +27,30 @@
     }
 }
 
-// NOTICE:
-// 插件开发页面，插件的默认icon
-// 规则与 common-icon-tag-default 相同，icon 更新后需要同步修改这里的 content
-.tag-default-icon:before {
-	content: "\e176";
+.commonicon-icon {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'commonicon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  text-align: center;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-// icons
+.common-icon-export:before {
+	content: "\e24e";
+}
+.common-icon-check-circle-fill:before {
+	content: "\e242";
+}
+.common-icon-close-circle-fill:before {
+	content: "\e243";
+}
 .common-icon-add:before {
 	content: "\e101";
 }
@@ -389,6 +405,9 @@
 .common-icon-square-code:before {
 	content: "\e18d";
 }
+.common-icon-swither-small:before {
+	content: "\e250";
+}
 .common-icon-sys-gcloud:before {
 	content: "\e18e";
 }
@@ -427,6 +446,9 @@
 }
 .common-icon-play:before {
 	content: "\e1a4";
+}
+.common-icon-authority:before {
+	content: "\e24d";
 }
 .common-icon-file-setting:before {
 	content: "\e1a5";
@@ -500,8 +522,14 @@
 .common-icon-drawable:before {
 	content: "\e1d7";
 }
+.common-icon-loading:before {
+	content: "\e244";
+}
 .common-icon-favorite:before {
 	content: "\e1d8";
+}
+.common-icon-audit:before {
+	content: "\e23b";
 }
 .common-icon-update:before {
 	content: "\e1d9";
@@ -512,11 +540,17 @@
 .common-icon-revoke:before {
 	content: "\e1db";
 }
+.common-icon-lightening:before {
+	content: "\e230";
+}
 .common-icon-jump-link:before {
 	content: "\e1dc";
 }
 .common-icon-task:before {
 	content: "\e1dd";
+}
+.common-icon-space:before {
+	content: "\e23c";
 }
 .common-icon-waitting:before {
 	content: "\e1de";
@@ -653,6 +687,45 @@
 .common-icon-dark-pending-approval:before {
 	content: "\e221";
 }
+.common-icon-delete:before {
+	content: "\e23a";
+}
+.common-icon-edit:before {
+	content: "\e239";
+}
+.common-icon-overview-table:before {
+	content: "\e235";
+}
+.common-icon-time:before {
+	content: "\e236";
+}
+.common-icon-flow-menu:before {
+	content: "\e233";
+}
+.common-icon-alert1:before {
+	content: "\e231";
+}
+.common-icon-api:before {
+	content: "\e23f";
+}
+.common-icon-node2:before {
+	content: "\e23e";
+}
+.common-icon-module:before {
+	content: "\e23d";
+}
+.common-icon-code:before {
+	content: "\e237";
+}
+.common-icon-location2:before {
+	content: "\e232";
+}
+.common-icon-undo:before {
+	content: "\e238";
+}
+.common-icon-variable:before {
+	content: "\e234";
+}
 .common-icon-task-pending-process:before {
 	content: "\e225";
 }
@@ -670,4 +743,46 @@
 }
 .common-icon-task-pause:before {
 	content: "\e227";
+}
+.common-icon-checkbox:before {
+	content: "\e228";
+}
+.common-icon-number:before {
+	content: "\e22a";
+}
+.common-icon-string:before {
+	content: "\e229";
+}
+.common-icon-task-menu:before {
+	content: "\e22c";
+}
+.common-icon-shandian:before {
+	content: "\e22d";
+}
+.common-icon-mock-menu:before {
+	content: "\e22b";
+}
+.common-icon-decision-menu:before {
+	content: "\e22e";
+}
+.common-icon-snapshoot:before {
+	content: "\e22f";
+}
+.common-icon-point:before {
+	content: "\e240";
+}
+.common-icon-credential:before {
+	content: "\e241";
+}
+.common-icon-renwu:before {
+	content: "\e245";
+}
+.common-icon-read:before {
+	content: "\e246";
+}
+.common-icon-svgviewer-output:before {
+	content: "\e24b";
+}
+.common-icon-zanting:before {
+	content: "\e24c";
 }

@@ -57,25 +57,29 @@
             <div class="operate-item" data-test-id="navHeader_list_versionLog" @click="onOpenVersion">{{ $t('版本日志') }}</div>
             <div class="operate-item" data-test-id="navHeader_list_feedback" @click="goToFeedback">{{ $t('问题反馈') }}</div>
         </div>
-        <!-- 用户icon -->
-        <div
-            class="user-avatar"
-            v-bk-tooltips="{
-                placement: 'bottom-end',
-                allowHtml: 'true',
-                arrow: false,
-                distance: 25,
-                theme: 'light',
-                hideOnClick: false,
-                extCls: 'logout-tips',
-                content: '#logout-html'
-            }">
-            {{ username }}
-            <i class="bk-icon icon-down-shape"></i>
+        <div v-if="!isMultiTenant">
+            <!-- 用户icon -->
+            <div
+                class="user-avatar"
+                v-bk-tooltips="{
+                    placement: 'bottom-end',
+                    allowHtml: 'true',
+                    arrow: false,
+                    distance: 25,
+                    theme: 'light',
+                    hideOnClick: false,
+                    extCls: 'logout-tips',
+                    content: '#logout-html'
+                }">
+                {{ username }}
+                <i class="bk-icon icon-down-shape"></i>
+            </div>
+            <div id="logout-html">
+                <div class="operate-item" data-test-id="navHeader_list_logout" @click="handleLogout">{{ $t('退出登录') }}</div>
+            </div>
         </div>
-        <div id="logout-html">
-            <div class="operate-item" data-test-id="navHeader_list_logout" @click="handleLogout">{{ $t('退出登录') }}</div>
-        </div>
+        <!-- 用户信息 -->
+        <BkLoginUserinfo v-else :userinfo="userinfo" :action-list="actionList" />
         <!-- 日志组件 -->
         <version-log
             ref="versionLog"
@@ -91,6 +95,7 @@
     import { mapActions, mapMutations, mapState } from 'vuex'
     import ProjectSelector from './ProjectSelector.vue'
     import VersionLog from './VersionLog.vue'
+    import BkLoginUserinfo from '@blueking/login-userinfo/vue2'
     import Cookies from 'js-cookie'
     import axios from 'axios'
 
@@ -99,7 +104,8 @@
         inject: ['reload'],
         components: {
             ProjectSelector,
-            VersionLog
+            VersionLog,
+            BkLoginUserinfo
         },
         data () {
             return {
@@ -110,7 +116,13 @@
                 isMoreOperateActive: false,
                 logListLoading: false,
                 logDetailLoading: false,
-                curLanguage: 'chinese'
+                curLanguage: 'chinese',
+                userinfo: {
+                    name: window.DISPLAY_NAME || window.USERNAME || '',
+                    organization: window.TENANT_ID,
+                    timezone: window.TIMEZONE
+                },
+                isMultiTenant: !!window.ENABLE_MULTI_TENANT_MODE
             }
         },
         computed: {
@@ -137,6 +149,28 @@
                 }
                 const paths = ['/audit/', '/function/']
                 return paths.some(path => this.$route.path.startsWith(path))
+            },
+            actionList () {
+                return [
+                    {
+                        text: this.$t('权限中心'),
+                        icon: 'common-icon-authority',
+                        href: window.BK_IAM_SAAS_HOST,
+                        target: '_blank'
+                    },
+                    {
+                        text: this.$t('个人中心'),
+                        icon: 'bk-icon icon-user',
+                        href: (window.BKPAAS_USER_URL || '') + '/personal-center',
+                        target: '_blank'
+                    },
+                    {
+                        text: this.$t('退出登录'),
+                        icon: 'common-icon-export',
+                        theme: 'danger',
+                        handle: this.handleLogout
+                    }
+                ]
             }
         },
         async created () {
@@ -248,6 +282,8 @@
     }
 </script>
 <style lang="scss" scoped>
+    @import '@blueking/login-userinfo/vue2/vue2.css';
+
     .navigator-head-right {
         display: flex;
         align-items: center;
@@ -283,23 +319,6 @@
             font-size: 18px;
             margin-right: 10px;
         }
-        .user-avatar {
-            margin-left: 16px;
-            font-size: 14px;
-            color: #96a2b9;
-            cursor: pointer;
-            .icon-down-shape {
-                position: relative;
-                top: -1px;
-                color: #979ba5;
-            }
-            &:hover {
-                color: #3a84ff;
-                i {
-                    color: #3a84ff;
-                }
-            }
-        }
         ::v-deep .bk-select.is-disabled {
             background: none;
         }
@@ -307,7 +326,6 @@
 </style>
 <style lang="scss">
     .tippy-popper.more-language-tips,
-    .tippy-popper.logout-tips,
     .tippy-popper.more-operation-tips {
         .tippy-tooltip {
             padding: 4px 0;
@@ -319,7 +337,6 @@
             }
         }
         #more-language-html,
-        #logout-html,
         #more-operation-html {
             .operate-item {
                 display: block;
