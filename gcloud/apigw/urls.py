@@ -59,12 +59,22 @@ from gcloud.apigw.views.import_project_template import import_project_template
 from gcloud.apigw.views.modify_constants_for_periodic_task import modify_constants_for_periodic_task
 from gcloud.apigw.views.modify_constants_for_task import modify_constants_for_task
 from gcloud.apigw.views.modify_cron_for_periodic_task import modify_cron_for_periodic_task
-from gcloud.apigw.views.modify_template_executor_proxy import modify_template_executor_proxy
 from gcloud.apigw.views.modify_project_executor_proxy import modify_project_executor_proxy
+from gcloud.apigw.views.modify_template_executor_proxy import modify_template_executor_proxy
 from gcloud.apigw.views.modify_template_notify import modify_template_notify
 from gcloud.apigw.views.node_callback import node_callback
 from gcloud.apigw.views.operate_node import operate_node
 from gcloud.apigw.views.operate_task import operate_task
+from gcloud.apigw.views.plugin_gateway import (
+    cancel_plugin_gateway_run,
+    create_plugin_gateway_run,
+    get_plugin_gateway_categories,
+    get_plugin_gateway_detail,
+    get_plugin_gateway_list,
+    get_plugin_gateway_run_detail,
+    get_plugin_gateway_run_status,
+    plugin_gateway_run_internal_callback,
+)
 from gcloud.apigw.views.plugin_proxy import dispatch_plugin_query
 from gcloud.apigw.views.preview_common_task_tree import preview_common_task_tree
 from gcloud.apigw.views.preview_task_tree import preview_task_tree
@@ -75,6 +85,39 @@ from gcloud.apigw.views.start_task import start_task
 
 urlpatterns = [
     url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
+    url(r"^plugin-gateway/categories/$", get_plugin_gateway_categories, name="apigw_plugin_gateway_categories"),
+    url(r"^plugin-gateway/plugins/$", get_plugin_gateway_list, name="apigw_plugin_gateway_list"),
+    url(
+        r"^plugin-gateway/plugins/(?P<plugin_id>[\w-]+)/$",
+        get_plugin_gateway_detail,
+        name="apigw_plugin_gateway_detail",
+    ),
+    url(r"^plugin-gateway/runs/$", create_plugin_gateway_run, name="apigw_plugin_gateway_run_create"),
+    url(
+        r"^plugin-gateway/runs/status/$",
+        get_plugin_gateway_run_status,
+        name="apigw_plugin_gateway_run_status",
+    ),
+    url(
+        r"^plugin-gateway/runs/(?P<run_id>[0-9a-f]{32})/$",
+        get_plugin_gateway_run_detail,
+        name="apigw_plugin_gateway_run_detail",
+    ),
+    url(
+        r"^plugin-gateway/runs/(?P<run_id>[0-9a-f]{32})/internal-callback/$",
+        plugin_gateway_run_internal_callback,
+        name="apigw_plugin_gateway_run_internal_callback",
+    ),
+    url(
+        r"^plugin-gateway/runs/(?P<run_id>[0-9a-f]{32})/cancel$",
+        cancel_plugin_gateway_run,
+        name="apigw_plugin_gateway_run_cancel_compat",
+    ),
+    url(
+        r"^plugin-gateway/runs/(?P<run_id>[0-9a-f]{32})/cancel/$",
+        cancel_plugin_gateway_run,
+        name="apigw_plugin_gateway_run_cancel",
+    ),
     url(r"^get_template_list/(?P<project_id>\d+)/$", get_template_list),
     url(
         r"^get_template_info/(?P<template_id>\d+)/(?P<project_id>\d+)/$",
