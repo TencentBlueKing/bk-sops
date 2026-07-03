@@ -23,6 +23,7 @@ from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.periodic_task import (
     ModifyConstantsInterceptor,
     ModifyCronInterceptor,
+    PeriodicTaskProjectViewInterceptor,
     SetEnabledForPeriodicTaskInterceptor,
 )
 from gcloud.periodictask.models import PeriodicTask
@@ -87,6 +88,7 @@ def modify_constants(request, project_id, task_id):
 
 
 @require_GET
+@iam_intercept(PeriodicTaskProjectViewInterceptor())
 def get_period_tasks_with_expired_template(request, project_id):
     """
     获取具有过期模板的周期性任务
