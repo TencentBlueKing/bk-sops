@@ -2449,6 +2449,179 @@ paths:
       description: 获取职能化任务列表
       tags:
       - 通用接口
+      parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+        required: false
+        description: 根据职能化任务阶段过滤任务列表，可选值：submitted（未认领）、claimed（已认领）、rejected（已驳回）、executed（已执行）、finished（完成），默认不过滤
+      - in: query
+        name: execute_status
+        schema:
+          type: string
+        required: false
+        description: 根据任务执行状态过滤任务列表，可选值：nonExecution（未执行）、running（未完成）、revoked（终止）、finished（完成），默认不过滤
+      - in: query
+        name: id_in
+        schema:
+          type: string
+        required: false
+        description: 职能化任务筛选id来源列表，以逗号`,`分隔，默认不过滤
+      - in: query
+        name: task_id_in
+        schema:
+          type: string
+        required: false
+        description: 职能化任务筛选原任务id来源列表，以逗号`,`分隔（对应页面"任务ID"），默认不过滤
+      - in: query
+        name: project_id
+        schema:
+          type: integer
+        required: false
+        description: 根据项目id过滤任务列表，仅支持标准运维项目id，非ccid，默认不过滤
+      - in: query
+        name: creator
+        schema:
+          type: string
+        required: false
+        description: 根据提单人过滤任务列表，支持模糊搜索（使用`icontains`），默认不过滤。**注意：不支持多个用户同时筛选**
+      - in: query
+        name: claimant
+        schema:
+          type: string
+        required: false
+        description: 根据认领人过滤任务列表，支持模糊搜索（使用`icontains`），默认不过滤。**注意：不支持多个用户同时筛选**
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 任务时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 分页，返回任务列表任务数，默认为100
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 分页，返回任务列表起始任务下标，默认为0
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: 职能化任务ID
+                        name:
+                          type: string
+                          description: 任务名称（来自原任务）
+                        creator:
+                          type: string
+                          description: 提单人
+                        rejecter:
+                          type: string
+                          description: 驳回人
+                        claimant:
+                          type: string
+                          description: 认领人
+                        predecessor:
+                          type: string
+                          description: 转交人（前置处理人）
+                        create_time:
+                          type: string
+                          nullable: true
+                          description: 创建时间
+                        claim_time:
+                          type: string
+                          nullable: true
+                          description: 认领时间
+                        reject_time:
+                          type: string
+                          nullable: true
+                          description: 驳回时间
+                        transfer_time:
+                          type: string
+                          nullable: true
+                          description: 转交时间
+                        status:
+                          type: string
+                          description: 职能化任务阶段状态，可选值：submitted（未认领）、claimed（已认领）、rejected（已驳回）、executed（已执行）、finished（完成）
+                        task:
+                          type: object
+                          description: 关联的原任务信息
+                          properties:
+                            id:
+                              type: integer
+                              description: 原任务实例ID
+                            name:
+                              type: string
+                              description: 原任务名称
+                            category:
+                              type: string
+                              description: 任务分类
+                            create_method:
+                              type: string
+                              description: 任务创建方式
+                            creator:
+                              type: string
+                              description: 原任务创建人
+                            executor:
+                              type: string
+                              description: 任务执行人
+                            start_time:
+                              type: string
+                              nullable: true
+                              description: 任务开始时间
+                            finish_time:
+                              type: string
+                              nullable: true
+                              description: 任务完成时间
+                            is_started:
+                              type: boolean
+                              description: 是否已启动
+                            is_finished:
+                              type: boolean
+                              description: 是否已完成
+                            template_source:
+                              type: string
+                              description: 模板来源
+                            template_id:
+                              type: string
+                              description: 模板ID
+                            is_child_taskflow:
+                              type: boolean
+                              description: 是否子流程
+                    description: result=true 时成功数据，职能化任务列表
+                  count:
+                    type: integer
+                    description: 符合条件的职能化任务总数（分页前）
+                  code:
+                    type: integer
+                    description: 错误码
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
