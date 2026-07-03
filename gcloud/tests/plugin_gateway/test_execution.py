@@ -37,6 +37,11 @@ class PluginGatewayExecutionServiceTestCase(TestCase):
         )
         self.get_plugin_reference_patcher.start()
         self.addCleanup(self.get_plugin_reference_patcher.stop)
+        self.dispatch_apply_async_patcher = patch(
+            "gcloud.plugin_gateway.services.execution.dispatch_plugin_gateway_run.apply_async"
+        )
+        self.mock_dispatch_apply_async = self.dispatch_apply_async_patcher.start()
+        self.addCleanup(self.dispatch_apply_async_patcher.stop)
 
     def _get_plugin_reference(self, plugin_id):
         return {
@@ -146,12 +151,11 @@ class PluginGatewayExecutionServiceTestCase(TestCase):
 
         mock_decrypt.assert_not_called()
 
-    @patch("gcloud.plugin_gateway.services.execution.dispatch_plugin_gateway_run")
-    def test_create_run_dispatches_async_runtime_once_created(self, mock_dispatch_task):
+    def test_create_run_dispatches_async_runtime_once_created(self):
         run, created = PluginGatewayExecutionService.create_run("bkflow-app", self.payload)
 
         self.assertTrue(created)
-        mock_dispatch_task.apply_async.assert_called_once_with(kwargs={"open_plugin_run_id": run.open_plugin_run_id})
+        self.mock_dispatch_apply_async.assert_called_once_with(kwargs={"open_plugin_run_id": run.open_plugin_run_id})
 
     @patch("gcloud.plugin_gateway.services.execution.PluginGatewayCallbackService.callback_run")
     def test_cancel_run_updates_status_and_triggers_callback(self, mock_callback_run):
