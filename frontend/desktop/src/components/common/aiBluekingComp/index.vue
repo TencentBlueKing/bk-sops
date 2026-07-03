@@ -21,7 +21,13 @@
         data () {
             return {
                 aiAgentUrl: window.AI_SOPS_AGENT_URL,
-                requestOptions: null
+                // 只初始化一次，context 用函数返回最新上下文，避免重新赋值 requestOptions 触发内层 Vue3 app 卸载后无法重新挂载
+                requestOptions: {
+                    context: () => this.buildContext(),
+                    headers: () => ({
+                        Accept: ['application/json', 'text/event-stream']
+                    })
+                }
             }
         },
         computed: {
@@ -29,36 +35,26 @@
                 'bizId': state => state.project.bizId
             })
         },
-        watch: {
-            '$route': {
-                handler () {
-                    this.updateRequestOptions()
-                },
-                immediate: true,
-                deep: true
-            },
-            bizId () {
-                this.updateRequestOptions()
-            }
-        },
         methods: {
-            updateRequestOptions () {
+            buildContext () {
                 const { instance_id: instanceId } = this.$route.query
                 const params = this.$route.params
-                const context = Object.assign({ bk_biz_id: this.bizId, task_id: instanceId }, this.$route.query, params)
-                this.requestOptions = { context }
+                return Object.assign({ bk_biz_id: this.bizId, task_id: instanceId }, this.$route.query, params)
             },
             showAi () {
                 this.$refs.aiBlueking.handleShow()
             },
             async sendDefaultcommand ({ data, operationName }) {
-                const shortcutsCommand = this.$refs.aiBlueking.agentInfo?.conversationSettings?.commands
+                const chatHelper = this.$refs.aiBlueking.getChatHelper()
+                const shortcutsCommand = chatHelper?.agent?.info?.value?.conversationSettings?.commands
+                if (!shortcutsCommand) return
                 try {
                     let curCommond = null
                     if (operationName === 'checkScript') {
                         const curPrompt = `使用脚本审计工具优化以下脚本\n检查代码如下:\n${data}`
                         curCommond = tools.deepClone(shortcutsCommand.find(item => item.id === 'ai-scripting'))
                         curCommond.components[0].default = curPrompt
+                        curCommond.content = curPrompt
                     }
                     if (['checkExecutedFailed', 'taskSummarize'].includes(operationName)) {
                         if (operationName === 'checkExecutedFailed') {
@@ -66,7 +62,7 @@
                         } else if (operationName === 'taskSummarize') {
                             curCommond = tools.deepClone(shortcutsCommand.find(item => item.id === 'summarize_task'))
                         }
-                        const { instance_id: instanceId, bk_biz_id: bkBizId } = this.requestOptions.context
+                        const { task_id: instanceId, bk_biz_id: bkBizId } = this.buildContext()
                         curCommond.components.forEach(item => {
                             if (item.key === 'task_id') {
                                 item.default = instanceId
@@ -77,7 +73,7 @@
                         })
                     }
                     await this.$refs.aiBlueking.handleShow(undefined, { isTemporary: true })
-                    this.$refs.aiBlueking.handleShortcutClick({ shortcut: curCommond, source: 'popup' }, true)
+                    this.$refs.aiBlueking.sendShortcut(curCommond)
                 } catch (error) {
                     console.error(error)
                 }

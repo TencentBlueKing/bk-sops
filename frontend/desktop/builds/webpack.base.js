@@ -69,9 +69,13 @@ module.exports = {
                 ]
             },
             {
-                test: /\.mjs$/,
+                test: /\.(mjs|js)$/,
                 include: [
-                    path.join(__dirname, '../node_modules/@blueking/ai-blueking')
+                    path.join(__dirname, '../node_modules/@blueking/bkui-library'),
+                    path.join(__dirname, '../node_modules/@vue/runtime-dom'),
+                    path.join(__dirname, '../node_modules/@vue/runtime-core'),
+                    path.join(__dirname, '../node_modules/@vue/shared'),
+                    path.join(__dirname, '../node_modules/@vue/reactivity')
                 ],
                 use: {
                     loader: 'babel-loader',
@@ -88,6 +92,27 @@ module.exports = {
                             '@babel/plugin-proposal-nullish-coalescing-operator',
                             '@babel/plugin-proposal-optional-chaining'
                         ]
+                    }
+                }
+            },
+            {
+                test: /\.(mjs|js)$/,
+                include: [
+                    path.join(__dirname, '../node_modules/@blueking/ai-blueking')
+                ],
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        plugins: [
+                            '@babel/plugin-proposal-optional-chaining',
+                            '@babel/plugin-proposal-nullish-coalescing-operator',
+                            '@babel/plugin-transform-logical-assignment-operators',
+                            '@babel/plugin-transform-optional-catch-binding',
+                            '@babel/plugin-proposal-class-properties',
+                            '@babel/plugin-proposal-numeric-separator',
+                            '@babel/plugin-transform-class-static-block'
+                        ],
+                        sourceType: 'unambiguous'
                     }
                 }
             },
