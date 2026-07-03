@@ -20,6 +20,7 @@ from gcloud.contrib.collection.models import Collection
 class UserFavoriteProjectTestCase(TestCase):
     def setUp(self):
         self.username = "user"
+        self.instance_id = 2
         self.project_id = 1
 
         self.mock_project = MagicMock()
@@ -35,12 +36,12 @@ class UserFavoriteProjectTestCase(TestCase):
         self.assertEqual(Collection.objects.count(), 1)
 
     def test_remove_user_favorite_project(self):
-        Collection.objects.create(category="project", username=self.username, project_id=self.project_id)
+        Collection.objects.create(category="project", username=self.username, instance_id=self.instance_id)
         self.assertEqual(Collection.objects.count(), 1)
-        Collection.objects.remove_user_favorite_project(self.username, self.project_id)
+        Collection.objects.remove_user_favorite_project(self.username, self.instance_id)
         self.assertEqual(Collection.objects.count(), 0)
 
     def test_get_user_favorite_projects(self):
-        Collection.objects.create(category="project", username=self.username, project_id=1)
-        Collection.objects.create(category="project", username=self.username, project_id=2)
+        Collection.objects.create(category="project", username=self.username, instance_id=1)
+        Collection.objects.create(category="project", username=self.username, instance_id=2)
         self.assertEqual(list(Collection.objects.get_user_favorite_projects(self.username)), [1, 2])

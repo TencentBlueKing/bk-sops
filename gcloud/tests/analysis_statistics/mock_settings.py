@@ -15,4 +15,4 @@ TASKFLOWINSTANCE_POST_SAVE_STATISTICS_TASK = (
     "gcloud.analysis_statistics.tasks.taskflowinstance_post_save_statistics_task.delay"
 )
 TASKTEMPLATE_POST_SAVE_STATISTICS_TASK = "gcloud.analysis_statistics.tasks.tasktemplate_post_save_statistics_task.delay"
-PIPELINE_ARCHIVE_STATISTICS_TASK = "gcloud.analysis_statistics.tasks.pipeline_archive_statistics_task.delay"
+PIPELINE_ARCHIVE_STATISTICS_TASK = "gcloud.analysis_st  atistics.tasks.pipeline_archive_statistics_task.delay"

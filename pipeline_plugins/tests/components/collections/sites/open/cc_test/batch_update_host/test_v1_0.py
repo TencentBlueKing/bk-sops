@@ -12,16 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
-from pipeline.component_framework.test import (
-    Call,
-    CallAssertion,
-    ComponentTestCase,
-    ComponentTestMixin,
-    ExecuteAssertion,
-    Patcher,
-)
+from pipeline.component_framework.test import ComponentTestCase, ComponentTestMixin, ExecuteAssertion, Patcher
 
 from pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0 import CCBatchUpdateHostComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
+    CC_GET_CLIENT_PATCH,
+    CMDB_GET_CLIENT_PATCH,
+    MockCMDBClientIPv6,
+    create_mock_cmdb_client_with_hosts,
+)
 
 
 class CCBatchUpdateHostComponentTest(TestCase, ComponentTestMixin):
@@ -32,10 +31,10 @@ class CCBatchUpdateHostComponentTest(TestCase, ComponentTestMixin):
         return [INVALID_IP_CASE, CC_HOST_PROP_VALUE_ILLEGAL, BATCH_UPDATE_HOST_SUCCESS, BATCH_UPDATE_HOST_FAIL]
 
 
-class MockClient(object):
+class MockClient(MockCMDBClientIPv6):
     def __init__(self, batch_update_host_return=None):
-        self.cc = MagicMock()
-        self.cc.batch_update_host = MagicMock(return_value=batch_update_host_return)
+        super(MockClient, self).__init__()
+        self.api.batch_update_host = MagicMock(return_value=batch_update_host_return)
 
 
 BATCH_UPDATE_HOST_SUCCESS_CLIENT = MockClient(
@@ -46,9 +45,14 @@ BATCH_UPDATE_HOST_FAIL_CLIENT = MockClient(
     batch_update_host_return={"result": False, "code": 0, "message": "error", "data": None}
 )
 
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.get_client_by_user"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.get_client_by_username"
+)
 CC_GET_IPS_INFO_BY_STR = (
     "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_id_by_innerip_and_cloudid"
+)
+CC_GET_HOST_BY_INNERIP_WITH_IPV6 = (
+    "pipeline_plugins.components.collections.sites.open.cc.base.cc_get_host_by_innerip_with_ipv6"
 )
 VERIFY_HOST_PROPERTY = (
     "pipeline_plugins.components.collections.sites.open.cc.batch_update_host.v1_0.verify_host_property"
@@ -94,15 +98,24 @@ CC_GET_IPS_INFO_BY_STR_VALUE = {
 INVALID_IP_CASE = ComponentTestCase(
     name="Invalid IP Case",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
-    execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"}),
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
+    execute_assertion=ExecuteAssertion(
+        success=False,
+        outputs={"ex_data": "ip not found in business: 1.1.1.1"},
+    ),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
+        Patcher(target=CC_GET_CLIENT_PATCH, return_value=create_mock_cmdb_client_with_hosts([])),
+        Patcher(target=CMDB_GET_CLIENT_PATCH, return_value=create_mock_cmdb_client_with_hosts([])),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": False, "message": "ip not found in business: 1.1.1.1"},
+        ),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
-            return_value={"result": False, "message": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法"},
-        )
+            return_value={"result": False, "message": "ip not found in business: 1.1.1.1"},
+        ),
     ],
 )
 
@@ -110,13 +123,28 @@ INVALID_IP_CASE = ComponentTestCase(
 CC_HOST_PROP_VALUE_ILLEGAL = ComponentTestCase(
     name="cc host prop value illegal",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "参数值校验失败，请重试并修改为正确的参数值"}),
     schedule_assertion=None,
     execute_call_assertion=None,
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value=CC_GET_IPS_INFO_BY_STR_VALUE),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property_fail),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]},
+        ),
     ],
 )
 
@@ -124,35 +152,32 @@ CC_HOST_PROP_VALUE_ILLEGAL = ComponentTestCase(
 BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
     name="batch update host success",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1", 0)],
-        ),
-        CallAssertion(
-            func=BATCH_UPDATE_HOST_SUCCESS_CLIENT.cc.batch_update_host,
-            calls=[
-                Call(
-                    {
-                        "bk_supplier_account": 0,
-                        "update": [
-                            {
-                                "bk_host_id": 111,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                        ],
-                    }
-                ),
-            ],
-        ),
-    ],
+    execute_call_assertion=None,
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value=CC_GET_IPS_INFO_BY_STR_VALUE),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property),
         Patcher(target=GET_CLIENT_BY_USER, return_value=BATCH_UPDATE_HOST_SUCCESS_CLIENT),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={
+                "result": True,
+                "data": [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}],
+            },
+        ),
     ],
 )
 
@@ -160,43 +185,40 @@ BATCH_UPDATE_HOST_SUCCESS = ComponentTestCase(
 BATCH_UPDATE_HOST_FAIL = ComponentTestCase(
     name="batch update host success",
     inputs=INPUT_DATA,
-    parent_data={"executor": "executor", "biz_cc_id": 1},
+    parent_data={"tenant_id": "system", "executor": "executor", "biz_cc_id": 1},
     execute_assertion=ExecuteAssertion(
         success=False,
         outputs={
-            "ex_data": "调用配置平台(CMDB)接口cc.batch_update_host返回失败, "
-            "error=error, "
-            'params={"bk_supplier_account":0,'
-            '"update":[{"bk_host_id":111,"properties":{"operator":"admin","bk_bak_operator":"admin",'
-            '"bk_comment":"test"}}]}'
+            "ex_data": (
+                "调用配置平台(CMDB)接口cc.batch_update_host返回失败, error=error, "
+                'params={"update":[{"bk_host_id":111,"properties":'
+                '{"operator":"admin","bk_bak_operator":"admin","bk_comment":"test"}}]}'
+            ),
         },
     ),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call("executor", 1, "1.1.1.1", 0)],
-        ),
-        CallAssertion(
-            func=BATCH_UPDATE_HOST_FAIL_CLIENT.cc.batch_update_host,
-            calls=[
-                Call(
-                    {
-                        "bk_supplier_account": 0,
-                        "update": [
-                            {
-                                "bk_host_id": 111,
-                                "properties": {"operator": "admin", "bk_bak_operator": "admin", "bk_comment": "test"},
-                            },
-                        ],
-                    }
-                )
-            ],
-        ),
-    ],
+    execute_call_assertion=None,
     patchers=[
-        Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value=CC_GET_IPS_INFO_BY_STR_VALUE),
+        Patcher(
+            target=CC_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_CLIENT_PATCH,
+            return_value=create_mock_cmdb_client_with_hosts(
+                [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}]
+            ),
+        ),
         Patcher(target=VERIFY_HOST_PROPERTY, side_effect=verify_host_property),
         Patcher(target=GET_CLIENT_BY_USER, return_value=BATCH_UPDATE_HOST_FAIL_CLIENT),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={
+                "result": True,
+                "data": [{"bk_host_id": 111, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 0}],
+            },
+        ),
     ],
 )

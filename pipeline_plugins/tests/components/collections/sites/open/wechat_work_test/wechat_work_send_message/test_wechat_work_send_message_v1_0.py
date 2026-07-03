@@ -59,7 +59,7 @@ WEBHOOK_NOT_CONFIG_CASE = ComponentTestCase(
         "wechat_work_mentioned_members": "",
         "msgtype": "text",
     },
-    parent_data={},
+    parent_data={"tenant_id": "system"},
     execute_assertion=ExecuteAssertion(
         success=False, outputs={"ex_data": "WechatWork send message URL is not config, contact admin please"}
     ),
@@ -75,10 +75,10 @@ EMPTY_CHAT_ID_CASE = ComponentTestCase(
         "wechat_work_mentioned_members": "",
         "msgtype": "text",
     },
-    parent_data={},
+    parent_data={"tenant_id": "system"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "会话 ID 不能为空"}),
     schedule_assertion=None,
-    patchers=[Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url")],
+    patchers=[Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value='{"system": "test_url"}')],
 )
 
 INVALID_CHAT_ID_CASE = ComponentTestCase(
@@ -89,10 +89,10 @@ INVALID_CHAT_ID_CASE = ComponentTestCase(
         "wechat_work_mentioned_members": "",
         "msgtype": "text",
     },
-    parent_data={},
+    parent_data={"tenant_id": "system"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "第1行的会话 ID 格式不正确（长度需为 32）"}),
     schedule_assertion=None,
-    patchers=[Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url")],
+    patchers=[Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value='{"system": "test_url"}')],
 )
 
 WEBHOOK_CALL_ERR_CASE = ComponentTestCase(
@@ -103,11 +103,11 @@ WEBHOOK_CALL_ERR_CASE = ComponentTestCase(
         "wechat_work_mentioned_members": "",
         "msgtype": "text",
     },
-    parent_data={},
+    parent_data={"tenant_id": "system"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "企业微信发送消息请求失败，详细信息: exc_token"}),
     schedule_assertion=None,
     patchers=[
-        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url"),
+        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value='{"system": "test_url"}'),
         Patcher(target=REQUESTS_POST, side_effect=MagicMock(side_effect=Exception("exc_token"))),
     ],
 )
@@ -125,11 +125,11 @@ WEBHOOK_CALL_RESP_NOT_OK_CASE = ComponentTestCase(
         "wechat_work_mentioned_members": "",
         "msgtype": "text",
     },
-    parent_data={},
+    parent_data={"tenant_id": "system"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "企业微信发送消息请求失败，状态码: 500, 响应: content_token"}),
     schedule_assertion=None,
     patchers=[
-        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url"),
+        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value='{"system": "test_url"}'),
         Patcher(target=REQUESTS_POST, side_effect=MagicMock(return_value=WEBHOOK_CALL_RESP_NOT_OK_RESP)),
     ],
 )
@@ -149,7 +149,7 @@ SUCCESS_CASE = ComponentTestCase(
         "wechat_work_mentioned_members": "m1,m2",
         "msgtype": "text",
     },
-    parent_data={},
+    parent_data={"tenant_id": "system"},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -169,7 +169,7 @@ SUCCESS_CASE = ComponentTestCase(
         )
     ],
     patchers=[
-        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url"),
+        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value='{"system": "test_url"}'),
         Patcher(target=REQUESTS_POST, side_effect=SUCCESS_REQUEST_POST),
     ],
 )
@@ -186,7 +186,7 @@ ENCRYPT_SUCCESS_CASE = ComponentTestCase(
         "wechat_work_mentioned_members": "m1,m2",
         "msgtype": "text",
     },
-    parent_data={},
+    parent_data={"tenant_id": "system"},
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=None,
     execute_call_assertion=[
@@ -206,7 +206,7 @@ ENCRYPT_SUCCESS_CASE = ComponentTestCase(
         )
     ],
     patchers=[
-        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value="test_url"),
+        Patcher(target=ENVIRONMENT_VAIRABLES_GET, return_value='{"system": "test_url"}'),
         Patcher(target=REQUESTS_POST, side_effect=SUCCESS_REQUEST_POST),
     ],
 )

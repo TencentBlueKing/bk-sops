@@ -61,6 +61,7 @@ class ApproveService(BasePluginService):
 
     def plugin_execute(self, data, parent_data):
         executor = parent_data.get_one_of_inputs("executor")
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         client = get_client_by_username(username=executor, stage=settings.BK_APIGW_STAGE_NAME)
 
         verifier = data.get_one_of_inputs("bk_verifier")
@@ -81,7 +82,9 @@ class ApproveService(BasePluginService):
                 "callback_url": get_node_callback_url(self.root_pipeline_id, self.id, getattr(self, "version", ""))
             },
         }
-        result = client.api.create_ticket(kwargs)
+        result = client.api.create_ticket(
+            kwargs, headers={"X-Bk-Tenant-Id": tenant_id, "SYSTEM-TOKEN": settings.SECRET_KEY}
+        )
         if not result["result"]:
             message = handle_api_error(__group_name__, "itsm.create_ticket", kwargs, result)
             self.logger.error(message)

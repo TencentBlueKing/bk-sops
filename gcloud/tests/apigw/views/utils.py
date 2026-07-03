@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import abc
 
-from django.test import TestCase, Client
 from django.conf import settings
+from django.test import Client, TestCase
 
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
@@ -48,6 +48,7 @@ def mock_check_white_apps(request):
     request.user = MockJwtClientAttr(
         {
             settings.APIGW_MANAGER_USER_USERNAME_KEY: request.META.get("HTTP_BK_USERNAME", ""),
+            "tenant_id": request.META.get("X-Bk-Tenant-Id", "system"),
         }
     )
     request.app = MockJwtClientAttr(

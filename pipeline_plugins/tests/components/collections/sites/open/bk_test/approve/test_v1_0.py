@@ -23,6 +23,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
+from gcloud.conf import settings
 from gcloud.shortcuts.message import PENDING_PROCESSING
 from pipeline_plugins.components.collections.sites.open.bk.approve.v1_0 import ApproveComponent
 
@@ -50,7 +51,7 @@ GET_NODE_CALLBACK_URL = "pipeline_plugins.components.collections.sites.open.bk.a
 BK_HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.handle_api_error"
 SEND_TASKFLOW_MESSAGE = "pipeline_plugins.components.collections.sites.open.bk.approve.v1_0.send_taskflow_message.delay"
 
-COMMON_PARENT = {"executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0, "task_id": 1}
+COMMON_PARENT = {"tenant_id": "system", "executor": "admin", "biz_cc_id": 2, "biz_supplier_account": 0, "task_id": 1}
 
 CREAT_TICKET_FAIL_RETURN = {"result": False, "message": "create ticket fail"}
 
@@ -84,8 +85,10 @@ CALLBACK_URL_REJECT_RETURN = {
 }
 
 CREAT_TICKET_SUCCESS_CLIENT = MockClient(create_ticket=CREAT_TICKET_SUCCESS_RETURN)
+CREAT_TICKET_REJECT_CLIENT = MockClient(create_ticket=CREAT_TICKET_SUCCESS_RETURN)
 CREAT_TICKET_FAIL_RETURN_CLIENT = MockClient(create_ticket=CREAT_TICKET_FAIL_RETURN)
 SEND_TASKFLOW_MESSAGE_MOCK_FUNC = MagicMock(return_value=2)
+SEND_TASKFLOW_MESSAGE_REJECT_MOCK_FUNC = MagicMock(return_value=2)
 
 CREAT_TICKET_CALL = {
     "creator": "admin",
@@ -117,7 +120,12 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
     execute_call_assertion=[
         CallAssertion(
             func=CREAT_TICKET_FAIL_RETURN_CLIENT.api.create_ticket,
-            calls=[Call(CREAT_TICKET_CALL)],
+            calls=[
+                Call(
+                    CREAT_TICKET_CALL,
+                    headers={"X-Bk-Tenant-Id": "system", "SYSTEM-TOKEN": settings.SECRET_KEY},
+                )
+            ],
         ),
     ],
     schedule_assertion=None,
@@ -133,16 +141,19 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
     name="create approve ticket success case",
     inputs=INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(
-        success=True, outputs={"sn": "NO2019090519542603", "id": 12345}
-    ),
+    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603", "id": 12345}),
     execute_call_assertion=[
         CallAssertion(
-            func=CREAT_TICKET_SUCCESS_CLIENT.api.create_ticket,
-            calls=[Call(CREAT_TICKET_CALL)],
+            func=CREAT_TICKET_REJECT_CLIENT.api.create_ticket,
+            calls=[
+                Call(
+                    CREAT_TICKET_CALL,
+                    headers={"X-Bk-Tenant-Id": "system", "SYSTEM-TOKEN": settings.SECRET_KEY},
+                )
+            ],
         ),
         CallAssertion(
-            func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,
+            func=SEND_TASKFLOW_MESSAGE_REJECT_MOCK_FUNC,
             calls=[Call(**SEND_TASKFLOW_MESSAGE_CALL)],
         ),
     ],
@@ -152,10 +163,10 @@ CREATE_APPROVE_TICKET_SUCCESS_CASE = ComponentTestCase(
         callback_data=CALLBACK_URL_SUCCESS_RETURN,
     ),
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_REJECT_CLIENT),
         Patcher(target=BK_HANDLE_API_ERROR, return_value=""),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
-        Patcher(target=SEND_TASKFLOW_MESSAGE, side_effect=SEND_TASKFLOW_MESSAGE_MOCK_FUNC),
+        Patcher(target=SEND_TASKFLOW_MESSAGE, side_effect=SEND_TASKFLOW_MESSAGE_REJECT_MOCK_FUNC),
     ],
 )
 BLOCKED_INPUTS = {
@@ -170,13 +181,16 @@ REJECTED_BLOCK_SUCCESS_CASE = ComponentTestCase(
     name="rejected_block success case",
     inputs=BLOCKED_INPUTS,
     parent_data=COMMON_PARENT,
-    execute_assertion=ExecuteAssertion(
-        success=True, outputs={"sn": "NO2019090519542603", "id": 12345}
-    ),
+    execute_assertion=ExecuteAssertion(success=True, outputs={"sn": "NO2019090519542603", "id": 12345}),
     execute_call_assertion=[
         CallAssertion(
             func=CREAT_TICKET_SUCCESS_CLIENT.api.create_ticket,
-            calls=[Call(CREAT_TICKET_CALL)],
+            calls=[
+                Call(
+                    CREAT_TICKET_CALL,
+                    headers={"X-Bk-Tenant-Id": "system", "SYSTEM-TOKEN": settings.SECRET_KEY},
+                )
+            ],
         ),
         CallAssertion(
             func=SEND_TASKFLOW_MESSAGE_MOCK_FUNC,

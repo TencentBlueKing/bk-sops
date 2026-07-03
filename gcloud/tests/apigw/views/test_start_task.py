@@ -11,9 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
 import ujson as json
-
 
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
@@ -56,7 +54,7 @@ class StartTaskAPITest(APITest):
             )
 
             taskflow_instance.objects.is_task_started.assert_called_once_with(
-                project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID
+                project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID, tenant_id="system"
             )
 
             data = json.loads(response.content)
@@ -99,10 +97,10 @@ class StartTaskAPITest(APITest):
                 )
 
                 taskflow_instance.objects.is_task_started.assert_called_once_with(
-                    project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID
+                    project_id=TEST_PROJECT_ID, id=TEST_TASKFLOW_ID, tenant_id="system"
                 )
                 prepare_and_start_task.apply_async.assert_called_once_with(
-                    kwargs=dict(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID, username=""),
+                    kwargs=dict(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID, username="", tenant_id="system"),
                     queue="task_prepare_api",
                     routing_key="task_prepare_api",
                 )

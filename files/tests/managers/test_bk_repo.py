@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from mock import MagicMock, patch
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from files.managers.bk_repo import BKRepoManager
 from files.models import BKJobFileSource
@@ -110,7 +110,7 @@ class BKRepoManagerTestCase(TestCase):
 
         job_id = "12345"
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(
+        esb_client.api.fast_transfer_file = MagicMock(
             return_value={"result": True, "data": {"job_instance_id": job_id}}
         )
 
@@ -125,7 +125,10 @@ class BKRepoManagerTestCase(TestCase):
                     account=account,
                 )
 
-                esb_client.jobv3.fast_transfer_file.assert_called_once_with(
+                esb_client.api.fast_transfer_file.assert_called_once()
+                call_args = esb_client.api.fast_transfer_file.call_args
+                self.assertEqual(
+                    call_args[0][0],
                     {
                         "bk_scope_type": "biz",
                         "bk_scope_id": str(JOB_FILE_BIZ_ID),
@@ -144,7 +147,7 @@ class BKRepoManagerTestCase(TestCase):
                             }
                         ],
                         "target_server": {"ip_list": ips},
-                    }
+                    },
                 )
 
                 self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})
@@ -165,7 +168,7 @@ class BKRepoManagerTestCase(TestCase):
         account = "account"
 
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(return_value={"result": False, "message": "fail msg"})
+        esb_client.api.fast_transfer_file = MagicMock(return_value={"result": False, "message": "fail msg"})
 
         with patch("files.managers.bk_repo.BKJobFileSource.objects.get", MagicMock(return_value=bk_job_file_source)):
             with patch("files.env.JOB_FILE_BIZ_ID", JOB_FILE_BIZ_ID):
@@ -197,7 +200,9 @@ class BKRepoManagerTestCase(TestCase):
                     ],
                     "target_server": {"ip_list": ips},
                 }
-                esb_client.jobv3.fast_transfer_file.assert_called_once_with(job_kwargs)
+                esb_client.api.fast_transfer_file.assert_called_once()
+                call_args = esb_client.api.fast_transfer_file.call_args
+                self.assertEqual(call_args[0][0], job_kwargs)
 
                 self.assertEqual(
                     result,
@@ -227,7 +232,7 @@ class BKRepoManagerTestCase(TestCase):
 
         job_id = "12345"
         esb_client = MagicMock()
-        esb_client.jobv3.fast_transfer_file = MagicMock(
+        esb_client.api.fast_transfer_file = MagicMock(
             return_value={"result": True, "data": {"job_instance_id": job_id}}
         )
 
@@ -255,7 +260,10 @@ class BKRepoManagerTestCase(TestCase):
                         credential_create.assert_called_once_with(bk_biz_id=JOB_FILE_BIZ_ID, esb_client=esb_client)
                         file_source_create.assert_called_once_with(JOB_FILE_BIZ_ID, credential_id, esb_client)
 
-                        esb_client.jobv3.fast_transfer_file.assert_called_once_with(
+                        esb_client.api.fast_transfer_file.assert_called_once()
+                        call_args = esb_client.api.fast_transfer_file.call_args
+                        self.assertEqual(
+                            call_args[0][0],
                             {
                                 "bk_scope_type": "biz",
                                 "bk_scope_id": str(JOB_FILE_BIZ_ID),
@@ -274,7 +282,7 @@ class BKRepoManagerTestCase(TestCase):
                                     }
                                 ],
                                 "target_server": {"ip_list": ips},
-                            }
+                            },
                         )
 
                         self.assertEqual(result, {"result": True, "data": {"job_id": job_id}})

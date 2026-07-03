@@ -12,13 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.test import TestCase
+from pipeline.contrib.external_plugins.models import FILE_SYSTEM, GIT, S3, FileSystemSource, GitRepoSource, S3Source
 
-from pipeline.contrib.external_plugins.models import GIT, S3, FILE_SYSTEM, GitRepoSource, S3Source, FileSystemSource
-
+from gcloud.external_plugins import exceptions
+from gcloud.external_plugins.models.origin import FileSystemOriginalSource, GitRepoOriginalSource, S3OriginalSource
 from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
-from gcloud.external_plugins import exceptions
-from gcloud.external_plugins.models.origin import GitRepoOriginalSource, S3OriginalSource, FileSystemOriginalSource
 
 
 class TestGitRepoOriginalSource(TestCase):
@@ -93,6 +92,7 @@ class TestGitRepoOriginalSource(TestCase):
             package_source_id=self.original_source.id,
             packages=self.UPDATED_SOURCE_PACKAGES,
             original_kwargs=self.UPDATED_ORIGINAL_KWARGS,
+            tenant_id=self.original_source.tenant_id,
             **self.UPDATED_SOURCE_KWARGS
         )
         self.original_source = GitRepoOriginalSource.objects.get(id=self.original_source.id)
@@ -176,6 +176,7 @@ class TestS3OriginalSource(TestCase):
         S3OriginalSource.objects.update_original_source(
             package_source_id=self.original_source.id,
             packages=self.UPDATED_SOURCE_PACKAGES,
+            tenant_id=self.original_source.tenant_id,
             **self.UPDATED_SOURCE_KWARGS
         )
         self.original_source = S3OriginalSource.objects.get(id=self.original_source.id)
@@ -236,6 +237,7 @@ class TestFileSystemOriginalSource(TestCase):
         FileSystemOriginalSource.objects.update_original_source(
             package_source_id=self.original_source.id,
             packages=self.UPDATED_SOURCE_PACKAGES,
+            tenant_id=self.original_source.tenant_id,
             **self.UPDATED_SOURCE_KWARGS
         )
         self.original_source = FileSystemOriginalSource.objects.get(id=self.original_source.id)

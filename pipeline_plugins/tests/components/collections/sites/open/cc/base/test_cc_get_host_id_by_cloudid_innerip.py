@@ -23,17 +23,16 @@ class CCGetHostIdByCloudIdInnerIpTestCase(TestCase):
         self.bk_biz_id = "bk_biz_id_token"
         self.supplier_account = "supplier_account_token"
         self.ip_str = "1.1.1.1"
+        self.tenant_id = "system"
 
     def test__get_business_host_return_empty(self):
         mock_cmdb = MagicMock()
         mock_cmdb.get_business_host = MagicMock(return_value=[])
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
-            data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
-            )
+            data = cc_get_host_id_by_innerip_and_cloudid(self.tenant_id, self.executor, self.bk_biz_id, self.ip_str)
 
         mock_cmdb.get_business_host.assert_called_once_with(
-            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
+            self.tenant_id, self.executor, self.bk_biz_id, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
         )
         self.assertFalse(data["result"])
         self.assertEqual(
@@ -49,12 +48,10 @@ class CCGetHostIdByCloudIdInnerIpTestCase(TestCase):
             ]
         )
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
-            data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
-            )
+            data = cc_get_host_id_by_innerip_and_cloudid(self.tenant_id, self.executor, self.bk_biz_id, self.ip_str)
 
         mock_cmdb.get_business_host.assert_called_once_with(
-            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
+            self.tenant_id, self.executor, self.bk_biz_id, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
         )
         self.assertFalse(data["result"])
         self.assertEqual(
@@ -66,14 +63,12 @@ class CCGetHostIdByCloudIdInnerIpTestCase(TestCase):
         mock_cmdb = MagicMock()
         mock_cmdb.get_business_host = MagicMock(return_value=[])
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
-            data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
-            )
+            data = cc_get_host_id_by_innerip_and_cloudid(self.tenant_id, self.executor, self.bk_biz_id, self.ip_str)
 
         mock_cmdb.get_business_host.assert_called_once_with(
+            self.tenant_id,
             self.executor,
             self.bk_biz_id,
-            self.supplier_account,
             ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
             [self.ip_str.split(":")[1]],
             0,
@@ -91,12 +86,10 @@ class CCGetHostIdByCloudIdInnerIpTestCase(TestCase):
             ]
         )
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
-            data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
-            )
+            data = cc_get_host_id_by_innerip_and_cloudid(self.tenant_id, self.executor, self.bk_biz_id, self.ip_str)
 
         mock_cmdb.get_business_host.assert_called_once_with(
-            self.executor, self.bk_biz_id, self.supplier_account, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
+            self.tenant_id, self.executor, self.bk_biz_id, ["bk_host_id", "bk_host_innerip"], [self.ip_str], None
         )
         self.assertTrue(data["result"])
         self.assertEqual(data["data"], ["1"])
@@ -110,14 +103,12 @@ class CCGetHostIdByCloudIdInnerIpTestCase(TestCase):
             ]
         )
         with patch("pipeline_plugins.components.collections.sites.open.cc.base.cmdb", mock_cmdb):
-            data = cc_get_host_id_by_innerip_and_cloudid(
-                self.executor, self.bk_biz_id, self.ip_str, self.supplier_account
-            )
+            data = cc_get_host_id_by_innerip_and_cloudid(self.tenant_id, self.executor, self.bk_biz_id, self.ip_str)
 
         mock_cmdb.get_business_host.assert_called_once_with(
+            self.tenant_id,
             self.executor,
             self.bk_biz_id,
-            self.supplier_account,
             ["bk_host_id", "bk_host_innerip", "bk_cloud_id"],
             [self.ip_str.split(":")[1]],
             0,

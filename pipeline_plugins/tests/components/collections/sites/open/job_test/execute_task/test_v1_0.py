@@ -26,8 +26,38 @@ from pipeline.component_framework.test import (
 
 from pipeline_plugins.components.collections.sites.open.job import base
 from pipeline_plugins.components.collections.sites.open.job.execute_task.v1_0 import JobExecuteTaskComponent
+from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import build_job_target_server
 
 base.LOG_VAR_SEARCH_CONFIGS.append({"re": "<##(.+?)##>", "kv_sep": "="})
+
+
+# Mock CMDB client for IPv6 support
+class MockCMDBClient(object):
+    def __init__(self, get_business_host_return=None):
+        self.get_business_host = MagicMock(
+            return_value=get_business_host_return
+            or {
+                "result": True,
+                "code": 0,
+                "data": {"info": []},
+            }
+        )
+
+
+# Helper function to create get_business_host return value
+def create_get_business_host_return(hosts):
+    """
+    Create mock return value for get_business_host
+    hosts: list of dict with keys: bk_host_id, bk_host_innerip, bk_cloud_id
+    """
+    return [
+        {
+            "bk_host_id": host["bk_host_id"],
+            "bk_host_innerip": host["bk_host_innerip"],
+            "bk_cloud_id": host["bk_cloud_id"],
+        }
+        for host in hosts
+    ]
 
 
 class JobExecuteTaskComponentTest(TestCase, ComponentTestMixin):
@@ -70,6 +100,8 @@ class MockClient(object):
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_client_by_username"
 )
+GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username"
+
 CC_GET_IPS_INFO_BY_STR = "pipeline_plugins.components.utils.sites.open.utils.cc_get_ips_info_by_str"
 GET_NODE_CALLBACK_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_node_callback_url"
@@ -77,6 +109,8 @@ GET_NODE_CALLBACK_URL = (
 GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.execute_task.execute_task_base.get_job_instance_url"
 )
+CMDB_GET_BUSINESS_HOST = "gcloud.utils.cmdb.get_business_host"
+CMDB_GET_BUSINESS_SET_HOST = "gcloud.utils.cmdb.get_business_set_host"
 
 GET_VAR_ERROR_SUCCESS_GET_LOG_RETURN = {"code": 0, "result": False, "message": "success", "data": []}
 
@@ -208,6 +242,25 @@ GET_VAR_ERROR_SUCCESS_CLIENT = MockClient(
     get_job_instance_status=EXECUTE_SUCCESS_GET_STATUS_RETURN,
 )
 
+
+# 辅助函数：根据 ENABLE_IPV6 动态生成 Job global_var 的 server 值
+def _build_server_for_global_var(host_ids, ips_with_cloud):
+    """根据当前 ENABLE_IPV6 设置生成 Job global_var 中 server 字段的正确格式"""
+    return build_job_target_server(host_ids=host_ids, ips_with_cloud=ips_with_cloud)
+
+
+# 预定义动态生成的 server 值，用于测试用例
+SERVER_1_2 = _build_server_for_global_var(
+    host_ids=[1, 2], ips_with_cloud=[{"ip": "1.1.1.1", "bk_cloud_id": 1}, {"ip": "2.2.2.2", "bk_cloud_id": 1}]
+)
+SERVER_4_3 = _build_server_for_global_var(
+    host_ids=[4, 3], ips_with_cloud=[{"ip": "4.4.4.4", "bk_cloud_id": 0}, {"ip": "3.3.3.3", "bk_cloud_id": 0}]
+)
+SERVER_3_4 = _build_server_for_global_var(
+    host_ids=[3, 4], ips_with_cloud=[{"ip": "4.4.4.4", "bk_cloud_id": "0"}, {"ip": "3.3.3.3", "bk_cloud_id": "0"}]
+)
+
+
 # test cases
 EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     name="v1.0 execute_job call failed case",
@@ -236,12 +289,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -252,10 +300,6 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
     ),
     schedule_assertion=None,
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
         CallAssertion(
             func=EXECUTE_JOB_CALL_FAIL_CLIENT.api.execute_job_plan,
             calls=[
@@ -270,12 +314,7 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -290,6 +329,15 @@ EXECUTE_JOB_FAIL_CASE = ComponentTestCase(
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
     ],
@@ -313,7 +361,6 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": INVALID_CALLBACK_DATA_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -322,16 +369,11 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": INVALID_CALLBACK_DATA_CLIENT,
             "ex_data": "invalid callback_data, " "job_instance_id: None, status: None",
         },
         callback_data={},
     ),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
         CallAssertion(
             func=INVALID_CALLBACK_DATA_CLIENT.api.execute_job_plan,
             calls=[
@@ -346,12 +388,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -366,6 +403,15 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -390,7 +436,6 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": JOB_EXECUTE_NOT_SUCCESS_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -399,7 +444,6 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": JOB_EXECUTE_NOT_SUCCESS_CLIENT,
             "ex_data": {
                 "exception_msg": ("任务执行失败，<a href='%s' target='_blank'>" "前往作业平台(JOB)查看详情</a>") % "instance_url_token",
                 "task_inst_id": 56789,
@@ -409,10 +453,6 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
         callback_data={"job_instance_id": 56789, "status": 1},
     ),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
         CallAssertion(
             func=JOB_EXECUTE_NOT_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
@@ -427,12 +467,7 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -447,6 +482,15 @@ JOB_EXECUTE_NOT_SUCCESS_CASE = ComponentTestCase(
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -471,7 +515,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -480,7 +523,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_GLOBAL_VAR_CALL_FAIL_CLIENT,
             "ex_data": (
                 "调用作业平台(JOB)接口jobv3.get_job_instance_global_var_value"
                 "返回失败, error=global var message token, params={params}"
@@ -493,10 +535,6 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         callback_data={"job_instance_id": 56789, "status": 3},
     ),
     execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
         CallAssertion(
             func=GET_GLOBAL_VAR_CALL_FAIL_CLIENT.api.execute_job_plan,
             calls=[
@@ -511,12 +549,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -539,9 +572,19 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -568,7 +611,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": EXECUTE_SUCCESS_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -577,7 +619,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": EXECUTE_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
             "log_outputs": {
@@ -598,10 +639,6 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
-        CallAssertion(
             func=EXECUTE_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
@@ -615,21 +652,11 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "4.4.4.4", "bk_cloud_id": "0"},
-                                        {"ip": "3.3.3.3", "bk_cloud_id": "0"},
-                                    ],
-                                },
+                                "server": SERVER_3_4,
                             },
                         ],
                         "callback_url": "url_token",
@@ -652,9 +679,28 @@ EXECUTE_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_SET_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 3, "bk_host_innerip": "3.3.3.3", "bk_cloud_id": 0},
+                    {"bk_host_id": 4, "bk_host_innerip": "4.4.4.4", "bk_cloud_id": 0},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -679,7 +725,6 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_VAR_ERROR_SUCCESS_CLIENT,
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -688,7 +733,6 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
             "job_inst_url": "instance_url_token",
             "job_inst_id": 56789,
             "job_inst_name": "job_name_token",
-            "client": GET_VAR_ERROR_SUCCESS_CLIENT,
             "key_1": "new_value_1",
             "key_2": "new_value_2",
             "log_outputs": {
@@ -709,10 +753,6 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
-        CallAssertion(
             func=GET_VAR_ERROR_SUCCESS_CLIENT.api.execute_job_plan,
             calls=[
                 Call(
@@ -726,12 +766,7 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
                             {"name": "key_2", "value": "value_2"},
                             {
                                 "name": "key_3",
-                                "server": {
-                                    "ip_list": [
-                                        {"ip": "1.1.1.1", "bk_cloud_id": 1},
-                                        {"ip": "2.2.2.2", "bk_cloud_id": 1},
-                                    ],
-                                },
+                                "server": SERVER_1_2,
                             },
                         ],
                         "callback_url": "url_token",
@@ -754,9 +789,19 @@ GET_VAR_ERROR_SUCCESS_CASE = ComponentTestCase(
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_VAR_ERROR_SUCCESS_CLIENT),
         Patcher(
             target=CC_GET_IPS_INFO_BY_STR,
             return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}, {"InnerIP": "2.2.2.2", "Source": 1}]},
+        ),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                    {"bk_host_id": 2, "bk_host_innerip": "2.2.2.2", "bk_cloud_id": 1},
+                ]
+            ),
         ),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="url_token"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
@@ -780,15 +825,14 @@ INVALID_IP_CASE = ComponentTestCase(
         outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"},
     ),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
-    ],
+    execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": []}),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return([]),
+        ),
     ],
 )
 
@@ -810,14 +854,17 @@ IP_IS_EXIST_CASE = ComponentTestCase(
         outputs={"ex_data": "无法从配置平台(CMDB)查询到对应 IP，请确认输入的 IP 是否合法。查询失败 IP： 1.1.1.1,2.2.2.2"},
     ),
     schedule_assertion=None,
-    execute_call_assertion=[
-        CallAssertion(
-            func=CC_GET_IPS_INFO_BY_STR,
-            calls=[Call(username="executor_token", biz_cc_id=1, ip_str="1.1.1.1,2.2.2.2", use_cache=False)],
-        ),
-    ],
+    execute_call_assertion=[],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_SUCCESS_CLIENT),
         Patcher(target=CC_GET_IPS_INFO_BY_STR, return_value={"ip_result": [{"InnerIP": "1.1.1.1", "Source": 1}]}),
+        Patcher(
+            target=CMDB_GET_BUSINESS_HOST,
+            return_value=create_get_business_host_return(
+                [
+                    {"bk_host_id": 1, "bk_host_innerip": "1.1.1.1", "bk_cloud_id": 1},
+                ]
+            ),
+        ),
     ],
 )

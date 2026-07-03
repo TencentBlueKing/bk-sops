@@ -11,9 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from mock import MagicMock, patch
-
 from django.test import TestCase
+from mock import MagicMock, patch
 
 from pipeline_plugins.components.utils.sites.open.utils import cc_get_ips_info_by_str
 
@@ -24,6 +23,7 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         self.biz_cc_id = 123
         self.supplier_account = "test_supplier_account"
         self.maxDiff = None
+        self.tenant_id = "system"
 
     def test_ip_format(self):
         ip_str = "1.1.1.1,2.2.2.2\n3.3.3.3,4.4.4.4"
@@ -46,20 +46,16 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         ]
         cmdb = MagicMock()
         cmdb.get_business_host_topo = MagicMock(return_value=get_business_host_topo_return)
-        supplier_account_for_business = MagicMock(return_value=self.supplier_account)
 
-        with patch(
-            "pipeline_plugins.components.utils.sites.open.utils.supplier_account_for_business",
-            supplier_account_for_business,
-        ):
-            with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
-                result = cc_get_ips_info_by_str(username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str)
+        with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
+            result = cc_get_ips_info_by_str(
+                tenant_id=self.tenant_id, username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str
+            )
 
-        supplier_account_for_business.assert_called_once_with(self.biz_cc_id)
         cmdb.get_business_host_topo.assert_called_once_with(
+            tenant_id=self.tenant_id,
             username=self.username,
             bk_biz_id=self.biz_cc_id,
-            supplier_account=self.supplier_account,
             host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
             ip_list=["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
         )
@@ -114,20 +110,16 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         ]
         cmdb = MagicMock()
         cmdb.get_business_host_topo = MagicMock(return_value=get_business_host_topo_return)
-        supplier_account_for_business = MagicMock(return_value=self.supplier_account)
 
-        with patch(
-            "pipeline_plugins.components.utils.sites.open.utils.supplier_account_for_business",
-            supplier_account_for_business,
-        ):
-            with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
-                result = cc_get_ips_info_by_str(username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str)
+        with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
+            result = cc_get_ips_info_by_str(
+                tenant_id=self.tenant_id, username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str
+            )
 
-        supplier_account_for_business.assert_called_once_with(self.biz_cc_id)
         cmdb.get_business_host_topo.assert_called_once_with(
+            tenant_id=self.tenant_id,
             username=self.username,
             bk_biz_id=self.biz_cc_id,
-            supplier_account=self.supplier_account,
             host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
             ip_list=["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
         )
@@ -175,20 +167,16 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         ]
         cmdb = MagicMock()
         cmdb.get_business_host_topo = MagicMock(return_value=get_business_host_topo_return)
-        supplier_account_for_business = MagicMock(return_value=self.supplier_account)
 
-        with patch(
-            "pipeline_plugins.components.utils.sites.open.utils.supplier_account_for_business",
-            supplier_account_for_business,
-        ):
-            with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
-                result = cc_get_ips_info_by_str(username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str)
+        with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
+            result = cc_get_ips_info_by_str(
+                tenant_id=self.tenant_id, username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str
+            )
 
-        supplier_account_for_business.assert_called_once_with(self.biz_cc_id)
         cmdb.get_business_host_topo.assert_called_once_with(
+            tenant_id=self.tenant_id,
             username=self.username,
             bk_biz_id=self.biz_cc_id,
-            supplier_account=self.supplier_account,
             host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
             ip_list=["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
         )
@@ -255,20 +243,16 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         ]
         cmdb = MagicMock()
         cmdb.get_business_host_topo = MagicMock(return_value=get_business_host_topo_return)
-        supplier_account_for_business = MagicMock(return_value=self.supplier_account)
 
-        with patch(
-            "pipeline_plugins.components.utils.sites.open.utils.supplier_account_for_business",
-            supplier_account_for_business,
-        ):
-            with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
-                result = cc_get_ips_info_by_str(username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str)
+        with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
+            result = cc_get_ips_info_by_str(
+                tenant_id=self.tenant_id, username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str
+            )
 
-        supplier_account_for_business.assert_called_once_with(self.biz_cc_id)
         cmdb.get_business_host_topo.assert_called_once_with(
+            tenant_id=self.tenant_id,
             username=self.username,
             bk_biz_id=self.biz_cc_id,
-            supplier_account=self.supplier_account,
             host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
             ip_list=["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
         )
@@ -323,20 +307,16 @@ class CCGetIPsInfoByStrTestCase(TestCase):
         ]
         cmdb = MagicMock()
         cmdb.get_business_host_topo = MagicMock(return_value=get_business_host_topo_return)
-        supplier_account_for_business = MagicMock(return_value=self.supplier_account)
 
-        with patch(
-            "pipeline_plugins.components.utils.sites.open.utils.supplier_account_for_business",
-            supplier_account_for_business,
-        ):
-            with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
-                result = cc_get_ips_info_by_str(username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str)
+        with patch("pipeline_plugins.components.utils.sites.open.utils.cmdb", cmdb):
+            result = cc_get_ips_info_by_str(
+                tenant_id=self.tenant_id, username=self.username, biz_cc_id=self.biz_cc_id, ip_str=ip_str
+            )
 
-        supplier_account_for_business.assert_called_once_with(self.biz_cc_id)
         cmdb.get_business_host_topo.assert_called_once_with(
+            tenant_id=self.tenant_id,
             username=self.username,
             bk_biz_id=self.biz_cc_id,
-            supplier_account=self.supplier_account,
             host_fields=["bk_host_innerip", "bk_host_id", "bk_cloud_id"],
             ip_list=["1.1.1.1", "2.2.2.2", "3.3.3.3", "4.4.4.4"],
         )

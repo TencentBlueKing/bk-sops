@@ -23,9 +23,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
-from pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v1_0 import (
-    NodemanPluginOperateComponent,
-)
+from pipeline_plugins.components.collections.sites.open.nodeman.plugin_operate.v1_0 import NodemanPluginOperateComponent
 
 
 class NodemanPluginOperateComponentTest(TestCase, ComponentTestMixin):
@@ -41,18 +39,21 @@ class NodemanPluginOperateComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, plugin_operate=None, details_return=None, get_job_log_return=None):
-        self.plugin_operate = MagicMock(return_value=plugin_operate)
-        self.job_details = MagicMock(return_value=details_return)
-        self.get_job_log = MagicMock(return_value=get_job_log_return)
+        self.api = MagicMock()
+        self.api.operate_plugin = MagicMock(return_value=plugin_operate)
+        self.api.job_details = MagicMock(return_value=details_return)
+        self.api.get_job_log = MagicMock(return_value=get_job_log_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
-GET_CLIENT_BY_USER_BASE = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_client_by_username"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_HOST_ID_BY_INNER_IP = (
     "pipeline_plugins.components.collections.sites.open.nodeman.ip_v6_base.get_host_id_by_inner_ip"
+)
+CC_GET_HOST_BY_INNERIP_WITH_IPV6 = (
+    "pipeline_plugins.components.collections.sites.open.nodeman.ip_v6_base.cc_get_host_by_innerip_with_ipv6"
 )
 
 # mock clients
@@ -135,7 +136,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
             "nodeman_host_ip": "1.1.1.1",
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(
         success=True,
         outputs={
@@ -156,7 +157,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.plugin_operate,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.operate_plugin,
             calls=[
                 Call(
                     {
@@ -164,18 +165,30 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
                         "bk_biz_id": ["1"],
                         "bk_host_id": [1],
                         "plugin_params": {"name": "plugin", "version": "plugin_version", "keep_config": 1},
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
-        CallAssertion(func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details, calls=[Call(**{"job_id": "1"})]),
+        CallAssertion(
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[
+                Call(
+                    headers={"X-Bk-Tenant-Id": "system"},
+                    path_params={"id": "1"},
+                )
+            ],
+        ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=GET_CLIENT_BY_USER_BASE, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1"}]},
+        ),
     ],
 )
 
@@ -195,12 +208,12 @@ OPERATE_FAIL_CASE = ComponentTestCase(
             "nodeman_host_ip": "1.1.1.1",
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "failed"}),
     schedule_assertion=[],
     execute_call_assertion=[
         CallAssertion(
-            func=CASE_FAIL_CLIENT.plugin_operate,
+            func=CASE_FAIL_CLIENT.api.operate_plugin,
             calls=[
                 Call(
                     {
@@ -208,15 +221,19 @@ OPERATE_FAIL_CASE = ComponentTestCase(
                         "bk_biz_id": ["1"],
                         "bk_host_id": [1],
                         "plugin_params": {"name": "plugin", "version": "plugin_version", "keep_config": 1},
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     patchers=[
         Patcher(target=GET_CLIENT_BY_USER, return_value=CASE_FAIL_CLIENT),
-        Patcher(target=GET_CLIENT_BY_USER_BASE, return_value=CASE_FAIL_CLIENT),
         Patcher(target=GET_HOST_ID_BY_INNER_IP, return_value={"1.1.1.1": 1}),
+        Patcher(
+            target=CC_GET_HOST_BY_INNERIP_WITH_IPV6,
+            return_value={"result": True, "data": [{"bk_host_id": 1, "bk_host_innerip": "1.1.1.1"}]},
+        ),
         Patcher(target=HANDLE_API_ERROR, return_value="failed"),
     ],
 )

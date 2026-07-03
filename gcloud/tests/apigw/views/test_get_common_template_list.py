@@ -74,11 +74,10 @@ class GetCommontemplateListAPITest(APITest):
                     path=self.url(),
                     HTTP_BK_APP_CODE=TEST_APP_CODE,
                     HTTP_BK_USERNAME=TEST_USERNAME,
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
                 mock_get_actions.assert_called_once_with(
-                    TEST_USERNAME,
-                    COMMON_FLOW_ACTIONS,
-                    TEST_ID_LIST,
+                    TEST_USERNAME, COMMON_FLOW_ACTIONS, TEST_ID_LIST, tenant_id="system"
                 )
                 self.assertEqual(response.status_code, 200)
 

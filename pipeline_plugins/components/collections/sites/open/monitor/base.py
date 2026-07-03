@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-import ipaddress
 from functools import partial
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.flow.io import StringItemSchema
 
-from gcloud.utils import cmdb
 from gcloud.utils.handlers import handle_api_error
 from gcloud.utils.ip import extract_ip_from_ip_str, get_ip_by_regex
-from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
-from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import cc_get_host_by_innerip_with_ipv6_across_business
-from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
 from pipeline_plugins.base import BasePluginService
+from pipeline_plugins.components.collections.sites.open.cc.base import cc_get_host_by_innerip_with_ipv6
+from pipeline_plugins.components.collections.sites.open.cc.ipv6_utils import (
+    cc_get_host_by_innerip_with_ipv6_across_business,
+)
+from pipeline_plugins.components.utils.sites.open.utils import get_biz_ip_from_frontend_hybrid
 
 __group_name__ = _("监控平台(Monitor)")
 monitor_handle_api_error = partial(handle_api_error, __group_name__)
@@ -37,13 +37,13 @@ class MonitorBaseService(BasePluginService):
             "shield_notice": False,
         }
         return request_body
-    
+
     def get_ip_list(self, ip_str):
         if settings.ENABLE_IPV6:
             ipv6_list, ipv4_list, *_ = extract_ip_from_ip_str(ip_str)
             return ipv6_list + ipv4_list
         return get_ip_by_regex(ip_str)
-    
+
     def get_target_server_ipv6_across_business(self, tenant_id, executor, biz_cc_id, ip_str, logger_handle, data):
         """
         step 1: 去本业务查这些ip，得到两个列表，本业务查询到的host, 本业务查不到的ip列表
@@ -89,8 +89,10 @@ class MonitorBaseService(BasePluginService):
             data.outputs.ex_data = "ip查询失败，请检查ip配置是否正确，ip_list={}".format(host_result.get("message"))
             return False, {}
         host_data = host_result["data"] + host_list
-        return True, {"ip_list": [{"ip": host["bk_host_innerip"], "bk_cloud_id": host["bk_cloud_id"]} for host in host_data]}
-    
+        return True, {
+            "ip_list": [{"ip": host["bk_host_innerip"], "bk_cloud_id": host["bk_cloud_id"]} for host in host_data]
+        }
+
     def get_target_server_hybrid(self, tenant_id, executor, biz_cc_id, data, ip_str, logger_handle):
         if settings.ENABLE_IPV6:
             return self.get_target_server_ipv6_across_business(
@@ -133,9 +135,15 @@ class MonitorBaseService(BasePluginService):
     def outputs_format(self):
         return [
             self.OutputItem(
-                name=_("屏蔽Id"), key="shield_id", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽 ID"))
+                name=_("屏蔽Id"),
+                key="shield_id",
+                type="string",
+                schema=StringItemSchema(description=_("创建的告警屏蔽 ID")),
             ),
             self.OutputItem(
-                name=_("详情"), key="message", type="string", schema=StringItemSchema(description=_("创建的告警屏蔽详情"))
+                name=_("详情"),
+                key="message",
+                type="string",
+                schema=StringItemSchema(description=_("创建的告警屏蔽详情")),
             ),
         ]
