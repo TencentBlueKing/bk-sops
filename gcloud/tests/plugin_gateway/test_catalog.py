@@ -1,0 +1,212 @@
+from unittest.mock import patch
+
+from django.test import RequestFactory, TestCase
+
+from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, PLUGIN_SOURCE_THIRD_PARTY
+from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
+from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
+
+
+class PluginGatewayCatalogServiceTestCase(TestCase):
+    def setUp(self):
+        self.request = RequestFactory().get("/apigw/plugin-gateway/plugins/")
+        self._clear_catalog_caches()
+
+    def tearDown(self):
+        self._clear_catalog_caches()
+
+    def _clear_catalog_caches(self):
+        for func_name in [
+            "_list_plugins",
+            "_list_third_party_plugins",
+            "_get_plugin_meta",
+            "_get_plugin_detail_schema",
+        ]:
+            descriptor = PluginGatewayCatalogService.__dict__.get(func_name)
+            for func in [getattr(PluginGatewayCatalogService, func_name, None), getattr(descriptor, "__func__", None)]:
+                cache = getattr(func, "cache", None)
+                if cache is not None:
+                    cache.clear()
+                cache_clear = getattr(func, "cache_clear", None)
+                if cache_clear is not None:
+                    cache_clear()
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_get_plugin_list_contains_builtin_and_third_party_plugins(
+        self, mock_client_cls, mock_get_plugin_meta, mock_builtin_list
+    ):
+        mock_builtin_list.return_value = [
+            {
+                "id": "builtin__job_execute_task",
+                "name": "执行作业",
+                "plugin_source": PLUGIN_SOURCE_BUILTIN,
+                "plugin_code": "job_execute_task",
+                "wrapper_version": "",
+                "default_version": "legacy",
+                "latest_version": "legacy",
+                "versions": ["legacy"],
+                "category": "JOB",
+                "description": "",
+            }
+        ]
+        mock_get_plugin_meta.return_value = {
+            "description": "remote plugin",
+            "versions": ["1.0.0", "1.1.0"],
+            "framework_version": "2.0.0",
+            "runtime_version": "3.11",
+            "group": "DEVOPS",
+        }
+        mock_client_cls.get_plugin_list.return_value = {
+            "result": True,
+            "data": {"plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
+        }
+
+        meta = PluginGatewayCatalogService.get_plugin_list(request=self.request)
+
+        self.assertEqual(len(meta["apis"]), 2)
+        plugins = {plugin["id"]: plugin for plugin in meta["apis"]}
+        third_party_plugin = plugins["bk_plugin_demo"]
+        builtin_plugin = plugins["builtin__job_execute_task"]
+        self.assertEqual(third_party_plugin["plugin_source"], PLUGIN_SOURCE_THIRD_PARTY)
+        self.assertEqual(third_party_plugin["category"], "DEVOPS")
+        self.assertEqual(third_party_plugin["default_version"], "1.1.0")
+        self.assertEqual(third_party_plugin["latest_version"], "1.1.0")
+        self.assertEqual(third_party_plugin["versions"], ["1.0.0", "1.1.0"])
+        self.assertIn("/apigw/plugin-gateway/plugins/bk_plugin_demo/", third_party_plugin["meta_url_template"])
+        self.assertEqual(builtin_plugin["plugin_source"], PLUGIN_SOURCE_BUILTIN)
+        self.assertEqual(builtin_plugin["category"], "JOB")
+        self.assertIn(
+            "/apigw/plugin-gateway/plugins/builtin__job_execute_task/",
+            builtin_plugin["meta_url_template"],
+        )
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_get_plugin_detail_converts_json_schema_inputs_and_outputs(
+        self, mock_client_cls, mock_get_plugin_meta, mock_get_plugin_detail_schema, mock_builtin_list
+    ):
+        mock_builtin_list.return_value = []
+        mock_get_plugin_meta.return_value = {
+            "description": "remote plugin",
+            "versions": ["1.0.0", "1.1.0"],
+            "framework_version": "2.0.0",
+            "runtime_version": "3.11",
+        }
+        mock_get_plugin_detail_schema.return_value = {
+            "version": "1.1.0",
+            "inputs": {
+                "properties": {
+                    "biz_id": {
+                        "title": "业务ID",
+                        "type": "integer",
+                        "description": "业务 ID",
+                        "default": 2,
+                    }
+                },
+                "required": ["biz_id"],
+            },
+            "outputs": {
+                "properties": {
+                    "job_instance_id": {
+                        "title": "作业实例 ID",
+                        "type": "integer",
+                        "description": "JOB instance id",
+                    }
+                }
+            },
+            "context_inputs": {"properties": {}},
+        }
+        mock_client_cls.get_plugin_list.return_value = {
+            "result": True,
+            "data": {"plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
+        }
+
+        detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=self.request,
+            plugin_id="bk_plugin_demo",
+            version="1.1.0",
+        )
+
+        self.assertEqual(detail["plugin_version"], "1.1.0")
+        self.assertEqual(detail["plugin_source"], PLUGIN_SOURCE_THIRD_PARTY)
+        self.assertEqual(detail["polling"]["success_tag"]["key"], "data.status")
+        self.assertEqual(detail["polling"]["fail_tag"]["key"], "data.status")
+        self.assertEqual(detail["polling"]["running_tag"]["key"], "data.status")
+        self.assertEqual(detail["polling"]["running_tag"]["value"], "RUNNING")
+        self.assertEqual(
+            detail["inputs"],
+            [
+                {
+                    "key": "biz_id",
+                    "name": "业务ID",
+                    "type": "integer",
+                    "description": "业务 ID",
+                    "required": True,
+                    "default": 2,
+                }
+            ],
+        )
+        self.assertEqual(
+            detail["outputs"],
+            [
+                {
+                    "key": "job_instance_id",
+                    "name": "作业实例 ID",
+                    "type": "integer",
+                    "description": "JOB instance id",
+                }
+            ],
+        )
+        self.assertIn("/apigw/plugin-gateway/runs/", detail["url"])
+        self.assertIn("/apigw/plugin-gateway/runs/status/", detail["polling"]["url"])
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_do_not_open_list_filters_list_and_detail(self, mock_client_cls, mock_get_plugin_meta, mock_builtin_list):
+        PluginGatewaySourceConfig.objects.create(
+            source_key="bkflow",
+            display_name="BKFlow",
+            do_not_open_list=["builtin__job_execute_task", "bk_plugin_demo"],
+        )
+        mock_builtin_list.return_value = [
+            {
+                "id": "builtin__job_execute_task",
+                "name": "执行作业",
+                "plugin_source": PLUGIN_SOURCE_BUILTIN,
+                "plugin_code": "job_execute_task",
+                "wrapper_version": "",
+                "default_version": "legacy",
+                "latest_version": "legacy",
+                "versions": ["legacy"],
+                "category": "JOB",
+                "description": "",
+            }
+        ]
+        mock_get_plugin_meta.return_value = {"description": "remote plugin", "versions": ["1.0.0"]}
+        mock_client_cls.get_plugin_list.return_value = {
+            "result": True,
+            "data": {"plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
+        }
+
+        meta = PluginGatewayCatalogService.get_plugin_list(request=self.request)
+
+        self.assertEqual(meta["apis"], [])
+        self.assertIsNone(
+            PluginGatewayCatalogService.get_plugin_detail(
+                request=self.request,
+                plugin_id="builtin__job_execute_task",
+                version="legacy",
+            )
+        )
+        self.assertIsNone(
+            PluginGatewayCatalogService.get_plugin_detail(
+                request=self.request,
+                plugin_id="bk_plugin_demo",
+                version="1.0.0",
+            )
+        )
