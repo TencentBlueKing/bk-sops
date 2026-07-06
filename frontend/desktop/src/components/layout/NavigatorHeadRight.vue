@@ -57,29 +57,8 @@
             <div class="operate-item" data-test-id="navHeader_list_versionLog" @click="onOpenVersion">{{ $t('版本日志') }}</div>
             <div class="operate-item" data-test-id="navHeader_list_feedback" @click="goToFeedback">{{ $t('问题反馈') }}</div>
         </div>
-        <div v-if="!isMultiTenant">
-            <!-- 用户icon -->
-            <div
-                class="user-avatar"
-                v-bk-tooltips="{
-                    placement: 'bottom-end',
-                    allowHtml: 'true',
-                    arrow: false,
-                    distance: 25,
-                    theme: 'light',
-                    hideOnClick: false,
-                    extCls: 'logout-tips',
-                    content: '#logout-html'
-                }">
-                {{ username }}
-                <i class="bk-icon icon-down-shape"></i>
-            </div>
-            <div id="logout-html">
-                <div class="operate-item" data-test-id="navHeader_list_logout" @click="handleLogout">{{ $t('退出登录') }}</div>
-            </div>
-        </div>
         <!-- 用户信息 -->
-        <BkLoginUserinfo v-else :userinfo="userinfo" :action-list="actionList" />
+        <BkLoginUserinfo :userinfo="userinfo" :action-list="actionList" />
         <!-- 日志组件 -->
         <version-log
             ref="versionLog"
@@ -117,15 +96,20 @@
                 logListLoading: false,
                 logDetailLoading: false,
                 curLanguage: 'chinese',
-                userinfo: {
-                    name: window.DISPLAY_NAME || window.USERNAME || '',
-                    organization: window.TENANT_ID,
-                    timezone: window.TIMEZONE
-                },
                 isMultiTenant: !!window.ENABLE_MULTI_TENANT_MODE
             }
         },
         computed: {
+            userinfo () {
+                const info = {
+                    name: window.DISPLAY_NAME || window.USERNAME || '',
+                    timezone: window.TIMEZONE
+                }
+                if (this.isMultiTenant) {
+                    info.organization = window.TENANT_ID
+                }
+                return info
+            },
             ...mapState({
                 view_mode: state => state.view_mode,
                 username: state => state.username
@@ -159,7 +143,7 @@
                         target: '_blank'
                     },
                     {
-                        text: this.$t('个人中心'),
+                        text: this.$t('个人设置'),
                         icon: 'bk-icon icon-user',
                         href: (window.BKPAAS_USER_URL || '') + '/personal-center',
                         target: '_blank'
