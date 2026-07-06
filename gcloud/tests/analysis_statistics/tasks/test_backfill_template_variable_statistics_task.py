@@ -15,8 +15,8 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
+from gcloud.analysis_statistics.models import TemplateCustomVariableSummary, TemplateVariableStatistics
 from gcloud.analysis_statistics.tasks import backfill_template_variable_statistics_task
-from gcloud.analysis_statistics.models import TemplateVariableStatistics, TemplateCustomVariableSummary
 
 
 class BackFillTemplateVariableStatisticsTaskTestCase(TestCase):
@@ -175,11 +175,19 @@ class BackFillTemplateVariableStatisticsTaskTestCase(TestCase):
             def __init__(self, data):
                 self.data = data
 
+            def order_by(self, field_name):
+                reverse = field_name.startswith("-")
+                field_name = field_name.lstrip("-")
+                return QuerySet(sorted(self.data, key=lambda item: getattr(item, field_name), reverse=reverse))
+
             def count(self):
                 return len(self.data)
 
             def __iter__(self):
                 return iter(self.data)
+
+            def __getitem__(self, item):
+                return self.data[item]
 
         all_common_template = [
             MagicMock(project_id=-1, id=1, pipeline_tree=self.tree, is_deleted=False),
