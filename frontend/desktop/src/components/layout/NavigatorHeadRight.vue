@@ -136,7 +136,7 @@
                         target: '_blank'
                     },
                     {
-                        text: this.$t('个人中心'),
+                        text: this.$t('个人设置'),
                         icon: 'bk-icon icon-user',
                         href: (window.BKPAAS_USER_URL || '') + '/personal-center',
                         target: '_blank'
