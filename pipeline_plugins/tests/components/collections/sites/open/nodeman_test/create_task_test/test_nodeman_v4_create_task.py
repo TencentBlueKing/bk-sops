@@ -57,17 +57,20 @@ class MockClient(object):
         get_rsa_public_key_return=None,
     ):
         self.name = "name"
-        self.job_install = MagicMock(return_value=install_return)
-        self.job_operate = MagicMock(return_value=operate_return)
-        self.remove_host = MagicMock(return_value=remove_host)
-        self.job_details = MagicMock(return_value=details_return)
-        self.get_job_log = MagicMock(return_value=get_job_log_return)
-        self.get_rsa_public_key = MagicMock(return_value=get_rsa_public_key_return)
+        self.api = MagicMock()
+        self.api.job_install = MagicMock(return_value=install_return)
+        self.api.job_operate = MagicMock(return_value=operate_return)
+        self.api.remove_host = MagicMock(return_value=remove_host)
+        self.api.job_details = MagicMock(return_value=details_return)
+        self.api.get_job_log = MagicMock(return_value=get_job_log_return)
+        self.api.get_rsa_public_key = MagicMock(return_value=get_rsa_public_key_return)
 
 
 # mock path
-GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.BKNodeManClient"
-BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.BKNodeManClient"
+GET_CLIENT_BY_USER = (
+    "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.get_client_by_username"
+)
+BASE_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodeman.base.get_client_by_username"
 
 HANDLE_API_ERROR = "pipeline_plugins.components.collections.sites.open.nodeman.base.handle_api_error"
 GET_BUSINESS_HOST = "pipeline_plugins.components.collections.sites.open.nodeman.create_task.v4_0.get_business_host"
@@ -125,6 +128,212 @@ INSTALL_OR_OPERATE_SUCCESS_CLIENT = MockClient(
         ],
         "result": True,
         "request_id": "d474b1688d524662b613c76a78310412",
+    },
+)
+
+# Create individual mock clients for each test case to prevent call count accumulation
+
+# For REINSTALL_SUCCESS_CASE (case 2)
+REINSTALL_SUCCESS_CLIENT = MockClient(
+    install_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    operate_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    remove_host={"result": True, "code": "00", "message": "success", "data": {}},
+    details_return={
+        "result": True,
+        "code": "00",
+        "message": "success",
+        "data": {
+            "status": "SUCCESS",
+            "statistics": {
+                "failed_count": 0,
+                "filter_count": 0,
+                "running_count": 0,
+                "total_count": 1,
+                "pending_count": 0,
+                "success_count": 1,
+            },
+            "list": [],
+        },
+    },
+    get_rsa_public_key_return={
+        "message": "",
+        "code": 0,
+        "data": [
+            {
+                "content": """-----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJ/9Fq0LdVzxXga97bk4
+                q69cD0ZjcPGbZUZ6NIRNDa+TzDyhoBKs2vsssX2vEoiUe5oHePY/3g49HwXCHyPj
+                iidWzRD2VEGqySkq/q4vXYDBZ+Hi6yf+VjdI+aTgcTTGbPk4LEoiZIbZC0GD93R5
+                AYkwL3bQ1OXq2+oYatZ0hSQPKeN+1ZT2gAGC4D+bKp5tgXFqu+zVs6/C5FI7kbxP
+                UW/XhgQnsrKVrCH60RCPHiXWfn3ENUo4Z3dndcXA31M283Tupp66yJNKb50OynWo
+                Px64VRgYWvvssC8qtnUdVejn5/UFArb2ZOqpA7qcpKXjSl1v//Q8udPzSEjoXd4Y
+                HwIDAQAB\n-----END PUBLIC KEY-----""",
+                "block_size": 245,
+                "name": "DEFAULT",
+                "description": "默认RSA密钥",
+            }
+        ],
+        "result": True,
+        "request_id": "d474b1688d524662b613c76a78310412",
+    },
+)
+
+# For CHOOSABLE_PARAMS_CASE (case 7)
+CHOOSABLE_PARAMS_CLIENT = MockClient(
+    install_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    operate_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    remove_host={"result": True, "code": "00", "message": "success", "data": {}},
+    details_return={
+        "result": True,
+        "code": "00",
+        "message": "success",
+        "data": {
+            "status": "SUCCESS",
+            "statistics": {
+                "failed_count": 0,
+                "filter_count": 0,
+                "running_count": 0,
+                "total_count": 1,
+                "pending_count": 0,
+                "success_count": 1,
+            },
+            "list": [],
+        },
+    },
+    get_rsa_public_key_return={
+        "message": "",
+        "code": 0,
+        "data": [
+            {
+                "content": """-----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJ/9Fq0LdVzxXga97bk4
+                q69cD0ZjcPGbZUZ6NIRNDa+TzDyhoBKs2vsssX2vEoiUe5oHePY/3g49HwXCHyPj
+                iidWzRD2VEGqySkq/q4vXYDBZ+Hi6yf+VjdI+aTgcTTGbPk4LEoiZIbZC0GD93R5
+                AYkwL3bQ1OXq2+oYatZ0hSQPKeN+1ZT2gAGC4D+bKp5tgXFqu+zVs6/C5FI7kbxP
+                UW/XhgQnsrKVrCH60RCPHiXWfn3ENUo4Z3dndcXA31M283Tupp66yJNKb50OynWo
+                Px64VRgYWvvssC8qtnUdVejn5/UFArb2ZOqpA7qcpKXjSl1v//Q8udPzSEjoXd4Y
+                HwIDAQAB\n-----END PUBLIC KEY-----""",
+                "block_size": 245,
+                "name": "DEFAULT",
+                "description": "默认RSA密钥",
+            }
+        ],
+        "result": True,
+        "request_id": "d474b1688d524662b613c76a78310412",
+    },
+)
+
+# For INSTALL_SUCCESS_CASE_WITH_TTJ (case 8)
+INSTALL_TTJ_CLIENT = MockClient(
+    install_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    operate_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    remove_host={"result": True, "code": "00", "message": "success", "data": {}},
+    details_return={
+        "result": True,
+        "code": "00",
+        "message": "success",
+        "data": {
+            "status": "SUCCESS",
+            "statistics": {
+                "failed_count": 0,
+                "filter_count": 0,
+                "running_count": 0,
+                "total_count": 1,
+                "pending_count": 0,
+                "success_count": 1,
+            },
+            "list": [],
+        },
+    },
+    get_rsa_public_key_return={
+        "message": "",
+        "code": 0,
+        "data": [
+            {
+                "content": """-----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJ/9Fq0LdVzxXga97bk4
+                q69cD0ZjcPGbZUZ6NIRNDa+TzDyhoBKs2vsssX2vEoiUe5oHePY/3g49HwXCHyPj
+                iidWzRD2VEGqySkq/q4vXYDBZ+Hi6yf+VjdI+aTgcTTGbPk4LEoiZIbZC0GD93R5
+                AYkwL3bQ1OXq2+oYatZ0hSQPKeN+1ZT2gAGC4D+bKp5tgXFqu+zVs6/C5FI7kbxP
+                UW/XhgQnsrKVrCH60RCPHiXWfn3ENUo4Z3dndcXA31M283Tupp66yJNKb50OynWo
+                Px64VRgYWvvssC8qtnUdVejn5/UFArb2ZOqpA7qcpKXjSl1v//Q8udPzSEjoXd4Y
+                HwIDAQAB\n-----END PUBLIC KEY-----""",
+                "block_size": 245,
+                "name": "DEFAULT",
+                "description": "默认RSA密钥",
+            }
+        ],
+        "result": True,
+        "request_id": "d474b1688d524662b613c76a78310412",
+    },
+)
+
+# For MULTI_CLOUD_ID_INSTALL_CASE (case 9)
+MULTI_CLOUD_INSTALL_CLIENT = MockClient(
+    install_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    operate_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    remove_host={"result": True, "code": "00", "message": "success", "data": {}},
+    details_return={
+        "result": True,
+        "code": "00",
+        "message": "success",
+        "data": {
+            "status": "SUCCESS",
+            "statistics": {
+                "failed_count": 0,
+                "filter_count": 0,
+                "running_count": 0,
+                "total_count": 1,
+                "pending_count": 0,
+                "success_count": 1,
+            },
+            "list": [],
+        },
+    },
+    get_rsa_public_key_return={
+        "message": "",
+        "code": 0,
+        "data": [
+            {
+                "content": """-----BEGIN PUBLIC KEY-----
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlJ/9Fq0LdVzxXga97bk4
+                q69cD0ZjcPGbZUZ6NIRNDa+TzDyhoBKs2vsssX2vEoiUe5oHePY/3g49HwXCHyPj
+                iidWzRD2VEGqySkq/q4vXYDBZ+Hi6yf+VjdI+aTgcTTGbPk4LEoiZIbZC0GD93R5
+                AYkwL3bQ1OXq2+oYatZ0hSQPKeN+1ZT2gAGC4D+bKp5tgXFqu+zVs6/C5FI7kbxP
+                UW/XhgQnsrKVrCH60RCPHiXWfn3ENUo4Z3dndcXA31M283Tupp66yJNKb50OynWo
+                Px64VRgYWvvssC8qtnUdVejn5/UFArb2ZOqpA7qcpKXjSl1v//Q8udPzSEjoXd4Y
+                HwIDAQAB\n-----END PUBLIC KEY-----""",
+                "block_size": 245,
+                "name": "DEFAULT",
+                "description": "默认RSA密钥",
+            }
+        ],
+        "result": True,
+        "request_id": "d474b1688d524662b613c76a78310412",
+    },
+)
+
+# For INSTALL_AGENT_BK_ADDRESSING_CASE (case 11)
+INSTALL_AGENT_BK_ADDRESSING_CLIENT = MockClient(
+    install_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    operate_return={"result": True, "code": "00", "message": "success", "data": {"job_id": "1"}},
+    remove_host={"result": True, "code": "00", "message": "success", "data": {}},
+    details_return={
+        "result": True,
+        "code": "00",
+        "message": "success",
+        "data": {
+            "status": "SUCCESS",
+            "statistics": {
+                "failed_count": 0,
+                "filter_count": 0,
+                "running_count": 0,
+                "total_count": 1,
+                "pending_count": 0,
+                "success_count": 1,
+            },
+            "list": [],
+        },
     },
 )
 
@@ -218,7 +427,7 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -228,10 +437,10 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "INSTALL_AGENT",
                         "is_install_latest_plugins": True,
                         "hosts": [
@@ -253,15 +462,16 @@ INSTALL_SUCCESS_CASE = ComponentTestCase(
                                 "force_update_agent_id": False,
                             }
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -310,7 +520,7 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -320,82 +530,83 @@ REINSTALL_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=REINSTALL_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "REINSTALL_AGENT",
-                        "is_install_latest_plugins": True,
                         "hosts": [
                             {
+                                "port": "22",
+                                "auth_type": "PASSWORD",
+                                "account": "test",
+                                "password": "encrypt_auth_key",
                                 "bk_biz_id": "1",
                                 "bk_cloud_id": "1",
-                                "inner_ip": "1.1.1.1",
-                                "os_type": "LINUX",
-                                "port": "22",
-                                "account": "test",
-                                "auth_type": "PASSWORD",
                                 "ap_id": "1",
-                                "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "encrypt_auth_key",
+                                "os_type": "LINUX",
+                                "is_manual": False,
+                                "inner_ip": "1.1.1.1",
+                                "peer_exchange_switch_for_agent": 0,
+                                "force_update_agent_id": False,
+                                "bk_host_id": 1,
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
-                                "bk_host_id": 1,
-                                "force_update_agent_id": False,
                             },
                             {
+                                "port": "22",
+                                "auth_type": "PASSWORD",
+                                "account": "test",
+                                "password": "encrypt_auth_key",
                                 "bk_biz_id": "1",
                                 "bk_cloud_id": "1",
-                                "inner_ip": "2.2.2.2",
-                                "os_type": "LINUX",
-                                "port": "22",
-                                "account": "test",
-                                "auth_type": "PASSWORD",
                                 "ap_id": "1",
-                                "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "encrypt_auth_key",
+                                "os_type": "LINUX",
+                                "is_manual": False,
+                                "inner_ip": "2.2.2.2",
+                                "peer_exchange_switch_for_agent": 0,
+                                "force_update_agent_id": False,
+                                "bk_host_id": 2,
                                 "outer_ip": "4.4.4.4",
                                 "login_ip": "6.6.6.6",
                                 "data_ip": "8.8.8.8",
-                                "bk_host_id": 2,
-                                "force_update_agent_id": False,
                             },
                             {
+                                "port": "22",
+                                "auth_type": "PASSWORD",
+                                "account": "test",
+                                "password": "encrypt_auth_key",
                                 "bk_biz_id": "1",
                                 "bk_cloud_id": "1",
-                                "inner_ip": "3.3.3.3",
-                                "os_type": "LINUX",
-                                "port": "22",
-                                "account": "test",
-                                "auth_type": "PASSWORD",
                                 "ap_id": "1",
-                                "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "encrypt_auth_key",
+                                "os_type": "LINUX",
+                                "is_manual": False,
+                                "inner_ip": "3.3.3.3",
+                                "peer_exchange_switch_for_agent": 0,
+                                "force_update_agent_id": False,
+                                "bk_host_id": 3,
                                 "outer_ip": "5.5.5.5",
                                 "login_ip": "7.7.7.7",
                                 "data_ip": "9.9.9.9",
-                                "bk_host_id": 3,
-                                "force_update_agent_id": False,
                             },
                         ],
-                    }
+                        "is_install_latest_plugins": True,
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=REINSTALL_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=REINSTALL_SUCCESS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=REINSTALL_SUCCESS_CLIENT),
         Patcher(
             target=GET_BUSINESS_HOST,
             return_value=[
@@ -439,7 +650,7 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -449,10 +660,10 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "RELOAD_AGENT",
                         "hosts": [
                             {
@@ -492,15 +703,16 @@ RELOAD_SUCCESS_CASE = ComponentTestCase(
                                 "force_update_agent_id": False,
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -544,14 +756,14 @@ INSTALL_FAIL_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.job_install,
+            func=DETAILS_FAIL_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "REINSTALL_AGENT",
                         "is_install_latest_plugins": True,
                         "hosts": [
@@ -574,7 +786,8 @@ INSTALL_FAIL_CASE = ComponentTestCase(
                                 "force_update_agent_id": False,
                             }
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -592,12 +805,23 @@ INSTALL_FAIL_CASE = ComponentTestCase(
     ),
     schedule_call_assertion=[
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=DETAILS_FAIL_CLIENT.api.job_details,
+            calls=[
+                Call(
+                    path_params={"id": "1"},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
         CallAssertion(
-            func=DETAILS_FAIL_CLIENT.get_job_log,
-            calls=[Call(**{"job_id": "1", "instance_id": "host|instance|host|1.1.1.1-0-0"})],
+            func=DETAILS_FAIL_CLIENT.api.get_job_log,
+            calls=[
+                Call(
+                    {"instance_id": "host|instance|host|1.1.1.1-0-0"},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                    path_params={"id": "1"},
+                )
+            ],
         ),
     ],
     patchers=[
@@ -620,7 +844,7 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
             "nodeman_hosts": [],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -630,14 +854,19 @@ OPERATE_SUCCESS_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_operate,
-            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_operate,
+            calls=[
+                Call(
+                    {"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(path_params={"id": "1"}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
     ],
     patchers=[
@@ -660,13 +889,18 @@ OPERATE_FAIL_CASE = ComponentTestCase(
             "nodeman_hosts": [],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=False, outputs={"job_id": "", "ex_data": "failed"}),
     schedule_assertion=[],
     execute_call_assertion=[
         CallAssertion(
-            func=CASE_FAIL_CLIENT.job_operate,
-            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]})],
+            func=CASE_FAIL_CLIENT.api.job_operate,
+            calls=[
+                Call(
+                    {"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1]},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     patchers=[
@@ -733,14 +967,14 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=CHOOSABLE_PARAMS_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "REINSTALL_AGENT",
                         "is_install_latest_plugins": True,
                         "hosts": [
@@ -815,7 +1049,8 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
                                 "force_update_agent_id": False,
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
@@ -823,8 +1058,8 @@ CHOOSABLE_PARAMS_CASE = ComponentTestCase(
     schedule_assertion=[],
     schedule_call_assertion=[],
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=CHOOSABLE_PARAMS_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=CHOOSABLE_PARAMS_CLIENT),
         Patcher(
             target=GET_BUSINESS_HOST,
             return_value=[
@@ -865,7 +1100,7 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -875,10 +1110,10 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_TTJ_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "INSTALL_AGENT",
                         "is_install_latest_plugins": True,
                         "hosts": [
@@ -900,20 +1135,21 @@ INSTALL_SUCCESS_CASE_WITH_TTJ = ComponentTestCase(
                                 "force_update_agent_id": False,
                             }
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_TTJ_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_TTJ_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_TTJ_CLIENT),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
@@ -932,7 +1168,7 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
             "nodeman_hosts": [],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -942,14 +1178,19 @@ MULTI_CLOUD_ID_OPERATE_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_operate,
-            calls=[Call(**{"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1, 2]})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_operate,
+            calls=[
+                Call(
+                    {"job_type": "UPGRADE_AGENT", "bk_biz_id": ["1"], "bk_host_id": [1, 2]},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
@@ -1005,7 +1246,7 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -1015,10 +1256,10 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=MULTI_CLOUD_INSTALL_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "INSTALL_AGENT",
                         "is_install_latest_plugins": True,
                         "hosts": [
@@ -1057,20 +1298,21 @@ MULTI_CLOUD_ID_INSTALL_CASE = ComponentTestCase(
                                 "force_update_agent_id": False,
                             },
                         ],
-                    }
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=MULTI_CLOUD_INSTALL_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=MULTI_CLOUD_INSTALL_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=MULTI_CLOUD_INSTALL_CLIENT),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )
@@ -1119,7 +1361,7 @@ INSTALL_AGENT_BK_ADDRESSING_CASE = ComponentTestCase(
             ],
         },
     },
-    parent_data={"executor": "tester"},
+    parent_data={"tenant_id": "system", "executor": "tester"},
     execute_assertion=ExecuteAssertion(success=True, outputs={"job_id": "1"}),
     schedule_assertion=ScheduleAssertion(
         success=True,
@@ -1129,66 +1371,67 @@ INSTALL_AGENT_BK_ADDRESSING_CASE = ComponentTestCase(
     ),
     execute_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_install,
+            func=INSTALL_AGENT_BK_ADDRESSING_CLIENT.api.job_install,
             calls=[
                 Call(
-                    **{
+                    {
                         "job_type": "INSTALL_AGENT",
-                        "is_install_latest_plugins": True,
                         "hosts": [
                             {
+                                "port": "22",
+                                "auth_type": "PASSWORD",
+                                "account": "test",
+                                "password": "encrypt_auth_key",
                                 "bk_biz_id": "1",
                                 "bk_cloud_id": "1",
-                                "install_channel_id": 1,
-                                "inner_ip": "1.1.1.1",
-                                "os_type": "LINUX",
-                                "bk_addressing": "static",
-                                "port": "22",
-                                "account": "test",
-                                "auth_type": "PASSWORD",
                                 "ap_id": "1",
-                                "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "encrypt_auth_key",
+                                "os_type": "LINUX",
+                                "is_manual": False,
+                                "install_channel_id": 1,
+                                "bk_addressing": "static",
+                                "inner_ip": "1.1.1.1",
+                                "peer_exchange_switch_for_agent": 0,
+                                "force_update_agent_id": False,
                                 "outer_ip": "1.1.1.1",
                                 "login_ip": "1.1.1.1",
                                 "data_ip": "1.1.1.1",
-                                "force_update_agent_id": False,
                             },
                             {
+                                "port": "22",
+                                "auth_type": "PASSWORD",
+                                "account": "test",
+                                "password": "encrypt_auth_key",
                                 "bk_biz_id": "1",
                                 "bk_cloud_id": "2",
-                                "install_channel_id": 1,
-                                "inner_ip": "2.2.2.2",
-                                "os_type": "LINUX",
-                                "bk_addressing": "static",
-                                "port": "22",
-                                "account": "test",
-                                "auth_type": "PASSWORD",
                                 "ap_id": "2",
-                                "is_manual": False,  # 不手动操作
-                                "peer_exchange_switch_for_agent": 0,  # 不加速
-                                "password": "encrypt_auth_key",
+                                "os_type": "LINUX",
+                                "is_manual": False,
+                                "install_channel_id": 1,
+                                "bk_addressing": "static",
+                                "inner_ip": "2.2.2.2",
+                                "peer_exchange_switch_for_agent": 0,
+                                "force_update_agent_id": False,
                                 "outer_ip": "2.2.2.2",
                                 "login_ip": "2.2.2.2",
                                 "data_ip": "2.2.2.2",
-                                "force_update_agent_id": False,
                             },
                         ],
-                    }
+                        "is_install_latest_plugins": True,
+                    },
+                    headers={"X-Bk-Tenant-Id": "system"},
                 )
             ],
         ),
     ],
     schedule_call_assertion=[
         CallAssertion(
-            func=INSTALL_OR_OPERATE_SUCCESS_CLIENT.job_details,
-            calls=[Call(**{"job_id": "1"})],
+            func=INSTALL_AGENT_BK_ADDRESSING_CLIENT.api.job_details,
+            calls=[Call(headers={"X-Bk-Tenant-Id": "system"}, path_params={"id": "1"})],
         ),
     ],
     patchers=[
-        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
-        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_OR_OPERATE_SUCCESS_CLIENT),
+        Patcher(target=GET_CLIENT_BY_USER, return_value=INSTALL_AGENT_BK_ADDRESSING_CLIENT),
+        Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=INSTALL_AGENT_BK_ADDRESSING_CLIENT),
         Patcher(target=ENCRYPT_AUTH_KEY, return_value="encrypt_auth_key"),
     ],
 )

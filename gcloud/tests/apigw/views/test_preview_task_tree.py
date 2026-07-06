@@ -14,11 +14,10 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
-from gcloud.tests.mock import *  # noqa
-from gcloud.tests.mock_settings import *  # noqa
 from gcloud import err_code
 from gcloud.apigw.views import preview_task_tree
+from gcloud.tests.mock import *  # noqa
+from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
 
@@ -26,6 +25,7 @@ TEST_PROJECT_ID = "1"
 TEST_PROJECT_NAME = "biz name"
 TEST_BIZ_CC_ID = "2"
 TEST_TASK_TEMPLATE_ID = "3"
+TEST_TENANT_ID = "system"
 PREVIEW_TEMPLATE_TREE_RETURN = "PREVIEW_TEMPLATE_TREE_RETURN"
 
 
@@ -46,9 +46,7 @@ class PreviewTaskTreeAPITest(APITest):
     )
     def test_preview_task_tree__invalid_json_req(self):
         response = self.client.post(
-            path=self.url().format(
-                project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID
-            ),
+            path=self.url().format(project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID),
             data="invalid json",
             content_type="application/json",
         )
@@ -72,9 +70,7 @@ class PreviewTaskTreeAPITest(APITest):
     )
     def test_preview_task_tree__invalid_exclude_task_node_id(self):
         response = self.client.post(
-            path=self.url().format(
-                project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID
-            ),
+            path=self.url().format(project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID),
             data=json.dumps({"exclude_task_nodes_id": "invalid array"}),
             content_type="application/json",
         )
@@ -106,9 +102,7 @@ class PreviewTaskTreeAPITest(APITest):
     )
     def test_preview_task_tree__preview_template_tree_raise(self):
         response = self.client.post(
-            path=self.url().format(
-                project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID
-            ),
+            path=self.url().format(project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID),
             data=json.dumps({"exclude_task_nodes_id": []}),
             content_type="application/json",
         )
@@ -140,9 +134,7 @@ class PreviewTaskTreeAPITest(APITest):
     )
     def test_preview_task_tree__success(self):
         response = self.client.post(
-            path=self.url().format(
-                project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID
-            ),
+            path=self.url().format(project_id=TEST_PROJECT_ID, template_id=TEST_TASK_TEMPLATE_ID),
             data=json.dumps({"exclude_task_nodes_id": []}),
             content_type="application/json",
         )
@@ -154,5 +146,5 @@ class PreviewTaskTreeAPITest(APITest):
         self.assertEqual(data["data"], PREVIEW_TEMPLATE_TREE_RETURN)
 
         preview_task_tree.preview_template_tree.assert_called_once_with(
-            TEST_PROJECT_ID, preview_task_tree.PROJECT, TEST_TASK_TEMPLATE_ID, None, []
+            TEST_PROJECT_ID, preview_task_tree.PROJECT, TEST_TASK_TEMPLATE_ID, None, [], TEST_TENANT_ID
         )

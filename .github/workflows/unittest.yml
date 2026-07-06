@@ -2,9 +2,9 @@ name: Unittest
 
 on:
   push:
-    branches: [ master, develop, release*, feature* ]
+    branches: [ master, develop, release*, feature*, dev_multi_tenant* ]
   pull_request:
-    branches: [ master, develop, release*, feature* ]
+    branches: [ master, develop, release*, feature*, dev_multi_tenant* ]
 
 jobs:
   build:
@@ -51,8 +51,27 @@ jobs:
 
         LOG_LEVEL = "DEBUG"
 
-        BK_IAM_SKIP = 1' > local_settings.py
+        BK_IAM_SKIP = 1
+        BK_APIGW_STAGE_NAME = "dev"' > local_settings.py
         # rm pipeline tests, we will not longer need it after integrate with bamboo-engine
         rm -rf pipeline/tests
         # run unittest
-        python manage.py test
+        python -m coverage run manage.py test
+    - name: Coverage export
+      run: |
+        # export xml
+        python -m coverage xml
+        # print report
+        python -m coverage report | tee coverage.txt
+        {
+          echo '### Coverage'
+          echo ''
+          echo '```'
+          tail -n 1 coverage.txt
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+    - name: Upload coverage reports to Codecov
+      if: ${{ github.repository == 'TencentBlueKing/bk-sops' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork == false) }}
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}

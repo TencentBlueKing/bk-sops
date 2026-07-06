@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from __future__ import absolute_import
 
-from mock import MagicMock, patch, call  # noqa
+from mock import MagicMock, call, patch  # noqa
 
 
 class MockGitRepo(object):
@@ -22,56 +22,41 @@ class MockGitRepo(object):
 
     def clone_from(self, repo_address, to_path, branch):
         self.repo_info = {
-            'repo_address': repo_address,
-            'to_path': to_path,
-            'branch': branch,
+            "repo_address": repo_address,
+            "to_path": to_path,
+            "branch": branch,
         }
 
 
 class MockBoto3Paginator(object):
     def __init__(self):
         self.data = [
-            'file0',
-            'first1/file1',
-            'first1/second1/file11',
-            'first1/second2/file12',
-            'first2/file2',
-            'first2/second1/file21',
-            'first2/second2/file22',
+            "file0",
+            "first1/file1",
+            "first1/second1/file11",
+            "first1/second2/file12",
+            "first2/file2",
+            "first2/second1/file21",
+            "first2/second2/file22",
         ]
 
     def paginate(self, Bucket, Delimiter, Prefix):
         if not Prefix:
-            return [{
-                'CommonPrefixes': [{'Prefix': 'first1/'}, {'Prefix': 'first2/'}],
-                'Contents': [{'Key': 'file0'}]
-            }]
+            return [{"CommonPrefixes": [{"Prefix": "first1/"}, {"Prefix": "first2/"}], "Contents": [{"Key": "file0"}]}]
         else:
             result = {
-                'first1/': {
-                    'CommonPrefixes': [{'Prefix': 'first1/second1/'}, {'Prefix': 'first1/second2/'}],
-                    'Contents': [{'Key': 'first1/file1'}]
+                "first1/": {
+                    "CommonPrefixes": [{"Prefix": "first1/second1/"}, {"Prefix": "first1/second2/"}],
+                    "Contents": [{"Key": "first1/file1"}],
                 },
-                'first1/second1/': {
-                    'CommonPrefixes': [],
-                    'Contents': [{'Key': 'first1/second1/file11'}]
+                "first1/second1/": {"CommonPrefixes": [], "Contents": [{"Key": "first1/second1/file11"}]},
+                "first1/second2/": {"CommonPrefixes": [], "Contents": [{"Key": "first1/second2/file12"}]},
+                "first2/": {
+                    "CommonPrefixes": [{"Prefix": "first2/second1/"}, {"Prefix": "first2/second2/"}],
+                    "Contents": [{"Key": "first2/file2"}],
                 },
-                'first1/second2/': {
-                    'CommonPrefixes': [],
-                    'Contents': [{'Key': 'first1/second2/file12'}]
-                },
-                'first2/': {
-                    'CommonPrefixes': [{'Prefix': 'first2/second1/'}, {'Prefix': 'first2/second2/'}],
-                    'Contents': [{'Key': 'first2/file2'}]
-                },
-                'first2/second1/': {
-                    'CommonPrefixes': [],
-                    'Contents': [{'Key': 'first2/second1/file21'}]
-                },
-                'first2/second2/': {
-                    'CommonPrefixes': [],
-                    'Contents': [{'Key': 'first2/second2/file22'}]
-                }
+                "first2/second1/": {"CommonPrefixes": [], "Contents": [{"Key": "first2/second1/file21"}]},
+                "first2/second2/": {"CommonPrefixes": [], "Contents": [{"Key": "first2/second2/file22"}]},
             }
             return [result[Prefix]]
 
@@ -114,10 +99,10 @@ class MockShutil(object):
 
 def mock_os_walk(local):
     root = local
-    result = [(local, None, ['file'])]
-    for path in ['first', 'second']:
-        root = '%s%s/' % (root, path)
-        result.append((root, None, ['file']))
+    result = [(local, None, ["file"])]
+    for path in ["first", "second"]:
+        root = "%s%s/" % (root, path)
+        result.append((root, None, ["file"]))
     return result
 
 
@@ -128,13 +113,13 @@ class MockWriterAndReader(object):
             setattr(self, key, value)
 
     def write(self, sub_dir=None):
-        if 'raise_exception' in self.kwargs:
-            raise Exception('error')
+        if "raise_exception" in self.kwargs:
+            raise Exception("error")
         return True
 
     def read(self):
-        if 'raise_exception' in self.kwargs:
-            raise Exception('error')
+        if "raise_exception" in self.kwargs:
+            raise Exception("error")
         return True
 
 
@@ -151,6 +136,7 @@ class MockSyncTaskModel(object):
         self.id = id
         self.status = None
         self.details = None
+        self.tenant_id = "system"
 
     def finish_task(self, status, details=None):
         self.status = status

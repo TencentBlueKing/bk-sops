@@ -146,6 +146,7 @@ class CreatePeriodicTaskAPITest(APITest):
                                 }
                             ),
                             content_type="application/json",
+                            headers={"X-Bk-Tenant-Id": "system"},
                         )
 
                         PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes.assert_called_with(

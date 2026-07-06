@@ -84,7 +84,7 @@ class ApplyWebhookConfigsAPITest(APITest):
             )
 
             data = json.loads(response.content)
-            self.assertTrue(data["result"])
+            self.assertTrue(data["result"], data)
             self.assertEqual(data["message"], "success")
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))

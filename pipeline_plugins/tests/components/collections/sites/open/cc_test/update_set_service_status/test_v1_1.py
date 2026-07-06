@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 from django.test import TestCase
 from mock import MagicMock
-
 from pipeline.component_framework.test import (
     Call,
     CallAssertion,
@@ -21,6 +20,7 @@ from pipeline.component_framework.test import (
     ExecuteAssertion,
     Patcher,
 )
+
 from pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1 import (
     CCUpdateSetServiceStatusComponent,
 )
@@ -41,18 +41,18 @@ class CCUpdateWorldStatusComponentTest(TestCase, ComponentTestMixin):
 
 class MockClient(object):
     def __init__(self, search_set_return=None, update_set_return=None):
-        self.cc = MagicMock()
-        self.cc.search_set = MagicMock(return_value=search_set_return)
-        self.cc.update_set = MagicMock(return_value=update_set_return)
+        self.api = MagicMock()
+        self.api.search_set = MagicMock(return_value=search_set_return)
+        self.api.update_set = MagicMock(return_value=update_set_return)
 
 
 GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1.get_client_by_user"
+    "pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1.get_client_by_username"
 )
-CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_user"
+CC_GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
 BATCH_REQUEST = "pipeline_plugins.components.collections.sites.open.cc.update_set_service_status.v1_1.batch_request"
 
-COMMON_PARENT = {"executor": "admin", "bk_biz_id": 2, "biz_supplier_account": 0}
+COMMON_PARENT = {"tenant_id": "system", "executor": "admin", "bk_biz_id": 2, "biz_supplier_account": 0}
 
 CC_SEARCH_SET_KWARGS = {
     "bk_biz_id": 2,
@@ -61,11 +61,7 @@ CC_SEARCH_SET_KWARGS = {
     "page": {"start": 0, "limit": 100, "sort": "bk_set_name"},
 }
 
-CC_UPDATE_SET_KWARGS = {
-    "bk_biz_id": 2,
-    "bk_set_id": 2,
-    "data": {"bk_service_status": 1},
-}
+CC_UPDATE_SET_KWARGS = {"bk_biz_id": 2, "bk_set_id": 2, "bk_service_status": 1}
 
 SEARCH_SET_SUCCESS_RESULT = {
     "code": 0,
@@ -112,7 +108,8 @@ SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_INPUT_WITH_ATTR = {
 }
 
 SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT = MockClient(
-    search_set_return=SEARCH_SET_SUCCESS_RESULT, update_set_return=UPDATE_SET_SUCCESS_RESULT,
+    search_set_return=SEARCH_SET_SUCCESS_RESULT,
+    update_set_return=UPDATE_SET_SUCCESS_RESULT,
 )
 
 SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE = ComponentTestCase(
@@ -122,10 +119,24 @@ SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=[
         CallAssertion(
-            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.cc.search_set, calls=[Call(CC_SEARCH_SET_KWARGS)]
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.search_set,
+            calls=[
+                Call(
+                    CC_SEARCH_SET_KWARGS,
+                    path_params={"bk_biz_id": 2},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
         CallAssertion(
-            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.cc.update_set, calls=[Call(CC_UPDATE_SET_KWARGS)]
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.update_set,
+            calls=[
+                Call(
+                    CC_UPDATE_SET_KWARGS,
+                    path_params={"bk_biz_id": 2, "bk_set_id": 2},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     execute_call_assertion=[],
@@ -142,10 +153,18 @@ SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE_WITH_ATTR = ComponentTestCase(
     execute_assertion=ExecuteAssertion(success=True, outputs={}),
     schedule_assertion=[
         CallAssertion(
-            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.cc.search_set, calls=[Call(CC_SEARCH_SET_KWARGS)]
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.search_set,
+            calls=[Call(CC_SEARCH_SET_KWARGS, path_params={"bk_biz_id": 2}, headers={"X-Bk-Tenant-Id": "system"})],
         ),
         CallAssertion(
-            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.cc.update_set, calls=[Call(CC_UPDATE_SET_KWARGS)]
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.update_set,
+            calls=[
+                Call(
+                    CC_UPDATE_SET_KWARGS,
+                    path_params={"bk_biz_id": 2, "bk_set_id": 2},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
         ),
     ],
     execute_call_assertion=[],
@@ -156,7 +175,8 @@ SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CASE_WITH_ATTR = ComponentTestCase(
 )
 
 SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CLIENT = MockClient(
-    search_set_return=SEARCH_SET_SUCCESS_RESULT, update_set_return=UPDATE_SET_FAIL_RESULT,
+    search_set_return=SEARCH_SET_SUCCESS_RESULT,
+    update_set_return=UPDATE_SET_FAIL_RESULT,
 )
 
 SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE = ComponentTestCase(
@@ -167,13 +187,25 @@ SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE = ComponentTestCase(
         success=False,
         outputs={
             "ex_data": "调用配置平台(CMDB)接口cc.update_set返回失败, error=fail, "
-            'params={"bk_biz_id":2,"bk_supplier_account":0,"bk_set_id":45,"data":{"bk_service_status":"1"}}, '
+            'params={"bk_biz_id":2,"bk_set_id":45,"bk_service_status":"1"}, '
             "request_id=4a487ef38cf14157a0c3795310bad1a3"
         },
     ),
     schedule_assertion=[
-        CallAssertion(func=SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CLIENT.cc.search_set, calls=[Call(CC_SEARCH_SET_KWARGS)]),
-        CallAssertion(func=SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CLIENT.cc.update_set, calls=[Call(CC_UPDATE_SET_KWARGS)]),
+        CallAssertion(
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.search_set,
+            calls=[Call(CC_SEARCH_SET_KWARGS, path_params={"bk_biz_id": 2}, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
+        CallAssertion(
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.update_set,
+            calls=[
+                Call(
+                    CC_UPDATE_SET_KWARGS,
+                    path_params={"bk_biz_id": 2, "bk_set_id": 2},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
+        ),
     ],
     execute_call_assertion=[],
     patchers=[
@@ -182,7 +214,10 @@ SEARCH_SET_SUCCESS_UPDATE_SET_FAIL_CASE = ComponentTestCase(
     ],
 )
 
-SEARCH_SET_FAIL_CLIENT = MockClient(search_set_return=SEARCH_SET_FAIL_RESULT, update_set_return=UPDATE_SET_FAIL_RESULT,)
+SEARCH_SET_FAIL_CLIENT = MockClient(
+    search_set_return=SEARCH_SET_FAIL_RESULT,
+    update_set_return=UPDATE_SET_FAIL_RESULT,
+)
 
 SEARCH_SET_FAIL_CASE = ComponentTestCase(
     name="fail case: search set fail",
@@ -190,8 +225,20 @@ SEARCH_SET_FAIL_CASE = ComponentTestCase(
     parent_data=COMMON_PARENT,
     execute_assertion=ExecuteAssertion(success=False, outputs={"ex_data": "batch_request client.cc.search_set error"}),
     schedule_assertion=[
-        CallAssertion(func=SEARCH_SET_FAIL_CLIENT.cc.search_set, calls=[Call(CC_SEARCH_SET_KWARGS)]),
-        CallAssertion(func=SEARCH_SET_FAIL_CLIENT.cc.update_set, calls=[Call(CC_UPDATE_SET_KWARGS)]),
+        CallAssertion(
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.search_set,
+            calls=[Call(CC_SEARCH_SET_KWARGS, path_params={"bk_biz_id": 2}, headers={"X-Bk-Tenant-Id": "system"})],
+        ),
+        CallAssertion(
+            func=SEARCH_SET_SUCCESS_UPDATE_SET_SUCCESS_CLIENT.api.update_set,
+            calls=[
+                Call(
+                    CC_UPDATE_SET_KWARGS,
+                    path_params={"bk_biz_id": 2, "bk_set_id": 2},
+                    headers={"X-Bk-Tenant-Id": "system"},
+                )
+            ],
+        ),
     ],
     execute_call_assertion=[],
     patchers=[

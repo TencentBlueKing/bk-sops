@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import json
 import logging
 
@@ -39,7 +40,7 @@ class ApplyWebhookConfigs(ViewInterceptor):
             raise ValueError(error_message)
 
         action = Action(IAMMeta.FLOW_EDIT_ACTION)
-        resources_list = res_factory.resources_list_for_flows(template_ids)
+        resources_list = res_factory.resources_list_for_flows(template_ids, request.user.tenant_id)
 
         allow_or_raise_immediate_response_for_resources_list(
             iam=iam,
