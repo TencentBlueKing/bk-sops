@@ -65,7 +65,6 @@
     </div>
 </template>
 <script>
-
     import '@/utils/i18n.js'
     import i18n from '@/config/i18n/index.js'
     import { mapState } from 'vuex'
