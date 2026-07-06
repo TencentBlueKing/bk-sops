@@ -26,6 +26,7 @@ from gcloud.core.api_adapter import is_user_auditor, is_user_functor
 from gcloud.core.models import EnvironmentVariables
 from gcloud.core.project import get_default_project_for_user
 from gcloud.utils.crypto import get_default_asymmetric_key_config
+from gcloud.utils.time_zone import get_user_timezone
 
 logger = logging.getLogger("root")
 
@@ -57,7 +58,9 @@ def mysetting(request):
     is_functor = int(is_user_functor(request))
     is_auditor = int(is_user_auditor(request))
     default_project = get_default_project_for_user(request.user.username)
-    project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
+    project_timezone = get_user_timezone(request, use_cache=False)
+    if not project_timezone:
+        project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
     frontend_entry_url = "{}bk_sops".format(settings.STATIC_URL) if settings.RUN_VER == "open" else "/static/bk_sops"
     default_asymmetric_key_config: AsymmetricKeyConfig = get_default_asymmetric_key_config(
