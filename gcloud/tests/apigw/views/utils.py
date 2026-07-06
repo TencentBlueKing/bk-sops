@@ -48,7 +48,7 @@ def mock_check_white_apps(request):
     request.user = MockJwtClientAttr(
         {
             settings.APIGW_MANAGER_USER_USERNAME_KEY: request.META.get("HTTP_BK_USERNAME", ""),
-            "tenant_id": request.META.get("X-Bk-Tenant-Id", "system"),
+            "tenant_id": request.META.get("HTTP_X_BK_TENANT_ID", "system"),
         }
     )
     request.app = MockJwtClientAttr(

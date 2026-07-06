@@ -297,7 +297,6 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
         self.get_set_list_patcher.start()
 
         def mock_list_biz_hosts(tenant_id, username, bk_biz_id, kwargs):
-            print(f"DEBUG: list_biz_hosts called with kwargs={kwargs}")
             result = []
             for module_id in kwargs["bk_module_ids"]:
                 if module_id == 61:
@@ -312,23 +311,17 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                     result.append({"bk_host_innerip": "192.168.1.3"})
                 elif module_id == 6:
                     result.append({"bk_host_innerip": "192.168.1.4"})
-            print(f"DEBUG: list_biz_hosts returning {result}")
             return result
 
         self.list_biz_hosts_patcher = patch(LIST_BIZ_HOSTS, MagicMock(side_effect=mock_list_biz_hosts))
         self.list_biz_hosts_patcher.start()
 
         def mock_find_module_with_relation(tenant_id, bk_biz_id, username, set_ids, service_template_ids, fields):
-            print(
-                f"DEBUG: find_module_with_relation called with set_ids={set_ids}, "
-                f"service_template_ids={service_template_ids}"
-            )
             result = []
             if 31 in set_ids and 61 in service_template_ids:
                 result.append({"bk_module_id": 61})
             if 32 in set_ids and 62 in service_template_ids:
                 result.append({"bk_module_id": 62})
-            print(f"DEBUG: find_module_with_relation returning {result}")
             return result
 
         self.find_module_with_relation_patcher = patch(
