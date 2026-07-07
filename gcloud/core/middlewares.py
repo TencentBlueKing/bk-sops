@@ -26,25 +26,36 @@ from django.utils.translation import gettext_lazy as _
 from gcloud import err_code
 from gcloud.core.logging import local
 from gcloud.core.models import Project
+from gcloud.utils.time_zone import get_user_timezone
 
 logger = logging.getLogger("root")
+NOT_FOUND = object()
 
 
 class TimezoneMiddleware(MiddlewareMixin):
-    def process_view(self, request, view_func, view_args, view_kwargs):
-        if getattr(view_func, "login_exempt", False):
-            return None
-
+    def _get_project_timezone(self, view_kwargs):
+        # set time_zone of business
+        time_zone = None
         project_id = view_kwargs.get("project_id")
         if project_id:
             try:
                 project = Project.objects.get(id=project_id)
+                time_zone = project.time_zone
             except Project.DoesNotExist:
                 logger.error("project[id={project_id}] does not exist".format(project_id=project_id))
-                return None
 
-            # set time_zone of business
-            request.session["blueking_timezone"] = project.time_zone
+        return time_zone
+
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        if getattr(view_func, "login_exempt", False):
+            return None
+
+        time_zone = get_user_timezone(request)
+        if not time_zone:
+            time_zone = self._get_project_timezone(view_kwargs)
+
+        # set time_zone of business
+        request.session["blueking_timezone"] = time_zone
 
         tzname = request.session.get("blueking_timezone")
         if tzname:

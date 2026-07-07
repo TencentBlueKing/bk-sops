@@ -26,6 +26,7 @@ from gcloud.core.api_adapter import is_user_auditor, is_user_functor
 from gcloud.core.models import EnvironmentVariables
 from gcloud.core.project import get_default_project_for_user
 from gcloud.utils.crypto import get_default_asymmetric_key_config
+from gcloud.utils.time_zone import get_user_timezone
 
 logger = logging.getLogger("root")
 
@@ -57,7 +58,9 @@ def mysetting(request):
     is_functor = int(is_user_functor(request))
     is_auditor = int(is_user_auditor(request))
     default_project = get_default_project_for_user(request.user.username)
-    project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
+    project_timezone = get_user_timezone(request, use_cache=False)
+    if not project_timezone:
+        project_timezone = request.session.get("blueking_timezone", settings.TIME_ZONE)
     cur_pos = get_cur_pos_from_url(request)
     frontend_entry_url = "{}bk_sops".format(settings.STATIC_URL) if settings.RUN_VER == "open" else "/static/bk_sops"
     default_asymmetric_key_config: AsymmetricKeyConfig = get_default_asymmetric_key_config(
@@ -78,6 +81,7 @@ def mysetting(request):
         "BK_IAM_APPLY_URL": settings.BK_IAM_SAAS_HOST.strip("/") + "/apply-join-user-group",
         "BK_IAM_APP_CODE": settings.BK_IAM_APP_CODE,
         "BK_USER_MANAGE_HOST": settings.BK_USER_MANAGE_HOST,
+        "BKPAAS_USER_URL": settings.BKPAAS_USER_URL,
         "BK_PAAS_ESB_HOST": settings.BK_PAAS_ESB_API_HOST,
         "APP_PATH": request.get_full_path(),  # 当前页面，主要为了login_required做跳转用
         "LOGIN_URL": getattr(settings, "BK_LOGIN_URL", os.getenv("BKPAAS_LOGIN_URL")),  # 登录链接
@@ -92,6 +96,7 @@ def mysetting(request):
         "_": _,  # 国际化
         "LANGUAGES": settings.LANGUAGES,  # 国际化
         # 自定义变量
+        "ENABLE_MULTI_TENANT_MODE": 0,
         "PERIODIC_TASK_SHORTEST_TIME": settings.PERIODIC_TASK_SHORTEST_TIME,
         "OPEN_VER": settings.OPEN_VER,
         "RUN_VER": settings.RUN_VER,
