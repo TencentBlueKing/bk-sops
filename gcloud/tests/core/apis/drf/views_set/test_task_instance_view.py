@@ -12,11 +12,13 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 from datetime import timedelta
+from types import SimpleNamespace
 
 import factory
 from bamboo_engine import states
 from django.conf import settings
 from django.db.models import signals
+from django.test import SimpleTestCase
 from django_test_toolkit.mixins.account import SuperUserMixin
 from django_test_toolkit.mixins.blueking import LoginExemptMixin, StandardResponseAssertionMixin
 from django_test_toolkit.mixins.drf import DrfPermissionExemptMixin
@@ -25,6 +27,7 @@ from mock import patch
 from pipeline.eri.models import State
 from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 
+from gcloud.core.apis.drf.viewsets.taskflow import TaskFlowInstanceViewSet
 from gcloud.core.models import Project, ProjectConfig
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -318,3 +321,50 @@ class TestTaskInstanceView(
         task_ids = [task["id"] for task in resp.data["data"]["results"]]
         # 应该过滤掉旧任务
         self.assertNotIn(old_taskflow_instance.id, task_ids)
+
+
+class _NodeExecutionRecordQuerySet(object):
+    def __init__(self, rows):
+        self.rows = rows
+        self.count_called = False
+        self.sliced_limits = []
+
+    def order_by(self, *args):
+        return self
+
+    def values(self, *args):
+        return self
+
+    def count(self):
+        self.count_called = True
+        return 100
+
+    def __len__(self):
+        raise AssertionError("node_execution_record should not evaluate the full queryset")
+
+    def __getitem__(self, item):
+        self.sliced_limits.append((item.start, item.stop))
+        return self.rows[item]
+
+
+class TestTaskInstanceNodeExecutionRecord(SimpleTestCase):
+    def test_node_execution_record_counts_without_evaluating_queryset(self):
+        rows = [
+            {"archived_time": datetime.datetime(2026, 1, 1, 10, 0, 0), "elapsed_time": 10},
+            {"archived_time": datetime.datetime(2026, 1, 1, 10, 1, 0), "elapsed_time": 12},
+        ]
+        queryset = _NodeExecutionRecordQuerySet(rows)
+        request = SimpleNamespace(query_params={"template_node_id": "node-id"})
+        view = TaskFlowInstanceViewSet()
+
+        with patch.object(TaskFlowInstanceViewSet, "get_object", return_value=SimpleNamespace(template_id=1)):
+            with patch(
+                "gcloud.core.apis.drf.viewsets.taskflow.TaskflowExecutedNodeStatistics.objects.filter",
+                return_value=queryset,
+            ):
+                response = view.node_execution_record(request)
+
+        self.assertTrue(queryset.count_called)
+        self.assertEqual(queryset.sliced_limits, [(None, settings.MAX_RECORDED_NODE_EXECUTION_TIMES)])
+        self.assertEqual(response.data["total"], 100)
+        self.assertEqual(len(response.data["execution_time"]), 2)
