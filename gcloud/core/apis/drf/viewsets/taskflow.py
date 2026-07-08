@@ -641,7 +641,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             .order_by("-archived_time")
             .values("archived_time", "elapsed_time")
         )
-        execution_total_time = len(execution_data)
+        execution_total_time = execution_data.count()
         execution_time_data = execution_data[: settings.MAX_RECORDED_NODE_EXECUTION_TIMES]
         node_execution_record_serializer = NodeExecutionRecordResponseSerializer(
             data={"execution_time": execution_time_data, "total": execution_total_time}

@@ -13,14 +13,14 @@ specific language governing permissions and limitations under the License.
 import logging
 from collections import Iterable
 
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.pagination import LimitOffsetPagination
-
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
+
+from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
 from gcloud.iam_auth import get_iam_client
-from gcloud.core.apis.drf.viewsets import IAMMixin, ApiMixin
 
 iam = get_iam_client()
 iam_logger = logging.getLogger("iam")
@@ -67,7 +67,7 @@ class GcloudListViewSet(GcloudCommonMixin):
         queryset = self.filter_queryset(self.get_queryset())
         # 支持使用方配置不分页
         page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page if page else queryset, many=True)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
         # 注入权限
         data = self.injection_auth_actions(request, serializer.data, serializer.instance)
         return self.get_paginated_response(data) if page is not None else Response(data)
