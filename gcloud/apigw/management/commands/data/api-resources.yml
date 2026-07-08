@@ -2637,6 +2637,79 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
+  /claim_functionalization_task/{task_id}/{bk_biz_id}/:
+    post:
+      operationId: claim_functionalization_task
+      description: 认领职能化任务
+      tags:
+      - 限制接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: string
+                    description: result=true 时成功数据，"success"
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 职能化任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 任务所属业务ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                constants:
+                  type: object
+                  description: 任务全局参数，对应变量key和value
+                  additionalProperties: true
+                name:
+                  type: string
+                  description: 任务新名称
+              description: 请求体参数
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/claim_functionalization_task/{task_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
   /create_clocked_task/{template_id}/{bk_biz_id}/:
     post:
       operationId: create_clocked_task
