@@ -17,6 +17,7 @@ import logging
 from typing import List
 
 import pytz
+import requests
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable, RegisterVariableMeta, SpliceVariable
@@ -27,6 +28,7 @@ from gcloud.constants import Type
 from gcloud.core.models import StaffGroupSet
 from gcloud.exceptions import ApiRequestError
 from gcloud.utils.cmdb import get_notify_receivers
+from gcloud.utils.validate import DomainValidator
 from pipeline_plugins.base.utils.inject import supplier_account_for_business
 from pipeline_plugins.variables.base import FieldExplain, SelfExplainVariable
 
@@ -75,9 +77,7 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [
-            FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")
-        ]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")]
 
 
 class Int(CommonPlainVariable, SelfExplainVariable):
@@ -118,17 +118,11 @@ class Select(LazyVariable, SelfExplainVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = _(
-        "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
-    )
+    desc = _("单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [
-            FieldExplain(
-                key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
-            )
-        ]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串")]
 
     def get_value(self):
         # multiple select
@@ -159,17 +153,11 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [
-            FieldExplain(
-                key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"
-            ),
+            FieldExplain(key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"),
             FieldExplain(key='${KEY["value"]}', type=Type.STRING, description="用户选中选项的value，多个以,分隔"),
             FieldExplain(key='${KEY["text"]}', type=Type.STRING, description="用户选中选项的text，多个以,分隔"),
-            FieldExplain(
-                key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"
-            ),
-            FieldExplain(
-                key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"
-            ),
+            FieldExplain(key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"),
+            FieldExplain(key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"),
         ]
 
     def get_value(self):
@@ -206,10 +194,53 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     def process_meta_value(self, meta_data, info_value):
         if meta_data["value"]["datasource"] == "1":
             # 远程数据源模式下需要记录拉取的数据而不是 URL
-            meta_value = meta_data["value"]["remote_data"]
+            meta_value = meta_data["value"].get("remote_data")
+            # 计划任务等场景下，pipeline_tree 直接来源于模板，未携带前端运行时拉取的 remote_data，
+            # 这里基于 items_text 配置的 URL 进行懒加载请求，保证取值正常
+            if not meta_value:
+                remote_url = meta_data["value"].get("items_text")
+                meta_value = TextValueSelect._fetch_remote_data(remote_url)
         else:
             meta_value = meta_data["value"]["items_text"]
         return {"meta_data": meta_value, "info_value": info_value}
+
+    @staticmethod
+    def _fetch_remote_data(url):
+        """根据下拉框变量配置的远程 URL 拉取数据，返回与 remote_data 一致的 JSON 字符串"""
+        fallback = json.dumps([{"text": "", "value": ""}])
+        if not url or not isinstance(url, str):
+            return fallback
+
+        valid_url, allowed_domains = DomainValidator.validate(url)
+        if not valid_url:
+            logger.error(
+                f"[TextValueSelect] remote url not in allowed domains, url={url}, allowed_domains={allowed_domains}"
+            )
+            return fallback
+
+        try:
+            response = requests.get(url=url, verify=False, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            logger.exception(
+                "[TextValueSelect] fetch remote data failed, url={url}, error={error}".format(url=url, error=e)
+            )
+            return fallback
+        post_process_function = getattr(settings, "REMOTE_SOURCE_DATA_TRANSFORM_FUNCTION", None)
+        if post_process_function and callable(post_process_function):
+            try:
+                data = post_process_function(data)
+            except Exception as e:
+                logger.exception(
+                    "[TextValueSelect] transform remote data failed, url={url}, error={error}".format(url=url, error=e)
+                )
+                return fallback
+        try:
+            return json.dumps(data)
+        except Exception:
+            logger.exception("[TextValueSelect] dump remote data to json string failed, url={url}".format(url=url))
+            return fallback
 
 
 class FormatSupportCurrentTime(LazyVariable, SelfExplainVariable):
@@ -335,10 +366,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
-    desc = _(
-        "可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
-        "输出格式为选中人员用户名以 ',' 拼接的字符串"
-    )
+    desc = _("可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n" "输出格式为选中人员用户名以 ',' 拼接的字符串")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

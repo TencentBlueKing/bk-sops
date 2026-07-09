@@ -27,5 +27,5 @@ class CreateTemplateInterceptor(ViewInterceptor):
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_CREATE_ACTION)
-        resources = res_factory.resources_for_project(kwargs["project_id"])
+        resources = res_factory.resources_for_project_obj(request.project)
         allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

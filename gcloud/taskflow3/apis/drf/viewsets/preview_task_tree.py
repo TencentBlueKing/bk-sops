@@ -13,6 +13,7 @@ specific lan
 
 import logging
 
+from django.db.models import Max, Value
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from iam import Action, Subject
@@ -25,6 +26,7 @@ from rest_framework.views import APIView
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.preview import preview_template_tree_with_schemes
 
@@ -89,9 +91,7 @@ class PreviewTaskTreeWithSchemesView(APIView):
             else:
                 template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
-            message = _(
-                f"请求任务数据失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project_id}] 请检查 | preview_task_tree"
-            )
+            message = _(f"请求任务数据失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project_id}] 请检查 | preview_task_tree")
             logger.error(message)
             return Response({"result": False, "message": message, "data": {}})
         except CommonTemplate.DoesNotExist:
@@ -102,10 +102,22 @@ class PreviewTaskTreeWithSchemesView(APIView):
         try:
             data = preview_template_tree_with_schemes(template, version, scheme_id_list)
         except Exception as e:
-            message = _(
-                f"任务数据请求失败: 获取带执行方案流程树数据失败, 错误信息: {e}, 请重试. 如多次失败可联系管理员处理 | preview_task_tree"
-            )
+            message = _(f"任务数据请求失败: 获取带执行方案流程树数据失败, 错误信息: {e}, 请重试. 如多次失败可联系管理员处理 | preview_task_tree")
             logger.exception(message)
             return Response({"result": False, "message": message, "data": {}})
+
+        if project_id:
+            last_task_id = TaskFlowInstance.objects.filter(
+                project_id=project_id,
+                template_id=str(template_id),
+                template_source=template_source,
+                is_deleted=Value(0),
+                is_child_taskflow=Value(0),
+                pipeline_instance__is_started=True,
+                pipeline_instance__isnull=False,
+            ).aggregate(max_id=Max("id"))["max_id"]
+            data["last_execution_id"] = last_task_id
+        else:
+            data["last_execution_id"] = None
 
         return Response({"result": True, "data": data, "message": "success"})

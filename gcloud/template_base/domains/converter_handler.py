@@ -31,9 +31,16 @@ class YamlSchemaConverterHandler:
         """从原始数据字段转换成Yaml数据字段"""
         return self.converter.convert(data)
 
-    def reconvert(self, yaml_docs: list):
-        """从Yaml数据字段转换成原始数据字段"""
-        return self.converter.reconvert(yaml_docs)
+    def reconvert(self, yaml_docs: list, template_model_cls=None, project_id=None):
+        """从Yaml数据字段转换成原始数据字段
+
+        :param yaml_docs: YAML document list
+        :param template_model_cls: template model class, used to fetch external subprocess constants from DB.
+            When provided, SubProcess nodes referencing templates not defined in the YAML will be looked up
+            in the database. When None (default), all SubProcess template_ids must exist in the YAML.
+        :param project_id: project ID used to restrict subprocess lookup to the same project (security check).
+        """
+        return self.converter.reconvert(yaml_docs, template_model_cls=template_model_cls, project_id=project_id)
 
     @staticmethod
     def load_yaml_docs(stream: Any):

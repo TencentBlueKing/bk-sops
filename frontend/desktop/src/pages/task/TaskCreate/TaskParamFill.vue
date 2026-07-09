@@ -60,6 +60,14 @@
                     <span>
                         {{ $t('参数信息') }}
                     </span>
+                    <bk-button
+                        v-if="isHaveLastTimeExecuteParams"
+                        :text="true"
+                        title="primary"
+                        class="reuse-btn"
+                        @click="handleUseLastParams">
+                        {{ $t('使用上一次参数') }}
+                    </bk-button>
                     <span v-if="reuseTaskId" class="reuse-tip">
                         <bk-popover placement="top-start" theme="light" width="350" :ext-cls="'reuse-rule-tip'">
                             <i class="bk-icon icon-question-circle"></i>
@@ -118,6 +126,7 @@
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
     import ParameterInfo from '@/pages/task/ParameterInfo.vue'
+    import axios from 'axios'
 
     export default {
         name: 'TaskParamFill',
@@ -165,6 +174,7 @@
                 paramsLoading: false,
                 nextBtnDisable: false,
                 disabledButton: true,
+                isHaveLastTimeExecuteParams: false,
                 tplActions: [],
                 pickerOptions: {
                     disabledDate (date) {
@@ -251,7 +261,8 @@
             ...mapActions('task/', [
                 'getSchemeDetail',
                 'loadPreviewNodeData',
-                'createTask'
+                'createTask',
+                'getLastExecutionConstants'
             ]),
             ...mapMutations([
                 'setMsgInstance'
@@ -333,6 +344,7 @@
                         version: templateData.version
                     }
                     const previewData = await this.loadPreviewNodeData(params)
+                    this.isHaveLastTimeExecuteParams = !!previewData.data.last_execution_id
                     if ('result' in previewData && !previewData.result) {
                         this.nextBtnDisable = true
                         return
@@ -385,7 +397,7 @@
                 }
                 this.$router.push(url)
             },
-            onCreateTask () {
+            async onCreateTask () {
                 let hasNextPermission = false
                 if (this.common) {
                     if (this.commonTplCreateTaskPermLoading) {
@@ -440,9 +452,11 @@
                 if (this.isSubmit) {
                     return false
                 }
-                // 页面中是否有 TaskParamEdit 组件
-                const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
-                this.$validator.validateAll().then(async (result) => {
+                this.isSubmit = true
+                try {
+                    // 页面中是否有 TaskParamEdit 组件
+                    const paramEditComp = this.$refs.ParameterInfo.getTaskParamEdit()
+                    const result = await this.$validator.validateAll()
                     let formValid = true
                     const pipelineData = tools.deepClone(this.pipelineData)
                     // 取最新参数
@@ -464,6 +478,7 @@
                     if (!result) {
                         const $basicInfo = document.querySelector('.task-basic-info')
                         $basicInfo.scrollIntoView()
+                        this.isSubmit = false
                         return
                     }
 
@@ -481,10 +496,10 @@
                         if ($tipInView) {
                             $tipInView.scrollIntoView()
                         }
+                        this.isSubmit = false
                         return
                     }
 
-                    this.isSubmit = true
                     let flowType
                     if ((this.$route.name === 'functionTemplateStep' && this.entrance === 'function')
                         || this.isSelectFunctionalType) {
@@ -502,96 +517,98 @@
                         'flowType': flowType,
                         'common': this.common
                     }
-                    try {
-                        const taskData = await this.createTask(data)
-                        if (this.isSelectFunctionalType) {
-                            const h = this.$createElement
-                            const self = this
-                            const functionClaimMsg = this.$bkMessage({
-                                extCls: 'func-claim-message',
-                                message: h('div', {
-                                    style: { display: 'flex' }
+                    const taskData = await this.createTask(data)
+                    if (this.isSelectFunctionalType) {
+                        const h = this.$createElement
+                        const self = this
+                        const functionClaimMsg = this.$bkMessage({
+                            extCls: 'func-claim-message',
+                            message: h('div', {
+                                style: { display: 'flex' }
+                            }, [
+                                h('span', {
+                                    style: {
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                        textOverflow: 'ellipsis'
+                                    }
                                 }, [
+                                    this.$t('任务提交成功，请'),
                                     h('span', {
                                         style: {
-                                            overflow: 'hidden',
-                                            whiteSpace: 'nowrap',
-                                            textOverflow: 'ellipsis'
-                                        }
-                                    }, [
-                                        this.$t('任务提交成功，请'),
-                                        h('span', {
-                                            style: {
-                                                flexShrink: 0,
-                                                margin: '0 5px',
-                                                color: '#3a84ff',
-                                                cursor: 'pointer'
-                                            },
-                                            on: {
-                                                click: function () {
-                                                    self.cloneClaimLink(taskData.id)
-                                                }
+                                            flexShrink: 0,
+                                            margin: '0 5px',
+                                            color: '#3a84ff',
+                                            cursor: 'pointer'
+                                        },
+                                        on: {
+                                            click: function () {
+                                                self.cloneClaimLink(taskData.id)
                                             }
-                                        }, this.$t('tips_复制链接')),
-                                        this.$t('通知职能化成员')
-                                    ])
-                                ]),
-                                theme: 'success',
-                                delay: 0
-                            })
-                            this.setMsgInstance(functionClaimMsg)
-                        }
-                        let url = {}
-                        if (this.viewMode === 'appmaker') {
-                            const { template_id } = this.$route.query
-                            if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
-                                url = {
-                                    name: 'appmakerTaskHome',
-                                    params: { app_id: this.app_id, project_id: this.project_id },
-                                    query: { template_id }
-                                }
-                            } else {
-                                url = {
-                                    name: 'appmakerTaskExecute',
-                                    params: { app_id: this.app_id, project_id: this.project_id },
-                                    query: { instance_id: taskData.id, template_id }
-                                }
-                            }
-                            if (this.isCustomizeType) {
-                                url.params.is_now = true
-                            }
-                        } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                                        }
+                                    }, this.$t('tips_复制链接')),
+                                    this.$t('通知职能化成员')
+                                ])
+                            ]),
+                            theme: 'success',
+                            delay: 0
+                        })
+                        this.setMsgInstance(functionClaimMsg)
+                    }
+                    let url = {}
+                    if (this.viewMode === 'appmaker') {
+                        const { template_id } = this.$route.query
+                        if (this.isSelectFunctionalType) { // 轻应用创建职能化任务
                             url = {
-                                name: 'functionTaskExecute',
-                                params: { project_id: this.project_id },
-                                query: { instance_id: taskData.id, common: this.common }
+                                name: 'appmakerTaskHome',
+                                params: { app_id: this.app_id, project_id: this.project_id },
+                                query: { template_id }
                             }
                         } else {
                             url = {
-                                name: 'taskExecute',
-                                params: { project_id: this.project_id },
-                                query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
+                                name: 'appmakerTaskExecute',
+                                params: { app_id: this.app_id, project_id: this.project_id },
+                                query: { instance_id: taskData.id, template_id }
                             }
                         }
-                        this.$router.push(url)
-                        // 如果被嵌入了，则像父页面发送事件
-                        if (this.hideHeader) {
-                            window.parent.postMessage({
-                                eventName: 'createTaskEvent',
-                                data: {
-                                    cc_id: this.bizId,
-                                    project_id: this.project_id,
-                                    task_id: taskData.id,
-                                    task_name: taskData.name
-                                }
-                            }, '*')
+                        if (this.isCustomizeType) {
+                            url.params.is_now = true
                         }
-                    } catch (e) {
-                        console.log(e)
-                    } finally {
-                        this.isSubmit = false
+                    } else if (this.$route.name === 'functionTemplateStep' && this.entrance === 'function') { // 职能化创建任务
+                        url = {
+                            name: 'functionTaskExecute',
+                            params: { project_id: this.project_id },
+                            query: { instance_id: taskData.id, common: this.common }
+                        }
+                    } else {
+                        url = {
+                            name: 'taskExecute',
+                            params: { project_id: this.project_id },
+                            query: { instance_id: taskData.id, common: this.common, from: 'create' } // 公共流程创建职能化任务
+                        }
                     }
-                })
+                    // 如果被嵌入了，则向父页面发送事件
+                    if (this.hideHeader) {
+                        window.parent.postMessage({
+                            eventName: 'createTaskEvent',
+                            data: {
+                                cc_id: this.bizId,
+                                project_id: this.project_id,
+                                task_id: taskData.id,
+                                task_name: taskData.name
+                            }
+                        }, '*')
+                    }
+                    this.$router.push(url).then(() => {
+                        this.isSubmit = false
+                    }).catch(err => {
+                        console.log(err)
+                        this.isSubmit = false
+                    })
+                } catch (e) {
+                    console.log(e)
+                    this.isSubmit = false
+                }
             },
             cloneClaimLink (instanceId) {
                 this.msgInstance.close()
@@ -619,9 +636,89 @@
             },
             paramsLoadingChange (val) {
                 this.paramsLoading = val
+            },
+            /**
+             * 使用上一次参数
+             */
+            async handleUseLastParams () {
+                await this.$bkInfo({
+                    title: this.$t('确认使用上一次参数？'),
+                    subTitle: this.$t('将会使用该流程上一次执行的参数值填充表单'),
+                    confirmFn: async () => {
+                        this.taskMessageLoading = true
+                        try {
+                            const template_source = this.common ? 'common' : 'project'
+                            const response = await this.getLastExecutionConstants({
+                                project_id: this.project_id,
+                                template_id: this.template_id,
+                                template_source
+                            })
+                            if (response.result) {
+                                const lastConstants = response.data.constants
+                                for (const key of Object.keys(this.pipelineData.constants)) {
+                                    const lastConstant = lastConstants[key]
+                                    if (lastConstant) {
+                                        const currentConstant = this.pipelineData.constants[key]
+                                        if (lastConstant.custom_type === currentConstant.custom_type) {
+                                            if (['text_value_select', 'select'].includes(lastConstant.custom_type)) { // 下拉框不限制value结构是否匹配
+                                                let items = []
+                                                try {
+                                                    if (currentConstant.value.datasource === '0') {
+                                                        items = JSON.parse(currentConstant.value.items_text) || []
+                                                    } else {
+                                                        const proxyUrl = window.SITE_URL + 'pipeline/variable_select_source_data_proxy/?url=' + encodeURIComponent(currentConstant.value.items_text)
+                                                        const resp = await axios.get(proxyUrl)
+                                                        items = resp.data || []
+                                                    }
+                                                } catch (e) {
+                                                    console.warn(e)
+                                                    items = []
+                                                }
+                                                if (items.length > 0) {
+                                                    const isMultiSelect = currentConstant.value.type === '1'
+                                                    const lastVal = lastConstant.value
+                                                    // 判断上一次的值是否在当前选项列表中
+                                                    const isInOptions = isMultiSelect && Array.isArray(lastVal)
+                                                        ? lastVal.every(v => items.some(item => item.value === v))
+                                                        : items.some(item => item.value === lastVal)
+                                                    if (isInOptions) {
+                                                        // select 组件的 default 字段要求：单选为字符串，多选为逗号分隔字符串
+                                                        this.pipelineData.constants[key].value.default = isMultiSelect && Array.isArray(lastVal)
+                                                            ? lastVal.join(',')
+                                                            : lastVal
+                                                    }
+                                                }
+                                            } else {
+                                                if (Object.prototype.toString.call(currentConstant.value) === '[object Object]') {
+                                                    // 对象类型：检查当前值的所有 key 是否都存在于上一次执行的值中
+                                                    const match = Object.keys(currentConstant.value).every(k => k in lastConstant.value)
+                                                    if (match) {
+                                                        // 结构匹配，可以安全替换
+                                                        this.pipelineData.constants[key].value = lastConstant.value
+                                                    }
+                                                } else {
+                                                    this.pipelineData.constants[key].value = lastConstant.value
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                this.$bkMessage({
+                                    message: this.$t('参数加载成功'),
+                                    theme: 'success'
+                                })
+                            }
+                        } catch (error) {
+                            console.error(error)
+                        } finally {
+                            this.taskMessageLoading = false
+                        }
+                    }
+                })
             }
         }
     }
+
 </script>
 <style lang="scss" scoped>
 @import "@/scss/config.scss";
@@ -652,6 +749,14 @@
         color: #313238;
         border-bottom: 1px solid #cacedb;
         margin-bottom: 16px;
+        .reuse-btn{
+            font-size: 12px;
+            font-weight: normal;
+            margin-left: 10px;
+            cursor: pointer;
+            line-height: 32px;
+            height: 32px;
+        }
         .reuse-tip {
             color: #3a84ff;
             font-size: 12px;

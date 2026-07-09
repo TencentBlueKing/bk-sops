@@ -13,14 +13,15 @@ specific language governing permissions and limitations under the License.
 
 from copy import deepcopy
 
-from django.test import TestCase, Client
-
+from django.db.models import Value
+from django.test import Client, TestCase
 from pipeline.utils.uniqid import node_uniqid
 
+from gcloud import err_code
+from gcloud.taskflow3.apis.django import api
+from gcloud.tasktmpl3.apis.django import api as tasktmpl_api
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud.taskflow3.apis.django import api
-
 
 TEST_PROJECT_ID = "2"  # do not change this to non number
 TEST_ID_LIST = [node_uniqid() for i in range(10)]
@@ -116,7 +117,15 @@ class APITest(TestCase):
         self.PREVIEW_TASK_TREE_URL = "/taskflow/api/preview_task_tree/{biz_cc_id}/"
         self.client = Client()
 
+    def assert_last_execution_boolean_filters(self, mock_filter):
+        filter_kwargs = mock_filter.call_args[1]
+        self.assertIsInstance(filter_kwargs["is_deleted"], Value)
+        self.assertIsInstance(filter_kwargs["is_child_taskflow"], Value)
+        self.assertEqual(filter_kwargs["is_deleted"].value, 0)
+        self.assertEqual(filter_kwargs["is_child_taskflow"].value, 0)
+
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
     @mock.patch(
         "gcloud.iam_auth.view_interceptors.taskflow.res_factory.resources_for_flow",
         MagicMock(return_value=[]),
@@ -129,7 +138,8 @@ class APITest(TestCase):
         "gcloud.iam_auth.view_interceptors.taskflow.allow_or_raise_auth_failed",
         MagicMock(return_value=None),
     )
-    def test_preview_task_tree__constants_not_referred(self):
+    def test_preview_task_tree__constants_not_referred(self, mock_filter):
+        mock_filter.return_value.aggregate.return_value = {"max_id": None}
 
         with mock.patch(
             TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
@@ -184,3 +194,222 @@ class APITest(TestCase):
             self.assertEqual(
                 list(result["data"]["constants_not_referred"].keys()), ["${custom_key1}", "${custom_key2}"]
             )
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_preview_task_tree__last_execution_id_exists(self, mock_filter):
+        mock_filter.return_value.aggregate.return_value = {"max_id": 999}
+
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
+            data = {
+                "template_source": "project",
+                "template_id": "1",
+                "version": "test_version",
+                "exclude_task_nodes_id": [],
+            }
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertEqual(result["data"]["last_execution_id"], 999)
+            mock_filter.return_value.aggregate.assert_called_once()
+            self.assert_last_execution_boolean_filters(mock_filter)
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_preview_task_tree__last_execution_id_none(self, mock_filter):
+        mock_filter.return_value.aggregate.return_value = {"max_id": None}
+
+        with mock.patch(
+            TASKTEMPLATE_GET, MagicMock(return_value=MockBaseTemplate(id=1, pipeline_tree=deepcopy(TEST_PIPELINE_TREE)))
+        ):
+            data = {
+                "template_source": "project",
+                "template_id": "1",
+                "version": "test_version",
+                "exclude_task_nodes_id": [],
+            }
+            result = api.preview_task_tree(MockJsonBodyRequest("POST", data), TEST_PROJECT_ID)
+            self.assertTrue(result["result"])
+            self.assertIsNone(result["data"]["last_execution_id"])
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.select_related")
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_last_execution_constants__success(self, mock_filter, mock_select_related):
+        mock_pipeline_instance = MagicMock()
+        mock_pipeline_instance.execution_data = {
+            "constants": {
+                "${ip}": {
+                    "key": "${ip}",
+                    "name": "目标IP",
+                    "value": "10.0.0.1",
+                    "custom_type": "input",
+                    "source_type": "custom",
+                    "show_type": "show",
+                },
+                "${hidden_var}": {
+                    "key": "${hidden_var}",
+                    "name": "隐藏变量",
+                    "value": "secret",
+                    "custom_type": "input",
+                    "source_type": "custom",
+                    "show_type": "hide",
+                },
+            }
+        }
+        mock_pipeline_instance.name = "测试任务"
+        mock_pipeline_instance.executor = "admin"
+        mock_pipeline_instance.create_time.strftime.return_value = "2026-03-20 10:30:00"
+
+        mock_task = MagicMock()
+        mock_task.id = 123
+        mock_task.pipeline_instance = mock_pipeline_instance
+
+        mock_filter.return_value.aggregate.return_value = {"max_id": 123}
+        mock_select_related.return_value.get.return_value = mock_task
+
+        request = MockJsonBodyRequest("GET", {})
+        request.GET = {"template_id": "1", "template_source": "project"}
+        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+
+        self.assertTrue(result["result"])
+        self.assertEqual(result["data"]["task_id"], 123)
+        self.assertEqual(result["data"]["task_name"], "测试任务")
+        self.assertEqual(result["data"]["executor"], "admin")
+        self.assertIn("${ip}", result["data"]["constants"])
+        self.assertNotIn("${hidden_var}", result["data"]["constants"])
+        returned_ip = result["data"]["constants"]["${ip}"]
+        self.assertEqual(returned_ip["value"], "10.0.0.1")
+        self.assertEqual(returned_ip["name"], "目标IP")
+        self.assertEqual(returned_ip["custom_type"], "input")
+        mock_filter.return_value.aggregate.assert_called_once()
+        self.assert_last_execution_boolean_filters(mock_filter)
+        mock_select_related.assert_called_once_with("pipeline_instance")
+        mock_select_related.return_value.get.assert_called_once_with(id=123)
+
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    def test_last_execution_constants__no_history(self, mock_filter):
+        mock_filter.return_value.aggregate.return_value = {"max_id": None}
+
+        request = MockJsonBodyRequest("GET", {})
+        request.GET = {"template_id": "1", "template_source": "project"}
+        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+
+        self.assertFalse(result["result"])
+
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.layout_pipeline_tree")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.ProjectConfig.objects.filter")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.TaskTemplate.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.Project.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.AgentBeautifyTemplateLayoutInterceptor.process")
+    def test_ai_beautify_layout__feature_enabled(
+        self,
+        mock_interceptor_process,
+        mock_project_get,
+        mock_template_get,
+        mock_project_config_filter,
+        mock_layout_pipeline_tree,
+    ):
+        mock_project_get.return_value = MagicMock()
+        mock_template_get.return_value = MockBaseTemplate(
+            id=1,
+            pipeline_tree={"location": [{"id": "n1", "x": 1, "y": 2}], "line": [{"id": "l1"}]},
+        )
+        mock_project_config_filter.return_value.first.return_value = MagicMock(
+            custom_display_configs={"enable_ai_layout": True}
+        )
+
+        request = MockRequest(
+            "GET",
+            {
+                "project_id": TEST_PROJECT_ID,
+                "template_id": "1",
+                "canvas_width": "1200",
+            },
+        )
+        result = tasktmpl_api.ai_beautify_sops_template_layout(request)
+
+        self.assertTrue(result["result"])
+        self.assertEqual(result["code"], err_code.SUCCESS.code)
+        mock_layout_pipeline_tree.assert_called_once()
+
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.layout_pipeline_tree")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.ProjectConfig.objects.filter")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.TaskTemplate.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.Project.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.AgentBeautifyTemplateLayoutInterceptor.process")
+    def test_ai_beautify_layout__feature_disabled(
+        self,
+        mock_interceptor_process,
+        mock_project_get,
+        mock_template_get,
+        mock_project_config_filter,
+        mock_layout_pipeline_tree,
+    ):
+        mock_project_get.return_value = MagicMock()
+        mock_template_get.return_value = MockBaseTemplate(id=1, pipeline_tree={"location": [], "line": []})
+        mock_project_config_filter.return_value.first.return_value = MagicMock(
+            custom_display_configs={"enable_ai_layout": False}
+        )
+
+        request = MockRequest(
+            "GET",
+            {
+                "project_id": TEST_PROJECT_ID,
+                "template_id": "1",
+                "canvas_width": "1200",
+            },
+        )
+        result = tasktmpl_api.ai_beautify_sops_template_layout(request)
+
+        self.assertFalse(result["result"])
+        self.assertEqual(result["message"], "该项目未开启 AI 排版功能")
+        self.assertEqual(result["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        mock_layout_pipeline_tree.assert_not_called()
+
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.layout_pipeline_tree")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.ProjectConfig.objects.filter")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.TaskTemplate.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.Project.objects.get")
+    @mock.patch("gcloud.tasktmpl3.apis.django.api.AgentBeautifyTemplateLayoutInterceptor.process")
+    def test_ai_beautify_layout__feature_missing_key(
+        self,
+        mock_interceptor_process,
+        mock_project_get,
+        mock_template_get,
+        mock_project_config_filter,
+        mock_layout_pipeline_tree,
+    ):
+        mock_project_get.return_value = MagicMock()
+        mock_template_get.return_value = MockBaseTemplate(id=1, pipeline_tree={"location": [], "line": []})
+        mock_project_config_filter.return_value.first.return_value = MagicMock(custom_display_configs={})
+
+        request = MockRequest(
+            "GET",
+            {
+                "project_id": TEST_PROJECT_ID,
+                "template_id": "1",
+                "canvas_width": "1200",
+            },
+        )
+        result = tasktmpl_api.ai_beautify_sops_template_layout(request)
+
+        self.assertFalse(result["result"])
+        self.assertEqual(result["message"], "该项目未开启 AI 排版功能")
+        self.assertEqual(result["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        mock_layout_pipeline_tree.assert_not_called()
+
+    @mock.patch("gcloud.utils.decorators.JsonResponse", MockJsonResponse())
+    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    def test_last_execution_constants__invalid_template_source(self):
+        request = MockJsonBodyRequest("GET", {})
+        request.GET = {"template_id": "1", "template_source": "onetime"}
+        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+
+        self.assertFalse(result["result"])
+        self.assertIn("template_source", result["message"])

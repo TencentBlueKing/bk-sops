@@ -11,9 +11,9 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import env
 import ujson as json
 
+import env
 from api.client import BKComponentClient
 
 
@@ -34,10 +34,10 @@ class BKNodemgrClient(BKComponentClient):
     def _pre_process_headers(self, headers):
         """使用 X-Bkapi-Authorization header 传递认证信息，而非注入 body
 
-        BKComponentClient._request 会使用 _pre_process_headers 的返回值，
-        因此既可以原地修改 headers，也可以返回新的 dict。
+        注意：BKComponentClient._request 调用 _pre_process_headers 时不接收返回值，
+        所以必须 in-place 修改 headers，不能创建新 dict。
         """
-        # in-place 设置必要 header
+        # in-place 设置必要 header（不能创建新 dict，否则 _request 中会丢失）
         if "Content-Type" not in headers:
             headers["Content-Type"] = "application/json"
         headers["blueking-language"] = self.language
@@ -131,7 +131,7 @@ class BKNodemgrClient(BKComponentClient):
             data={
                 "generation": 2,
                 "exact_include_conditions": {"enabled": [True]},
-                "distinct_field": {"os_type": True}
+                "distinct_field": {"os_type": True},
             },
         )
 
@@ -245,7 +245,7 @@ class BKNodemgrClient(BKComponentClient):
                 "exact_include_conditions": {
                     "group": group,
                     "visible_biz_ids": biz_id,
-                }
+                },
             },
         )
 

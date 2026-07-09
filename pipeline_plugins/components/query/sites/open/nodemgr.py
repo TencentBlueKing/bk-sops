@@ -13,12 +13,12 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import env
 import ujson as json
 from django.http import JsonResponse
 from django.urls import re_path
 from django.utils.translation import gettext_lazy as _
 
+import env
 from api.collections.nodemgr import BKNodemgrClient
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
@@ -26,18 +26,9 @@ from gcloud.utils.handlers import handle_api_error
 logger = logging.getLogger("root")
 
 NODEMGR_DEFAULT_LOGIN_INFO = {
-    "linux": {
-        "user": "root",
-        "port": 22
-    },
-    "windows": {
-        "user": "Administrator",
-        "port": 445
-    },
-    "darwin": {
-        "user": "root",
-        "port": 22
-    }
+    "linux": {"user": "root", "port": 22},
+    "windows": {"user": "Administrator", "port": 445},
+    "darwin": {"user": "root", "port": 22},
 }
 
 
@@ -65,10 +56,16 @@ def nodemgr_get_networkarea(request):
             return JsonResponse({"result": False, "code": response.get("code", -1), "message": message})
 
         items = response["data"]["items"]
-        result.extend([{
-            "text": f"[{item['bk_networkarea_id']}] {item['bk_networkarea_name']}",
-            "value": item["bk_networkarea_id"],
-            "id": item["bk_networkarea_id"]} for item in items])
+        result.extend(
+            [
+                {
+                    "text": f"[{item['bk_networkarea_id']}] {item['bk_networkarea_name']}",
+                    "value": item["bk_networkarea_id"],
+                    "id": item["bk_networkarea_id"],
+                }
+                for item in items
+            ]
+        )
 
         if len(items) < limit:
             break
@@ -96,10 +93,16 @@ def nodemgr_get_networkunit(request, networkarea_id: int):
             return JsonResponse({"result": False, "code": response.get("code", -1), "message": message})
 
         items = response["data"]["items"]
-        result.extend([{
-            "text": f"[{item['bk_networkunit_id']}] {item['bk_networkunit_name']}",
-            "value": item["bk_networkunit_id"],
-            "id": item["bk_networkunit_id"]} for item in items])
+        result.extend(
+            [
+                {
+                    "text": f"[{item['bk_networkunit_id']}] {item['bk_networkunit_name']}",
+                    "value": item["bk_networkunit_id"],
+                    "id": item["bk_networkunit_id"],
+                }
+                for item in items
+            ]
+        )
 
         if len(items) < limit:
             break
@@ -173,11 +176,13 @@ def nodemgr_get_plugin(request, biz_id: int):
 
         items = response["data"]["items"]
         for item in items:
-            result.append({
-                "text": item["name"],
-                "value": item["name"],
-                "data": item,
-            })
+            result.append(
+                {
+                    "text": item["name"],
+                    "value": item["name"],
+                    "data": item,
+                }
+            )
 
         if len(items) < limit:
             break
