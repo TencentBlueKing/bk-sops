@@ -23,7 +23,10 @@
                     @input="handleInputChange"
                     @blur="handleBlur">
                 </el-input>
-                <div v-else class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
+                <div
+                    v-else
+                    class="rf-form-wrap"
+                    :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
                     <div
                         ref="input"
                         class="div-input"
@@ -32,6 +35,12 @@
                         }"
                         :contenteditable="!isDisabled"
                         :data-placeholder="placeholder"
+                        v-bk-overflow-tips="{
+                            content: overflowTipContent,
+                            placement: 'top',
+                            maxWidth: 550,
+                            delay: 0,
+                            allowHTML: true }"
                         data-test-name="formTag_input_divInput"
                         v-bk-clickoutside="handleClickOutSide"
                         @mouseup="handleInputMouseUp"
@@ -59,7 +68,15 @@
                     </div>
                 </transition>
             </template>
-            <span v-else class="rf-view-value">{{ viewValue }}</span>
+            <span v-else class="rf-view-value"
+                v-bk-overflow-tips="{
+                    content: overflowTipContent,
+                    placement: 'top',
+                    maxWidth: 550,
+                    delay: 0,
+                    allowHTML: true }">
+                {{ viewValue }}
+            </span>
         </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{ validateInfo.message }}</span>
     </div>
@@ -154,6 +171,12 @@
             },
             isDisabled () {
                 return !this.editable || this.disabled
+            },
+            // v-bk-overflow-tips的content，转义后包一层span以便应用断行样式
+            overflowTipContent () {
+                const text = this.input.value == null ? '' : String(this.input.value)
+                const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                return `<span class="input-focus-tips-content">${escaped}</span>`
             }
         },
         watch: {
@@ -642,8 +665,11 @@
         color: #63656e;
         white-space: pre;
         overflow: hidden;
-        overflow-x: scroll;
+        overflow-x: auto;
         scrollbar-width: none;
+        &::-webkit-scrollbar {
+            display: none;
+        }
         ::v-deep .var-tag {
             margin-right: 1px;
             padding: 0px 4px;
@@ -664,6 +690,16 @@
             text-overflow: ellipsis;
             overflow: hidden;
         }
+    }
+    .rf-view-value {
+        display: inline-block;
+        max-width: 100%;
+        line-height: 32px;
+        padding: 0 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        vertical-align: middle;
     }
 }
 </style>
