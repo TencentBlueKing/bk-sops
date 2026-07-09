@@ -59,7 +59,7 @@
             handleCopy () {
                 try {
                     const copyData = {
-                        isAllScope: this.scopeData.projectIds.length === this.allProjectIds.length || this.scopeData.isAllScope,
+                        isAllScope: this.scopeData.isAllScope || false,
                         projectIds: this.scopeData.projectIds.slice(),
                         timestamp: Date.now()
                     }
@@ -114,7 +114,7 @@
                 
                     // 构造粘贴结果
                     const pasteResult = {
-                        isAllScope: pasteData.isAllScope && validProjectIds.length === this.allProjectIds.length,
+                        isAllScope: pasteData.isAllScope || false,
                         projectIds: validProjectIds.map(id => Number(id)),
                         originalData: pasteData,
                         filteredCount: pasteData.projectIds.length - validProjectIds.length

@@ -13,18 +13,20 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
+import django_filters
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
 from django.utils.translation import gettext_lazy as _
 from pipeline.exceptions import PipelineException
 from rest_framework import permissions, status
+from rest_framework.decorators import action
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
+from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
 from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.exceptions import ValidationException
@@ -69,6 +71,9 @@ class PeriodicTaskPermission(IamPermission):
         "destroy": IamPermissionInfo(
             IAMMeta.PERIODIC_TASK_DELETE_ACTION, res_factory.resources_for_periodic_task_obj, HAS_OBJECT_PERMISSION
         ),
+        "list_with_top_collection": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
     }
 
     def has_permission(self, request, view):
@@ -92,6 +97,8 @@ class PeriodicTaskPermission(IamPermission):
 
 
 class PeriodicTaskFilter(AllLookupSupportFilterSet):
+    template_expired = django_filters.BooleanFilter(method="filter_template_expired")
+
     class Meta:
         model = PeriodicTask
         fields = {
@@ -105,6 +112,38 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
             "create_time": ["gte", "lte"],
             "edit_time": ["gte", "lte"],
         }
+
+    def filter_template_expired(self, queryset, name, value):
+        """
+        自定义过滤逻辑：筛选 template_expired 属性
+        按 template_source 分组批量查询模板版本，避免 N+1 查询
+        """
+        tasks = list(queryset.only("id", "template_id", "template_version", "template_source"))
+
+        project_tasks = [t for t in tasks if t.template_source in NON_COMMON_TEMPLATE_TYPES]
+        common_tasks = [t for t in tasks if t.template_source == COMMON]
+
+        # 批量获取模板 id->version 映射
+        version_map = {}
+        if project_tasks:
+            template_ids = list({int(t.template_id) for t in project_tasks})
+            for tmpl in TaskTemplate.objects.filter(id__in=template_ids):
+                version_map[tmpl.id] = tmpl.version
+        if common_tasks:
+            template_ids = list({int(t.template_id) for t in common_tasks})
+            for tmpl in CommonTemplate.objects.filter(id__in=template_ids):
+                version_map[tmpl.id] = tmpl.version
+
+        matching_ids = []
+        for task in tasks:
+            current_version = version_map.get(int(task.template_id))
+            if current_version is None or task.template_version is None:
+                continue
+            is_expired = task.template_version != current_version
+            if is_expired == value:
+                matching_ids.append(task.id)
+
+        return queryset.filter(id__in=matching_ids)
 
 
 class PeriodicTaskViewSet(GcloudModelViewSet):
@@ -123,7 +162,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
     permission_classes = [permissions.IsAuthenticated, PeriodicTaskPermission]
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ["list", "list_with_top_collection"]:
             return PeriodicTaskListReadOnlySerializer
         return PeriodicTaskReadOnlySerializer
 
@@ -312,3 +351,53 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
         )
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
+
+    @action(methods=["GET"], detail=False)
+    def list_with_top_collection(self, request, *args, **kwargs):
+        """带收藏置顶的周期任务列表"""
+        project_id = int(request.query_params.get("project__id", 0)) or None
+        if not project_id:
+            return Response({"detail": "project__id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        order_by = request.query_params.get("order_by") or "-id"
+        orderings = ("-is_collected", "-task__celery_task__enabled", order_by)
+
+        # 取出用户在当前项目的收藏id
+        collection_task_ids, collection_task_map = Collection.objects.get_user_project_collection_instance_info(
+            project_id=project_id, username=request.user.username, category="periodic_task"
+        )
+
+        queryset = (
+            self.filter_queryset(self.get_queryset())
+            .annotate(is_collected=ExpressionWrapper(Q(id__in=collection_task_ids), output_field=BooleanField()))
+            .order_by(*orderings)
+        )
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        # 注入权限
+        instances = self.injection_auth_actions(request, serializer.data, serializer.instance)
+        # 获取并注入对应流程查看权限
+        tmpl_data = {
+            PROJECT: [inst["template_id"] for inst in instances if inst["template_source"] == PROJECT],
+            COMMON: [inst["template_id"] for inst in instances if inst["template_source"] == COMMON],
+        }
+        template_view_actions = get_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], tmpl_data[PROJECT]
+        )
+        common_template_view_actions = get_common_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], tmpl_data[COMMON]
+        )
+        view_actions = {
+            PROJECT: template_view_actions,
+            COMMON: common_template_view_actions,
+        }
+        for inst in instances:
+            tmpl_id = str(inst["template_id"])
+            tmpl_source = inst["template_source"]
+            user_actions = view_actions.get(tmpl_source, {})
+            view_action = IAMMeta.FLOW_VIEW_ACTION if tmpl_source == PROJECT else IAMMeta.COMMON_FLOW_VIEW_ACTION
+            if tmpl_id in user_actions and user_actions[tmpl_id][view_action]:
+                inst["auth_actions"].append(view_action)
+            inst["is_collected"] = 1 if inst["id"] in collection_task_ids else 0
+            inst["collection_id"] = collection_task_map.get(inst["id"], -1)
+        return self.get_paginated_response(instances) if page is not None else Response(instances)

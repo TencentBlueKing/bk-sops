@@ -33,6 +33,7 @@ urlpatterns = [
     re_path(r"^api/nodes/get_job_instance_log/(?P<biz_cc_id>\d+)/$", api.get_job_instance_log),
     re_path(r"^api/nodes/spec/timer/reset/(?P<project_id>\d+)/$", api.spec_nodes_timer_reset),
     re_path(r"^api/preview_task_tree/(?P<project_id>\d+)/$", api.preview_task_tree),
+    re_path(r"^api/last_execution_constants/(?P<project_id>\d+)/$", api.last_execution_constants),
     re_path(r"^api/query_task_count/(?P<project_id>\d+)/$", api.query_task_count),
     re_path(r"^api/nodes/log/(?P<project_id>\d+)/(?P<node_id>\w+)/$", api.get_node_log),
     re_path(r"^api/get_task_create_method/$", api.get_task_create_method),

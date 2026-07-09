@@ -61,6 +61,7 @@ def create_template(request, project_id):
         return {"result": False, "message": "pipeline_tree is required", "code": err_code.REQUEST_PARAM_INVALID.code}
 
     input_format = params.get("format", "json")
+    project = request.project
     if input_format == "yaml":
         if not isinstance(pipeline_tree, str):
             return {
@@ -77,7 +78,9 @@ def create_template(request, project_id):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         try:
-            convert_result = converter_handler.reconvert(load_result["data"])
+            convert_result = converter_handler.reconvert(
+                load_result["data"], template_model_cls=TaskTemplate, project_id=project.id
+            )
         except Exception as e:
             logger.exception("[API] create_template reconvert yaml failed: %s", e)
             return {
@@ -100,10 +103,13 @@ def create_template(request, project_id):
                 "code": err_code.REQUEST_PARAM_INVALID.code,
             }
         if len(template_order) > 1:
-            logger.warning(
-                "[API] create_template: YAML contains %d templates, only the first will be imported",
-                len(template_order),
-            )
+            return {
+                "result": False,
+                "message": "create_template only supports creating a single template. "
+                "YAML contains {} templates. Please create subprocess templates first "
+                "and reference them by template_id.".format(len(template_order)),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
         first_template_id = template_order[0]
         first_template = templates[first_template_id]
         pipeline_tree = first_template["tree"]
@@ -130,7 +136,6 @@ def create_template(request, project_id):
         logger.warning("[API] create_template draw_pipeline failed: %s, skip auto layout", e)
 
     creator = request.user.username
-    project = request.project
     category = params.get("category", "Default")
     notify_type = params.get("notify_type", {"success": [], "fail": []})
     notify_receivers = params.get("notify_receivers", {"receiver_group": [], "more_receiver": ""})
@@ -166,9 +171,9 @@ def create_template(request, project_id):
                 pipeline_template_id=result["data"].template_id,
                 category=category,
                 notify_type=json.dumps(notify_type) if isinstance(notify_type, (dict, list)) else notify_type,
-                notify_receivers=json.dumps(notify_receivers)
-                if isinstance(notify_receivers, dict)
-                else notify_receivers,
+                notify_receivers=(
+                    json.dumps(notify_receivers) if isinstance(notify_receivers, dict) else notify_receivers
+                ),
                 time_out=time_out,
                 default_flow_type=default_flow_type,
                 executor_proxy=executor_proxy,

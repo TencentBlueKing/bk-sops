@@ -58,6 +58,9 @@
                     :template-labels="templateLabels"
                     :canvas-data="canvasData"
                     :node-variable-info="nodeVariableInfo"
+                    :ai-layout-enabled="aiLayoutEnabled"
+                    :ai-format-loading="aiFormatLoading"
+                    :ai-format-result="aiFormatResult"
                     @hook:mounted="canvasMounted"
                     @onConditionClick="onOpenConditionEdit"
                     @templateDataChanged="templateDataChanged"
@@ -65,6 +68,7 @@
                     @onLineChange="onLineChange"
                     @onLocationMoveDone="onLocationMoveDone"
                     @onFormatPosition="onFormatPosition"
+                    @onAIFormatPosition="onAIFormatPosition"
                     @onReplaceLineAndLocation="onReplaceLineAndLocation"
                     @onShowNodeConfig="onShowNodeConfig"
                     @onTogglePerspective="onTogglePerspective"
@@ -306,7 +310,11 @@
                 isParallelGwErrorMsg: '', // 缺少汇聚网关的报错信息
                 checkedNodes: [],
                 checkedConvergeNodes: [],
-                isolationAtomConfig: {} // 被隔离插件的基础配置
+                isolationAtomConfig: {}, // 被隔离插件的基础配置
+                aiLayoutEnabled: false, // AI排版功能开关
+                aiFormatLoading: false, // AI排版加载状态
+                aiFormatResult: '', // AI排版结果状态
+                isReplacingConnectors: false
             }
         },
         computed: {
@@ -320,6 +328,8 @@
                 'gateways': state => state.template.gateways,
                 'start_event': state => state.template.start_event,
                 'end_event': state => state.template.end_event,
+                'outputs': state => state.template.outputs,
+                'flows': state => state.template.flows,
                 'internalVariable': state => state.template.internalVariable,
                 'category': state => state.template.category,
                 'subprocess_info': state => state.template.subprocess_info,
@@ -493,6 +503,7 @@
                 'saveTemplateData',
                 'loadCustomVarCollection',
                 'getLayoutedPipeline',
+                'getAILayoutedPipeline',
                 'loadInternalVariable',
                 'getVariableCite',
                 'getProcessOpenRetryAndTimeout'
@@ -508,6 +519,7 @@
             ]),
             ...mapActions('project/', [
                 'getProjectLabelsWithDefault',
+                'getProjectConfig',
                 'loadEnvVariableList'
             ]),
             ...mapMutations('template/', [
@@ -527,6 +539,7 @@
                 'replaceTemplate',
                 'replaceLineAndLocation',
                 'setPipelineTree',
+                'setAiPipelineTree',
                 'setInternalVariable',
                 'setConstants',
                 'setProjectScope',
@@ -557,6 +570,7 @@
                 this.getSystemVars()
                 this.getSingleAtomList()
                 this.getProjectBaseInfo()
+                this.getAiLayoutEnabledConfig()
                 if (!this.common) {
                     this.getTemplateLabelList()
                 }
@@ -636,6 +650,27 @@
                     console.log(e)
                 } finally {
                     this.projectInfoLoading = false
+                }
+            },
+            /**
+             * 获取 AI 排版功能开关
+             */
+            async getAiLayoutEnabledConfig () {
+                if (!this.project_id) {
+                    this.aiLayoutEnabled = false
+                    return
+                }
+                try {
+                    const resp = await this.getProjectConfig(this.project_id)
+                    if (resp.result) {
+                        const customConfigs = resp.data.custom_display_configs || {}
+                        this.aiLayoutEnabled = !!customConfigs.enable_ai_layout
+                    } else {
+                        this.aiLayoutEnabled = false
+                    }
+                } catch (e) {
+                    this.aiLayoutEnabled = false
+                    console.log(e)
                 }
             },
             /**
@@ -1368,6 +1403,71 @@
                 }
             },
             /**
+             * AI自动排版
+             */
+            async onAIFormatPosition () {
+                window.reportInfo({
+                    page: 'templateEdit',
+                    zone: 'formatPositionIcon',
+                    event: 'click'
+                })
+                const validateMessage = validatePipeline.isNodeLineNumValid(this.canvasData)
+                if (!validateMessage.result) {
+                    if (validateMessage.errorId) {
+                        this.validateConnectFailList.push(...validateMessage.errorId)
+                    }
+                    this.$bkMessage({
+                        message: validateMessage.message,
+                        theme: 'error',
+                        ellipsisLine: 0,
+                        delay: 10000
+                    })
+                    return
+                }
+                if (this.aiFormatLoading || this.canvasDataLoading) {
+                    return
+                }
+                this.aiFormatLoading = true
+                this.aiFormatResult = ''
+                try {
+                    const canvasEl = document.getElementsByClassName('canvas-flow-wrap')[0]
+                    const width = canvasEl.offsetWidth - 200
+                    const res = await this.getAILayoutedPipeline({
+                        project_id: this.project_id,
+                        template_id: this.template_id,
+                        canvas_width: width
+                    })
+                    if (res.result) {
+                        // 创建快照
+                        this.onCreateSnapshoot('isAIFormatPosition')
+                        this.isReplacingConnectors = true
+                        this.$refs.templateCanvas.removeAllConnector()
+                        this.isReplacingConnectors = false
+                        this.setAiPipelineTree({
+                            location: res.data.location,
+                            line: res.data.line
+                        })
+                        this.aiFormatResult = 'success'
+                        this.$nextTick(() => {
+                            this.$refs.templateCanvas.updateCanvas()
+                            this.$refs.templateCanvas.onResetPosition()
+                            this.templateDataChanged()
+                            this.$bkMessage({
+                                message: i18n.t('AI排版完成,原内容在本地快照中'),
+                                theme: 'success'
+                            })
+                        })
+                    } else {
+                        this.aiFormatResult = 'fail'
+                    }
+                } catch (e) {
+                    console.log(e)
+                    this.aiFormatResult = 'fail'
+                } finally {
+                    this.aiFormatLoading = false
+                }
+            },
+            /**
              * 节点变更(添加、删除、编辑)
              * @param {String} changeType 变更类型,添加、删除、编辑
              * @param {Object} location 节点 location 字段
@@ -1507,6 +1607,7 @@
              * @param {Object} line 连线对象
              */
             onLineChange (changeType, line) {
+                if (this.isReplacingConnectors) return
                 this.setLine({ type: changeType, line })
                 // 对校验失败节点进行处理
                 if (!this.validateConnectFailList.length) return

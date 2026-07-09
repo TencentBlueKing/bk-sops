@@ -228,3 +228,16 @@ class ConstantPreviewInterceptor(ViewInterceptor):
         iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
         if not iam.is_allowed(iam_request):
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
+
+
+class AgentBeautifyTemplateLayoutInterceptor(ViewInterceptor):
+    def process(self, request, *args, **kwargs):
+        template_id = request.GET.get("template_id")
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.FLOW_VIEW_ACTION)
+
+        resources = res_factory.resources_for_flow(template_id)
+        iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
+
+        if not iam.is_allowed(iam_request):
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)

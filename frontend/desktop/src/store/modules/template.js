@@ -351,6 +351,14 @@ const template = {
                 state[key] = val
             })
         },
+        setAiPipelineTree (state, data) {
+            if (data.location) {
+                state.location = data.location
+            }
+            if (data.line) {
+                state.line = data.line
+            }
+        },
         // 更新模板各相关字段数据
         setTemplateData (state, data) {
             const {
@@ -740,8 +748,7 @@ const template = {
                         gatewayNode.outgoing = ''
                     }
                     // 删除默认网关分支连线时需要清除网关处理的default_condition
-                    const tag = `branch_${sourceNode}_${targetNode}`
-                    if (gatewayNode.default_condition && gatewayNode.default_condition.tag === tag) {
+                    if (gatewayNode.default_condition && gatewayNode.default_condition.flow_id === deletedLine.id) {
                         Vue.delete(gatewayNode, 'default_condition')
                     }
                 }
@@ -1107,6 +1114,10 @@ const template = {
         // 自动排版
         getLayoutedPipeline ({ commit }, data) {
             return axios.post('template/api/draw_pipeline/', data).then(response => response.data)
+        },
+        // AI 自动排版
+        getAILayoutedPipeline ({ commit }, data) {
+            return axios.get('template/api/ai_beautify_layout/', { params: data }).then(response => response.data)
         },
         // AI 生成流程
         generateProcessWithAgent ({ commit }, data) {

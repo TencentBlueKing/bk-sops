@@ -25,7 +25,7 @@
             </span>
         </div>
         <div class="header-right-area" slot="expand">
-            <div class="button-area" v-if="isEditProcessPage">
+            <div class="button-area button-tab-wrapper" v-if="isEditProcessPage">
                 <div class="setting-tab-wrap">
                     <template v-for="tab in settingTabs">
                         <span
@@ -550,6 +550,10 @@
             display: flex;
             align-items: center;
             height: 100%;
+            .button-tab-wrapper {
+                display: flex;
+                flex-wrap: nowrap;
+            }
         }
         .template-name {
             margin: 0 0 0 20px;

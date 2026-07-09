@@ -26,6 +26,17 @@ from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
 
 
+def _fetch_ordered_task_details_by_id_queryset(task_ids_queryset):
+    task_ids = list(task_ids_queryset)
+    if not task_ids:
+        return []
+
+    task_map = {
+        task.id: task for task in TaskFlowInstance.objects.select_related("pipeline_instance").filter(id__in=task_ids)
+    }
+    return [task_map[task_id] for task_id in task_ids]
+
+
 @login_exempt
 @require_GET
 @apigw_require
@@ -59,14 +70,15 @@ def get_task_list(request, project_id):
     if "create_time_end" in request.GET and params_validator.cleaned_data.get("create_time_end"):
         filter_kwargs["pipeline_instance__create_time__lte"] = params_validator.cleaned_data["create_time_end"]
 
-    tasks = TaskFlowInstance.objects.select_related("pipeline_instance").filter(**filter_kwargs)
+    tasks = TaskFlowInstance.objects.filter(**filter_kwargs)
 
     try:
         without_count = params_validator.cleaned_data["without_count"]
-        tasks, count = paginate_list_data(request, tasks, without_count)
+        task_ids_queryset, count = paginate_list_data(request, tasks.values_list("id", flat=True), without_count)
     except Exception as e:
         return {"result": False, "data": "", "message": e, "code": err_code.INVALID_OPERATION.code}
 
+    tasks = _fetch_ordered_task_details_by_id_queryset(task_ids_queryset)
     task_list, task_id_list = format_task_list_data(tasks, project, True, request.tz)
     # 注入用户有权限的action
 

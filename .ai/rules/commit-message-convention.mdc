@@ -1,0 +1,67 @@
+---
+description: 蓝鲸项目 Git commit message 规范，agent 提交 commit 时必须遵守
+alwaysApply: true
+---
+
+<!-- 仓库级入口: /AGENTS.md；当前主题规则正文维护在本文件 -->
+
+# 蓝鲸 Commit Message 规范
+
+## 格式
+
+```
+<type>: <subject>
+```
+
+关联 Issue/需求时：
+- GitHub Issue：`feat: xxx #6510`
+- TAPD 需求：`feat: xxx --story=873491451`
+- TAPD Bug：`fix: xxx --bug=123456`
+
+## Type 类型（必填）
+
+| Type | 含义 |
+|------|------|
+| feat | 新功能 |
+| fix | Bug 修复 |
+| docs | 仅文档变更 |
+| style | 不影响代码含义的格式修改 |
+| refactor | 既不修 bug 也不加功能的代码重构 |
+| perf | 性能优化 |
+| test | 添加或修正测试 |
+| chore | 构建流程或辅助工具的变更 |
+
+## TAPD 单据关联（必须）
+
+提交 commit 前，**必须**关联 TAPD 单据 ID：
+
+1. 如果用户已提供单据 ID，直接附加到 commit message：
+   - 需求：`feat: xxx --story=873491451`
+   - Bug：`fix: xxx --bug=123456`
+
+2. 如果用户**没有**提供单据 ID，必须：
+   - 使用 `tapd-workitem-sync` skill，在已有单据中搜索与本次变更相关的单据，列出候选项供用户确认
+   - 若无匹配单据，通过 `tapd-workitem-sync` skill 创建新单据，再与用户确认
+   - **不得**在没有 TAPD 单据 ID 的情况下直接提交 commit
+
+## API 文档变动时的附加步骤
+
+如果本次变更涉及 `docs/apidoc/` 下的文档修改，在提交 commit **之前**，必须先重新生成 `apigw-docs.tgz`：
+
+```bash
+# 在仓库根目录执行
+tmpdir=$(mktemp -d)
+mkdir -p "$tmpdir/zh" "$tmpdir/en"
+cp docs/zh_hans/apidoc/*.md "$tmpdir/zh/"
+cp docs/en/apidoc/*.md "$tmpdir/en/"
+tar -czf gcloud/apigw/docs/apigw-docs.tgz -C "$tmpdir" zh en
+rm -rf "$tmpdir"
+```
+
+生成完毕后再提交 commit，确保 tgz 包与文档保持同步。详细检查流程见 `api-change-checklist.mdc`。
+
+## 其他注意事项
+
+- type 仅限以上 8 种，commitlint + pre-commit 会校验
+- subject 使用中文描述，简明扼要
+- merge commit 自动忽略校验
