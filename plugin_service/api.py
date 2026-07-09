@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import copy
 import logging
 
 from django.conf import settings
@@ -19,6 +20,7 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from gcloud.utils import crypto
 from plugin_service import env
 from plugin_service.api_decorators import inject_plugin_client, validate_params
 from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME, PLUGIN_LOGGER
@@ -382,6 +384,15 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
         message = f"[get_plugin_api_data] error: {e}"
         logger.error(message)
         return JsonResponse({"message": message, "result": False, "data": None})
+
+    # 解密 request.data 中的密码字段
+    try:
+        data, sensitive_data = _decrypt_request_data(request.data, plugin_code)
+    except PluginServiceException as e:
+        message = f"[get_plugin_api_data] decrypt error: {e}"
+        logger.error(message)
+        return JsonResponse({"message": message, "result": False, "data": None})
+
     # 注入插件特定前缀HEADER
     http_headers = dict(
         [(key[5:].replace("_", "-"), value) for key, value in request.META.items() if key.startswith("HTTP_BK_PLUGIN_")]
@@ -390,7 +401,7 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
         "method": request.method,
         "url": "/" + data_api_path,
         "username": request.user.username,
-        "data": request.data,
+        "data": data,
     }
     # 对于get请求带参数的情况，直接将参数拼接到url中
     if request.query_params:
@@ -399,8 +410,67 @@ def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     token = request.COOKIES.get(env.APIGW_USER_AUTH_KEY_NAME)
     inject_authorization = {env.APIGW_USER_AUTH_KEY_NAME: token} if token else {}
     result = client.dispatch_plugin_api_request(
-        params, inject_headers=http_headers, inject_authorization=inject_authorization
+        params, inject_headers=http_headers, inject_authorization=inject_authorization, sensitive_data=sensitive_data
     )
     # 如果请求成功，只返回接口原始data数据
     result = result["data"] if result.get("result") else result
     return Response(result)
+
+
+def _decrypt_request_data(data, plugin_code: str):
+    """
+    解密请求数据中的密码字段，这个路由只会在用户输入的时候进行触发，这种密码变量设定只有顶层结构单独的密码变量才触发，嵌套的情况暂不处理
+
+    遍历 data 中的每个字段，检查是否为 password_value 类型，
+    如果是则尝试解密，解密失败则不处理只记录日志。
+
+    :param data: 请求数据，格式为 dict
+    :param plugin_code: 插件代码，用于日志记录
+    :return: 元组 (解密后的数据, 敏感数据掩码后的数据)
+    """
+    if not isinstance(data, dict):
+        return data, {}
+
+    # 先检测是否需要解密
+    need_password_handle = any(isinstance(v, dict) and v.get("type") == "password_value" for v in data.values())
+
+    if not need_password_handle:
+        return data, {}
+
+    # 创建数据的深拷贝，避免修改原始数据
+    decrypted_data = copy.deepcopy(data)
+    sensitive_data = copy.deepcopy(data)
+
+    for key, value in decrypted_data.items():
+        # 检查是否为密码结构体，暂不考虑深层嵌套情况
+        if isinstance(value, dict) and value.get("type") == "password_value":
+            cipher = value.get("value")
+            if not cipher or not isinstance(cipher, str):
+                logger.warning(
+                    "[_decrypt_request_data] plugin_code: %s, key: %s, password_value is empty or not a string",
+                    plugin_code,
+                    key,
+                )
+                continue
+
+            try:
+                plain = crypto.decrypt(cipher)
+                decrypted_data[key] = plain
+                sensitive_data[key] = "******"
+                logger.debug(
+                    "[_decrypt_request_data] plugin_code: %s, key: %s, decrypt success",
+                    plugin_code,
+                    key,
+                )
+            except Exception as e:
+                # 解密失败，抛出异常，由调用方处理
+                error_msg = f"decrypt password_value failed for key '{key}': {e}"
+                logger.error(
+                    "[_decrypt_request_data] plugin_code: %s, key: %s, decrypt failed: %s",
+                    plugin_code,
+                    key,
+                    e,
+                )
+                raise PluginServiceException(error_msg)
+
+    return decrypted_data, sensitive_data

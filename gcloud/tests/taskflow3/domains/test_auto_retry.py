@@ -10,13 +10,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.models import AutoRetryNodeStrategy
 
 
 class AutoRetryNodeStrategyCreatorTestCase(TestCase):
+    @override_settings(TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL=60)
     def test_batch_create_strategy(self):
         pipeline_tree = {
             "activities": {
@@ -30,7 +31,7 @@ class AutoRetryNodeStrategyCreatorTestCase(TestCase):
                             "a4": {"type": "ServiceActivity", "auto_retry": {"enable": True, "times": -1}},
                             "a5": {
                                 "type": "ServiceActivity",
-                                "auto_retry": {"enable": True, "times": 20, "interval": 30},
+                                "auto_retry": {"enable": True, "times": 20, "interval": 70},
                             },
                             "a6": {"type": "ServiceActivity"},
                         }
@@ -100,6 +101,19 @@ class AutoRetryNodeStrategyCreatorTestCase(TestCase):
                 "node_id": "a5",
                 "retry_times": 0,
                 "max_retry_times": 10,
-                "interval": 10,
+                "interval": 60,
             },
         )
+
+    @override_settings(TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL=20)
+    def test_batch_create_strategy_with_custom_max_interval(self):
+        pipeline_tree = {
+            "activities": {
+                "a1": {"type": "ServiceActivity", "auto_retry": {"enable": True, "times": 2, "interval": 30}},
+            }
+        }
+
+        AutoRetryNodeStrategyCreator(taskflow_id=1, root_pipeline_id="root").batch_create_strategy(pipeline_tree)
+
+        strategy = AutoRetryNodeStrategy.objects.get(node_id="a1")
+        self.assertEqual(strategy.interval, 20)

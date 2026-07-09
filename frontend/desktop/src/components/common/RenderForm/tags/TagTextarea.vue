@@ -108,8 +108,8 @@
             constantArr: {
                 get () {
                     let KeyList = []
-                    if (this.constants) {
-                        KeyList = [...Object.values(this.constants)]
+                    if (this.associationConstants) {
+                        KeyList = [...Object.values(this.associationConstants)]
                     }
                     if (this.internalVariable) {
                         KeyList = [...KeyList, ...Object.values(this.internalVariable)]
@@ -545,6 +545,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 .tag-textarea {
     text-align: left;
+    position: relative;
     .rf-form-wrapper {
         position: relative;
         .rf-select-list {
@@ -593,6 +594,7 @@
         }
     }
     .rf-form-wrap {
+        position: relative;
         padding: 5px 10px;
         border: 1px solid #c4c6cc;
         border-radius: 2px;
@@ -619,6 +621,7 @@
         max-height: 300px;
         line-height: 18px;
         color: #63656e;
+        text-align: left;
         outline: 0;
         word-wrap: break-word;
         overflow-x: hidden;
@@ -643,7 +646,15 @@
             left: 10px;
             content: attr(data-placeholder);
             color: #c4c6cc;
+            pointer-events: none;
         }
+    }
+    .common-error-tip {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        line-height: 1;
+        padding-top: 4px;
     }
     ::v-deep .div-input {
         >div {

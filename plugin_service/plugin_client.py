@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import copy
 import json
 import logging
 import os
@@ -49,7 +50,9 @@ class PluginServiceApiClient:
         return requests.post(url, data=json.dumps(data), headers=headers)
 
     @json_response_decoder
-    def dispatch_plugin_api_request(self, request_params, inject_headers=None, inject_authorization: dict = None):
+    def dispatch_plugin_api_request(
+        self, request_params, inject_headers=None, inject_authorization: dict = None, sensitive_data: dict = None
+    ):
         url, headers = self._prepare_apigw_api_request(
             path_params=["plugin_api_dispatch"], inject_authorization=inject_authorization, tenant_id=self.tenant_id
         )
@@ -71,7 +74,7 @@ class PluginServiceApiClient:
                 url, method="post", data=request_params, headers=headers, files=files
             )
         return PluginServiceApiClient._request_api_and_error_retry(
-            url, method="post", data=json.dumps(request_params), headers=headers
+            url, method="post", data=json.dumps(request_params), headers=headers, sensitive_data=sensitive_data
         )
 
     @json_response_decoder
@@ -326,7 +329,37 @@ class PluginServiceApiClient:
     @staticmethod
     def _request_api_and_error_retry(url, method, **kwargs):
         """请求API接口,失败进行重试"""
-        message = f"request url {url} with method {method} and kwargs {kwargs}".replace(
+
+        # 从 kwargs 中取出 sensitive_data（用于日志掩码，不发送给插件服务）
+        sensitive_data = kwargs.pop("sensitive_data", None)
+
+        # 构造日志消息（对敏感信息进行掩码处理）
+        log_kwargs = copy.deepcopy(kwargs)
+
+        # 如果有 sensitive_data，则替换 log_kwargs["data"] 中的 data 字段（用于日志掩码）
+        if sensitive_data:
+            raw_data = log_kwargs.get("data")
+            if raw_data:
+                # 统一转换为字典处理
+                if isinstance(raw_data, str):
+                    try:
+                        data_dict = json.loads(raw_data)
+                    except Exception:
+                        # 预期不会遇到这种情况，如果真有遇到这种情况，默认会在日志里面打印，方便追踪问题
+                        data_dict = None
+                else:
+                    data_dict = raw_data
+
+                # 将 data 字段替换为掩码版本
+                if isinstance(data_dict, dict) and "data" in data_dict:
+                    data_dict["data"] = sensitive_data
+                    # 写回 log_kwargs，保持原有类型
+                    if isinstance(raw_data, str):
+                        log_kwargs["data"] = json.dumps(data_dict)
+                    else:
+                        log_kwargs["data"] = data_dict
+
+        message = f"request url {url} with method {method} and kwargs {log_kwargs}".replace(
             env.PLUGIN_SERVICE_APIGW_APP_SECRET, "******"
         )
         if env.PAASV3_APIGW_API_TOKEN:

@@ -42,6 +42,7 @@ def get_webhook_configs(scope_code):
                 "method": webhook.method,
                 "endpoint": webhook.endpoint,
                 "extra_info": process_sensitive_info(webhook.extra_info, is_decrypt=True),
+                "enable_webhook": webhook.enable_webhook,
             }
     except Exception as e:
         logger.exception(f"get_scope_webhooks error: {e}")

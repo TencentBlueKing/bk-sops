@@ -313,7 +313,7 @@
         },
         {
             id: 'flowName',
-            name: i18n.t('流程名'),
+            name: i18n.t('流程名称'),
             isDefaultOption: true
         },
         {
@@ -1326,7 +1326,7 @@
                     this.isProjectVisibleShow = true
                 }
             },
-            handleProjectVisibleChange ({ project_scope, isSelectAllProjectScope }) {
+            handleProjectVisibleChange ({ project_scope, isSelectAllProjectScope = false }) {
                 this.projectScopeSelectList = isSelectAllProjectScope ? ['*'] : project_scope.map(item => typeof item === 'number' ? String(item) : item)
                 this.setProjectScope(this.projectScopeSelectList)
             },

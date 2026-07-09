@@ -12,18 +12,22 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 from datetime import timedelta
+from types import SimpleNamespace
 
 import factory
 from bamboo_engine import states
 from django.conf import settings
 from django.db.models import signals
+from django.test import SimpleTestCase
 from django_test_toolkit.mixins.account import SuperUserMixin
 from django_test_toolkit.mixins.blueking import LoginExemptMixin, StandardResponseAssertionMixin
 from django_test_toolkit.mixins.drf import DrfPermissionExemptMixin
 from django_test_toolkit.testcases import ToolkitApiTestCase
+from mock import patch
 from pipeline.eri.models import State
 from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 
+from gcloud.core.apis.drf.viewsets.taskflow import TaskFlowInstanceViewSet, TaskFLowStatusFilterHandler
 from gcloud.core.models import Project, ProjectConfig
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -81,13 +85,15 @@ class TestTaskInstanceView(
             "task_instance_status": "failed",
         }
 
+        # 状态筛选仅支持 v2 引擎任务，v1 引擎任务会被静默过滤，不计入结果
         self.taskflow_instance.engine_ver = 1
         self.taskflow_instance.save()
 
         resp = self.client.get(path=self.task_url, data=query_params)
-        self.assertFalse(resp.data["result"])
-        self.assertEqual(resp.data["message"], "最近180天有v1引擎的任务, 不支持筛选")
+        self.assertTrue(resp.data["result"])
+        self.assertEqual(resp.data["data"]["count"], 0)
 
+        # v2 引擎但不存在失败状态时返回空
         self.taskflow_instance.engine_ver = 2
         self.taskflow_instance.save()
 
@@ -95,6 +101,7 @@ class TestTaskInstanceView(
         self.assertTrue(resp.data["result"])
         self.assertEqual(resp.data["data"]["count"], 0)
 
+        # v2 引擎且存在失败状态时返回该任务
         self.state.name = states.FAILED
         self.state.save()
 
@@ -132,9 +139,33 @@ class TestTaskInstanceView(
             "task_instance_status": "running",
         }
 
-        resp = self.client.get(path=self.task_url, data=query_params)
+        # 运行态筛选会通过线程池并发调用引擎查询任务状态(batch_call)，该路径依赖真实引擎，
+        # 且在 sqlite 测试库下并发访问会触发 "database table is locked"，这里 mock 掉待处理任务查询，
+        # 聚焦验证“运行中任务被正确返回”的筛选逻辑
+        with patch.object(TaskFLowStatusFilterHandler, "_fetch_pending_process_taskflow_ids", return_value=[]):
+            resp = self.client.get(path=self.task_url, data=query_params)
         self.assertTrue(resp.data["result"])
         self.assertEqual(resp.data["data"]["count"], 1)
+
+    def test_task_name_search_without_count_uses_ignore_primary_index_hint(self):
+        query_params = {
+            "project__id": self.test_project.id,
+            "pipeline_instance__name__icontains": "tlogd",
+            "is_child_taskflow": False,
+            "without_count": True,
+            "limit": 15,
+            "offset": 0,
+        }
+
+        with patch.object(
+            TaskFlowInstance.objects, "fetch_task_list_page_ignore_primary_index", return_value=[]
+        ) as mock_fetch:
+            resp = self.client.get(path=self.task_url, data=query_params)
+
+        self.assertTrue(resp.data["result"])
+        mock_fetch.assert_called_once()
+        self.assertEqual(mock_fetch.call_args[1]["limit"], 15)
+        self.assertEqual(mock_fetch.call_args[1]["offset"], 0)
 
     def test_task_list_filter_days_disabled(self):
         """测试当项目配置了 task_list_filter_days 为 False 时，跳过日期过滤"""
@@ -297,3 +328,50 @@ class TestTaskInstanceView(
         task_ids = [task["id"] for task in resp.data["data"]["results"]]
         # 应该过滤掉旧任务
         self.assertNotIn(old_taskflow_instance.id, task_ids)
+
+
+class _NodeExecutionRecordQuerySet(object):
+    def __init__(self, rows):
+        self.rows = rows
+        self.count_called = False
+        self.sliced_limits = []
+
+    def order_by(self, *args):
+        return self
+
+    def values(self, *args):
+        return self
+
+    def count(self):
+        self.count_called = True
+        return 100
+
+    def __len__(self):
+        raise AssertionError("node_execution_record should not evaluate the full queryset")
+
+    def __getitem__(self, item):
+        self.sliced_limits.append((item.start, item.stop))
+        return self.rows[item]
+
+
+class TestTaskInstanceNodeExecutionRecord(SimpleTestCase):
+    def test_node_execution_record_counts_without_evaluating_queryset(self):
+        rows = [
+            {"archived_time": datetime.datetime(2026, 1, 1, 10, 0, 0), "elapsed_time": 10},
+            {"archived_time": datetime.datetime(2026, 1, 1, 10, 1, 0), "elapsed_time": 12},
+        ]
+        queryset = _NodeExecutionRecordQuerySet(rows)
+        request = SimpleNamespace(query_params={"template_node_id": "node-id"})
+        view = TaskFlowInstanceViewSet()
+
+        with patch.object(TaskFlowInstanceViewSet, "get_object", return_value=SimpleNamespace(template_id=1)):
+            with patch(
+                "gcloud.core.apis.drf.viewsets.taskflow.TaskflowExecutedNodeStatistics.objects.filter",
+                return_value=queryset,
+            ):
+                response = view.node_execution_record(request)
+
+        self.assertTrue(queryset.count_called)
+        self.assertEqual(queryset.sliced_limits, [(None, settings.MAX_RECORDED_NODE_EXECUTION_TIMES)])
+        self.assertEqual(response.data["total"], 100)
+        self.assertEqual(len(response.data["execution_time"]), 2)

@@ -13,11 +13,19 @@ specific language governing permissions and limitations under the License.
 
 from rest_framework import serializers
 
+from gcloud.auto_test.apis.permission import (
+    AUTO_TEST_PROJECT_SCOPES,
+    AUTO_TEST_SCOPE_CHOICES,
+    AUTO_TEST_TOKEN_DEFAULT_EXPIRE_SECONDS,
+    get_auto_test_token_max_expire_seconds,
+)
+
 
 class IdsListSerializer(serializers.Serializer):
     """用于一些批量操作参数序列化使用"""
 
-    ids_list = serializers.ListField(help_text="ID列表", child=serializers.IntegerField())
+    ids_list = serializers.ListField(help_text="ID列表", child=serializers.IntegerField(), allow_empty=False)
+    project_id = serializers.IntegerField(help_text="项目ID", required=False, min_value=1)
 
 
 class BatchDeleteSerialzer(serializers.Serializer):
@@ -25,5 +33,28 @@ class BatchDeleteSerialzer(serializers.Serializer):
 
 
 class AutoTestTokenSerialzer(serializers.Serializer):
-    key = serializers.CharField(help_text="加密的key")
-    expire = serializers.IntegerField(help_text="超时时间")
+    scope = serializers.ChoiceField(help_text="资源范围", choices=AUTO_TEST_SCOPE_CHOICES)
+    project_id = serializers.IntegerField(help_text="项目ID", required=False, min_value=1)
+    expire = serializers.IntegerField(
+        help_text="超时时间",
+        required=False,
+        default=AUTO_TEST_TOKEN_DEFAULT_EXPIRE_SECONDS,
+        min_value=1,
+    )
+
+    def validate_expire(self, value):
+        max_expire = get_auto_test_token_max_expire_seconds()
+        if value > max_expire:
+            raise serializers.ValidationError(f"超时时间不能超过{max_expire}秒")
+        return value
+
+    def validate(self, attrs):
+        scope = attrs["scope"]
+        has_project_id = bool(attrs.get("project_id"))
+        if scope in AUTO_TEST_PROJECT_SCOPES and not has_project_id:
+            raise serializers.ValidationError({"project_id": "当前资源范围必须传入项目ID"})
+
+        if scope not in AUTO_TEST_PROJECT_SCOPES and has_project_id:
+            raise serializers.ValidationError({"project_id": "当前资源范围不支持项目ID"})
+
+        return attrs

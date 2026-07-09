@@ -752,8 +752,23 @@
                     if (variable.is_meta || formItemConfig.meta_transform) {
                         formItemConfig = formItemConfig.meta_transform(variable.meta || variable)
                         if (!variable.meta) {
+                            const originalValue = this.inputsParamValue[key]
                             variable.meta = tools.deepClone(variable)
-                            variable.value = formItemConfig.attrs.value
+                            // 检查原值是否引用父流程变量
+                            if (typeof originalValue === 'string' && originalValue.startsWith('${') && originalValue.endsWith('}')) {
+                                const parentVarKey = originalValue
+                                const parentVar = this.constants[parentVarKey] // 获取父流程变量配置
+                                // 如果父流程变量存在，并且类型一致，则保持引用值
+                                if (parentVar && variable.meta.custom_type === parentVar.custom_type && variable.meta.source_tag === parentVar.source_tag) {
+                                    variable.value = originalValue
+                                } else {
+                                    // 类型不一致或父流程变量不存在，用插件配置的默认值覆盖
+                                    variable.value = formItemConfig.attrs.value
+                                }
+                            } else {
+                                // 未引用父流程全局变量-用插件配置的默认值覆盖
+                                variable.value = formItemConfig.attrs.value
+                            }
                         }
                     }
                     // 特殊处理逻辑，针对子流程节点，如果为自定义类型的下拉框变量，默认开始支持用户创建不存在的选项配置项
@@ -809,10 +824,20 @@
                         if (component.code === 'remote_plugin') {
                             const atom = this.$parent.thirdPartyList[this.nodeId]
                             code = component.data.plugin_code.value
-                            const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
-                            basicInfoName = resp.data.name
-                            version = atom.version
-                            desc = atom.desc
+                            try {
+                                const resp = await this.loadPluginServiceAppDetail({ plugin_code: code })
+                                basicInfoName = resp.data.name
+                            } catch (e) {
+                                console.error(e)
+                            }
+                            if (atom) {
+                                version = atom.version
+                                desc = atom.desc
+                            } else {
+                                const { data } = component
+                                const curVesion = data && data.plugin_version
+                                version = curVesion && curVesion.value
+                            }
                         } else {
                             let atom = this.atomList.find(item => item.code === component.code)
                             atom = atom || this.isolationAtomConfig
@@ -1064,6 +1089,9 @@
              * 标准插件版本切换
              */
             async versionChange (val) {
+                // 保存旧的插件参数
+                const oldInputsParamValue = tools.deepClone(this.inputsParamValue)
+                const oldInputs = tools.deepClone(this.inputs)
                 // 获取不同版本的描述
                 let desc = this.basicInfo.desc
                 if (!this.isThirdParty) {
@@ -1076,9 +1104,9 @@
                     desc = descList.join('<br>')
                 }
                 this.updateBasicInfo({ version: val, desc })
-                await this.clearParamsSourceInfo()
                 this.inputsParamValue = {}
                 await this.getPluginDetail()
+                this.inputsParamValue = await this.getPluginInputsValue(this.inputs, oldInputs, oldInputsParamValue)
                 if (Array.isArray(this.inputs)) {
                     this.inputsRenderConfig = this.inputs.reduce((acc, crt) => {
                         // 普通插件值为true，codeEditor类型插件优先使用variable_render字段，默认值为true
@@ -1086,6 +1114,24 @@
                         return acc
                     }, {})
                 }
+            },
+            async getPluginInputsValue (newInputs, oldInputs = [], oldInputsParamValue = {}) {
+                const oldTagCodes = oldInputs.map(item => item.tag_code)
+                const newTagCodes = newInputs.map(item => item.tag_code)
+                const newInputsParamValue = {}
+                // 保留新旧版本中都存在的参数值
+                newInputs.forEach(item => {
+                    if (oldTagCodes.includes(item.tag_code)) {
+                        newInputsParamValue[item.tag_code] = oldInputsParamValue[item.tag_code]
+                    }
+                })
+                // 收集旧版本中存在但新版本中不存在的参数并清除其勾选状态
+                const needClearInput = oldInputs.filter(item => !newTagCodes.includes(item.tag_code))
+                // 取消非兼容变量相关的全局变量的输入、输出参数勾选状态
+                if (needClearInput.length > 0) {
+                    await this.clearParamsSourceInfo(needClearInput)
+                }
+                return newInputsParamValue
             },
             /**
              * 子流程切换
@@ -1677,12 +1723,24 @@
                         this.setSubprocessUpdated({ expired: true, subprocess_node_id: this.nodeConfig.id })
                     }
                     const inputRef = this.$refs.inputParams
+                    // 被复用的父流程变量key
+                    const reusedKeys = []
+                    for (const key in this.inputsParamValue) {
+                        const val = this.inputsParamValue[key]
+                        if (typeof val === 'string' && val.startsWith('${') && val.endsWith('}')) {
+                            if (!reusedKeys.includes(val)) {
+                                reusedKeys.push(val)
+                            }
+                        }
+                    }
                     // 更新子流程已勾选的变量值
                     Object.keys(this.localConstants).forEach(key => {
                         const constantValue = this.localConstants[key]
                         // 复用变量不去更新变量配置和值
-                        if (constantValue.reuse) {
-                            delete constantValue.reuse
+                        if (constantValue.reuse || reusedKeys.includes(key)) {
+                            if (constantValue.reuse) {
+                                delete constantValue.reuse
+                            }
                             return
                         }
                         // 根据source_info中获取勾选的表单项code

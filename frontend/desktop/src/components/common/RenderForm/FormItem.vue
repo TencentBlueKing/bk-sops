@@ -117,6 +117,7 @@
                 :hook="hook"
                 :render="render"
                 :constants="constants"
+                :association-constants="associationConstants"
                 :scheme="scheme"
                 :atom-events="scheme.events"
                 :atom-methods="scheme.methods"
@@ -239,6 +240,10 @@
                 default () {
                     return {}
                 }
+            },
+            associationConstants: {
+                type: Object,
+                default: () => ({})
             }
         },
         data () {
