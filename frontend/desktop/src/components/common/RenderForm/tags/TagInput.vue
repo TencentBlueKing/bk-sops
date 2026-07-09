@@ -126,8 +126,8 @@
             constantArr: {
                 get () {
                     let KeyList = []
-                    if (this.constants) {
-                        KeyList = [...Object.values(this.constants)]
+                    if (this.associationConstants) {
+                        KeyList = [...Object.values(this.associationConstants)]
                     }
                     if (this.internalVariable) {
                         KeyList = [...KeyList, ...Object.values(this.internalVariable)]
@@ -583,6 +583,7 @@
 
 .tag-input {
     text-align: left;
+    position: relative;
     ::v-deep .el-input__inner {
         padding: 0 10px;
     }
@@ -634,6 +635,7 @@
         }
     }
     .rf-form-wrap {
+        position: relative;
         line-height: 32px;
         padding: 0 10px;
         border: 1px solid #c4c6cc;
@@ -654,14 +656,13 @@
         }
     }
     .div-input {
-        height: 32px;
+        min-height: 32px;
         line-height: 18px;
         padding: 7px 0;
         color: #63656e;
+        text-align: left;
         white-space: pre;
         overflow: hidden;
-        overflow-x: scroll;
-        scrollbar-width: none;
         ::v-deep .var-tag {
             margin-right: 1px;
             padding: 0px 4px;
@@ -673,6 +674,10 @@
                 background: #eaebf0;
             }
         }
+        &.input-before {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
         &.input-before::before {
             position: absolute;
             left: 10px;
@@ -681,7 +686,15 @@
             max-width: calc(100% - 20px);
             text-overflow: ellipsis;
             overflow: hidden;
+            pointer-events: none;
         }
+    }
+    .common-error-tip {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        line-height: 1;
+        padding-top: 4px;
     }
 }
 </style>

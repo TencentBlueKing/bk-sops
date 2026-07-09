@@ -11,7 +11,14 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.constants import TASK_FLOW, PERIOD_TASK_NAME_MAX_LENGTH, TASK_NAME_MAX_LENGTH
+from gcloud.constants import PERIOD_TASK_NAME_MAX_LENGTH, TASK_FLOW, TASK_NAME_MAX_LENGTH
+
+TEMPLATE_SCHEME_ID = {
+    "oneOf": [
+        {"type": "string", "minLength": 1},
+        {"type": "integer", "minimum": 1},
+    ],
+}
 
 APIGW_CREATE_TASK_PARAMS = {
     "type": "object",
@@ -22,6 +29,12 @@ APIGW_CREATE_TASK_PARAMS = {
         "constants": {"type": "object"},
         "exclude_task_nodes_id": {"type": "array"},
         "execute_task_nodes_id": {"type": "array"},
+        "template_schemes_id": {
+            "oneOf": [
+                TEMPLATE_SCHEME_ID,
+                {"type": "array", "items": TEMPLATE_SCHEME_ID},
+            ],
+        },
     },
 }
 
@@ -44,6 +57,12 @@ APIGW_CREATE_AND_START_TASK_PARAMS = {
         "flow_type": {"type": "string", "enum": list(TASK_FLOW.keys())},
         "constants": {"type": "object"},
         "exclude_task_nodes_id": {"type": "array"},
+        "template_schemes_id": {
+            "oneOf": [
+                TEMPLATE_SCHEME_ID,
+                {"type": "array", "items": TEMPLATE_SCHEME_ID},
+            ],
+        },
         "template_source": {"type": "string"},
     },
 }

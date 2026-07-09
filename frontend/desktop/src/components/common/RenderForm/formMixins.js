@@ -124,6 +124,10 @@ export const getFormMixins = (attrs = {}) => {
                     return {}
                 }
             },
+            associationConstants: {
+                type: Object,
+                default: () => ({})
+            },
             atomEvents: {
                 type: Array,
                 default () {

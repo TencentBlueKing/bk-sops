@@ -53,24 +53,28 @@ class StaffGroupSetViewSet(
     def create(self, request, *args, **kwargs):
         validated_data = self.get_serializer_data(request)
 
-        staff_group_obj = StaffGroupSet.objects.create(**validated_data)
-        self.iam_auth_check(
-            request,
-            action=IAMMeta.PROJECT_EDIT_ACTION,
-            resources=res_factory.resources_for_project(staff_group_obj.project_id, request.user.tenant_id),
-        )
-        serializer = self.serializer_class(instance=staff_group_obj)
-        return Response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        validated_data = self.get_serializer_data(request)
+        # 先鉴权再落库，避免鉴权失败时已写入脏数据
         self.iam_auth_check(
             request,
             action=IAMMeta.PROJECT_EDIT_ACTION,
             resources=res_factory.resources_for_project(validated_data.get("project_id"), request.user.tenant_id),
         )
+        staff_group_obj = StaffGroupSet.objects.create(**validated_data)
+        serializer = self.serializer_class(instance=staff_group_obj)
+        return Response(serializer.data)
 
+    def update(self, request, *args, **kwargs):
+        validated_data = self.get_serializer_data(request)
+
+        # 基于待修改对象自身所属项目进行鉴权，避免攻击者通过请求体中的 project_id
+        # 越权修改其它项目的人员分组（IDOR）
         instance = self.get_object()
+        self.iam_auth_check(
+            request,
+            action=IAMMeta.PROJECT_EDIT_ACTION,
+            resources=res_factory.resources_for_project(instance.project_id, request.user.tenant_id),
+        )
+
         instance.name = validated_data.get("name")
         instance.members = validated_data.get("members")
         instance.save()

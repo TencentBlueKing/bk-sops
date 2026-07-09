@@ -21,17 +21,20 @@ from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
 
-iam = get_iam_client()
-
 
 class ApplyWebhookConfigs(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         data = json.loads(request.body)
         template_ids = data.get("template_ids", [])
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
         subject = Subject("user", request.user.username)
 
         existing_templates = TaskTemplate.objects.filter(
-            project_id=request.project.id, id__in=template_ids, is_deleted=False
+            project_id=request.project.id,
+            project__tenant_id=tenant_id,
+            id__in=template_ids,
+            is_deleted=False,
         ).values_list("id", flat=True)
         missing_template_ids = set(template_ids) - set(list(existing_templates))
         if missing_template_ids:
@@ -40,7 +43,7 @@ class ApplyWebhookConfigs(ViewInterceptor):
             raise ValueError(error_message)
 
         action = Action(IAMMeta.FLOW_EDIT_ACTION)
-        resources_list = res_factory.resources_list_for_flows(template_ids, request.user.tenant_id)
+        resources_list = res_factory.resources_list_for_flows(template_ids, tenant_id)
 
         allow_or_raise_immediate_response_for_resources_list(
             iam=iam,

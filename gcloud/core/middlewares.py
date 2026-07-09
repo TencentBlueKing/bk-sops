@@ -30,6 +30,7 @@ from gcloud.core.utils.sites.open.tenant_tools import _thread_locals, set_curren
 from gcloud.utils.timezone import get_user_timezone
 
 logger = logging.getLogger("root")
+NOT_FOUND = object()
 
 
 class TimezoneMiddleware(MiddlewareMixin):

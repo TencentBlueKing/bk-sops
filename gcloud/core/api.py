@@ -10,13 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+
 import keyword
 import logging
 import re
 from datetime import datetime
 
 from blueapps.account.decorators import login_exempt
-from django.contrib.auth.models import Group
 from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET, require_POST
@@ -31,7 +31,7 @@ from gcloud.core import roles
 from gcloud.core.api_adapter import get_all_users
 from gcloud.core.footer import FOOTER, FOOTER_INFO
 from gcloud.core.models import ProjectCounter, UserDefaultProject
-from gcloud.core.utils import convert_group_name
+from gcloud.iam_auth.utils import get_user_projects
 from gcloud.openapi.schema import AnnotationAutoSchema
 from packages.bkapi.bk_cmsi.shortcuts import get_client_by_username
 
@@ -45,6 +45,9 @@ def change_default_project(request, project_id):
     """
     @summary: 切换用户默认项目
     """
+    if not get_user_projects(request.user.username).filter(id=project_id, is_disable=False).exists():
+        return JsonResponse({"result": False, "data": {}, "message": _("用户无权限访问该项目")})
+
     UserDefaultProject.objects.update_or_create(
         username=request.user.username, defaults={"default_project_id": project_id}
     )
@@ -52,37 +55,6 @@ def change_default_project(request, project_id):
     ProjectCounter.objects.increase_or_create(username=request.user.username, project_id=project_id)
 
     return JsonResponse({"result": True, "data": {}, "message": _("用户默认项目切换成功")})
-
-
-@require_GET
-def get_roles_and_personnel(request, biz_cc_id):
-    """
-    @summary: 获取用户角色和业务人员
-    @param request:
-    @param biz_cc_id:
-    @return:
-    """
-    use_for = request.GET.get("use_for", "")
-    # 模板授权需要去掉运维角色，运维默认有所有权限，并添加职能化人员
-    if use_for == "template_auth":
-        role_list = [role for role in roles.CC_ROLES if role != roles.MAINTAINERS]
-        # 添加职能化人员
-        role_list.append(roles.FUNCTOR)
-    else:
-        role_list = roles.CC_ROLES
-
-    data = []
-    for key in role_list:
-        name = roles.ROLES_DECS[key]
-        group_name = convert_group_name(biz_cc_id, key)
-        group = Group.objects.get(name=group_name)
-        user_list = group.user_set.all()
-        personnel_list = []
-        for user in user_list:
-            personnel_list.append({"text": user.full_name, "id": user.username})
-        personnel_list.insert(0, {"text": _("所有%s") % name, "id": key})
-        data.append({"text": name, "children": personnel_list})
-    return JsonResponse({"result": True, "data": {"roles": data}})
 
 
 @require_GET

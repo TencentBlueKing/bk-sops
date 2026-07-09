@@ -836,6 +836,7 @@
                 }
             },
             onCreateClockedConfirm () {
+                if (this.saveLoading) return
                 if (this.hasNoCreatePerm) {
                     const { id, name, auth_actions } = this.templateData
                     const resourceData = {
@@ -852,7 +853,6 @@
                     const taskParamEdit = this.$refs.TaskParamEdit
                     const formValid = taskParamEdit.validate()
                     if (!result || !formValid) {
-                        this.saveLoading = false
                         return
                     }
                     this.saveLoading = true

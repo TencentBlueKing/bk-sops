@@ -133,7 +133,6 @@ CREATE_APPROVE_TICKET_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=CREAT_TICKET_FAIL_RETURN_CLIENT),
         Patcher(target=BK_HANDLE_API_ERROR, return_value="create ticket fail"),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
-        Patcher(target=SEND_TASKFLOW_MESSAGE, side_effect=SEND_TASKFLOW_MESSAGE_MOCK_FUNC),
     ],
 )
 

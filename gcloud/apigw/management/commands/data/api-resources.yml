@@ -1,18 +1,19 @@
+---
 openapi: 3.0.1
 servers:
-- url: /
+- url: "/"
 info:
   version: '0.1'
   title: API Gateway Resources
   description: ''
 paths:
-  /callback/{token}/:
+  "/callback/{token}/":
     post:
       operationId: callback
       description: 节点回调入口
       tags:
-        - 限制接口
-        - callback
+      - 限制接口
+      - callback
       responses:
         default:
           description: ''
@@ -24,7 +25,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.callback_sub_path}taskflow/api/v4/nodes/callback/{token}/
+          path: "/{env.callback_sub_path}taskflow/api/v4/nodes/callback/{token}/"
           matchSubpath: false
           timeout: 0
           upstreams:
@@ -38,13 +39,13 @@ paths:
           appVerifiedRequired: false
           resourcePermissionRequired: false
         disabledStages: []
-  /create_periodic_task/{template_id}/{bk_biz_id}/:
+  "/create_periodic_task/{template_id}/{bk_biz_id}/":
     post:
       operationId: create_periodic_task
       description: 创建周期任务
       tags:
-        - 限制接口
-        - periodic_task
+      - 限制接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -56,7 +57,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/create_periodic_task/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/create_periodic_task/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -64,12 +65,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /create_task/{template_id}/{bk_biz_id}/:
+  "/create_task/{template_id}/{bk_biz_id}/":
     post:
       operationId: create_task
       description: 通过业务流程模板创建任务
       tags:
-        - task
+      - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -175,6 +177,20 @@ paths:
                   items:
                     type: string
                   description: 仅执行的节点ID列表（与exclude_task_nodes_id同时存在时execute_task_nodes_id优先）
+                template_schemes_id:
+                  oneOf:
+                  - type: string
+                    minLength: 1
+                  - type: integer
+                    minimum: 1
+                  - type: array
+                    items:
+                      oneOf:
+                      - type: string
+                        minLength: 1
+                      - type: integer
+                        minimum: 1
+                  description: 执行方案ID列表或单个执行方案ID，支持get_template_schemes返回的字符串ID和执行方案整型ID；不能与pipeline_tree同时使用；与exclude_task_nodes_id、execute_task_nodes_id同时存在非空值时会返回参数错误
         required: true
         description: ''
       x-bk-apigateway-resource:
@@ -185,7 +201,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/create_task/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/create_task/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -193,13 +209,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /dispatch_plugin_query/:
+  "/dispatch_plugin_query/":
     post:
       operationId: dispatch_plugin_query
       description: 插件请求转发
       tags:
-        - 限制接口
-        - plugin
+      - 限制接口
+      - plugin
       responses:
         default:
           description: ''
@@ -211,7 +227,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/dispatch_plugin_query/
+          path: "/{env.api_sub_path}apigw/dispatch_plugin_query/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -219,12 +235,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /fast_create_task/{bk_biz_id}/:
+  "/fast_create_task/{bk_biz_id}/":
     post:
       operationId: fast_create_task
       description: 创建一次性任务
       tags:
       - task
+      - 限制接口
       responses:
         '200':
           content:
@@ -303,7 +320,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/fast_create_task/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/fast_create_task/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -311,12 +328,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_common_template_info/{template_id}/:
+  "/get_common_template_info/{template_id}/":
     get:
       operationId: get_common_template_info
       description: 查询单个公共流程模板详情
       tags:
       - template
+      - 通用接口
       responses:
         '200':
           content:
@@ -378,7 +396,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_common_template_info/{template_id}/
+          path: "/{env.api_sub_path}apigw/get_common_template_info/{template_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -386,12 +404,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_common_template_list/:
+  "/get_common_template_list/":
     get:
       operationId: get_common_template_list
       description: 查询公共模板列表
       tags:
       - template
+      - 通用接口
       responses:
         '200':
           content:
@@ -456,7 +475,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_common_template_list/
+          path: "/{env.api_sub_path}apigw/get_common_template_list/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -464,13 +483,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_periodic_task_info/{task_id}/{bk_biz_id}/:
+  "/get_periodic_task_info/{task_id}/{bk_biz_id}/":
     get:
       operationId: get_periodic_task_info
       description: 查询某个周期任务的详情
       tags:
-        - 通用接口
-        - periodic_task
+      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -482,7 +501,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -490,13 +509,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_periodic_task_list/{bk_biz_id}/:
+  "/get_periodic_task_list/{bk_biz_id}/":
     get:
       operationId: get_periodic_task_list
       description: 查询某个业务下所有的周期任务
       tags:
-        - 通用接口
-        - periodic_task
+      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -508,7 +527,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_periodic_task_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_periodic_task_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -516,12 +535,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_plugin_list/{bk_biz_id}/:
+  "/get_plugin_list/{bk_biz_id}/":
     get:
       operationId: get_plugin_list
       description: 查询某个业务下的插件列表
       tags:
       - plugin
+      - 通用接口
       responses:
         '200':
           content:
@@ -596,7 +616,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_plugin_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_plugin_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -604,13 +624,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_tasks_status/{bk_biz_id}/:
+  "/get_tasks_status/{bk_biz_id}/":
     post:
       operationId: get_tasks_status
       description: 批量查询任务状态
       tags:
-        - 通用接口
-        - task
+      - 通用接口
+      - task
       responses:
         default:
           description: ''
@@ -622,7 +642,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/get_tasks_status/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_tasks_status/{bk_biz_id}/"
           matchSubpath: false
           timeout: 60
           upstreams: {}
@@ -630,12 +650,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_detail/{task_id}/{bk_biz_id}/:
+  "/get_task_detail/{task_id}/{bk_biz_id}/":
     get:
       operationId: get_task_detail
       description: 查询任务执行详情
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -738,7 +759,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_detail/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_detail/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -746,12 +767,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_list/{bk_biz_id}/:
+  "/get_task_list/{bk_biz_id}/":
     get:
       operationId: get_task_list
       description: 获取任务列表
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -942,7 +964,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -950,12 +972,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_node_data/{bk_biz_id}/{task_id}/:
+  "/get_task_node_data/{bk_biz_id}/{task_id}/":
     get:
       operationId: get_task_node_data
       description: 获取节点执行时实际的输入输出参数
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -1069,7 +1092,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_node_data/{bk_biz_id}/{task_id}/
+          path: "/{env.api_sub_path}apigw/get_task_node_data/{bk_biz_id}/{task_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1077,12 +1100,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_node_detail/{task_id}/{bk_biz_id}/:
+  "/get_task_node_detail/{task_id}/{bk_biz_id}/":
     get:
       operationId: get_task_node_detail
       description: 查询任务节点执行详情
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -1187,7 +1211,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_node_detail/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_node_detail/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1195,12 +1219,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_status/{task_id}/{bk_biz_id}/:
+  "/get_task_status/{task_id}/{bk_biz_id}/":
     get:
       operationId: get_task_status
       description: 查询任务执行状态
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -1292,7 +1317,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_status/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_status/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 60
           upstreams: {}
@@ -1300,12 +1325,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_template_info/{template_id}/{bk_biz_id}/:
+  "/get_template_info/{template_id}/{bk_biz_id}/":
     get:
       operationId: get_template_info
       description: 查询业务下的单个模板详情
       tags:
       - template
+      - 通用接口
       responses:
         '200':
           content:
@@ -1403,7 +1429,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_template_info/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_template_info/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1411,12 +1437,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_template_list/{bk_biz_id}/:
+  "/get_template_list/{bk_biz_id}/":
     get:
       operationId: get_template_list
       description: 查询业务下的模板列表
       tags:
       - template
+      - 通用接口
       responses:
         '200':
           content:
@@ -1529,7 +1556,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_template_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_template_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1537,15 +1564,56 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_template_schemes/{bk_biz_id}/{template_id}/:
+  "/get_template_schemes/{bk_biz_id}/{template_id}/":
     get:
       operationId: get_template_schemes
       description: 获取模板的执行方案列表
       tags:
-        - 通用接口
-        - template
+      - 通用接口
+      - template
       responses:
         default:
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: 执行方案ID
+                        name:
+                          type: string
+                          description: 执行方案名称
+                        data:
+                          type: string
+                          description: 执行方案中包含的节点ID列表（JSON字符串）
+                        detail:
+                          type: object
+                          description: 执行方案详情，包含输入参数信息
+                          properties:
+                            constants:
+                              type: object
+                              description: 执行方案对应的输入参数
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
       x-bk-apigateway-resource:
         isPublic: true
@@ -1555,7 +1623,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_template_schemes/{bk_biz_id}/{template_id}/
+          path: "/{env.api_sub_path}apigw/get_template_schemes/{bk_biz_id}/{template_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1563,12 +1631,23 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_user_project_detail/{bk_biz_id}/:
+      parameters:
+      - name: with_constants
+        in: query
+        description: 是否需要返回执行方案的变量详情
+        schema:
+          type: string
+          default: 'false'
+          enum:
+          - 'true'
+          - 'false'
+  "/get_user_project_detail/{bk_biz_id}/":
     get:
       operationId: get_user_project_detail
       description: 获取项目的详细信息
       tags:
       - project
+      - 通用接口
       responses:
         '200':
           content:
@@ -1648,7 +1727,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_user_project_detail/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_user_project_detail/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1656,12 +1735,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_user_project_list/:
+  "/get_user_project_list/":
     get:
       operationId: get_user_project_list
       description: 获取用户有权限的项目列表
       tags:
       - project
+      - 通用接口
       responses:
         '200':
           content:
@@ -1693,7 +1773,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_user_project_list/
+          path: "/{env.api_sub_path}apigw/get_user_project_list/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1701,13 +1781,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /import_project_template/{bk_biz_id}/:
+  "/import_project_template/{bk_biz_id}/":
     post:
       operationId: import_project_template
       description: 导入项目模板
       tags:
-        - 限制接口
-        - template
+      - 限制接口
+      - template
       responses:
         default:
           description: ''
@@ -1719,7 +1799,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/import_project_template/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/import_project_template/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1727,13 +1807,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/:
+  "/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: modify_constants_for_periodic_task
       description: 修改周期任务的全局参数
       tags:
-        - 通用接口
-        - periodic_task
+      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -1745,7 +1825,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1753,13 +1833,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/:
+  "/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: modify_cron_for_periodic_task
       description: 修改周期任务的调度策略
       tags:
-        - 通用接口
-        - periodic_task
+      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -1771,7 +1851,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1779,13 +1859,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /node_callback/{task_id}/{bk_biz_id}/:
+  "/node_callback/{task_id}/{bk_biz_id}/":
     post:
       operationId: node_callback
       description: 回调任务的节点
       tags:
-        - 通用接口
-        - callback
+      - 通用接口
+      - callback
       responses:
         default:
           description: ''
@@ -1797,7 +1877,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/node_callback/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/node_callback/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1805,12 +1885,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /operate_node/{bk_biz_id}/{task_id}/:
+  "/operate_node/{bk_biz_id}/{task_id}/":
     post:
       operationId: operate_node
       description: 操作节点
       tags:
       - node
+      - 通用接口
       responses:
         '200':
           content:
@@ -1891,7 +1972,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/operate_node/{bk_biz_id}/{task_id}/
+          path: "/{env.api_sub_path}apigw/operate_node/{bk_biz_id}/{task_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1899,12 +1980,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /operate_task/{task_id}/{bk_biz_id}/:
+  "/operate_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: operate_task
       description: 操作任务，如开始、暂停、继续、终止等
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -1968,7 +2050,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/operate_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/operate_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1976,12 +2058,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /preview_task_tree/{bk_biz_id}/{template_id}/:
+  "/preview_task_tree/{bk_biz_id}/{template_id}/":
     post:
       operationId: preview_task_tree
       description: 预览模板创建后生成的任务树
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -2059,7 +2142,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/preview_task_tree/{bk_biz_id}/{template_id}/
+          path: "/{env.api_sub_path}apigw/preview_task_tree/{bk_biz_id}/{template_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2067,13 +2150,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /register_project/:
+  "/register_project/":
     post:
       operationId: register_project
       description: 项目信息同步注册到标准运维
       tags:
-        - 限制接口
-        - project
+      - 限制接口
+      - project
       responses:
         default:
           description: ''
@@ -2085,7 +2168,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/register_project/
+          path: "/{env.api_sub_path}apigw/register_project/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2093,13 +2176,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /set_periodic_task_enabled/{task_id}/{bk_biz_id}/:
+  "/set_periodic_task_enabled/{task_id}/{bk_biz_id}/":
     post:
       operationId: set_periodic_task_enabled
       description: 设置某个周期任务是否激活
       tags:
-        - 通用接口
-        - periodic_task
+      - 通用接口
+      - periodic_task
       responses:
         default:
           description: ''
@@ -2111,7 +2194,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2119,12 +2202,13 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /start_task/{task_id}/{bk_biz_id}/:
+  "/start_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: start_task
       description: 开始执行任务
       tags:
       - task
+      - 通用接口
       responses:
         '200':
           content:
@@ -2191,7 +2275,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/start_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/start_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2199,12 +2283,12 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /copy_template_across_project/{project_id}/:
+  "/copy_template_across_project/{project_id}/":
     post:
       operationId: copy_template_across_project
       description: copy_template_across_project
       tags:
-        - template
+      - template
       responses:
         default:
           description: ''
@@ -2216,7 +2300,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/copy_template_across_project/{project_id}/
+          path: "/{env.api_sub_path}apigw/copy_template_across_project/{project_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2224,12 +2308,12 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /system/callback/{token}/:
+  "/system/callback/{token}/":
     post:
       operationId: system_callback
       description: 节点回调入口
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           description: ''
@@ -2240,26 +2324,26 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.callback_sub_path}taskflow/api/v4/nodes/callback/{token}/
+          path: "/{env.callback_sub_path}taskflow/api/v4/nodes/callback/{token}/"
           matchSubpath: false
           timeout: 0
           upstreams:
             loadbalance: roundrobin
             hosts:
-              - host: http://{env.callback_host}
-                weight: 100
-          transformHeaders: { }
+            - host: http://{env.callback_host}
+              weight: 100
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
           appVerifiedRequired: false
           resourcePermissionRequired: false
-        disabledStages: [ ]
-  /system/create_periodic_task/{template_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/create_periodic_task/{template_id}/{bk_biz_id}/":
     post:
       operationId: system_create_periodic_task
       description: 创建周期任务
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           description: ''
@@ -2270,20 +2354,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/create_periodic_task/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/create_periodic_task/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/create_task/{template_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/create_task/{template_id}/{bk_biz_id}/":
     post:
       operationId: system_create_task
       description: 通过业务流程模板创建任务
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2294,20 +2378,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/create_task/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/create_task/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/dispatch_plugin_query/:
+        disabledStages: []
+  "/system/dispatch_plugin_query/":
     post:
       operationId: system_dispatch_plugin_query
       description: 插件请求转发
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           description: ''
@@ -2318,20 +2402,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/dispatch_plugin_query/
+          path: "/{env.api_sub_path}apigw/dispatch_plugin_query/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/fast_create_task/{bk_biz_id}/:
+        disabledStages: []
+  "/system/fast_create_task/{bk_biz_id}/":
     post:
       operationId: system_fast_create_task
       description: 创建一次性任务
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           description: ''
@@ -2342,20 +2426,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/fast_create_task/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/fast_create_task/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_common_template_info/{template_id}/:
+        disabledStages: []
+  "/system/get_common_template_info/{template_id}/":
     get:
       operationId: system_get_common_template_info
       description: 查询单个公共流程模板详情
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2366,20 +2450,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_common_template_info/{template_id}/
+          path: "/{env.api_sub_path}apigw/get_common_template_info/{template_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_common_template_list/:
+        disabledStages: []
+  "/system/get_common_template_list/":
     get:
       operationId: system_get_common_template_list
       description: 查询公共模板列表
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2390,20 +2474,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_common_template_list/
+          path: "/{env.api_sub_path}apigw/get_common_template_list/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_periodic_task_info/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_periodic_task_info/{task_id}/{bk_biz_id}/":
     get:
       operationId: system_get_periodic_task_info
       description: 查询某个周期任务的详情
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2414,20 +2498,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_periodic_task_info/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_periodic_task_list/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_periodic_task_list/{bk_biz_id}/":
     get:
       operationId: system_get_periodic_task_list
       description: 查询某个业务下所有的周期任务
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2438,20 +2522,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_periodic_task_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_periodic_task_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_plugin_list/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_plugin_list/{bk_biz_id}/":
     get:
       operationId: system_get_plugin_list
       description: 查询某个业务下的插件列表
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2462,20 +2546,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_plugin_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_plugin_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_tasks_status/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_tasks_status/{bk_biz_id}/":
     post:
       operationId: system_get_tasks_status
       description: 批量查询任务状态
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2486,20 +2570,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/get_tasks_status/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_tasks_status/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_task_detail/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_task_detail/{task_id}/{bk_biz_id}/":
     get:
       operationId: system_get_task_detail
       description: 查询任务执行详情
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2510,20 +2594,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_detail/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_detail/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_task_list/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_task_list/{bk_biz_id}/":
     get:
       operationId: system_get_task_list
       description: 获取任务列表
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2534,20 +2618,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_task_node_data/{bk_biz_id}/{task_id}/:
+        disabledStages: []
+  "/system/get_task_node_data/{bk_biz_id}/{task_id}/":
     get:
       operationId: system_get_task_node_data
       description: 获取节点执行时实际的输入输出参数
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2558,20 +2642,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_node_data/{bk_biz_id}/{task_id}/
+          path: "/{env.api_sub_path}apigw/get_task_node_data/{bk_biz_id}/{task_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_task_node_detail/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_task_node_detail/{task_id}/{bk_biz_id}/":
     get:
       operationId: system_get_task_node_detail
       description: 查询任务节点执行详情
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2582,20 +2666,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_node_detail/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_node_detail/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_task_status/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_task_status/{task_id}/{bk_biz_id}/":
     get:
       operationId: system_get_task_status
       description: 查询任务执行状态
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2606,20 +2690,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_status/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_status/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_template_info/{template_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_template_info/{template_id}/{bk_biz_id}/":
     get:
       operationId: system_get_template_info
       description: 查询业务下的单个模板详情
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2630,20 +2714,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_template_info/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_template_info/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_template_list/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_template_list/{bk_biz_id}/":
     get:
       operationId: system_get_template_list
       description: 查询业务下的模板列表
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2654,20 +2738,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_template_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_template_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_template_schemes/{bk_biz_id}/{template_id}/:
+        disabledStages: []
+  "/system/get_template_schemes/{bk_biz_id}/{template_id}/":
     get:
       operationId: system_get_template_schemes
       description: 获取模板的执行方案列表
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2678,20 +2762,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_template_schemes/{bk_biz_id}/{template_id}/
+          path: "/{env.api_sub_path}apigw/get_template_schemes/{bk_biz_id}/{template_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_user_project_detail/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_user_project_detail/{bk_biz_id}/":
     get:
       operationId: system_get_user_project_detail
       description: 获取项目的详细信息
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2702,20 +2786,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_user_project_detail/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_user_project_detail/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_user_project_list/:
+        disabledStages: []
+  "/system/get_user_project_list/":
     get:
       operationId: system_get_user_project_list
       description: 获取用户有权限的项目列表
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2726,20 +2810,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_user_project_list/
+          path: "/{env.api_sub_path}apigw/get_user_project_list/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/import_project_template/{bk_biz_id}/:
+        disabledStages: []
+  "/system/import_project_template/{bk_biz_id}/":
     post:
       operationId: system_import_project_template
       description: 导入项目模板
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           description: ''
@@ -2750,20 +2834,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/import_project_template/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/import_project_template/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: system_modify_constants_for_periodic_task
       description: 修改周期任务的全局参数
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2774,20 +2858,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/modify_constants_for_periodic_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: system_modify_cron_for_periodic_task
       description: 修改周期任务的调度策略
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2798,20 +2882,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/modify_cron_for_periodic_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/node_callback/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/node_callback/{task_id}/{bk_biz_id}/":
     post:
       operationId: system_node_callback
       description: 回调任务的节点
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2822,20 +2906,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/node_callback/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/node_callback/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/operate_node/{bk_biz_id}/{task_id}/:
+        disabledStages: []
+  "/system/operate_node/{bk_biz_id}/{task_id}/":
     post:
       operationId: system_operate_node
       description: 操作节点
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2846,20 +2930,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/operate_node/{bk_biz_id}/{task_id}/
+          path: "/{env.api_sub_path}apigw/operate_node/{bk_biz_id}/{task_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/operate_task/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/operate_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: system_operate_task
       description: 操作任务，如开始、暂停、继续、终止等
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2870,20 +2954,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/operate_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/operate_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/preview_task_tree/{bk_biz_id}/{template_id}/:
+        disabledStages: []
+  "/system/preview_task_tree/{bk_biz_id}/{template_id}/":
     post:
       operationId: system_preview_task_tree
       description: 预览模板创建后生成的任务树
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2894,20 +2978,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/preview_task_tree/{bk_biz_id}/{template_id}/
+          path: "/{env.api_sub_path}apigw/preview_task_tree/{bk_biz_id}/{template_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/register_project/:
+        disabledStages: []
+  "/system/register_project/":
     post:
       operationId: system_register_project
       description: 项目信息同步注册到标准运维
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           description: ''
@@ -2918,20 +3002,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/register_project/
+          path: "/{env.api_sub_path}apigw/register_project/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/set_periodic_task_enabled/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/set_periodic_task_enabled/{task_id}/{bk_biz_id}/":
     post:
       operationId: system_set_periodic_task_enabled
       description: 设置某个周期任务是否激活
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2942,20 +3026,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/set_periodic_task_enabled/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/start_task/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/start_task/{task_id}/{bk_biz_id}/":
     post:
       operationId: system_start_task
       description: 开始执行任务
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -2966,20 +3050,20 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/start_task/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/start_task/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/copy_template_across_project/{project_id}/:
+        disabledStages: []
+  "/system/copy_template_across_project/{project_id}/":
     post:
       operationId: system_copy_template_across_project
       description: 跨业务复制模板
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           description: ''
@@ -2990,15 +3074,15 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/copy_template_across_project/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/copy_template_across_project/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
         disabledStages: []
-  /get_task_operate_record/{task_id}/{project_id}/:
+  "/get_task_operate_record/{task_id}/{project_id}/":
     get:
       operationId: get_task_operate_record
       description: 获取任务操作记录
@@ -3014,7 +3098,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/
+          path: "/{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3022,7 +3106,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /apply_webhook_configs/{project_id}/:
+  "/apply_webhook_configs/{project_id}/":
     post:
       operationId: apply_webhook_configs
       description: 应用模板的webhook配置
@@ -3048,7 +3132,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/apply_webhook_configs/{project_id}/
+          path: "/{env.api_sub_path}apigw/apply_webhook_configs/{project_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3056,7 +3140,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_effective_time/{task_id}/{bk_biz_id}/:
+  "/get_task_effective_time/{task_id}/{bk_biz_id}/":
     get:
       operationId: get_task_effective_time
       description: 统计任务的有效执行时间
@@ -3088,7 +3172,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_effective_time/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_effective_time/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3096,7 +3180,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_mini_app_list/{bk_biz_id}/:
+  "/get_mini_app_list/{bk_biz_id}/":
     get:
       operationId: get_mini_app_list
       description: 获取轻应用列表
@@ -3109,7 +3193,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_mini_app_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_mini_app_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3117,7 +3201,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_functionalization_task_list/:
+  "/get_functionalization_task_list/":
     get:
       operationId: get_functionalization_task_list
       description: 获取职能化任务列表
@@ -3130,7 +3214,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_functionalization_task_list/
+          path: "/{env.api_sub_path}apigw/get_functionalization_task_list/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3138,7 +3222,180 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /create_clocked_task/{template_id}/{bk_biz_id}/:
+      parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+        required: false
+        description: 根据职能化任务阶段过滤任务列表，可选值：submitted（未认领）、claimed（已认领）、rejected（已驳回）、executed（已执行）、finished（完成），默认不过滤
+      - in: query
+        name: execute_status
+        schema:
+          type: string
+        required: false
+        description: 根据任务执行状态过滤任务列表，可选值：nonExecution（未执行）、running（未完成）、revoked（终止）、finished（完成），默认不过滤
+      - in: query
+        name: id_in
+        schema:
+          type: string
+        required: false
+        description: 职能化任务筛选id来源列表，以逗号`,`分隔，默认不过滤
+      - in: query
+        name: task_id_in
+        schema:
+          type: string
+        required: false
+        description: 职能化任务筛选原任务id来源列表，以逗号`,`分隔（对应页面"任务ID"），默认不过滤
+      - in: query
+        name: project_id
+        schema:
+          type: integer
+        required: false
+        description: 根据项目id过滤任务列表，仅支持标准运维项目id，非ccid，默认不过滤
+      - in: query
+        name: creator
+        schema:
+          type: string
+        required: false
+        description: 根据提单人过滤任务列表，支持模糊搜索（使用`icontains`），默认不过滤。**注意：不支持多个用户同时筛选**
+      - in: query
+        name: claimant
+        schema:
+          type: string
+        required: false
+        description: 根据认领人过滤任务列表，支持模糊搜索（使用`icontains`），默认不过滤。**注意：不支持多个用户同时筛选**
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 任务时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 分页，返回任务列表任务数，默认为100
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 分页，返回任务列表起始任务下标，默认为0
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: 职能化任务ID
+                        name:
+                          type: string
+                          description: 任务名称（来自原任务）
+                        creator:
+                          type: string
+                          description: 提单人
+                        rejecter:
+                          type: string
+                          description: 驳回人
+                        claimant:
+                          type: string
+                          description: 认领人
+                        predecessor:
+                          type: string
+                          description: 转交人（前置处理人）
+                        create_time:
+                          type: string
+                          nullable: true
+                          description: 创建时间
+                        claim_time:
+                          type: string
+                          nullable: true
+                          description: 认领时间
+                        reject_time:
+                          type: string
+                          nullable: true
+                          description: 驳回时间
+                        transfer_time:
+                          type: string
+                          nullable: true
+                          description: 转交时间
+                        status:
+                          type: string
+                          description: 职能化任务阶段状态，可选值：submitted（未认领）、claimed（已认领）、rejected（已驳回）、executed（已执行）、finished（完成）
+                        task:
+                          type: object
+                          description: 关联的原任务信息
+                          properties:
+                            id:
+                              type: integer
+                              description: 原任务实例ID
+                            name:
+                              type: string
+                              description: 原任务名称
+                            category:
+                              type: string
+                              description: 任务分类
+                            create_method:
+                              type: string
+                              description: 任务创建方式
+                            creator:
+                              type: string
+                              description: 原任务创建人
+                            executor:
+                              type: string
+                              description: 任务执行人
+                            start_time:
+                              type: string
+                              nullable: true
+                              description: 任务开始时间
+                            finish_time:
+                              type: string
+                              nullable: true
+                              description: 任务完成时间
+                            is_started:
+                              type: boolean
+                              description: 是否已启动
+                            is_finished:
+                              type: boolean
+                              description: 是否已完成
+                            template_source:
+                              type: string
+                              description: 模板来源
+                            template_id:
+                              type: string
+                              description: 模板ID
+                            is_child_taskflow:
+                              type: boolean
+                              description: 是否子流程
+                    description: result=true 时成功数据，职能化任务列表
+                  count:
+                    type: integer
+                    description: 符合条件的职能化任务总数（分页前）
+                  code:
+                    type: integer
+                    description: 错误码
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+  "/create_clocked_task/{template_id}/{bk_biz_id}/":
     post:
       operationId: create_clocked_task
       description: 创建计划任务
@@ -3269,7 +3526,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/create_clocked_task/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/create_clocked_task/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3277,7 +3534,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /apply_job_file_upload_ticket/:
+  "/apply_job_file_upload_ticket/":
     get:
       operationId: apply_job_file_upload_ticket
       description: ''
@@ -3290,7 +3547,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/apply_job_file_upload_ticket/
+          path: "/{env.api_sub_path}apigw/apply_job_file_upload_ticket/"
           matchSubpath: false
           timeout: 10
           upstreams: {}
@@ -3298,7 +3555,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /job_file_upload/{bk_biz_id}/:
+  "/job_file_upload/{bk_biz_id}/":
     post:
       operationId: job_file_upload
       description: ''
@@ -3311,7 +3568,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/job_file_upload/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/job_file_upload/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3319,7 +3576,7 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_node_log/:
+  "/get_task_node_log/":
     get:
       operationId: get_task_node_log
       description: 获取某个节点的执行日志
@@ -3374,7 +3631,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_node_log/
+          path: "/{env.api_sub_path}apigw/get_task_node_log/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3384,7 +3641,7 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         disabledStages: []
-  /get_task_plugin_log/:
+  "/get_task_plugin_log/":
     get:
       operationId: get_task_plugin_log
       description: 查询插件日志
@@ -3440,7 +3697,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_plugin_log/
+          path: "/{env.api_sub_path}apigw/get_task_plugin_log/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3450,12 +3707,12 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         disabledStages: []
-  /system/get_task_operate_record/{task_id}/{project_id}/:
+  "/system/get_task_operate_record/{task_id}/{project_id}/":
     get:
       operationId: system_get_task_operate_record
       description: 获取任务操作记录
       tags:
-        - 通用接口
+      - 通用接口
       responses:
         default:
           description: ''
@@ -3466,33 +3723,33 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/
+          path: "/{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/apply_webhook_configs/{project_id}/:
+        disabledStages: []
+  "/system/apply_webhook_configs/{project_id}/":
     post:
       operationId: system_apply_webhook_configs
       description: 应用模板的webhook配置
       tags:
-        - 限制接口
+      - 限制接口
       responses:
         default:
           content:
             application/json:
-              schema: { }
+              schema: {}
           description: ''
       parameters:
-        - in: path
-          name: project_id
-          schema:
-            type: string
-          required: true
-          description: ''
+      - in: path
+        name: project_id
+        schema:
+          type: string
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false
@@ -3500,15 +3757,15 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/apply_webhook_configs/{project_id}/
+          path: "/{env.api_sub_path}apigw/apply_webhook_configs/{project_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_task_effective_time/{task_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/get_task_effective_time/{task_id}/{bk_biz_id}/":
     get:
       operationId: system_get_task_effective_time
       description: 统计任务的有效执行时间
@@ -3540,7 +3797,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_effective_time/{task_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_task_effective_time/{task_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3548,12 +3805,12 @@ paths:
         authConfig:
           userVerifiedRequired: false
         disabledStages: []
-  /system/get_mini_app_list/{bk_biz_id}/:
+  "/system/get_mini_app_list/{bk_biz_id}/":
     get:
       operationId: system_get_mini_app_list
       description: 获取轻应用列表
       tags:
-        - 通用接口
+      - 通用接口
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: true
@@ -3561,20 +3818,20 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_mini_app_list/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/get_mini_app_list/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/get_functionalization_task_list/:
+        disabledStages: []
+  "/system/get_functionalization_task_list/":
     get:
       operationId: system_get_functionalization_task_list
       description: 获取职能化任务列表
       tags:
-        - 通用接口
+      - 通用接口
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: true
@@ -3582,15 +3839,15 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_functionalization_task_list/
+          path: "/{env.api_sub_path}apigw/get_functionalization_task_list/"
           matchSubpath: false
           timeout: 0
-          upstreams: { }
-          transformHeaders: { }
+          upstreams: {}
+          transformHeaders: {}
         authConfig:
           userVerifiedRequired: false
-        disabledStages: [ ]
-  /system/create_clocked_task/{template_id}/{bk_biz_id}/:
+        disabledStages: []
+  "/system/create_clocked_task/{template_id}/{bk_biz_id}/":
     post:
       operationId: system_create_clocked_task
       description: 创建计划任务
@@ -3721,7 +3978,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/create_clocked_task/{template_id}/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/create_clocked_task/{template_id}/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3729,7 +3986,7 @@ paths:
         authConfig:
           userVerifiedRequired: false
         disabledStages: []
-  /system/apply_job_file_upload_ticket/:
+  "/system/apply_job_file_upload_ticket/":
     get:
       operationId: system_apply_job_file_upload_ticket
       description: ''
@@ -3742,7 +3999,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/apply_job_file_upload_ticket/
+          path: "/{env.api_sub_path}apigw/apply_job_file_upload_ticket/"
           matchSubpath: false
           timeout: 10
           upstreams: {}
@@ -3750,7 +4007,7 @@ paths:
         authConfig:
           userVerifiedRequired: false
         disabledStages: []
-  /system/job_file_upload/{bk_biz_id}/:
+  "/system/job_file_upload/{bk_biz_id}/":
     post:
       operationId: system_job_file_upload
       description: ''
@@ -3763,7 +4020,7 @@ paths:
         backend:
           type: HTTP
           method: post
-          path: /{env.api_sub_path}apigw/job_file_upload/{bk_biz_id}/
+          path: "/{env.api_sub_path}apigw/job_file_upload/{bk_biz_id}/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3771,7 +4028,7 @@ paths:
         authConfig:
           userVerifiedRequired: false
         disabledStages: []
-  /system/get_task_node_log/:
+  "/system/get_task_node_log/":
     get:
       operationId: system_get_task_node_log
       description: 获取某个节点的执行日志
@@ -3826,7 +4083,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_node_log/
+          path: "/{env.api_sub_path}apigw/get_task_node_log/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3836,7 +4093,7 @@ paths:
           appVerifiedRequired: true
           resourcePermissionRequired: true
         disabledStages: []
-  /system/get_task_plugin_log/:
+  "/system/get_task_plugin_log/":
     get:
       operationId: system_get_task_plugin_log
       description: 查询插件日志
@@ -3892,7 +4149,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_plugin_log/
+          path: "/{env.api_sub_path}apigw/get_task_plugin_log/"
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3901,4 +4158,864 @@ paths:
           userVerifiedRequired: false
           appVerifiedRequired: true
           resourcePermissionRequired: true
+        disabledStages: []
+  "/create_and_start_task/{template_id}/{bk_biz_id}/":
+    post:
+      operationId: create_and_start_task
+      description: 通过业务流程模板创建并开始执行任务
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: integer
+                        description: 任务实例ID
+                      task_url:
+                        type: string
+                        description: 任务实例链接
+                      pipeline_tree:
+                        type: object
+                        description: 任务实例树
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: 任务名称
+                constants:
+                  type: object
+                  description: 任务全局参数，key为变量KEY（${key}格式），value为变量值
+                  additionalProperties: true
+                flow_type:
+                  type: string
+                  default: common
+                  description: '任务流程类型，common: 常规流程，common_func：职能化流程'
+                description:
+                  type: string
+                  description: 任务描述
+                template_source:
+                  type: string
+                  default: business
+                  description: 流程模板来源，business:默认值，业务流程，common：公共流程
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID
+                    为 bk_biz_id 的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+                callback_url:
+                  type: string
+                  description: 任务执行完成后的回调地址
+                exclude_task_nodes_id:
+                  type: array
+                  items:
+                    type: string
+                  description: 跳过执行的节点ID列表
+                template_schemes_id:
+                  oneOf:
+                  - type: string
+                    minLength: 1
+                  - type: integer
+                    minimum: 1
+                  - type: array
+                    items:
+                      oneOf:
+                      - type: string
+                        minLength: 1
+                      - type: integer
+                        minimum: 1
+                  description: 执行方案ID列表或单个执行方案ID，支持get_template_schemes返回的字符串ID和执行方案整型ID；与exclude_task_nodes_id同时存在非空值时会返回参数错误
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: "/{env.api_sub_path}apigw/create_and_start_task/{template_id}/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  "/copy_template_across_project/{bk_biz_id}/":
+    post:
+      operationId: copy_template_across_project
+      description: copy_template_across_project
+      tags:
+      - 限制接口
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: "/{env.api_sub_path}apigw/copy_template_across_project/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  "/claim_functionalization_task/{task_id}/{bk_biz_id}/":
+    post:
+      operationId: claim_functionalization_task
+      description: 认领职能化任务
+      tags:
+      - 限制接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: string
+                    description: result=true 时成功数据，"success"
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 职能化任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 任务所属业务ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                constants:
+                  type: object
+                  description: 任务全局参数，对应变量key和value
+                  additionalProperties: true
+                name:
+                  type: string
+                  description: 任务新名称
+              description: 请求体参数
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: "/{env.api_sub_path}apigw/claim_functionalization_task/{task_id}/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  "/get_task_node_log/{task_id}/{bk_biz_id}/":
+    get:
+      operationId: get_task_node_log
+      description: 获取某个节点的执行日志
+      tags: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: string
+                    description: 日志内容
+                  page:
+                    type: object
+                    description: 分页信息
+                  result:
+                    type: boolean
+                    description: true/false查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+          description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 所属业务ID
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: true
+        description: 任务中节点ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      - in: query
+        name: version
+        schema:
+          type: string
+        required: true
+        description: 版本
+      - in: query
+        name: page
+        schema:
+          type: number
+        description: 页码
+      - in: query
+        name: page_size
+        schema:
+          type: number
+        description: 每页条目数
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: "/{env.api_sub_path}apigw/get_task_node_log/{task_id}/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  "/get_task_plugin_log/{task_id}/{bk_biz_id}/":
+    get:
+      operationId: get_task_plugin_log
+      description: 查询插件日志
+      tags: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      logs:
+                        type: string
+                        description: 日志内容
+                      total:
+                        type: number
+                        description: 日志总数
+                      scroll_id:
+                        type: string
+                        description: 翻页标识符，获取下一页时传入该值
+                  result:
+                    type: boolean
+                    description: true/false查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+          description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 所属业务ID
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: true
+        description: 任务中节点ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: bk_biz_id 检索的作用域。默认为 cmdb_biz，此时检索的是绑定的 CMDB 业务 ID 为 bk_biz_id
+          的项目；当值为 project 时则检索项目 ID 为 bk_biz_id 的项目
+      - in: query
+        name: plugin_code
+        schema:
+          type: string
+        required: true
+        description: 插件服务编码
+      - in: query
+        name: trace_id
+        schema:
+          type: string
+        required: true
+        description: Trace ID
+      - in: query
+        name: scroll_id
+        schema:
+          type: string
+        description: 翻页标识字段
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: "/{env.api_sub_path}apigw/get_task_plugin_log/{task_id}/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+          appVerifiedRequired: true
+          resourcePermissionRequired: true
+        disabledStages: []
+  "/get_clocked_task_list/{bk_biz_id}/":
+    get:
+      operationId: get_clocked_task_list
+      description: 获取计划任务列表
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        auth_actions:
+                          type: array
+                          items:
+                            type: string
+                          description: 用户对该资源有权限的操作
+                        clocked_task_id:
+                          type: integer
+                          description: 计划任务 Celery任务 ID
+                        create_time:
+                          type: string
+                          description: 任务创建时间
+                        creator:
+                          type: string
+                          description: 创建者
+                        edit_time:
+                          type: string
+                          description: 任务编辑时间
+                        editor:
+                          type: string
+                          description: 编辑者
+                        id:
+                          type: integer
+                          description: 任务唯一标识符
+                        plan_start_time:
+                          type: string
+                          description: 计划开始时间
+                        project_id:
+                          type: integer
+                          description: 项目ID
+                        state:
+                          type: string
+                          description: 计划任务状态
+                        task_id:
+                          type: integer
+                          nullable: true
+                          description: taskflow 任务 ID
+                        task_name:
+                          type: string
+                          description: 计划任务名称
+                        task_parameters:
+                          type: object
+                          properties:
+                            constants:
+                              type: object
+                              additionalProperties: true
+                              description: 计划任务参数
+                            template_schemes_id:
+                              type: array
+                              items:
+                                type: integer
+                              description: 计划任务使用的执行方案列表
+                          description: 任务参数
+                        template_id:
+                          type: integer
+                          description: 模板ID
+                        template_name:
+                          type: string
+                          description: 模板名称
+                        template_source:
+                          type: string
+                          description: 模板来源
+                    description: result=true时计划任务列表，item 信息见下面说明
+                  count:
+                    type: integer
+                    description: data列表数量
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: id
+        schema:
+          type: integer
+        required: false
+        description: 根据计划任务ID过滤列表，默认不过滤
+      - in: query
+        name: task_name
+        schema:
+          type: string
+        required: false
+        description: 根据计划任务名称关键词过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: creator
+        schema:
+          type: string
+        required: false
+        description: 根据创建者过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: editor
+        schema:
+          type: string
+        required: false
+        description: 根据编辑者过滤列表，支持模糊搜索，默认不过滤
+      - in: query
+        name: state
+        schema:
+          type: string
+        required: false
+        description: 根据计划任务状态过滤列表，默认不过滤
+      - in: query
+        name: expected_timezone
+        schema:
+          type: string
+        required: false
+        description: 时间相关字段期望返回的时区，形如Asia/Shanghai
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 分页，返回列表条目数，默认为100
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 分页，返回列表起始条目下标，默认为0
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: "/{env.api_sub_path}apigw/get_clocked_task_list/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  "/modify_template_notify/{template_id}/{bk_biz_id}/":
+    post:
+      operationId: modify_template_notify
+      description: 修改模板通知配置
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      notify_type:
+                        type: object
+                        properties:
+                          success:
+                            type: array
+                            description: 成功通知类型列表
+                          fail:
+                            type: array
+                            description: 失败通知类型列表
+                      notify_receivers:
+                        type: object
+                        properties:
+                          receiver_group:
+                            type: array
+                            description: 通知分组
+                          more_receiver:
+                            type: string
+                            description: 更多接收者
+                          extra_info:
+                            type: object
+                            properties:
+                              bkchat:
+                                type: object
+                                properties:
+                                  success:
+                                    type: string
+                                    description: 成功通知群id
+                                  fail:
+                                    type: string
+                                    description: 失败通知群id
+                      template_id:
+                        type: integer
+                        description: 模板id
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - notify_type
+              - notify_receivers
+              properties:
+                notify_type:
+                  type: object
+                  description: 流程事件通知方式
+                  properties:
+                    success:
+                      type: array
+                      items:
+                        type: string
+                      description: 成功通知类型列表
+                    fail:
+                      type: array
+                      items:
+                        type: string
+                      description: 失败通知类型列表
+                common:
+                  type: boolean
+                  description: 是否为公用模板, 默认false
+                notify_receivers:
+                  type: object
+                  properties:
+                    receiver_group:
+                      type: array
+                      description: 通知分组
+                    more_receiver:
+                      type: string
+                      description: 更多接收者
+                    extra_info:
+                      type: object
+                      properties:
+                        bkchat:
+                          type: object
+                          properties:
+                            success:
+                              type: string
+                              description: 成功通知群id
+                            fail:
+                              type: string
+                              description: 失败通知群id
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: "/{env.api_sub_path}apigw/modify_template_notify/{template_id}/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  "/modify_project_executor_proxy/{bk_biz_id}/":
+    post:
+      operationId: modify_project_executor_proxy
+      description: 修改项目执行代理人配置
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      executor_proxy:
+                        type: string
+                        description: 执行代理人（仅允许设置为调用方本人用户名），允许传空串表示清空该配置
+                      executor_proxy_exempts:
+                        type: string
+                        description: 执行代理人豁免列表，多个用英文逗号分隔；允许传空串表示清空豁免列表
+                      project_id:
+                        type: integer
+                        description: 项目ID
+                    description: result=true 时成功数据
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: integer
+        required: true
+        description: 项目ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - executor_proxy
+              - executor_proxy_exempts
+              properties:
+                executor_proxy:
+                  type: string
+                  description: 执行代理人，必传字段；仅允许设置为调用方本人用户名，传空串表示清空代理人
+                executor_proxy_exempts:
+                  type: string
+                  description: 执行代理人豁免列表，必传字段；多个用英文逗号分隔，传空串表示清空豁免列表
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: "/{env.api_sub_path}apigw/modify_project_executor_proxy/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
+  "/modify_template_executor_proxy/{template_id}/{bk_biz_id}/":
+    post:
+      operationId: modify_template_executor_proxy
+      description: 修改模板的执行代理人
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: object
+                    properties:
+                      template_id:
+                        type: integer
+                        description: 模板ID
+                      executor_proxy:
+                        type: string
+                        description: 更新后的执行代理人
+                    description: result=true 时成功数据，详细信息请见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 模板所属业务ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - executor_proxy
+              properties:
+                executor_proxy:
+                  type: string
+                  description: 执行代理人用户名，必传参数；仅可设置为当前登录用户本人，传空字符串代表清空代理人
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: "/{env.api_sub_path}apigw/modify_template_executor_proxy/{template_id}/{bk_biz_id}/"
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
         disabledStages: []

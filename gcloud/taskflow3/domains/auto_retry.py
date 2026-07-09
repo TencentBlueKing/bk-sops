@@ -11,8 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud import constants as gcloud_constants
+from django.conf import settings
 from pipeline.core import constants as pipeline_constants
+
+from gcloud import constants as gcloud_constants
 from gcloud.taskflow3.models import AutoRetryNodeStrategy
 
 
@@ -33,6 +35,18 @@ class AutoRetryNodeStrategyCreator:
         Args:
             pipeline_tree (dict): 经过子流程展开后的 pipeline 描述结构
         """
+        try:
+            max_retry_interval = abs(
+                int(
+                    getattr(
+                        settings,
+                        "TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL",
+                        gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL,
+                    )
+                )
+            )
+        except Exception:
+            max_retry_interval = gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL
 
         def _initiate_strategy(pipeline_tree: dict):
             strategies = []
@@ -56,10 +70,10 @@ class AutoRetryNodeStrategyCreator:
                     try:
                         interval = min(
                             abs(int(auto_retry.get("interval", 0))),
-                            gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL,
+                            max_retry_interval,
                         )
                     except Exception:
-                        interval = gcloud_constants.TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL
+                        interval = max_retry_interval
 
                     strategies.append(
                         AutoRetryNodeStrategy(

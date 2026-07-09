@@ -27,3 +27,4 @@ from .project_view import ProjectViewInterceptor  # noqa
 from .task_edit import TaskEditInterceptor  # noqa
 from .task_operate import TaskOperateInterceptor  # noqa
 from .task_view import TaskViewInterceptor  # noqa
+from .template_edit import TemplateEditInterceptor  # noqa

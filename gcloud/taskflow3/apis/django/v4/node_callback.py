@@ -56,6 +56,7 @@ def node_callback(request, token):
             )
         else:
             logger.error("invalid backload: %s" % back_load)
+            return JsonResponse({"result": False, "message": "invalid token"}, status=400)
     except Exception:
         logger.warning("invalid token %s" % token)
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)

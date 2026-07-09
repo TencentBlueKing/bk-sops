@@ -318,6 +318,7 @@
                     gateways: {},
                     constants: []
                 },
+                updatedPipelineData: {},
                 selectedNodes: [],
                 notifyType: [[]],
                 receiverGroup: [],
@@ -701,6 +702,7 @@
                 const version = this.formData.is_latest ? latestVersion : this.curRow.template_version
                 this.getPreviewNodeData(templateId, version, updateConstants)
             },
+            // 预览
             togglePreviewMode () {
                 this.previewBread = []
                 this.isPreview = true
@@ -719,9 +721,9 @@
              * @params {String} version  模板版本
              * @params {Boolean} updateConstants  更新执行参数
              */
-            async getPreviewNodeData (templateId, version, updateConstants) {
+            async getPreviewNodeData (templateId, version, updateConstants, updateTemplate = false) {
                 this.previewDataLoading = true
-                const excludeNodes = this.getExcludeNode()
+                const excludeNodes = updateTemplate ? [] : this.getExcludeNode()
                 const params = {
                     templateId: Number(templateId),
                     excludeTaskNodesId: excludeNodes,
@@ -731,6 +733,7 @@
                 try {
                     const resp = await this.loadPreviewNodeData(params)
                     if (resp.result) {
+                        this.updatedPipelineData = resp.data.pipeline_tree
                         this.previewData = resp.data.pipeline_tree
                         if (updateConstants) {
                             this.periodicConstants = Object.values(this.previewData.constants).reduce((acc, cur) => {
@@ -807,8 +810,13 @@
                     this.updateLoading = true
                     this.isUpdatePipelineTree = true
                     const { id, version } = this.templateData
-                    await this.getPreviewNodeData(id, version, true)
+                    await this.getPreviewNodeData(id, version, true, true)
+                    if (this.updatedPipelineData && this.updatedPipelineData.activities) {
+                        this.selectedNodes = Object.keys(this.updatedPipelineData.activities)
+                        this.templateData.pipeline_tree = this.updatedPipelineData
+                    }
                     this.formData.is_latest = true
+                    this.formData.schemeId = this.schemeList.length ? [0] : []
                     this.$bkMessage({
                         'message': i18n.t('流程更新成功'),
                         'theme': 'success'
@@ -855,6 +863,7 @@
             },
             // 周期任务保存
             onPeriodicConfirm () {
+                if (this.saveLoading) return
                 if (this.hasNoCreatePerm) {
                     const { id, name, auth_actions } = this.templateData
                     const resourceData = {

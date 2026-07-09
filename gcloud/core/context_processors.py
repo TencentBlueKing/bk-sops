@@ -96,6 +96,7 @@ def mysetting(request):
         "_": _,  # 国际化
         "LANGUAGES": settings.LANGUAGES,  # 国际化
         # 自定义变量
+        "ENABLE_MULTI_TENANT_MODE": settings.ENABLE_MULTI_TENANT_MODE,
         "PERIODIC_TASK_SHORTEST_TIME": settings.PERIODIC_TASK_SHORTEST_TIME,
         "OPEN_VER": settings.OPEN_VER,
         "RUN_VER": settings.RUN_VER,
@@ -108,7 +109,6 @@ def mysetting(request):
         "USERNAME": request.user.username,
         "DISPLAY_NAME": getattr(request.user, "display_name", request.user.username),
         "TENANT_ID": getattr(request.user, "tenant_id", ""),
-        "ENABLE_MULTI_TENANT_MODE": 1,
         # 'NICK': request.session.get('nick', ''),          # 用户昵称
         "NICK": request.user.username,  # 用户昵称
         "AVATAR": request.session.get("avatar", ""),  # 用户头像

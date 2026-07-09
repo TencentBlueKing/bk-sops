@@ -80,6 +80,24 @@ class ExportInterceptor(ViewInterceptor):
             raise MultiAuthFailedException(IAMMeta.SYSTEM_ID, subject, action, not_allowed_list)
 
 
+class CheckBeforeImportInterceptor(ViewInterceptor):
+    """公共流程导入前置检测接口的鉴权。
+
+    与正式导入接口(ImportInterceptor)的创建权限保持一致，要求 COMMON_FLOW_CREATE，
+    避免攻击者借助预检接口在无任何公共流程权限的情况下探测导入冲突/覆盖信息(BAC)。
+    """
+
+    def process(self, request, *args, **kwargs):
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.COMMON_FLOW_CREATE_ACTION)
+        create_request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
+
+        if not iam.is_allowed(create_request):
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
+
+
 class ImportInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         templates_data = read_template_data_file(request.FILES["data_file"])["data"]["template_data"]

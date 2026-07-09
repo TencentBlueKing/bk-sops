@@ -96,14 +96,20 @@
                 logListLoading: false,
                 logDetailLoading: false,
                 curLanguage: 'chinese',
-                userinfo: {
-                    name: window.DISPLAY_NAME || window.USERNAME || '',
-                    organization: window.TENANT_ID,
-                    timezone: window.TIMEZONE
-                }
+                isMultiTenant: !!window.ENABLE_MULTI_TENANT_MODE
             }
         },
         computed: {
+            userinfo () {
+                const info = {
+                    name: window.DISPLAY_NAME || window.USERNAME || '',
+                    timezone: window.TIMEZONE
+                }
+                if (this.isMultiTenant) {
+                    info.organization = window.TENANT_ID
+                }
+                return info
+            },
             ...mapState({
                 view_mode: state => state.view_mode
             }),

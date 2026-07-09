@@ -93,16 +93,14 @@ def sync_projects_from_cmdb(username, tenant_id, use_cache=True):
 
 
 def get_default_project_for_user(username, tenant_id):
-    project = None
-
     if not username:
-        return project
+        return None
+
+    projects = get_user_projects(username, tenant_id).filter(is_disable=False)
 
     try:
-        project = UserDefaultProject.objects.get(username=username).default_project
+        default_project_id = UserDefaultProject.objects.get(username=username).default_project_id
     except UserDefaultProject.DoesNotExist:
-        projects = get_user_projects(username, tenant_id)
-        if projects:
-            project = projects.first()
+        return projects.first()
 
-    return project
+    return projects.filter(id=default_project_id).first() or projects.first()

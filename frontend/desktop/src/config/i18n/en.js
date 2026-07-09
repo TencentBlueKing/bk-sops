@@ -1481,6 +1481,7 @@ const en = {
     'task_任务名': 'Name',
     'ID/任务名/创建人/执行人/状态/执行方式/执行代理人': 'ID/Name/Created At/Created By/Status/Source/Representative',
     'ID/任务名/创建人/更新人/状态': 'ID/Task Name/Creator/Editor/Status',
+    'ID/任务名/创建人/更新人/状态/流程更新': 'ID/Task Name/Creator/Editor/Status/Flow Changed',
     '应用名': 'App Name',
     '应用名/更新人': 'App Name/Modified By',
     'ID/任务名/所属项目/提单人/认领人/认领状态/执行状态': 'ID/Task Name/Project/Created By/Taked By/Take Status/Execution Status',
@@ -1742,7 +1743,7 @@ const en = {
     '从{0}开始到{1}的每{2}个小时': 'Every {2} hours from {0} to {1}',
     '每天': 'Every day',
     '{0}号': '{0} day',
-    '{0}号到{2}号': '{0} to {2}',
+    '{0}号到{1}号': '{0} to {1}',
     '每隔{0}天': 'Every {0} days',
     '从{0}号开始每隔{1}天': 'Every {1} days starting from {0}',
     '从{0}号开始到{1}号的每{2}天': 'Every {2} days from {0} to {1}',
@@ -1996,7 +1997,16 @@ const en = {
     '历史任务': 'Task History',
     '您当前的企业空间是【tenant】，无法访问该链接，请您尝试返回登录页面切换其他企业空间访问。': 'Your current enterprise space is [{tenant}]. You do not have access to this link. Please try returning to the login page and switching to a different enterprise space to access it.',
     '是否显示时区': 'Whether to display timezone',
-    '个人设置': 'Personal Settings'
+    '个人设置': 'Personal Settings',
+    'AI排版': 'AI Layout',
+    'AI排版完成,原内容在本地快照中': 'AI layout completed, original content in local snapshot',
+    '使用上一次参数': 'Use Last Parameters',
+    '确认使用上一次参数？': 'Use Last Parameters?',
+    '将会使用该流程上一次执行的参数值填充表单': 'The form will be filled with the parameter values from the last execution',
+    '参数加载成功': 'Parameters loaded successfully',
+    '输入关键词搜索,批量搜索使用逗号分隔': 'Enter keywords to search, batch search using commas to separate',
+    '个周期任务涉及到流程的更新，请及时处理。': 'scheduled tasks involving process updates, please handle them in time.',
+    '流程更新': 'Process Update'
 }
 
 export default en

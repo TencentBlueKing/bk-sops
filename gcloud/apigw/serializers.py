@@ -45,10 +45,13 @@ class IncludeTaskSerializer(serializers.Serializer):
 
 
 class WebhookSerializer(serializers.Serializer):
-    endpoint = serializers.URLField(help_text="webhook endpoint", max_length=255, required=True)
+    enable_webhook = serializers.BooleanField(
+        help_text="是否启用webhook，关闭时将清空指定模板的webhook配置", required=False, default=True
+    )
+    endpoint = serializers.URLField(help_text="webhook endpoint", max_length=255, required=False, allow_blank=True)
     method = serializers.CharField(help_text="webhook method", max_length=255, required=False)
     extra_info = serializers.JSONField(help_text="额外扩展信息", required=False)
-    events = serializers.ListField(child=serializers.CharField(), help_text="webhook事件列表", required=True)
+    events = serializers.ListField(child=serializers.CharField(), help_text="webhook事件列表", required=False)
     template_ids = serializers.ListField(child=serializers.IntegerField(), help_text="模板ID列表", required=True)
 
     def validate_events(self, events: list):
@@ -69,3 +72,12 @@ class WebhookSerializer(serializers.Serializer):
             if raw_value > max_val:
                 raise serializers.ValidationError(f"HTTP回调配置 {rule['name']} 不能超过 {max_val} {rule['unit']}")
         return extra_info
+
+    def validate(self, attrs):
+        # 启用webhook时，必须提供endpoint与events
+        if attrs.get("enable_webhook", True):
+            if not attrs.get("endpoint"):
+                raise serializers.ValidationError({"endpoint": "启用webhook时endpoint为必填项"})
+            if not attrs.get("events"):
+                raise serializers.ValidationError({"events": "启用webhook时events为必填项"})
+        return attrs

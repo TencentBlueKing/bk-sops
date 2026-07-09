@@ -18,13 +18,16 @@ import ujson as json
 from blueapps.account.decorators import login_exempt
 from cryptography.fernet import Fernet
 from django.db import transaction
+from django.db.models import Max, Value
 from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
+from iam import Action, Subject
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework.decorators import api_view
 
 import env
@@ -35,16 +38,18 @@ from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.operate_record.constants import OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
-from gcloud.core.models import EngineConfig
+from gcloud.core.models import EngineConfig, Project
 from gcloud.core.trace import CallFrom, trace_view
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.project import ProjectViewInterceptor
 from gcloud.iam_auth.view_interceptors.taskflow import (
     BatchStatusViewInterceptor,
     DataViewInterceptor,
     DetailViewInterceptor,
     GetNodeLogInterceptor,
     NodesActionInterceptor,
+    PreviewTaskTreeInterceptor,
     SpecNodesTimerResetInpterceptor,
     StatusViewInterceptor,
     TaskActionInterceptor,
@@ -58,6 +63,7 @@ from gcloud.taskflow3.apis.django.validators import (
     DetailValidator,
     GetJobInstanceLogValidator,
     GetNodeLogValidator,
+    LastExecutionConstantsValidator,
     NodesActionValidator,
     PreviewTaskTreeValidator,
     QueryTaskCountValidator,
@@ -261,6 +267,27 @@ def detail(request, project_id):
 @require_GET
 @request_validate(GetJobInstanceLogValidator)
 def get_job_instance_log(request, biz_cc_id):
+    # 该接口本质上是 bk-sops 代用户向作业平台请求日志，必须先确认调用方在
+    # bk-sops 对应项目内具备 PROJECT_VIEW_ACTION，避免拥有其它产品权限但
+    # 与 bk-sops 项目无关的用户借助本接口跨业务获取日志（BAC）
+    try:
+        project = Project.objects.get(bk_biz_id=biz_cc_id, tenant_id=request.user.tenant_id)
+    except Project.DoesNotExist:
+        message = _(f"执行历史请求失败: 项目[bk_biz_id={biz_cc_id}]在标准运维中不存在 | get_job_instance_log")
+        logger.error(message)
+        return JsonResponse(
+            {"result": False, "data": None, "message": message, "code": err_code.CONTENT_NOT_EXIST.code}
+        )
+
+    subject = Subject("user", request.user.username)
+    action = Action(IAMMeta.PROJECT_VIEW_ACTION)
+    tenant_id = request.user.tenant_id
+    iam_client = get_iam_client(tenant_id)
+    resources = res_factory.resources_for_project(project.id, tenant_id)
+    allow_or_raise_auth_failed(
+        iam=iam_client, system=IAMMeta.SYSTEM_ID, subject=subject, action=action, resources=resources
+    )
+
     job_instance_id = request.GET["job_instance_id"]
     bk_scope_type = request.GET.get("bk_scope_type", JobBizScopeType.BIZ.value)
     step_instance_id = request.GET.get("step_instance_id")
@@ -443,6 +470,7 @@ def task_func_claim(request, project_id):
 
 @require_POST
 @request_validate(PreviewTaskTreeValidator)
+@iam_intercept(PreviewTaskTreeInterceptor())
 def preview_task_tree(request, project_id):
     """
     @summary: 调整可选节点后预览任务流程，这里不创建任何实例，只返回调整后的pipeline_tree
@@ -466,11 +494,83 @@ def preview_task_tree(request, project_id):
         logger.exception(message)
         return JsonResponse({"result": False, "message": message})
 
+    last_task_id = TaskFlowInstance.objects.filter(
+        project_id=project_id,
+        template_id=str(template_id),
+        template_source=template_source,
+        is_deleted=Value(0),
+        is_child_taskflow=Value(0),
+        pipeline_instance__is_started=True,
+        pipeline_instance__isnull=False,
+    ).aggregate(max_id=Max("id"))["max_id"]
+
+    data["last_execution_id"] = last_task_id
+
     return JsonResponse({"result": True, "data": data})
+
+
+@require_GET
+@request_validate(LastExecutionConstantsValidator)
+def last_execution_constants(request, project_id):
+    template_id = request.GET.get("template_id")
+    template_source = request.GET.get("template_source", PROJECT)
+
+    last_task_id = TaskFlowInstance.objects.filter(
+        project_id=project_id,
+        template_id=str(template_id),
+        template_source=template_source,
+        is_deleted=Value(0),
+        is_child_taskflow=Value(0),
+        pipeline_instance__is_started=True,
+        pipeline_instance__isnull=False,
+    ).aggregate(max_id=Max("id"))["max_id"]
+
+    if not last_task_id:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    try:
+        last_task = TaskFlowInstance.objects.select_related("pipeline_instance").get(id=last_task_id)
+    except TaskFlowInstance.DoesNotExist:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    if not last_task.pipeline_instance:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    execution_data = last_task.pipeline_instance.execution_data
+    all_constants = execution_data.get("constants", {})
+
+    constants = {}
+    for key, val in all_constants.items():
+        if val.get("show_type") != "show":
+            continue
+        constants[key] = {
+            "key": val.get("key", key),
+            "name": val.get("name", ""),
+            "value": val.get("value"),
+            "custom_type": val.get("custom_type", ""),
+            "source_type": val.get("source_type", ""),
+        }
+
+    data = {
+        "task_id": last_task.id,
+        "task_name": last_task.pipeline_instance.name,
+        "executor": last_task.pipeline_instance.executor,
+        "create_time": last_task.pipeline_instance.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "constants": constants,
+    }
+
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
 
 
 @require_POST
 @request_validate(QueryTaskCountValidator)
+@iam_intercept(ProjectViewInterceptor())
 def query_task_count(request, project_id):
     """
     @summary: 按任务分类统计总数
@@ -547,6 +647,7 @@ def node_callback(request, token):
         logger.warning("invalid token %s" % token)
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)
 
+    # 老的回调接口，一定是老引擎的接口
     try:
         callback_data = json.loads(request.body)
     except Exception:
