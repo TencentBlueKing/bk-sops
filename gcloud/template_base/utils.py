@@ -90,6 +90,12 @@ def inject_template_node_id(pipeline_tree: dict):
                 inject_template_node_id(act["pipeline"])
 
 
+def sync_skippable_node(pipeline_tree: dict):
+    for act in pipeline_tree.get("activities", {}).values():
+        if act.get("error_ignorable") and not act.get("skippable"):
+            act["skippable"] = True
+
+
 def inject_original_template_info(pipeline_tree: dict):
     """填充模版信息到子流程"""
 

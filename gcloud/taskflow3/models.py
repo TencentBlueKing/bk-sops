@@ -56,7 +56,12 @@ from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
 from gcloud.taskflow3.utils import parse_node_timeout_configs
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.template_base.utils import inject_original_template_info, inject_template_node_id, replace_template_id
+from gcloud.template_base.utils import (
+    inject_original_template_info,
+    inject_template_node_id,
+    replace_template_id,
+    sync_skippable_node,
+)
 from gcloud.utils.components import format_component_name_with_remote, get_remote_plugin_name
 from gcloud.utils.dates import format_datetime, timestamp_to_datetime
 from gcloud.utils.managermixins import ClassificationCountMixin
@@ -609,6 +614,7 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         }
         PipelineTemplateWebWrapper.unfold_subprocess(pipeline_tree, template.__class__)
         inject_template_node_id(pipeline_tree)
+        sync_skippable_node(pipeline_tree)
         pipeline_web_cleaner = PipelineWebTreeCleaner(pipeline_tree)
         nodes_attr = pipeline_web_cleaner.clean(with_subprocess=(not independent_subprocess))
 
