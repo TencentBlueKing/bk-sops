@@ -444,7 +444,7 @@
                     if (type === 'tasknode') {
                         // 任务节点和独立子任务节点
                         const activity = this.pipelineData.activities[this.nodeDetailConfig.node_id]
-                        isShow = activity.skippable
+                        isShow = activity.skippable || activity.error_ignorable
                     } else if (type !== 'subflow') {
                         // 网关节点
                         isShow = true
