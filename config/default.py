@@ -69,6 +69,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.operate_record",
     "gcloud.contrib.template_market",
     "gcloud.apigw",
+    "gcloud.plugin_gateway",
     "gcloud.common_template",
     "gcloud.label",
     "gcloud.contrib.cleaner",
@@ -490,6 +491,14 @@ ScalableQueues.add(name=API_TASK_QUEUE_NAME)
 PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
+# 插件网关独立队列
+OPEN_PLUGIN_DISPATCH_QUEUE_NAME = "open_plugin_dispatch"
+OPEN_PLUGIN_POLLING_QUEUE_NAME = "open_plugin_polling"
+OPEN_PLUGIN_CALLBACK_QUEUE_NAME = "open_plugin_callback"
+ScalableQueues.add(name=OPEN_PLUGIN_DISPATCH_QUEUE_NAME)
+ScalableQueues.add(name=OPEN_PLUGIN_POLLING_QUEUE_NAME)
+ScalableQueues.add(name=OPEN_PLUGIN_CALLBACK_QUEUE_NAME)
+
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
 
@@ -505,6 +514,24 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queue
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 CELERY_QUEUES.extend(cleaner_settings.CELERY_QUEUES)
+CELERY_QUEUES.extend(
+    [
+        Queue(OPEN_PLUGIN_DISPATCH_QUEUE_NAME, default_exchange, routing_key=OPEN_PLUGIN_DISPATCH_QUEUE_NAME),
+        Queue(OPEN_PLUGIN_POLLING_QUEUE_NAME, default_exchange, routing_key=OPEN_PLUGIN_POLLING_QUEUE_NAME),
+        Queue(OPEN_PLUGIN_CALLBACK_QUEUE_NAME, default_exchange, routing_key=OPEN_PLUGIN_CALLBACK_QUEUE_NAME),
+    ]
+)
+
+CELERYBEAT_SCHEDULE = locals().get("CELERYBEAT_SCHEDULE", {})
+CELERYBEAT_SCHEDULE.update(
+    {
+        "sweep_expired_plugin_gateway_runs": {
+            "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
+            "schedule": 60.0,
+            "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+        }
+    }
+)
 
 CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 

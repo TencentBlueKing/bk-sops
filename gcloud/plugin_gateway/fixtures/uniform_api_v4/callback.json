@@ -1,0 +1,9 @@
+{
+  "open_plugin_run_id": "run-001",
+  "status": "SUCCEEDED",
+  "data": {
+    "outputs": {
+      "job_instance_id": 1001
+    }
+  }
+}
