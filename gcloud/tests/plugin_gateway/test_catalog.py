@@ -1,6 +1,7 @@
+from threading import Barrier
 from unittest.mock import patch
 
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, PLUGIN_SOURCE_THIRD_PARTY
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
@@ -30,6 +31,36 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 cache_clear = getattr(func, "cache_clear", None)
                 if cache_clear is not None:
                     cache_clear()
+
+    @override_settings(
+        BK_API_URL_TMPL="https://{api_name}.apigw.example.com",
+        BK_APIGW_NAME="bk-sops",
+        BK_APIGW_STAGE_NAME="stage",
+    )
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_plugins")
+    def test_get_plugin_list_uses_public_apigw_url(self, mock_list_plugins):
+        mock_list_plugins.return_value = [
+            {
+                "id": "builtin__job_execute_task",
+                "name": "执行作业",
+                "plugin_source": PLUGIN_SOURCE_BUILTIN,
+                "plugin_code": "job_execute_task",
+                "wrapper_version": "",
+                "default_version": "legacy",
+                "latest_version": "legacy",
+                "versions": ["legacy"],
+                "category": "JOB",
+                "description": "",
+            }
+        ]
+
+        meta = PluginGatewayCatalogService.get_plugin_list(request=self.request)
+
+        self.assertEqual(
+            meta["apis"][0]["meta_url_template"],
+            "https://bk-sops.apigw.example.com/stage/plugin-gateway/plugins/"
+            "builtin__job_execute_task/?version={version}",
+        )
 
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
@@ -82,6 +113,11 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             builtin_plugin["meta_url_template"],
         )
 
+    @override_settings(
+        BK_API_URL_TMPL="https://{api_name}.apigw.example.com",
+        BK_APIGW_NAME="bk-sops",
+        BK_APIGW_STAGE_NAME="stage",
+    )
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
@@ -161,8 +197,70 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 }
             ],
         )
-        self.assertIn("/apigw/plugin-gateway/runs/", detail["url"])
-        self.assertIn("/apigw/plugin-gateway/runs/status/", detail["polling"]["url"])
+        self.assertEqual(
+            detail["url"],
+            "https://bk-sops.apigw.example.com/stage/plugin-gateway/runs/",
+        )
+        self.assertEqual(
+            detail["polling"]["url"],
+            "https://bk-sops.apigw.example.com/stage/plugin-gateway/runs/status/",
+        )
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_list_third_party_plugins_loads_meta_concurrently(self, mock_client_cls, mock_get_plugin_meta):
+        meta_barrier = Barrier(2)
+
+        def load_meta(_plugin_code):
+            meta_barrier.wait(timeout=5)
+            return {"description": "remote plugin", "versions": ["1.0.0"]}
+
+        mock_get_plugin_meta.side_effect = load_meta
+        mock_client_cls.get_plugin_list.return_value = {
+            "result": True,
+            "data": {
+                "plugins": [
+                    {"code": "bk_plugin_demo_1", "name": "Demo Plugin 1"},
+                    {"code": "bk_plugin_demo_2", "name": "Demo Plugin 2"},
+                ]
+            },
+        }
+
+        plugins = PluginGatewayCatalogService._list_third_party_plugins()
+
+        self.assertEqual([plugin["id"] for plugin in plugins], ["bk_plugin_demo_1", "bk_plugin_demo_2"])
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_get_third_party_detail_only_loads_selected_meta(
+        self, mock_client_cls, mock_get_plugin_meta, mock_get_plugin_detail_schema, mock_builtin_list
+    ):
+        mock_builtin_list.return_value = []
+        mock_get_plugin_meta.return_value = {
+            "description": "remote plugin",
+            "versions": ["1.0.0"],
+        }
+        mock_get_plugin_detail_schema.return_value = {"inputs": {}, "outputs": {}}
+        mock_client_cls.get_plugin_list.return_value = {
+            "result": True,
+            "data": {
+                "plugins": [
+                    {"code": "bk_plugin_demo_1", "name": "Demo Plugin 1"},
+                    {"code": "bk_plugin_demo_2", "name": "Demo Plugin 2"},
+                ]
+            },
+        }
+
+        detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=self.request,
+            plugin_id="bk_plugin_demo_1",
+            version="1.0.0",
+        )
+
+        self.assertEqual(detail["id"], "bk_plugin_demo_1")
+        mock_get_plugin_meta.assert_called_once_with("bk_plugin_demo_1")
 
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
