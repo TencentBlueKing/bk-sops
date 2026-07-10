@@ -12,8 +12,12 @@ specific language governing permissions and limitations under the License.
 """
 
 import copy
+from concurrent.futures import ThreadPoolExecutor
+from threading import RLock
+from urllib.parse import urlsplit
 
 from cachetools import TTLCache, cached
+from django.conf import settings
 from django.urls import reverse
 
 from gcloud.plugin_gateway.constants import (
@@ -32,6 +36,8 @@ from plugin_service.plugin_client import PluginServiceApiClient
 
 class PluginGatewayCatalogService:
     POLLING_STATUS_KEY = "data.status"
+    THIRD_PARTY_META_WORKERS = 8
+    APIGW_BACKEND_PATH_PREFIX = "/apigw"
 
     @classmethod
     def get_categories(cls):
@@ -42,8 +48,10 @@ class PluginGatewayCatalogService:
         meta = {"total": 0, "apis": []}
         for item in cls._list_plugins():
             item = copy.deepcopy(item)
-            detail_url = request.build_absolute_uri(
-                reverse("apigw_plugin_gateway_detail", kwargs={"plugin_id": item["id"]})
+            detail_url = cls._build_public_api_url(
+                request,
+                "apigw_plugin_gateway_detail",
+                kwargs={"plugin_id": item["id"]},
             )
             item["meta_url_template"] = "{}?version={{version}}".format(detail_url)
             meta["apis"].append(item)
@@ -93,8 +101,8 @@ class PluginGatewayCatalogService:
                 "running_tag": {"key": cls.POLLING_STATUS_KEY, "value": RUNNING_STATUS_VALUE},
             },
         }
-        detail["url"] = request.build_absolute_uri(reverse("apigw_plugin_gateway_run_create"))
-        detail["polling"]["url"] = request.build_absolute_uri(reverse("apigw_plugin_gateway_run_status"))
+        detail["url"] = cls._build_public_api_url(request, "apigw_plugin_gateway_run_create")
+        detail["polling"]["url"] = cls._build_public_api_url(request, "apigw_plugin_gateway_run_status")
         return detail
 
     @staticmethod
@@ -103,45 +111,92 @@ class PluginGatewayCatalogService:
         plugins = PluginGatewayCatalogService._filter_do_not_open_plugins(plugins)
         return sorted(plugins, key=lambda item: (item["name"], item["id"]))
 
-    @staticmethod
-    def _list_third_party_plugins():
-        result = PluginServiceApiClient.get_plugin_list(limit=200, offset=0)
-        if not result.get("result"):
-            raise PluginGatewaySourceUnavailableError(result.get("message", "query plugin list failed"))
+    @classmethod
+    def _list_third_party_plugins(cls):
+        plugin_entries = cls._get_third_party_plugin_entries()
+        if not plugin_entries:
+            return []
+
+        worker_count = min(cls.THIRD_PARTY_META_WORKERS, len(plugin_entries))
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            plugin_metas = executor.map(cls._get_plugin_meta, [plugin["code"] for plugin in plugin_entries])
 
         plugins = []
-        for plugin in result.get("data", {}).get("plugins", []):
-            meta = PluginGatewayCatalogService._get_plugin_meta(plugin["code"])
-            if not meta:
-                continue
-
-            versions = meta.get("versions") or []
-            if not versions:
-                continue
-
-            latest_version = versions[-1]
-            category = meta.get("group") or meta.get("category") or meta.get("tag") or PLUGIN_SOURCE_THIRD_PARTY
-            plugins.append(
-                {
-                    "id": plugin["code"],
-                    "name": plugin["name"],
-                    "plugin_source": PLUGIN_SOURCE_THIRD_PARTY,
-                    "plugin_code": plugin["code"],
-                    "group": category,
-                    "wrapper_version": meta.get("framework_version") or meta.get("runtime_version") or "",
-                    "default_version": latest_version,
-                    "latest_version": latest_version,
-                    "versions": versions,
-                    "category": category,
-                    "description": meta.get("description", ""),
-                }
-            )
+        for plugin, meta in zip(plugin_entries, plugin_metas):
+            plugin_reference = cls._build_third_party_plugin_reference(plugin, meta)
+            if plugin_reference:
+                plugins.append(plugin_reference)
 
         return sorted(plugins, key=lambda item: (item["name"], item["id"]))
 
+    @staticmethod
+    def _get_third_party_plugin_entries():
+        result = PluginServiceApiClient.get_plugin_list(limit=200, offset=0)
+        if not result.get("result"):
+            raise PluginGatewaySourceUnavailableError(result.get("message", "query plugin list failed"))
+        return result.get("data", {}).get("plugins", [])
+
+    @staticmethod
+    def _build_third_party_plugin_reference(plugin, meta):
+        if not meta:
+            return None
+
+        versions = meta.get("versions") or []
+        if not versions:
+            return None
+
+        latest_version = versions[-1]
+        category = meta.get("group") or meta.get("category") or meta.get("tag") or PLUGIN_SOURCE_THIRD_PARTY
+        return {
+            "id": plugin["code"],
+            "name": plugin["name"],
+            "plugin_source": PLUGIN_SOURCE_THIRD_PARTY,
+            "plugin_code": plugin["code"],
+            "group": category,
+            "wrapper_version": meta.get("framework_version") or meta.get("runtime_version") or "",
+            "default_version": latest_version,
+            "latest_version": latest_version,
+            "versions": versions,
+            "category": category,
+            "description": meta.get("description", ""),
+        }
+
     @classmethod
     def get_plugin_reference(cls, plugin_id):
-        return next((item for item in cls._list_plugins() if item["id"] == plugin_id), None)
+        plugin_source, plugin_code = decode_plugin_id(plugin_id)
+        do_not_open = cls._do_not_open_plugin_ids()
+        if plugin_id in do_not_open or plugin_code in do_not_open:
+            return None
+
+        if plugin_source == PLUGIN_SOURCE_BUILTIN:
+            return next((item for item in BuiltinCatalogService.list_plugins() if item["id"] == plugin_id), None)
+        if plugin_source != PLUGIN_SOURCE_THIRD_PARTY:
+            return None
+
+        plugin = next(
+            (item for item in cls._get_third_party_plugin_entries() if item["code"] == plugin_code),
+            None,
+        )
+        if plugin is None:
+            return None
+        return cls._build_third_party_plugin_reference(plugin, cls._get_plugin_meta(plugin_code))
+
+    @classmethod
+    def _build_public_api_url(cls, request, view_name, kwargs=None):
+        path = reverse(view_name, kwargs=kwargs)
+        api_url_template = getattr(settings, "BK_API_URL_TMPL", "")
+        stage_name = getattr(settings, "BK_APIGW_STAGE_NAME", "")
+        if not api_url_template or not stage_name:
+            return request.build_absolute_uri(path)
+
+        api_name = getattr(settings, "BK_APIGW_NAME", "bk-sops")
+        base_url = api_url_template.format(api_name=api_name, stage_name=stage_name).rstrip("/")
+        if not urlsplit(base_url).path.rstrip("/").endswith("/{}".format(stage_name)):
+            base_url = "{}/{}".format(base_url, stage_name)
+
+        if path.startswith(cls.APIGW_BACKEND_PATH_PREFIX + "/"):
+            path = path[len(cls.APIGW_BACKEND_PATH_PREFIX) :]
+        return "{}{}".format(base_url, path)
 
     @classmethod
     def _filter_do_not_open_plugins(cls, plugins):
@@ -166,7 +221,7 @@ class PluginGatewayCatalogService:
         return plugin_ids
 
     @staticmethod
-    @cached(cache=TTLCache(maxsize=64, ttl=60), key=lambda plugin_code: plugin_code)
+    @cached(cache=TTLCache(maxsize=64, ttl=60), key=lambda plugin_code: plugin_code, lock=RLock())
     def _get_plugin_meta(plugin_code):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
@@ -179,7 +234,11 @@ class PluginGatewayCatalogService:
         return result.get("data", {})
 
     @staticmethod
-    @cached(cache=TTLCache(maxsize=128, ttl=60), key=lambda plugin_code, version: "{}:{}".format(plugin_code, version))
+    @cached(
+        cache=TTLCache(maxsize=128, ttl=60),
+        key=lambda plugin_code, version: "{}:{}".format(plugin_code, version),
+        lock=RLock(),
+    )
     def _get_plugin_detail_schema(plugin_code, version):
         try:
             plugin_client = PluginServiceApiClient(plugin_code)
