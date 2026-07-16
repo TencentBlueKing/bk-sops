@@ -40,8 +40,11 @@ class PluginGatewayRunner:
             )
 
         service = component_cls.bound_service()
-        service.id = run.open_plugin_run_id
-        service.root_pipeline_id = run.open_plugin_run_id
+        service.setup_runtime_attrs(
+            id=run.open_plugin_run_id,
+            root_pipeline_id=run.open_plugin_run_id,
+            logger=logger,
+        )
         setattr(service, "version", run.plugin_version)
         return source, code, service
 
