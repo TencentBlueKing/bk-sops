@@ -30,12 +30,14 @@ from gcloud.plugin_gateway.constants import (
 from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError, PluginGatewayVersionNotFoundError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.builtin_catalog import BuiltinCatalogService
+from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
 
 
 class PluginGatewayCatalogService:
     POLLING_STATUS_KEY = "data.status"
+    THIRD_PARTY_LIST_PAGE_SIZE = 200
     THIRD_PARTY_META_WORKERS = 8
     APIGW_BACKEND_PATH_PREFIX = "/apigw"
 
@@ -129,12 +131,43 @@ class PluginGatewayCatalogService:
 
         return sorted(plugins, key=lambda item: (item["name"], item["id"]))
 
-    @staticmethod
-    def _get_third_party_plugin_entries():
-        result = PluginServiceApiClient.get_plugin_list(limit=200, offset=0)
-        if not result.get("result"):
-            raise PluginGatewaySourceUnavailableError(result.get("message", "query plugin list failed"))
-        return result.get("data", {}).get("plugins", [])
+    @classmethod
+    def _get_third_party_plugin_entries(cls, search_term=None):
+        plugins = []
+        offset = 0
+        expected_total = None
+
+        while True:
+            request_kwargs = {
+                "limit": cls.THIRD_PARTY_LIST_PAGE_SIZE,
+                "offset": offset,
+                "distributor_code_name": PLUGIN_DISTRIBUTOR_NAME,
+            }
+            if search_term:
+                request_kwargs["search_term"] = search_term
+            result = PluginServiceApiClient.get_plugin_list(**request_kwargs)
+            if not result.get("result"):
+                raise PluginGatewaySourceUnavailableError(result.get("message", "query plugin list failed"))
+
+            data = result.get("data") or {}
+            page_plugins = data.get("plugins")
+            total = data.get("count")
+            if not isinstance(page_plugins, list) or type(total) is not int or total < 0:
+                raise PluginGatewaySourceUnavailableError("query plugin list returned invalid pagination data")
+            if expected_total is None:
+                expected_total = total
+            elif total != expected_total:
+                raise PluginGatewaySourceUnavailableError("plugin list count changed during pagination")
+
+            plugins.extend(page_plugins)
+            if len(plugins) == expected_total:
+                break
+            if len(plugins) > expected_total or len(page_plugins) != cls.THIRD_PARTY_LIST_PAGE_SIZE:
+                raise PluginGatewaySourceUnavailableError("query plugin list returned incomplete pagination data")
+
+            offset += cls.THIRD_PARTY_LIST_PAGE_SIZE
+
+        return plugins
 
     @staticmethod
     def _build_third_party_plugin_reference(plugin, meta):
@@ -174,7 +207,11 @@ class PluginGatewayCatalogService:
             return None
 
         plugin = next(
-            (item for item in cls._get_third_party_plugin_entries() if item["code"] == plugin_code),
+            (
+                item
+                for item in cls._get_third_party_plugin_entries(search_term=plugin_code)
+                if item["code"] == plugin_code
+            ),
             None,
         )
         if plugin is None:
