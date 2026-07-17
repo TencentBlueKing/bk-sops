@@ -19,7 +19,21 @@ from gcloud.plugin_gateway.models import PluginGatewayRun
 from gcloud.plugin_gateway.services.runner import PluginGatewayRunner
 
 
-class _SyncService:
+class _RuntimeService:
+    def __init__(self):
+        self._runtime_attrs = {}
+
+    def setup_runtime_attrs(self, **kwargs):
+        self._runtime_attrs.update(kwargs)
+
+    def __getattr__(self, name):
+        try:
+            return self._runtime_attrs[name]
+        except KeyError:
+            raise AttributeError()
+
+
+class _SyncService(_RuntimeService):
     interval = None
 
     def execute(self, data, parent_data):
@@ -37,7 +51,26 @@ class _SyncComponent:
     bound_service = _SyncService
 
 
-class _ThirdPartyShellService:
+class _RuntimeAwareService(_RuntimeService):
+    interval = None
+
+    def execute(self, data, parent_data):
+        self.logger.info("plugin gateway runtime logger is ready")
+        data.set_outputs("runtime_id", self.id)
+        data.set_outputs("runtime_root_pipeline_id", self.root_pipeline_id)
+        return True
+
+    def need_schedule(self):
+        return False
+
+
+class _RuntimeAwareComponent:
+    code = "runtime_aware"
+    version = "legacy"
+    bound_service = _RuntimeAwareService
+
+
+class _ThirdPartyShellService(_RuntimeService):
     interval = None
 
     def execute(self, data, parent_data):
@@ -59,7 +92,7 @@ class _ThirdPartyShellComponent:
     bound_service = _ThirdPartyShellService
 
 
-class _PollService:
+class _PollService(_RuntimeService):
     interval = object()
 
     def execute(self, data, parent_data):
@@ -70,6 +103,7 @@ class _PollService:
         return getattr(self, "__need_schedule__", False)
 
     def schedule(self, data, parent_data, callback_data=None):
+        self.logger.info("plugin gateway schedule runtime logger is ready")
         data.set_outputs("polled", True)
         data.set_outputs("trace_id_from_runtime", data.get_one_of_outputs("trace_id"))
         setattr(self, "__schedule_finish__", True)
@@ -117,6 +151,19 @@ class PluginGatewayRunnerExecuteTestCase(TestCase):
         self.assertFalse(result["finished"])
         self.assertEqual(result["outputs"]["echo_operator"], "zhangsan")
         self.assertTrue(result["outputs"]["done"])
+
+    @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
+    def test_execute_injects_service_runtime_attrs(self, mock_lib):
+        mock_lib.get_component_class.return_value = _RuntimeAwareComponent
+
+        result = PluginGatewayRunner.run_execute(
+            self._run(plugin_id="builtin__runtime_aware"),
+            {"operator": "zhangsan", "project_id": 10, "bk_biz_id": 2},
+        )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["outputs"]["runtime_id"], "a" * 32)
+        self.assertEqual(result["outputs"]["runtime_root_pipeline_id"], "a" * 32)
 
     @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
     def test_execute_exception_maps_failed(self, mock_lib):
