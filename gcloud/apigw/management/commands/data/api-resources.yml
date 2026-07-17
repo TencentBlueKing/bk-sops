@@ -395,6 +395,19 @@ paths:
       description: 查询插件列表
       tags:
       - 限制接口
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+        required: false
+        description: 插件分类；all 或不传表示不过滤
+      - in: query
+        name: key
+        schema:
+          type: string
+        required: false
+        description: 按插件 ID、名称或原始 code 模糊搜索
       responses:
         '200':
           content:
@@ -512,6 +525,9 @@ paths:
                       plugin_version:
                         type: string
                         description: 当前返回的插件版本
+                      version:
+                        type: string
+                        description: uniform_api 运行壳版本
                       wrapper_version:
                         type: string
                         description: 统一协议版本

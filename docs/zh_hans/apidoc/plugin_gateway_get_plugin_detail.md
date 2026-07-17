@@ -26,7 +26,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
     "plugin_source": "builtin",
     "plugin_code": "job_execute_task",
     "plugin_version": "legacy",
-    "wrapper_version": "",
+    "version": "v4.0.0",
+    "wrapper_version": "v4.0.0",
     "description": "",
     "url": "https://bk-sops.example/apigw/plugin-gateway/runs/",
     "methods": ["POST"],
@@ -79,6 +80,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
 | `data.plugin_source` | `string` | 插件来源，取值为 `builtin` 或 `third_party` |
 | `data.plugin_code` | `string` | 插件原始 code |
 | `data.plugin_version` | `string` | 当前返回的插件版本 |
+| `data.version` | `string` | uniform_api 运行壳版本，当前为 `v4.0.0` |
+| `data.wrapper_version` | `string` | uniform_api 运行壳版本，当前为 `v4.0.0` |
 | `data.url` | `string` | 创建执行记录的地址 |
 | `data.methods` | `list` | 允许的调用方法 |
 | `data.inputs` | `list` | 插件输入 schema 列表 |

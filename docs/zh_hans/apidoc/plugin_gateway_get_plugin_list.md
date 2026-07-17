@@ -4,7 +4,10 @@
 
 #### 接口参数
 
-无
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| `category` | `string` | 否 | 插件分类；`all` 或不传表示不过滤 |
+| `key` | `string` | 否 | 按插件 ID、名称或原始 code 模糊搜索 |
 
 ### 请求参数示例
 
@@ -25,12 +28,12 @@ GET /apigw/plugin-gateway/plugins/
         "name": "作业执行",
         "plugin_source": "builtin",
         "plugin_code": "job_execute_task",
-        "group": "作业平台(JOB)",
-        "wrapper_version": "",
+        "group": "JOB",
+        "wrapper_version": "v4.0.0",
         "default_version": "legacy",
         "latest_version": "legacy",
         "versions": ["legacy"],
-        "category": "作业平台(JOB)",
+        "category": "JOB",
         "description": "",
         "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/builtin__job_execute_task/?version={version}"
       },
@@ -39,12 +42,12 @@ GET /apigw/plugin-gateway/plugins/
         "name": "Demo Plugin",
         "plugin_source": "third_party",
         "plugin_code": "bk_plugin_demo",
-        "group": "third_party",
-        "wrapper_version": "2.0.0",
+        "group": "DEVOPS",
+        "wrapper_version": "v4.0.0",
         "default_version": "1.1.0",
         "latest_version": "1.1.0",
         "versions": ["1.0.0", "1.1.0"],
-        "category": "third_party",
+        "category": "DEVOPS",
         "description": "Demo plugin",
         "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/bk_plugin_demo/?version={version}"
       }
@@ -66,7 +69,8 @@ GET /apigw/plugin-gateway/plugins/
 | `data.apis[].plugin_code` | `string` | 插件原始 code |
 | `data.apis[].group` | `string` | 插件分组 |
 | `data.apis[].category` | `string` | 插件分类 |
+| `data.apis[].wrapper_version` | `string` | uniform_api 运行壳版本，当前固定为 `v4.0.0` |
 | `data.apis[].default_version` | `string` | 默认版本 |
 | `data.apis[].latest_version` | `string` | 最新版本 |
-| `data.apis[].versions` | `list` | 可选版本列表 |
+| `data.apis[].versions` | `list` | 可选业务版本列表，版本字符串按提供方原样返回 |
 | `data.apis[].meta_url_template` | `string` | 查询详情的 URL 模板 |

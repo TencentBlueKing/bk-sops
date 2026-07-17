@@ -26,7 +26,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
     "plugin_source": "builtin",
     "plugin_code": "job_execute_task",
     "plugin_version": "legacy",
-    "wrapper_version": "",
+    "version": "v4.0.0",
+    "wrapper_version": "v4.0.0",
     "description": "",
     "url": "https://bk-sops.example/apigw/plugin-gateway/runs/",
     "methods": ["POST"],
@@ -79,6 +80,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
 | `data.plugin_source` | `string` | plugin source, `builtin` or `third_party` |
 | `data.plugin_code` | `string` | original plugin code |
 | `data.plugin_version` | `string` | resolved plugin version |
+| `data.version` | `string` | uniform_api wrapper version, currently `v4.0.0` |
+| `data.wrapper_version` | `string` | uniform_api wrapper version, currently `v4.0.0` |
 | `data.url` | `string` | execution registration URL |
 | `data.methods` | `list` | allowed methods |
 | `data.inputs` | `list` | input schema list |
