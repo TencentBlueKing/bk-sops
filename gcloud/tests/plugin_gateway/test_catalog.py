@@ -1,11 +1,13 @@
 from threading import Barrier
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 from django.test import RequestFactory, TestCase, override_settings
 
 from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, PLUGIN_SOURCE_THIRD_PARTY
+from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
+from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME
 
 
 class PluginGatewayCatalogServiceTestCase(TestCase):
@@ -91,7 +93,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         }
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
-            "data": {"plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
+            "data": {"count": 1, "plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
         }
 
         meta = PluginGatewayCatalogService.get_plugin_list(request=self.request)
@@ -158,7 +160,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         }
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
-            "data": {"plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
+            "data": {"count": 1, "plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
         }
 
         detail = PluginGatewayCatalogService.get_plugin_detail(
@@ -219,16 +221,68 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
             "data": {
+                "count": 2,
                 "plugins": [
                     {"code": "bk_plugin_demo_1", "name": "Demo Plugin 1"},
                     {"code": "bk_plugin_demo_2", "name": "Demo Plugin 2"},
-                ]
+                ],
             },
         }
 
         plugins = PluginGatewayCatalogService._list_third_party_plugins()
 
         self.assertEqual([plugin["id"] for plugin in plugins], ["bk_plugin_demo_1", "bk_plugin_demo_2"])
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_get_third_party_plugin_entries_loads_all_pages(self, mock_client_cls):
+        first_page = [
+            {"code": "plugin_{:03d}".format(index), "name": "Plugin {:03d}".format(index)} for index in range(200)
+        ]
+        second_page = [
+            {"code": "plugin_{:03d}".format(index), "name": "Plugin {:03d}".format(index)} for index in range(200, 400)
+        ]
+        third_page = [{"code": "plugin_400", "name": "Plugin 400"}]
+        mock_client_cls.get_plugin_list.side_effect = [
+            {"result": True, "data": {"count": 401, "plugins": first_page}},
+            {"result": True, "data": {"count": 401, "plugins": second_page}},
+            {"result": True, "data": {"count": 401, "plugins": third_page}},
+        ]
+
+        plugins = PluginGatewayCatalogService._get_third_party_plugin_entries()
+
+        self.assertEqual(len(plugins), 401)
+        self.assertEqual(plugins[-1]["code"], "plugin_400")
+        self.assertEqual(
+            mock_client_cls.get_plugin_list.call_args_list,
+            [
+                call(limit=200, offset=0, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME),
+                call(limit=200, offset=200, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME),
+                call(limit=200, offset=400, distributor_code_name=PLUGIN_DISTRIBUTOR_NAME),
+            ],
+        )
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_get_third_party_plugin_entries_rejects_incomplete_page(self, mock_client_cls):
+        first_page = [
+            {"code": "plugin_{:03d}".format(index), "name": "Plugin {:03d}".format(index)} for index in range(200)
+        ]
+        mock_client_cls.get_plugin_list.side_effect = [
+            {"result": True, "data": {"count": 401, "plugins": first_page}},
+            {"result": True, "data": {"count": 401, "plugins": []}},
+        ]
+
+        with self.assertRaises(PluginGatewaySourceUnavailableError):
+            PluginGatewayCatalogService._get_third_party_plugin_entries()
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
+    def test_get_third_party_plugin_entries_rejects_boolean_count(self, mock_client_cls):
+        mock_client_cls.get_plugin_list.return_value = {
+            "result": True,
+            "data": {"count": True, "plugins": [{"code": "plugin_demo", "name": "Plugin Demo"}]},
+        }
+
+        with self.assertRaises(PluginGatewaySourceUnavailableError):
+            PluginGatewayCatalogService._get_third_party_plugin_entries()
 
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
@@ -246,10 +300,11 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
             "data": {
+                "count": 2,
                 "plugins": [
                     {"code": "bk_plugin_demo_1", "name": "Demo Plugin 1"},
                     {"code": "bk_plugin_demo_2", "name": "Demo Plugin 2"},
-                ]
+                ],
             },
         }
 
@@ -261,6 +316,12 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
 
         self.assertEqual(detail["id"], "bk_plugin_demo_1")
         mock_get_plugin_meta.assert_called_once_with("bk_plugin_demo_1")
+        mock_client_cls.get_plugin_list.assert_called_once_with(
+            search_term="bk_plugin_demo_1",
+            limit=200,
+            offset=0,
+            distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+        )
 
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
@@ -288,7 +349,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         mock_get_plugin_meta.return_value = {"description": "remote plugin", "versions": ["1.0.0"]}
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
-            "data": {"plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
+            "data": {"count": 1, "plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
         }
 
         meta = PluginGatewayCatalogService.get_plugin_list(request=self.request)
