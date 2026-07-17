@@ -76,6 +76,19 @@ class PluginGatewayAPITest(APITest):
         self.assertIn("/apigw/plugin-gateway/plugins/", data["data"]["apis"][0]["meta_url_template"])
         self.assertEqual(data["data"]["apis"][0]["category"], "third_party")
 
+    def test_get_plugin_categories_returns_uniform_api_category_array(self):
+        categories = [{"id": "builtin", "name": "标准运维内置插件"}]
+        with patch(
+            "gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_categories",
+            return_value=categories,
+        ):
+            response = self.client.get(path="/apigw/plugin-gateway/categories/")
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(data["data"], categories)
+
     def test_create_run_rejects_unknown_source_with_4xx_payload(self):
         payload = {
             "source_key": "missing-source",
