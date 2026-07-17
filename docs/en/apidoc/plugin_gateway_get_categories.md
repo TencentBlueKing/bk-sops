@@ -4,12 +4,14 @@ Get plugin categories exposed by the plugin gateway.
 
 #### Interface Parameters
 
-None
+| Field | Type | Required | Description |
+|------|------|------|------|
+| `plugin_source` | `string` | NO | source filter, `builtin` or `third_party`; omit to merge both sources |
 
 ### Request Example
 
 ```text
-GET /apigw/plugin-gateway/categories/
+GET /apigw/plugin-gateway/categories/?plugin_source=builtin
 ```
 
 ### Return Result Example

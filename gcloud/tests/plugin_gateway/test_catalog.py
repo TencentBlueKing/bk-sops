@@ -62,6 +62,42 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             ],
         )
 
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_tags_list")
+    def test_get_categories_filters_builtin_plugin_source(self, mock_get_tags, mock_builtin_list):
+        mock_builtin_list.return_value = [{"category": "JOB"}, {"category": "CC"}]
+
+        categories = PluginGatewayCatalogService.get_categories(plugin_source=PLUGIN_SOURCE_BUILTIN)
+
+        self.assertEqual(
+            categories,
+            [
+                {"id": "all", "name": "全部"},
+                {"id": "CC", "name": "CC"},
+                {"id": "JOB", "name": "JOB"},
+            ],
+        )
+        mock_get_tags.assert_not_called()
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_tags_list")
+    def test_get_categories_filters_third_party_plugin_source(self, mock_get_tags, mock_builtin_list):
+        mock_get_tags.return_value = {
+            "result": True,
+            "data": [{"code_name": "DEVOPS", "name": "研发工具"}],
+        }
+
+        categories = PluginGatewayCatalogService.get_categories(plugin_source=PLUGIN_SOURCE_THIRD_PARTY)
+
+        self.assertEqual(
+            categories,
+            [
+                {"id": "all", "name": "全部"},
+                {"id": "DEVOPS", "name": "研发工具"},
+            ],
+        )
+        mock_builtin_list.assert_not_called()
+
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_plugins")
     def test_get_plugin_list_filters_category_and_keyword(self, mock_list_plugins):
         request = RequestFactory().get(
@@ -72,6 +108,32 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             {"id": "builtin__job_execute", "name": "Execute Job", "category": "JOB"},
             {"id": "builtin__job_push_file", "name": "Push File", "category": "JOB"},
             {"id": "bk_plugin_execute", "name": "Execute Plugin", "category": "DEVOPS"},
+        ]
+
+        meta = PluginGatewayCatalogService.get_plugin_list(request=request)
+
+        self.assertEqual(meta["total"], 1)
+        self.assertEqual([item["id"] for item in meta["apis"]], ["builtin__job_execute"])
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_plugins")
+    def test_get_plugin_list_filters_plugin_source(self, mock_list_plugins):
+        request = RequestFactory().get(
+            "/apigw/plugin-gateway/plugins/",
+            {"plugin_source": PLUGIN_SOURCE_BUILTIN},
+        )
+        mock_list_plugins.return_value = [
+            {
+                "id": "builtin__job_execute",
+                "name": "Execute Job",
+                "plugin_source": PLUGIN_SOURCE_BUILTIN,
+                "category": "JOB",
+            },
+            {
+                "id": "bk_plugin_execute",
+                "name": "Execute Plugin",
+                "plugin_source": PLUGIN_SOURCE_THIRD_PARTY,
+                "category": "DEVOPS",
+            },
         ]
 
         meta = PluginGatewayCatalogService.get_plugin_list(request=request)

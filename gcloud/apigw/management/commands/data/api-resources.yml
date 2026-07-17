@@ -344,6 +344,16 @@ paths:
       description: 查询插件分类
       tags:
       - 限制接口
+      parameters:
+      - in: query
+        name: plugin_source
+        schema:
+          type: string
+          enum:
+          - builtin
+          - third_party
+        required: false
+        description: 插件来源；不传时合并内置与第三方插件分类
       responses:
         '200':
           content:
@@ -396,6 +406,15 @@ paths:
       tags:
       - 限制接口
       parameters:
+      - in: query
+        name: plugin_source
+        schema:
+          type: string
+          enum:
+          - builtin
+          - third_party
+        required: false
+        description: 插件来源；不传时合并内置与第三方插件
       - in: query
         name: category
         schema:

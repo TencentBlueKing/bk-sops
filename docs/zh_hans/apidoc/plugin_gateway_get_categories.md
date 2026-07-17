@@ -4,12 +4,14 @@
 
 #### 接口参数
 
-无
+| 字段 | 类型 | 必选 | 描述 |
+|------|------|------|------|
+| `plugin_source` | `string` | 否 | 插件来源过滤，可选 `builtin` 或 `third_party`；不传表示合并两个来源 |
 
 ### 请求参数示例
 
 ```text
-GET /apigw/plugin-gateway/categories/
+GET /apigw/plugin-gateway/categories/?plugin_source=builtin
 ```
 
 ### 返回结果示例

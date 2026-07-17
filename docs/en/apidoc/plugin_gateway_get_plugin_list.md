@@ -6,13 +6,14 @@ Get the list of plugins exposed by the plugin gateway, including built-in and th
 
 | Field | Type | Required | Description |
 |------|------|------|------|
+| `plugin_source` | `string` | NO | source filter, `builtin` or `third_party`; omit to merge both sources |
 | `category` | `string` | NO | plugin category; `all` or omitted disables filtering |
 | `key` | `string` | NO | fuzzy search by plugin id, name, or original code |
 
 ### Request Example
 
 ```text
-GET /apigw/plugin-gateway/plugins/
+GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
 ```
 
 ### Return Result Example

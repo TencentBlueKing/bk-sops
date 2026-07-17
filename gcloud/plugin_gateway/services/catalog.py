@@ -42,19 +42,21 @@ class PluginGatewayCatalogService:
     APIGW_BACKEND_PATH_PREFIX = "/apigw"
 
     @classmethod
-    def get_categories(cls):
+    def get_categories(cls, plugin_source=None):
         categories = {}
-        for plugin in BuiltinCatalogService.list_plugins():
-            category = cls._stringify(plugin.get("category"))
-            if category:
-                categories.setdefault(category, category)
-
-        tag_result = PluginServiceApiClient.get_plugin_tags_list()
-        if tag_result.get("result") and isinstance(tag_result.get("data"), list):
-            for tag in tag_result["data"]:
-                category = cls._stringify(tag.get("code_name"))
+        if not plugin_source or plugin_source == PLUGIN_SOURCE_BUILTIN:
+            for plugin in BuiltinCatalogService.list_plugins():
+                category = cls._stringify(plugin.get("category"))
                 if category:
-                    categories.setdefault(category, cls._stringify(tag.get("name")) or category)
+                    categories.setdefault(category, category)
+
+        if not plugin_source or plugin_source == PLUGIN_SOURCE_THIRD_PARTY:
+            tag_result = PluginServiceApiClient.get_plugin_tags_list()
+            if tag_result.get("result") and isinstance(tag_result.get("data"), list):
+                for tag in tag_result["data"]:
+                    category = cls._stringify(tag.get("code_name"))
+                    if category:
+                        categories.setdefault(category, cls._stringify(tag.get("name")) or category)
 
         return [dict(PLUGIN_GATEWAY_ALL_CATEGORY)] + [
             {"id": category, "name": categories[category]} for category in sorted(categories)
@@ -64,6 +66,10 @@ class PluginGatewayCatalogService:
     def get_plugin_list(cls, request):
         meta = {"total": 0, "apis": []}
         for item in cls._list_plugins():
+            plugin_source = request.GET.get("plugin_source")
+            if plugin_source and item.get("plugin_source") != plugin_source:
+                continue
+
             category = request.GET.get("category")
             if category and category != PLUGIN_GATEWAY_ALL_CATEGORY["id"] and item.get("category") != category:
                 continue

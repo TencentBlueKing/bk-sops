@@ -6,13 +6,14 @@
 
 | 字段 | 类型 | 必选 | 描述 |
 |------|------|------|------|
+| `plugin_source` | `string` | 否 | 插件来源过滤，可选 `builtin` 或 `third_party`；不传表示合并两个来源 |
 | `category` | `string` | 否 | 插件分类；`all` 或不传表示不过滤 |
 | `key` | `string` | 否 | 按插件 ID、名称或原始 code 模糊搜索 |
 
 ### 请求参数示例
 
 ```text
-GET /apigw/plugin-gateway/plugins/
+GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
 ```
 
 ### 返回结果示例

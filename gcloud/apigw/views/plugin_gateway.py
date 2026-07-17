@@ -84,7 +84,7 @@ def _caller_username(request):
 def get_plugin_gateway_categories(request):
     return {
         "result": True,
-        "data": PluginGatewayCatalogService.get_categories(),
+        "data": PluginGatewayCatalogService.get_categories(plugin_source=request.GET.get("plugin_source")),
         "code": err_code.SUCCESS.code,
     }
 
