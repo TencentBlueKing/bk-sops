@@ -17,12 +17,10 @@ GET /apigw/plugin-gateway/categories/
 ```json
 {
   "result": true,
-  "data": {
-    "categories": [
-      {"id": "builtin", "name": "Built-in Plugins"},
-      {"id": "third_party", "name": "Third-Party Plugins"}
-    ]
-  },
+  "data": [
+    {"id": "builtin", "name": "Built-in Plugins"},
+    {"id": "third_party", "name": "Third-Party Plugins"}
+  ],
   "code": 0,
   "trace_id": "xxx"
 }
@@ -33,6 +31,6 @@ GET /apigw/plugin-gateway/categories/
 | Field | Type | Description |
 |------|------|------|
 | `result` | `bool` | whether the request succeeds |
-| `data.categories` | `list` | plugin category list |
+| `data` | `list` | plugin category list |
 | `message` | `string` | error message when failed |
 | `trace_id` | `string` | open telemetry trace_id |

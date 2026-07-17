@@ -17,12 +17,10 @@ GET /apigw/plugin-gateway/categories/
 ```json
 {
   "result": true,
-  "data": {
-    "categories": [
-      {"id": "builtin", "name": "标准运维内置插件"},
-      {"id": "third_party", "name": "标准运维第三方插件"}
-    ]
-  },
+  "data": [
+    {"id": "builtin", "name": "标准运维内置插件"},
+    {"id": "third_party", "name": "标准运维第三方插件"}
+  ],
   "code": 0,
   "trace_id": "xxx"
 }
@@ -33,7 +31,6 @@ GET /apigw/plugin-gateway/categories/
 | 名称 | 类型 | 说明 |
 |------|------|------|
 | `result` | `bool` | 是否成功 |
-| `data` | `dict` | 成功时返回的数据 |
-| `data.categories` | `list` | 插件分类列表 |
+| `data` | `list` | 插件分类列表 |
 | `message` | `string` | 失败时错误信息 |
 | `trace_id` | `string` | open telemetry trace_id |

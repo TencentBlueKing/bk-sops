@@ -352,19 +352,16 @@ paths:
                 type: object
                 properties:
                   data:
-                    type: object
-                    properties:
-                      categories:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            id:
-                              type: string
-                              description: 分类 ID
-                            name:
-                              type: string
-                              description: 分类名称
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: 分类 ID
+                        name:
+                          type: string
+                          description: 分类名称
                   result:
                     type: boolean
                     description: true/false 操作是否成功
