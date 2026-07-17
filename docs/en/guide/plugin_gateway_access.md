@@ -11,12 +11,13 @@ Before integrating, make sure that:
 3. API Gateway restricted resources have been granted to the consumer app
 4. the consumer owns valid `bk_app_code / bk_app_secret`
 5. the callback domain is included in `callback_domain_allow_list`
-6. the target plugin id is included in `plugin_allow_list`
+6. the target plugin id is not included in the source-level `do_not_open_list`
 
 Additional rules:
 
 - an empty `callback_domain_allow_list` rejects all callback URLs
-- an empty `plugin_allow_list` rejects all plugins
+- a source can execute every catalog plugin by default; `plugin_allow_list` is a legacy field and no longer controls execution admission
+- plugins in `do_not_open_list` are consistently rejected by list, detail, and execute
 
 ## 2. API Flow
 

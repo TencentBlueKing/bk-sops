@@ -19,6 +19,7 @@ class PluginGatewaySourceConfig(models.Model):
     display_name = models.CharField(max_length=128)
     default_project_id = models.BigIntegerField(null=True, blank=True)
     callback_domain_allow_list = models.JSONField(default=list)
+    # Legacy field kept for compatibility. Source-level plugin admission uses do_not_open_list.
     plugin_allow_list = models.JSONField(default=list)
     scope_project_map = models.JSONField(default=dict, blank=True)
     do_not_open_list = models.JSONField(default=list, blank=True)

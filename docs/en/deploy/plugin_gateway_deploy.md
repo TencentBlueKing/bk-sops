@@ -97,7 +97,6 @@ PluginGatewaySourceConfig.objects.update_or_create(
         "display_name": "BKFlow",
         "default_project_id": 2001,
         "callback_domain_allow_list": ["bkflow.example.com"],
-        "plugin_allow_list": ["builtin__job_execute_task", "bk_plugin_demo"],
         "scope_project_map": {
             "bkflow_space:space-1": 2001,
         },
@@ -111,7 +110,8 @@ PluginGatewaySourceConfig.objects.update_or_create(
 Important rules:
 
 - an empty `callback_domain_allow_list` rejects all callback URLs
-- an empty `plugin_allow_list` rejects all plugins
+- a source can execute every catalog plugin by default and does not need to maintain `plugin_allow_list`
+- plugins that cannot run safely in the component shell must be added to `do_not_open_list`
 - built-in plugin ids use `builtin__<component_code>`; third-party plugin ids keep the bare code
 - `scope_project_map` keys use `<scope_type>:<scope_value>`
 - `do_not_open_list` blocks list, detail, and execute consistently

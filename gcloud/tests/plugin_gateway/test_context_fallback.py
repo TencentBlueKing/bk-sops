@@ -36,7 +36,7 @@ class PluginGatewayContextFallbackTestCase(TestCase):
 
         self.assertEqual(payload["project_id"], 2001)
 
-    def test_build_trigger_payload_rejects_plugin_outside_allow_list(self):
+    def test_build_trigger_payload_allows_plugin_outside_legacy_allow_list(self):
         source_config = PluginGatewaySourceConfig.objects.create(
             source_key="bkflow",
             display_name="BKFlow",
@@ -46,12 +46,31 @@ class PluginGatewayContextFallbackTestCase(TestCase):
             is_enabled=True,
         )
 
-        with self.assertRaises(ValueError):
-            PluginGatewayContextService.build_trigger_payload(
-                source_config=source_config,
-                plugin_id="plugin_job_status",
-                payload={"inputs": {"biz_id": 2}},
-            )
+        payload = PluginGatewayContextService.build_trigger_payload(
+            source_config=source_config,
+            plugin_id="plugin_job_status",
+            payload={"inputs": {"biz_id": 2}},
+        )
+
+        self.assertEqual(payload["project_id"], 2001)
+
+    def test_build_trigger_payload_allows_plugin_with_empty_legacy_allow_list(self):
+        source_config = PluginGatewaySourceConfig.objects.create(
+            source_key="bkflow",
+            display_name="BKFlow",
+            default_project_id=2001,
+            callback_domain_allow_list=["bkflow.example.com"],
+            plugin_allow_list=[],
+            is_enabled=True,
+        )
+
+        payload = PluginGatewayContextService.build_trigger_payload(
+            source_config=source_config,
+            plugin_id="new_plugin",
+            payload={"inputs": {"biz_id": 2}},
+        )
+
+        self.assertEqual(payload["project_id"], 2001)
 
     def test_validate_callback_domain_rejects_empty_allow_list(self):
         source_config = PluginGatewaySourceConfig.objects.create(
