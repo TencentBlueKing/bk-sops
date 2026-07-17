@@ -3,7 +3,11 @@ from unittest.mock import call, patch
 
 from django.test import RequestFactory, TestCase, override_settings
 
-from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, PLUGIN_SOURCE_THIRD_PARTY
+from gcloud.plugin_gateway.constants import (
+    PLUGIN_SOURCE_BUILTIN,
+    PLUGIN_SOURCE_THIRD_PARTY,
+    UNIFORM_API_WRAPPER_VERSION,
+)
 from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
@@ -33,6 +37,109 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 cache_clear = getattr(func, "cache_clear", None)
                 if cache_clear is not None:
                     cache_clear()
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_tags_list")
+    def test_get_categories_returns_all_and_real_plugin_groups(self, mock_get_tags, mock_builtin_list):
+        mock_builtin_list.return_value = [{"category": "JOB"}, {"category": "CC"}]
+        mock_get_tags.return_value = {
+            "result": True,
+            "data": [
+                {"code_name": "DEVOPS", "name": "研发工具"},
+                {"code_name": "CC", "name": "配置平台"},
+            ],
+        }
+
+        categories = PluginGatewayCatalogService.get_categories()
+
+        self.assertEqual(categories[0], {"id": "all", "name": "全部"})
+        self.assertEqual(
+            categories[1:],
+            [
+                {"id": "CC", "name": "CC"},
+                {"id": "DEVOPS", "name": "研发工具"},
+                {"id": "JOB", "name": "JOB"},
+            ],
+        )
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_tags_list")
+    def test_get_categories_filters_builtin_plugin_source(self, mock_get_tags, mock_builtin_list):
+        mock_builtin_list.return_value = [{"category": "JOB"}, {"category": "CC"}]
+
+        categories = PluginGatewayCatalogService.get_categories(plugin_source=PLUGIN_SOURCE_BUILTIN)
+
+        self.assertEqual(
+            categories,
+            [
+                {"id": "all", "name": "全部"},
+                {"id": "CC", "name": "CC"},
+                {"id": "JOB", "name": "JOB"},
+            ],
+        )
+        mock_get_tags.assert_not_called()
+
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_tags_list")
+    def test_get_categories_filters_third_party_plugin_source(self, mock_get_tags, mock_builtin_list):
+        mock_get_tags.return_value = {
+            "result": True,
+            "data": [{"code_name": "DEVOPS", "name": "研发工具"}],
+        }
+
+        categories = PluginGatewayCatalogService.get_categories(plugin_source=PLUGIN_SOURCE_THIRD_PARTY)
+
+        self.assertEqual(
+            categories,
+            [
+                {"id": "all", "name": "全部"},
+                {"id": "DEVOPS", "name": "研发工具"},
+            ],
+        )
+        mock_builtin_list.assert_not_called()
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_plugins")
+    def test_get_plugin_list_filters_category_and_keyword(self, mock_list_plugins):
+        request = RequestFactory().get(
+            "/apigw/plugin-gateway/plugins/",
+            {"category": "JOB", "key": "execute"},
+        )
+        mock_list_plugins.return_value = [
+            {"id": "builtin__job_execute", "name": "Execute Job", "category": "JOB"},
+            {"id": "builtin__job_push_file", "name": "Push File", "category": "JOB"},
+            {"id": "bk_plugin_execute", "name": "Execute Plugin", "category": "DEVOPS"},
+        ]
+
+        meta = PluginGatewayCatalogService.get_plugin_list(request=request)
+
+        self.assertEqual(meta["total"], 1)
+        self.assertEqual([item["id"] for item in meta["apis"]], ["builtin__job_execute"])
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_plugins")
+    def test_get_plugin_list_filters_plugin_source(self, mock_list_plugins):
+        request = RequestFactory().get(
+            "/apigw/plugin-gateway/plugins/",
+            {"plugin_source": PLUGIN_SOURCE_BUILTIN},
+        )
+        mock_list_plugins.return_value = [
+            {
+                "id": "builtin__job_execute",
+                "name": "Execute Job",
+                "plugin_source": PLUGIN_SOURCE_BUILTIN,
+                "category": "JOB",
+            },
+            {
+                "id": "bk_plugin_execute",
+                "name": "Execute Plugin",
+                "plugin_source": PLUGIN_SOURCE_THIRD_PARTY,
+                "category": "DEVOPS",
+            },
+        ]
+
+        meta = PluginGatewayCatalogService.get_plugin_list(request=request)
+
+        self.assertEqual(meta["total"], 1)
+        self.assertEqual([item["id"] for item in meta["apis"]], ["builtin__job_execute"])
 
     @override_settings(
         BK_API_URL_TMPL="https://{api_name}.apigw.example.com",
@@ -107,6 +214,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         self.assertEqual(third_party_plugin["default_version"], "1.1.0")
         self.assertEqual(third_party_plugin["latest_version"], "1.1.0")
         self.assertEqual(third_party_plugin["versions"], ["1.0.0", "1.1.0"])
+        self.assertEqual(third_party_plugin["wrapper_version"], UNIFORM_API_WRAPPER_VERSION)
         self.assertIn("/apigw/plugin-gateway/plugins/bk_plugin_demo/", third_party_plugin["meta_url_template"])
         self.assertEqual(builtin_plugin["plugin_source"], PLUGIN_SOURCE_BUILTIN)
         self.assertEqual(builtin_plugin["category"], "JOB")
@@ -170,6 +278,8 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         )
 
         self.assertEqual(detail["plugin_version"], "1.1.0")
+        self.assertEqual(detail["version"], UNIFORM_API_WRAPPER_VERSION)
+        self.assertEqual(detail["wrapper_version"], UNIFORM_API_WRAPPER_VERSION)
         self.assertEqual(detail["plugin_source"], PLUGIN_SOURCE_THIRD_PARTY)
         self.assertEqual(detail["polling"]["success_tag"]["key"], "data.status")
         self.assertEqual(detail["polling"]["fail_tag"]["key"], "data.status")

@@ -16,13 +16,11 @@ from pathlib import Path
 PLUGIN_SOURCE_BUILTIN = "builtin"
 PLUGIN_SOURCE_THIRD_PARTY = "third_party"
 PLUGIN_ID_SEP = "__"
+UNIFORM_API_WRAPPER_VERSION = "v4.0.0"
 RUNNING_STATUS_VALUE = "RUNNING"
 MAX_SCHEDULE_TIMES = 1000
 
-PLUGIN_GATEWAY_CATEGORIES = [
-    {"id": PLUGIN_SOURCE_BUILTIN, "name": "标准运维内置插件"},
-    {"id": PLUGIN_SOURCE_THIRD_PARTY, "name": "标准运维第三方插件"},
-]
+PLUGIN_GATEWAY_ALL_CATEGORY = {"id": "all", "name": "全部"}
 
 PLUGIN_GATEWAY_FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "uniform_api_v4"
 

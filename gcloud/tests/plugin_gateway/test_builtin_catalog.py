@@ -7,6 +7,7 @@ from django.test import TestCase
 from gcloud.plugin_gateway.constants import (
     PLUGIN_SOURCE_BUILTIN,
     PLUGIN_SOURCE_THIRD_PARTY,
+    UNIFORM_API_WRAPPER_VERSION,
     decode_plugin_id,
     encode_plugin_id,
 )
@@ -52,4 +53,5 @@ class TestBuiltinCatalog(TestCase):
         self.assertEqual(plugins[0]["id"], "builtin__job_execute_task")
         self.assertEqual(plugins[0]["plugin_code"], "job_execute_task")
         self.assertEqual(plugins[0]["category"], "JOB")
+        self.assertEqual(plugins[0]["wrapper_version"], UNIFORM_API_WRAPPER_VERSION)
         self.assertIn("legacy", plugins[0]["versions"])

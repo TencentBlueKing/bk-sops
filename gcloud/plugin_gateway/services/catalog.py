@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import copy
 from concurrent.futures import ThreadPoolExecutor
 from threading import RLock
 from urllib.parse import urlsplit
@@ -21,10 +20,11 @@ from django.conf import settings
 from django.urls import reverse
 
 from gcloud.plugin_gateway.constants import (
-    PLUGIN_GATEWAY_CATEGORIES,
+    PLUGIN_GATEWAY_ALL_CATEGORY,
     PLUGIN_SOURCE_BUILTIN,
     PLUGIN_SOURCE_THIRD_PARTY,
     RUNNING_STATUS_VALUE,
+    UNIFORM_API_WRAPPER_VERSION,
     decode_plugin_id,
 )
 from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError, PluginGatewayVersionNotFoundError
@@ -42,14 +42,45 @@ class PluginGatewayCatalogService:
     APIGW_BACKEND_PATH_PREFIX = "/apigw"
 
     @classmethod
-    def get_categories(cls):
-        return copy.deepcopy(PLUGIN_GATEWAY_CATEGORIES)
+    def get_categories(cls, plugin_source=None):
+        categories = {}
+        if not plugin_source or plugin_source == PLUGIN_SOURCE_BUILTIN:
+            for plugin in BuiltinCatalogService.list_plugins():
+                category = cls._stringify(plugin.get("category"))
+                if category:
+                    categories.setdefault(category, category)
+
+        if not plugin_source or plugin_source == PLUGIN_SOURCE_THIRD_PARTY:
+            tag_result = PluginServiceApiClient.get_plugin_tags_list()
+            if tag_result.get("result") and isinstance(tag_result.get("data"), list):
+                for tag in tag_result["data"]:
+                    category = cls._stringify(tag.get("code_name"))
+                    if category:
+                        categories.setdefault(category, cls._stringify(tag.get("name")) or category)
+
+        return [dict(PLUGIN_GATEWAY_ALL_CATEGORY)] + [
+            {"id": category, "name": categories[category]} for category in sorted(categories)
+        ]
 
     @classmethod
     def get_plugin_list(cls, request):
         meta = {"total": 0, "apis": []}
         for item in cls._list_plugins():
-            item = copy.deepcopy(item)
+            plugin_source = request.GET.get("plugin_source")
+            if plugin_source and item.get("plugin_source") != plugin_source:
+                continue
+
+            category = request.GET.get("category")
+            if category and category != PLUGIN_GATEWAY_ALL_CATEGORY["id"] and item.get("category") != category:
+                continue
+
+            keyword = request.GET.get("key", "").strip().casefold()
+            if keyword and not any(
+                keyword in cls._stringify(item.get(field)).casefold() for field in ("id", "name", "plugin_code")
+            ):
+                continue
+
+            item = dict(item)
             detail_url = cls._build_public_api_url(
                 request,
                 "apigw_plugin_gateway_detail",
@@ -90,6 +121,7 @@ class PluginGatewayCatalogService:
             "plugin_source": plugin["plugin_source"],
             "plugin_code": plugin["plugin_code"],
             "plugin_version": selected_version,
+            "version": UNIFORM_API_WRAPPER_VERSION,
             "wrapper_version": plugin["wrapper_version"],
             "description": plugin.get("description", ""),
             "methods": ["POST"],
@@ -186,7 +218,7 @@ class PluginGatewayCatalogService:
             "plugin_source": PLUGIN_SOURCE_THIRD_PARTY,
             "plugin_code": plugin["code"],
             "group": category,
-            "wrapper_version": meta.get("framework_version") or meta.get("runtime_version") or "",
+            "wrapper_version": UNIFORM_API_WRAPPER_VERSION,
             "default_version": latest_version,
             "latest_version": latest_version,
             "versions": versions,
@@ -307,3 +339,9 @@ class PluginGatewayCatalogService:
                 item["default"] = field["default"]
             fields.append(item)
         return fields
+
+    @staticmethod
+    def _stringify(value):
+        if value is None:
+            return ""
+        return str(value)

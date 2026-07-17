@@ -4,12 +4,16 @@ Get the list of plugins exposed by the plugin gateway, including built-in and th
 
 #### Interface Parameters
 
-None
+| Field | Type | Required | Description |
+|------|------|------|------|
+| `plugin_source` | `string` | NO | source filter, `builtin` or `third_party`; omit to merge both sources |
+| `category` | `string` | NO | plugin category; `all` or omitted disables filtering |
+| `key` | `string` | NO | fuzzy search by plugin id, name, or original code |
 
 ### Request Example
 
 ```text
-GET /apigw/plugin-gateway/plugins/
+GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
 ```
 
 ### Return Result Example
@@ -26,7 +30,7 @@ GET /apigw/plugin-gateway/plugins/
         "plugin_source": "builtin",
         "plugin_code": "job_execute_task",
         "group": "JOB",
-        "wrapper_version": "",
+        "wrapper_version": "v4.0.0",
         "default_version": "legacy",
         "latest_version": "legacy",
         "versions": ["legacy"],
@@ -39,12 +43,12 @@ GET /apigw/plugin-gateway/plugins/
         "name": "Demo Plugin",
         "plugin_source": "third_party",
         "plugin_code": "bk_plugin_demo",
-        "group": "third_party",
-        "wrapper_version": "2.0.0",
+        "group": "DEVOPS",
+        "wrapper_version": "v4.0.0",
         "default_version": "1.1.0",
         "latest_version": "1.1.0",
         "versions": ["1.0.0", "1.1.0"],
-        "category": "third_party",
+        "category": "DEVOPS",
         "description": "Demo plugin",
         "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/bk_plugin_demo/?version={version}"
       }
@@ -66,7 +70,8 @@ GET /apigw/plugin-gateway/plugins/
 | `data.apis[].plugin_code` | `string` | original plugin code |
 | `data.apis[].group` | `string` | plugin group |
 | `data.apis[].category` | `string` | plugin category |
+| `data.apis[].wrapper_version` | `string` | uniform_api wrapper version, currently fixed at `v4.0.0` |
 | `data.apis[].default_version` | `string` | default version |
 | `data.apis[].latest_version` | `string` | latest version |
-| `data.apis[].versions` | `list` | available versions |
+| `data.apis[].versions` | `list` | available business versions, preserved exactly as returned by the provider |
 | `data.apis[].meta_url_template` | `string` | URL template for detail query |

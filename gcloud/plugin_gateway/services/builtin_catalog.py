@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from pipeline.component_framework.library import ComponentLibrary
 
-from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, encode_plugin_id
+from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, UNIFORM_API_WRAPPER_VERSION, encode_plugin_id
 
 
 class BuiltinCatalogService:
@@ -64,7 +64,7 @@ class BuiltinCatalogService:
             "versions": versions,
             "default_version": getattr(component_cls, "version", versions[-1]),
             "latest_version": versions[-1],
-            "wrapper_version": "",
+            "wrapper_version": UNIFORM_API_WRAPPER_VERSION,
             "description": "",
         }
 

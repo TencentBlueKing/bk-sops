@@ -81,13 +81,17 @@ class PluginGatewayAPITest(APITest):
         with patch(
             "gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_categories",
             return_value=categories,
-        ):
-            response = self.client.get(path="/apigw/plugin-gateway/categories/")
+        ) as mock_get_categories:
+            response = self.client.get(
+                path="/apigw/plugin-gateway/categories/",
+                data={"plugin_source": "builtin"},
+            )
 
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
         self.assertEqual(data["data"], categories)
+        mock_get_categories.assert_called_once_with(plugin_source="builtin")
 
     def test_create_run_rejects_unknown_source_with_4xx_payload(self):
         payload = {
