@@ -110,7 +110,7 @@ PluginGatewaySourceConfig.objects.update_or_create(
 Important rules:
 
 - an empty `callback_domain_allow_list` rejects all callback URLs
-- a source can execute every catalog plugin by default and does not need to maintain `plugin_allow_list`
+- a source can execute every catalog plugin by default without per-plugin configuration
 - plugins that cannot run safely in the component shell must be added to `do_not_open_list`
 - built-in plugin ids use `builtin__<component_code>`; third-party plugin ids keep the bare code
 - `scope_project_map` keys use `<scope_type>:<scope_value>`

@@ -74,7 +74,6 @@ def test_source_config_full_capability_fields(self):
         source_key="sops",
         display_name="标准运维",
         callback_domain_allow_list=["bkflow.example.com"],
-        plugin_allow_list=["builtin__job_execute_task"],
         scope_project_map={"biz:2": 10},
         do_not_open_list=["builtin__pause_node"],
         execution_timeout_seconds=7200,

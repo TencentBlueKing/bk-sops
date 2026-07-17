@@ -25,7 +25,6 @@ class PluginGatewayAPITest(APITest):
             display_name="BKFlow",
             default_project_id=2001,
             callback_domain_allow_list=["bkflow.example.com"],
-            plugin_allow_list=["plugin_job_execute", "plugin_job_status"],
             is_enabled=True,
         )
 
@@ -124,14 +123,13 @@ class PluginGatewayAPITest(APITest):
 
     @patch("gcloud.plugin_gateway.services.execution.dispatch_plugin_gateway_run.apply_async")
     @patch("gcloud.plugin_gateway.services.execution.PluginGatewayCatalogService.get_plugin_reference")
-    def test_create_run_allows_empty_legacy_plugin_allow_list(self, mock_get_plugin_reference, mock_dispatch):
+    def test_create_run_does_not_require_per_plugin_source_config(self, mock_get_plugin_reference, mock_dispatch):
         mock_get_plugin_reference.return_value = self._valid_plugin_reference()
         self.source_model.objects.create(
             source_key="strict-source",
             display_name="Strict Source",
             default_project_id=2001,
             callback_domain_allow_list=["bkflow.example.com"],
-            plugin_allow_list=[],
             is_enabled=True,
         )
         payload = {

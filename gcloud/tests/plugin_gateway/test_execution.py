@@ -19,7 +19,6 @@ class PluginGatewayExecutionServiceTestCase(TestCase):
             display_name="BKFlow",
             default_project_id=2001,
             callback_domain_allow_list=["bkflow.example.com"],
-            plugin_allow_list=["plugin_job_execute", "plugin_job_status"],
             is_enabled=True,
         )
         self.payload = {

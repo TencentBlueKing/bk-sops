@@ -33,7 +33,6 @@ class PluginGatewayModelsTestCase(TestCase):
             source_key="sops",
             display_name="标准运维",
             callback_domain_allow_list=["bkflow.example.com"],
-            plugin_allow_list=["builtin__job_execute_task"],
             scope_project_map={"biz:2": 10},
             do_not_open_list=["builtin__pause_node"],
             execution_timeout_seconds=7200,
@@ -42,6 +41,11 @@ class PluginGatewayModelsTestCase(TestCase):
         self.assertEqual(cfg.scope_project_map["biz:2"], 10)
         self.assertEqual(cfg.do_not_open_list, ["builtin__pause_node"])
         self.assertEqual(cfg.execution_timeout_seconds, 7200)
+
+    def test_source_config_does_not_have_plugin_allow_list(self):
+        field_names = {field.name for field in PluginGatewaySourceConfig._meta.fields}
+
+        self.assertNotIn("plugin_allow_list", field_names)
 
     def test_run_has_running_state_and_runtime_fields(self):
         self.assertEqual(PluginGatewayRun.Status.CREATED, "CREATED")

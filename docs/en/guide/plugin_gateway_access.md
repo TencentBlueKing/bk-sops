@@ -16,7 +16,7 @@ Before integrating, make sure that:
 Additional rules:
 
 - an empty `callback_domain_allow_list` rejects all callback URLs
-- a source can execute every catalog plugin by default; `plugin_allow_list` is a legacy field and no longer controls execution admission
+- a source can execute every catalog plugin by default without per-plugin configuration
 - plugins in `do_not_open_list` are consistently rejected by list, detail, and execute
 
 ## 2. API Flow
