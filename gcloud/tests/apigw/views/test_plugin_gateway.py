@@ -25,7 +25,6 @@ class PluginGatewayAPITest(APITest):
             display_name="BKFlow",
             default_project_id=2001,
             callback_domain_allow_list=["bkflow.example.com"],
-            plugin_allow_list=["plugin_job_execute", "plugin_job_status"],
             is_enabled=True,
         )
 
@@ -122,15 +121,15 @@ class PluginGatewayAPITest(APITest):
         self.assertFalse(data["result"], msg=data)
         self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code)
 
+    @patch("gcloud.plugin_gateway.services.execution.dispatch_plugin_gateway_run.apply_async")
     @patch("gcloud.plugin_gateway.services.execution.PluginGatewayCatalogService.get_plugin_reference")
-    def test_create_run_rejects_empty_allow_lists(self, mock_get_plugin_reference):
+    def test_create_run_does_not_require_per_plugin_source_config(self, mock_get_plugin_reference, mock_dispatch):
         mock_get_plugin_reference.return_value = self._valid_plugin_reference()
         self.source_model.objects.create(
             source_key="strict-source",
             display_name="Strict Source",
             default_project_id=2001,
-            callback_domain_allow_list=[],
-            plugin_allow_list=[],
+            callback_domain_allow_list=["bkflow.example.com"],
             is_enabled=True,
         )
         payload = {
@@ -151,8 +150,9 @@ class PluginGatewayAPITest(APITest):
 
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
-        self.assertFalse(data["result"], msg=data)
-        self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.SUCCESS.code)
+        mock_dispatch.assert_called_once()
 
     @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
     def test_get_plugin_detail_rejects_unknown_version(self, mock_get_plugin_detail):

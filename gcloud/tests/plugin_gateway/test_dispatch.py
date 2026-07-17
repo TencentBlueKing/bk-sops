@@ -21,7 +21,6 @@ class PluginGatewayDispatchTaskTestCase(TestCase):
             display_name="BKFlow",
             default_project_id=2001,
             callback_domain_allow_list=["bkflow.example.com"],
-            plugin_allow_list=["bk_plugin_demo"],
             is_enabled=True,
         )
 

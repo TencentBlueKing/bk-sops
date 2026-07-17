@@ -97,7 +97,6 @@ PluginGatewaySourceConfig.objects.update_or_create(
         "display_name": "BKFlow",
         "default_project_id": 2001,
         "callback_domain_allow_list": ["bkflow.example.com"],
-        "plugin_allow_list": ["builtin__job_execute_task", "bk_plugin_demo"],
         "scope_project_map": {
             "bkflow_space:space-1": 2001,
         },
@@ -116,7 +115,6 @@ PluginGatewaySourceConfig.objects.update_or_create(
 | `display_name` | 来源展示名 |
 | `default_project_id` | 未传 `project_id` 时的默认回填值 |
 | `callback_domain_allow_list` | 允许回调的域名白名单 |
-| `plugin_allow_list` | 当前来源允许调用的插件 ID 白名单 |
 | `scope_project_map` | 当 `context.scope_type/scope_value` 无法按业务自动解析时的项目映射，键格式为 `<scope_type>:<scope_value>` |
 | `do_not_open_list` | 来源级黑名单；命中后列表、详情、执行都会拦截 |
 | `execution_timeout_seconds` | 单次执行的超时时间，超时后由周期任务置为失败 |
@@ -125,7 +123,8 @@ PluginGatewaySourceConfig.objects.update_or_create(
 配置约束：
 
 - `callback_domain_allow_list` 为空时，所有回调地址都会被拒绝
-- `plugin_allow_list` 为空时，所有插件都会被拒绝
+- 来源默认允许调用目录中的全部插件，无需逐插件配置
+- 不能通过运行壳安全执行的插件应加入 `do_not_open_list`
 - `callback_domain_allow_list` 只应配置受信任平台域名
 - 内置插件 ID 采用 `builtin__<component_code>`，第三方插件兼容裸 `code`
 

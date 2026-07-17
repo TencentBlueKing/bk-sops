@@ -11,12 +11,13 @@
 3. API 网关已将相关受限资源授权给消费方应用
 4. 消费方持有合法的 `bk_app_code / bk_app_secret`
 5. 消费方回调地址的域名已加入 `callback_domain_allow_list`
-6. 目标插件 ID 已加入 `plugin_allow_list`
+6. 目标插件 ID 未加入来源级 `do_not_open_list`
 
 额外约束：
 
 - `callback_domain_allow_list` 为空时，所有回调地址都会被拒绝
-- `plugin_allow_list` 为空时，所有插件都会被拒绝
+- 来源默认可调用目录中的全部插件，无需逐插件配置
+- `do_not_open_list` 中的插件会在列表、详情和执行入口统一被拒绝
 
 ## 2. 接口总览
 
@@ -343,7 +344,7 @@ BKFlow 的典型接入方式如下：
 
 ### 9.3 为什么执行时报插件未开放？
 
-因为 `plugin_id` 不在当前来源的 `plugin_allow_list` 中，或者白名单为空。
+因为 `plugin_id` 位于当前来源的 `do_not_open_list` 中。来源默认可执行目录中的全部插件，无需逐个配置白名单。
 
 ### 9.4 为什么同一个 `client_request_id` 会报冲突？
 

@@ -142,7 +142,6 @@
 | `display_name` | 来源名称 |
 | `default_project_id` | 默认项目回填值 |
 | `callback_domain_allow_list` | 回调域名白名单 |
-| `plugin_allow_list` | 允许调用的插件 ID 白名单 |
 | `scope_project_map` | 业务空间到标准运维项目的显式映射 |
 | `do_not_open_list` | 来源级黑名单 |
 | `execution_timeout_seconds` | 单次执行超时时间 |
@@ -151,10 +150,10 @@
 治理规则：
 
 - `callback_domain_allow_list` 为空时，默认拒绝所有回调地址
-- `plugin_allow_list` 为空时，默认拒绝所有插件
+- 来源默认允许使用目录中的全部插件
 - `do_not_open_list` 同时作用于列表、详情和执行
 
-这避免了“空白名单即全放行”的安全歧义。
+插件风险通过来源级黑名单和消费方空间级准入共同治理，无需维护逐插件来源白名单。
 
 ### 6. 回调桥接
 

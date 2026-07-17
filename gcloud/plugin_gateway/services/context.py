@@ -14,7 +14,7 @@ specific language governing permissions and limitations under the License.
 from copy import deepcopy
 from urllib.parse import urlparse
 
-from gcloud.plugin_gateway.exceptions import PluginGatewayContextResolveError, PluginGatewayPluginNotEnabledError
+from gcloud.plugin_gateway.exceptions import PluginGatewayContextResolveError
 
 
 class PluginGatewayContextService:
@@ -22,14 +22,6 @@ class PluginGatewayContextService:
 
     @classmethod
     def build_trigger_payload(cls, source_config, plugin_id, payload):
-        allow_list = source_config.plugin_allow_list or []
-        if not allow_list:
-            raise ValueError("plugin_allow_list is empty for source({})".format(source_config.source_key))
-        if plugin_id not in allow_list:
-            raise PluginGatewayPluginNotEnabledError(
-                "plugin({}) is not enabled for source({})".format(plugin_id, source_config.source_key)
-            )
-
         trigger_payload = deepcopy(payload)
         trigger_payload["context"] = deepcopy(payload.get("context") or {})
         if source_config.default_project_id and not trigger_payload.get("project_id"):

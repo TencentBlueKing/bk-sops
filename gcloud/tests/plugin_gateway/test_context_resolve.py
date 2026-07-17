@@ -27,7 +27,6 @@ class PluginGatewayContextResolveTestCase(TestCase):
             display_name="BKFlow",
             default_project_id=None,
             scope_project_map={"space:88": self.project.id},
-            plugin_allow_list=["plugin_job_execute"],
         )
 
     def test_biz_scope_resolves_project_and_operator(self):
