@@ -141,6 +141,45 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         self.assertEqual(meta["total"], 1)
         self.assertEqual([item["id"] for item in meta["apis"]], ["builtin__job_execute"])
 
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_third_party_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    def test_get_plugin_list_loads_only_builtin_source(self, mock_builtin_list, mock_third_party_list):
+        request = RequestFactory().get(
+            "/apigw/plugin-gateway/plugins/",
+            {"plugin_source": PLUGIN_SOURCE_BUILTIN},
+        )
+        mock_builtin_list.return_value = []
+
+        PluginGatewayCatalogService.get_plugin_list(request=request)
+
+        mock_builtin_list.assert_called_once_with()
+        mock_third_party_list.assert_not_called()
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_third_party_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    def test_get_plugin_list_loads_only_third_party_source(self, mock_builtin_list, mock_third_party_list):
+        request = RequestFactory().get(
+            "/apigw/plugin-gateway/plugins/",
+            {"plugin_source": PLUGIN_SOURCE_THIRD_PARTY},
+        )
+        mock_third_party_list.return_value = []
+
+        PluginGatewayCatalogService.get_plugin_list(request=request)
+
+        mock_builtin_list.assert_not_called()
+        mock_third_party_list.assert_called_once_with()
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._list_third_party_plugins")
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    def test_get_plugin_list_without_source_loads_all_sources(self, mock_builtin_list, mock_third_party_list):
+        mock_builtin_list.return_value = []
+        mock_third_party_list.return_value = []
+
+        PluginGatewayCatalogService.get_plugin_list(request=self.request)
+
+        mock_builtin_list.assert_called_once_with()
+        mock_third_party_list.assert_called_once_with()
+
     @override_settings(
         BK_API_URL_TMPL="https://{api_name}.apigw.example.com",
         BK_APIGW_NAME="bk-sops",
