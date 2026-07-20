@@ -11,8 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import json
 import logging
 
+from django.core.serializers.json import DjangoJSONEncoder
 from pipeline.component_framework.library import ComponentLibrary
 from pipeline.core.data.base import DataObject
 from pipeline.utils.collections import FancyDict
@@ -123,9 +125,10 @@ class PluginGatewayRunner:
     @staticmethod
     def _outputs(data):
         try:
-            return dict(data.get_outputs())
+            outputs = dict(data.get_outputs())
         except Exception:
             return {}
+        return json.loads(json.dumps(outputs, cls=DjangoJSONEncoder))
 
     @staticmethod
     def _ex_data(data):
