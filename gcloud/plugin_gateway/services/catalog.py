@@ -65,8 +65,8 @@ class PluginGatewayCatalogService:
     @classmethod
     def get_plugin_list(cls, request):
         meta = {"total": 0, "apis": []}
-        for item in cls._list_plugins():
-            plugin_source = request.GET.get("plugin_source")
+        plugin_source = request.GET.get("plugin_source")
+        for item in cls._list_plugins(plugin_source=plugin_source):
             if plugin_source and item.get("plugin_source") != plugin_source:
                 continue
 
@@ -139,10 +139,16 @@ class PluginGatewayCatalogService:
         detail["polling"]["url"] = cls._build_public_api_url(request, "apigw_plugin_gateway_run_status")
         return detail
 
-    @staticmethod
-    def _list_plugins():
-        plugins = BuiltinCatalogService.list_plugins() + PluginGatewayCatalogService._list_third_party_plugins()
-        plugins = PluginGatewayCatalogService._filter_do_not_open_plugins(plugins)
+    @classmethod
+    def _list_plugins(cls, plugin_source=None):
+        if plugin_source == PLUGIN_SOURCE_BUILTIN:
+            plugins = BuiltinCatalogService.list_plugins()
+        elif plugin_source == PLUGIN_SOURCE_THIRD_PARTY:
+            plugins = cls._list_third_party_plugins()
+        else:
+            plugins = BuiltinCatalogService.list_plugins() + cls._list_third_party_plugins()
+
+        plugins = cls._filter_do_not_open_plugins(plugins)
         return sorted(plugins, key=lambda item: (item["name"], item["id"]))
 
     @classmethod
