@@ -232,7 +232,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         ]
         mock_get_plugin_meta.return_value = {
             "description": "remote plugin",
-            "versions": ["1.0.0", "1.1.0"],
+            "versions": ["1.1.0", "1.0.0"],
             "framework_version": "2.0.0",
             "runtime_version": "3.11",
             "group": "DEVOPS",
@@ -252,7 +252,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         self.assertEqual(third_party_plugin["category"], "DEVOPS")
         self.assertEqual(third_party_plugin["default_version"], "1.1.0")
         self.assertEqual(third_party_plugin["latest_version"], "1.1.0")
-        self.assertEqual(third_party_plugin["versions"], ["1.0.0", "1.1.0"])
+        self.assertEqual(third_party_plugin["versions"], ["1.1.0", "1.0.0"])
         self.assertEqual(third_party_plugin["wrapper_version"], UNIFORM_API_WRAPPER_VERSION)
         self.assertIn("/apigw/plugin-gateway/plugins/bk_plugin_demo/", third_party_plugin["meta_url_template"])
         self.assertEqual(builtin_plugin["plugin_source"], PLUGIN_SOURCE_BUILTIN)
@@ -277,7 +277,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         mock_builtin_list.return_value = []
         mock_get_plugin_meta.return_value = {
             "description": "remote plugin",
-            "versions": ["1.0.0", "1.1.0"],
+            "versions": ["1.1.0", "1.0.0"],
             "framework_version": "2.0.0",
             "runtime_version": "3.11",
         }
@@ -356,6 +356,16 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             detail["polling"]["url"],
             "https://bk-sops.apigw.example.com/stage/plugin-gateway/runs/status/",
         )
+
+    def test_build_third_party_plugin_reference_uses_first_framework_version_as_latest(self):
+        plugin = {"code": "bk_plugin_demo", "name": "Demo Plugin"}
+        meta = {"description": "remote plugin", "versions": ["1.2.0", "1.0.0"]}
+
+        reference = PluginGatewayCatalogService._build_third_party_plugin_reference(plugin, meta)
+
+        self.assertEqual(reference["default_version"], "1.2.0")
+        self.assertEqual(reference["latest_version"], "1.2.0")
+        self.assertEqual(reference["versions"], ["1.2.0", "1.0.0"])
 
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
     @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
