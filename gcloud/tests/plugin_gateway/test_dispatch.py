@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.utils import timezone
+from django.utils.translation import ugettext_lazy
 
 from gcloud.plugin_gateway.exceptions import PluginGatewayContextResolveError
 from gcloud.plugin_gateway.models import PluginGatewayRun, PluginGatewaySourceConfig
@@ -12,6 +13,23 @@ from gcloud.plugin_gateway.tasks import (
     poll_plugin_gateway_run,
 )
 from gcloud.utils import crypto
+
+
+class _LazyOutputScheduleService:
+    def setup_runtime_attrs(self, **kwargs):
+        pass
+
+    def schedule(self, data, parent_data, callback_data=None):
+        data.set_outputs("ex_data", ugettext_lazy("请求响应数据格式非 JSON"))
+        data.set_outputs("details", {"messages": [ugettext_lazy("上游服务异常")]})
+        return False
+
+    def is_schedule_finished(self):
+        return False
+
+
+class _LazyOutputScheduleComponent:
+    bound_service = _LazyOutputScheduleService
 
 
 class PluginGatewayDispatchTaskTestCase(TestCase):
@@ -175,6 +193,36 @@ class PluginGatewayDispatchTaskTestCase(TestCase):
             kwargs={"open_plugin_run_id": run.open_plugin_run_id},
             countdown=10,
             queue="open_plugin_polling",
+        )
+
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayCallbackService.callback_run")
+    @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayContextService.resolve_run_context")
+    def test_poll_persists_lazy_translation_outputs(
+        self, mock_resolve_context, mock_component_library, mock_callback_run
+    ):
+        mock_resolve_context.return_value = {"operator": "bkflow-user", "project_id": 10, "bk_biz_id": 2}
+        mock_component_library.get_component_class.return_value = _LazyOutputScheduleComponent
+        run = self._create_run(
+            plugin_id="builtin__bk_http_request",
+            plugin_version="1.0",
+            run_status=PluginGatewayRun.Status.RUNNING,
+        )
+
+        poll_plugin_gateway_run(open_plugin_run_id=run.open_plugin_run_id)
+
+        run.refresh_from_db()
+        self.assertEqual(
+            run.runtime_outputs,
+            {
+                "ex_data": "请求响应数据格式非 JSON",
+                "details": {"messages": ["上游服务异常"]},
+            },
+        )
+        mock_callback_run.assert_called_once_with(
+            open_plugin_run_id=run.open_plugin_run_id,
+            run_status=PluginGatewayRun.Status.FAILED,
+            error_message="请求响应数据格式非 JSON",
         )
 
     @patch("gcloud.plugin_gateway.tasks.PluginGatewayCallbackService.callback_run")
