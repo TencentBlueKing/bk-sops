@@ -12,6 +12,7 @@ from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
 from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME
+from plugin_service.plugin_client import PluginServiceApiClient
 
 
 class PluginGatewayCatalogServiceTestCase(TestCase):
@@ -37,6 +38,33 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 cache_clear = getattr(func, "cache_clear", None)
                 if cache_clear is not None:
                     cache_clear()
+
+    @patch("plugin_service.plugin_client.env.USE_PLUGIN_SERVICE", "1")
+    @patch.object(PluginServiceApiClient, "get_paas_plugin_info")
+    def test_plugin_list_preserves_tag_info(self, mock_get_paas_plugin_info):
+        mock_get_paas_plugin_info.return_value = {
+            "count": 1,
+            "results": [
+                {
+                    "code": "bk_plugin_demo",
+                    "name": "Demo Plugin",
+                    "logo_url": "https://example.com/logo.png",
+                    "creator": "admin",
+                    "tag_info": {"code_name": "DEVOPS", "name": "研发工具"},
+                }
+            ],
+        }
+
+        result = PluginServiceApiClient.get_plugin_list(
+            limit=200,
+            offset=0,
+            distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
+        )
+
+        self.assertEqual(
+            result["data"]["plugins"][0]["tag_info"],
+            {"code_name": "DEVOPS", "name": "研发工具"},
+        )
 
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_tags_list")
@@ -235,11 +263,20 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             "versions": ["1.1.0", "1.0.0"],
             "framework_version": "2.0.0",
             "runtime_version": "3.11",
-            "group": "DEVOPS",
+            "group": "PLUGIN_META_GROUP",
         }
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
-            "data": {"count": 1, "plugins": [{"code": "bk_plugin_demo", "name": "Demo Plugin"}]},
+            "data": {
+                "count": 1,
+                "plugins": [
+                    {
+                        "code": "bk_plugin_demo",
+                        "name": "Demo Plugin",
+                        "tag_info": {"code_name": "DEVOPS", "name": "研发工具"},
+                    }
+                ],
+            },
         }
 
         meta = PluginGatewayCatalogService.get_plugin_list(request=self.request)
@@ -250,6 +287,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         builtin_plugin = plugins["builtin__job_execute_task"]
         self.assertEqual(third_party_plugin["plugin_source"], PLUGIN_SOURCE_THIRD_PARTY)
         self.assertEqual(third_party_plugin["category"], "DEVOPS")
+        self.assertEqual(third_party_plugin["category_name"], "研发工具")
         self.assertEqual(third_party_plugin["default_version"], "1.1.0")
         self.assertEqual(third_party_plugin["latest_version"], "1.1.0")
         self.assertEqual(third_party_plugin["versions"], ["1.1.0", "1.0.0"])

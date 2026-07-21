@@ -81,6 +81,7 @@ class PluginGatewayCatalogService:
                 continue
 
             item = dict(item)
+            item.setdefault("category_name", item.get("category", ""))
             detail_url = cls._build_public_api_url(
                 request,
                 "apigw_plugin_gateway_detail",
@@ -207,8 +208,8 @@ class PluginGatewayCatalogService:
 
         return plugins
 
-    @staticmethod
-    def _build_third_party_plugin_reference(plugin, meta):
+    @classmethod
+    def _build_third_party_plugin_reference(cls, plugin, meta):
         if not meta:
             return None
 
@@ -218,7 +219,15 @@ class PluginGatewayCatalogService:
 
         # bk-plugin-framework returns versions in descending order.
         latest_version = versions[0]
-        category = meta.get("group") or meta.get("category") or meta.get("tag") or PLUGIN_SOURCE_THIRD_PARTY
+        tag_info = plugin.get("tag_info") if isinstance(plugin.get("tag_info"), dict) else {}
+        category = (
+            cls._stringify(tag_info.get("code_name"))
+            or meta.get("group")
+            or meta.get("category")
+            or meta.get("tag")
+            or PLUGIN_SOURCE_THIRD_PARTY
+        )
+        category_name = cls._stringify(tag_info.get("name")) or category
         return {
             "id": plugin["code"],
             "name": plugin["name"],
@@ -230,6 +239,7 @@ class PluginGatewayCatalogService:
             "latest_version": latest_version,
             "versions": versions,
             "category": category,
+            "category_name": category_name,
             "description": meta.get("description", ""),
         }
 

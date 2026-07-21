@@ -35,6 +35,7 @@ GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
         "latest_version": "legacy",
         "versions": ["legacy"],
         "category": "JOB",
+        "category_name": "作业平台",
         "description": "",
         "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/builtin__job_execute_task/?version={version}"
       },
@@ -49,6 +50,7 @@ GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
         "latest_version": "1.1.0",
         "versions": ["1.0.0", "1.1.0"],
         "category": "DEVOPS",
+        "category_name": "研发工具",
         "description": "Demo plugin",
         "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/bk_plugin_demo/?version={version}"
       }
@@ -69,7 +71,8 @@ GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
 | `data.apis[].plugin_source` | `string` | 插件来源，取值为 `builtin` 或 `third_party` |
 | `data.apis[].plugin_code` | `string` | 插件原始 code |
 | `data.apis[].group` | `string` | 插件分组 |
-| `data.apis[].category` | `string` | 插件分类 |
+| `data.apis[].category` | `string` | 稳定的插件分类 ID，用于筛选和缓存匹配 |
+| `data.apis[].category_name` | `string` | 插件分类展示名；缺失独立展示名时回退为分类 ID |
 | `data.apis[].wrapper_version` | `string` | uniform_api 运行壳版本，当前固定为 `v4.0.0` |
 | `data.apis[].default_version` | `string` | 默认版本 |
 | `data.apis[].latest_version` | `string` | 最新版本 |
