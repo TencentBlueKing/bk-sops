@@ -476,7 +476,10 @@ paths:
                               description: 可选版本列表
                             category:
                               type: string
-                              description: 插件分类
+                              description: 插件分类 ID
+                            category_name:
+                              type: string
+                              description: 插件分类展示名
                             description:
                               type: string
                               description: 插件描述

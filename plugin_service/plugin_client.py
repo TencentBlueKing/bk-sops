@@ -47,8 +47,9 @@ class PluginServiceApiClient:
         return requests.post(url, data=json.dumps(data), headers=headers)
 
     @json_response_decoder
-    def dispatch_plugin_api_request(self, request_params, inject_headers=None, inject_authorization: dict = None,
-                                    sensitive_data: dict = None):
+    def dispatch_plugin_api_request(
+        self, request_params, inject_headers=None, inject_authorization: dict = None, sensitive_data: dict = None
+    ):
         url, headers = self._prepare_apigw_api_request(
             path_params=["plugin_api_dispatch"], inject_authorization=inject_authorization
         )
@@ -105,8 +106,7 @@ class PluginServiceApiClient:
         """获取插件服务列表"""
         # 如果不启动插件服务，直接返回空列表
         if not env.USE_PLUGIN_SERVICE == "1":
-            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置",
-                    "data": {"count": 0, "plugins": []}}
+            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
         result = PluginServiceApiClient.get_paas_plugin_info(
             search_term=search_term,
             environment="prod",
@@ -124,6 +124,7 @@ class PluginServiceApiClient:
                 "name": plugin["name"],
                 "logo_url": plugin["logo_url"],
                 "creator": plugin["creator"],
+                "tag_info": plugin.get("tag_info"),
             }
             for plugin in result["results"]
         ]
@@ -147,8 +148,7 @@ class PluginServiceApiClient:
         """获取插件服务列表及详情信息"""
         # 如果不启动插件服务，直接返回空列表
         if not env.USE_PLUGIN_SERVICE == "1":
-            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置",
-                    "data": {"count": 0, "plugins": []}}
+            return {"result": True, "message": "插件服务未启用，请联系管理员进行配置", "data": {"count": 0, "plugins": []}}
         result = PluginServiceApiClient.batch_get_paas_plugin_detailed_info(
             search_term=search_term, environment="prod", **kwargs
         )
@@ -199,8 +199,7 @@ class PluginServiceApiClient:
     @staticmethod
     @json_response_decoder
     def get_paas_plugin_info(
-            plugin_code=None, environment=None, limit=100, offset=0, search_term=None, distributor_code_name=None,
-            **kwargs
+        plugin_code=None, environment=None, limit=100, offset=0, search_term=None, distributor_code_name=None, **kwargs
     ):
         """可支持通过PaaS平台请求获取插件服务列表或插件详情"""
         url, headers = PluginServiceApiClient._prepare_paas_api_request(

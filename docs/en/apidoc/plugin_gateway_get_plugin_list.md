@@ -35,6 +35,7 @@ GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
         "latest_version": "legacy",
         "versions": ["legacy"],
         "category": "JOB",
+        "category_name": "JOB Platform",
         "description": "",
         "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/builtin__job_execute_task/?version={version}"
       },
@@ -49,6 +50,7 @@ GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
         "latest_version": "1.1.0",
         "versions": ["1.0.0", "1.1.0"],
         "category": "DEVOPS",
+        "category_name": "R&D Tools",
         "description": "Demo plugin",
         "meta_url_template": "https://bk-sops.example/apigw/plugin-gateway/plugins/bk_plugin_demo/?version={version}"
       }
@@ -69,7 +71,8 @@ GET /apigw/plugin-gateway/plugins/?plugin_source=builtin
 | `data.apis[].plugin_source` | `string` | plugin source, `builtin` or `third_party` |
 | `data.apis[].plugin_code` | `string` | original plugin code |
 | `data.apis[].group` | `string` | plugin group |
-| `data.apis[].category` | `string` | plugin category |
+| `data.apis[].category` | `string` | stable plugin category ID used for filtering and cache matching |
+| `data.apis[].category_name` | `string` | plugin category display name; falls back to the category ID when unavailable |
 | `data.apis[].wrapper_version` | `string` | uniform_api wrapper version, currently fixed at `v4.0.0` |
 | `data.apis[].default_version` | `string` | default version |
 | `data.apis[].latest_version` | `string` | latest version |
