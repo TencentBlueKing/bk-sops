@@ -30,6 +30,7 @@ from gcloud.plugin_gateway.constants import (
 from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError, PluginGatewayVersionNotFoundError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.builtin_catalog import BuiltinCatalogService
+from gcloud.plugin_gateway.services.form_schema import build_structured_form_schema, convert_json_schema_fields
 from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
@@ -108,13 +109,16 @@ class PluginGatewayCatalogService:
             detail_schema = BuiltinCatalogService.get_plugin_detail(plugin["plugin_code"], selected_version)
             inputs = detail_schema.get("inputs", [])
             outputs = detail_schema.get("outputs", [])
+            form_schema = None
         else:
             detail_schema = cls._get_plugin_detail_schema(plugin["plugin_code"], selected_version)
-            inputs = cls._convert_schema_fields(
+            inputs = convert_json_schema_fields(
                 detail_schema.get("inputs"),
                 required=detail_schema.get("inputs", {}).get("required", []),
             )
-            outputs = cls._convert_schema_fields(detail_schema.get("outputs"), required=[])
+            outputs = convert_json_schema_fields(detail_schema.get("outputs"), required=[])
+            forms = detail_schema.get("forms") if isinstance(detail_schema.get("forms"), dict) else {}
+            form_schema = build_structured_form_schema(detail_schema.get("inputs"), forms.get("renderform"))
 
         detail = {
             "id": plugin["id"],
@@ -125,6 +129,7 @@ class PluginGatewayCatalogService:
             "version": UNIFORM_API_WRAPPER_VERSION,
             "wrapper_version": plugin["wrapper_version"],
             "description": plugin.get("description", ""),
+            "desc": plugin.get("description", ""),
             "methods": ["POST"],
             "inputs": inputs,
             "outputs": outputs,
@@ -136,6 +141,8 @@ class PluginGatewayCatalogService:
                 "running_tag": {"key": cls.POLLING_STATUS_KEY, "value": RUNNING_STATUS_VALUE},
             },
         }
+        if form_schema is not None:
+            detail["form_schema"] = form_schema
         detail["url"] = cls._build_public_api_url(request, "apigw_plugin_gateway_run_create")
         detail["polling"]["url"] = cls._build_public_api_url(request, "apigw_plugin_gateway_run_status")
         return detail
@@ -335,27 +342,6 @@ class PluginGatewayCatalogService:
         if not detail_result.get("result"):
             raise PluginGatewaySourceUnavailableError(detail_result.get("message", "query plugin detail failed"))
         return detail_result.get("data", {})
-
-    @staticmethod
-    def _convert_schema_fields(schema, required):
-        if not isinstance(schema, dict):
-            return []
-
-        required_fields = set(required or [])
-        fields = []
-        for key, field in (schema.get("properties") or {}).items():
-            item = {
-                "key": key,
-                "name": field.get("title") or key,
-                "type": field.get("type", "string"),
-                "description": field.get("description", ""),
-            }
-            if key in required_fields:
-                item["required"] = True
-            if "default" in field:
-                item["default"] = field["default"]
-            fields.append(item)
-        return fields
 
     @staticmethod
     def _stringify(value):

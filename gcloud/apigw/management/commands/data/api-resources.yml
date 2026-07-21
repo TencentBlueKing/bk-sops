@@ -556,6 +556,9 @@ paths:
                       description:
                         type: string
                         description: 插件描述
+                      desc:
+                        type: string
+                        description: uniform_api 兼容插件描述
                       url:
                         type: string
                         description: 创建执行记录的 URL
@@ -569,6 +572,9 @@ paths:
                         items:
                           type: object
                         description: 输入 schema 列表
+                      form_schema:
+                        type: object
+                        description: 可选的完整 JSON 表单 schema，存在时接入方应优先使用
                       outputs:
                         type: array
                         items:

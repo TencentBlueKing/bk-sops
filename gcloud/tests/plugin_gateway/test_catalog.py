@@ -328,6 +328,14 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                         "type": "integer",
                         "description": "业务 ID",
                         "default": 2,
+                        "ui:component": {
+                            "name": "select",
+                            "props": {
+                                "datasource": [
+                                    {"label": "业务 2", "value": 2},
+                                ]
+                            },
+                        },
                     }
                 },
                 "required": ["biz_id"],
@@ -342,6 +350,21 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 }
             },
             "context_inputs": {"properties": {}},
+            "forms": {
+                "renderform": {
+                    "type": "object",
+                    "properties": {
+                        "biz_id": {
+                            "ui:reactions": [
+                                {
+                                    "lifetime": "init",
+                                    "then": {"actions": ["{{ $loadDataSource }}"]},
+                                }
+                            ]
+                        }
+                    },
+                }
+            },
         }
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
@@ -368,7 +391,8 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 {
                     "key": "biz_id",
                     "name": "业务ID",
-                    "type": "integer",
+                    "type": "int",
+                    "desc": "业务 ID",
                     "description": "业务 ID",
                     "required": True,
                     "default": 2,
@@ -381,8 +405,20 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 {
                     "key": "job_instance_id",
                     "name": "作业实例 ID",
-                    "type": "integer",
+                    "type": "int",
+                    "desc": "JOB instance id",
                     "description": "JOB instance id",
+                }
+            ],
+        )
+        self.assertEqual(detail["desc"], "remote plugin")
+        self.assertEqual(detail["form_schema"]["properties"]["biz_id"]["ui:component"]["name"], "select")
+        self.assertEqual(
+            detail["form_schema"]["properties"]["biz_id"]["ui:reactions"],
+            [
+                {
+                    "lifetime": "init",
+                    "then": {"actions": ["{{ $loadDataSource }}"]},
                 }
             ],
         )

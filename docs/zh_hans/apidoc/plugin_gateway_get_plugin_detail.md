@@ -29,13 +29,15 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
     "version": "v4.0.0",
     "wrapper_version": "v4.0.0",
     "description": "",
+    "desc": "",
     "url": "https://bk-sops.example/apigw/plugin-gateway/runs/",
     "methods": ["POST"],
     "inputs": [
       {
         "key": "biz_id",
         "name": "业务 ID",
-        "type": "integer",
+        "type": "int",
+        "desc": "业务 ID",
         "description": "业务 ID",
         "required": true
       }
@@ -44,7 +46,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
       {
         "key": "job_instance_id",
         "name": "作业实例 ID",
-        "type": "integer",
+        "type": "int",
+        "desc": "JOB instance id",
         "description": "JOB instance id"
       }
     ],
@@ -84,7 +87,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
 | `data.wrapper_version` | `string` | uniform_api 运行壳版本，当前为 `v4.0.0` |
 | `data.url` | `string` | 创建执行记录的地址 |
 | `data.methods` | `list` | 允许的调用方法 |
-| `data.inputs` | `list` | 插件输入 schema 列表 |
+| `data.inputs` | `list` | 插件输入 schema 列表；类型使用 `string`、`int`、`bool`、`list`、`json`，作为兼容渲染路径 |
+| `data.form_schema` | `object` | 可选的完整 JSON 表单 schema；第三方插件提供结构化表单时返回，接入方应优先使用 |
 | `data.outputs` | `list` | 插件输出 schema 列表 |
 | `data.polling.url` | `string` | 轮询状态地址 |
 | `data.polling.task_tag_key` | `string` | 轮询时使用的任务标识字段 |

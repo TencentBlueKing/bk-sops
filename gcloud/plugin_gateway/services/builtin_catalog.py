@@ -14,6 +14,9 @@ specific language governing permissions and limitations under the License.
 from pipeline.component_framework.library import ComponentLibrary
 
 from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, UNIFORM_API_WRAPPER_VERSION, encode_plugin_id
+from gcloud.plugin_gateway.services.form_schema import convert_component_io
+
+INTERNAL_COMPONENT_CODES = {"remote_plugin", "subprocess_plugin"}
 
 
 class BuiltinCatalogService:
@@ -25,6 +28,8 @@ class BuiltinCatalogService:
         code_components = {}
         for component_cls in ComponentLibrary.component_list():
             code = component_cls.code
+            if code in INTERNAL_COMPONENT_CODES:
+                continue
             version = getattr(component_cls, "version", "legacy")
             code_versions.setdefault(code, []).append(version)
             code_components.setdefault(code, component_cls)
@@ -40,8 +45,8 @@ class BuiltinCatalogService:
         component_cls = cls._get_component_class(code, version)
         meta = cls._build_meta(component_cls, code, [getattr(component_cls, "version", "legacy")])
         service = component_cls.bound_service()
-        meta["inputs"] = cls._convert_io(service.inputs_format())
-        meta["outputs"] = cls._convert_io(service.outputs_format())
+        meta["inputs"] = convert_component_io(service.inputs_format())
+        meta["outputs"] = convert_component_io(service.outputs_format())
         return meta
 
     @staticmethod
@@ -67,34 +72,6 @@ class BuiltinCatalogService:
             "wrapper_version": UNIFORM_API_WRAPPER_VERSION,
             "description": "",
         }
-
-    @classmethod
-    def _convert_io(cls, io_format):
-        fields = []
-        for item in io_format or []:
-            schema = cls._get_item_value(item, "schema", None)
-            fields.append(
-                {
-                    "key": cls._get_item_value(item, "key", ""),
-                    "name": cls._get_item_value(item, "name", ""),
-                    "type": cls._get_schema_type(schema),
-                }
-            )
-        return fields
-
-    @staticmethod
-    def _get_item_value(item, key, default):
-        if isinstance(item, dict):
-            return item.get(key, default)
-        return getattr(item, key, default)
-
-    @staticmethod
-    def _get_schema_type(schema):
-        if not schema:
-            return "string"
-        if isinstance(schema, dict):
-            return schema.get("type", "string")
-        return getattr(schema, "type", "string")
 
     @staticmethod
     def _stringify(value):

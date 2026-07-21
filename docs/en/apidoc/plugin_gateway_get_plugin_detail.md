@@ -29,13 +29,15 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
     "version": "v4.0.0",
     "wrapper_version": "v4.0.0",
     "description": "",
+    "desc": "",
     "url": "https://bk-sops.example/apigw/plugin-gateway/runs/",
     "methods": ["POST"],
     "inputs": [
       {
         "key": "biz_id",
         "name": "Business ID",
-        "type": "integer",
+        "type": "int",
+        "desc": "Business ID",
         "description": "Business ID",
         "required": true
       }
@@ -44,7 +46,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
       {
         "key": "job_instance_id",
         "name": "JOB instance ID",
-        "type": "integer",
+        "type": "int",
+        "desc": "JOB instance id",
         "description": "JOB instance id"
       }
     ],
@@ -84,7 +87,8 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
 | `data.wrapper_version` | `string` | uniform_api wrapper version, currently `v4.0.0` |
 | `data.url` | `string` | execution registration URL |
 | `data.methods` | `list` | allowed methods |
-| `data.inputs` | `list` | input schema list |
+| `data.inputs` | `list` | input schema list using `string`, `int`, `bool`, `list`, or `json`; retained as the compatibility rendering path |
+| `data.form_schema` | `object` | optional full JSON form schema; returned when a third-party plugin exposes structured form metadata and should take precedence |
 | `data.outputs` | `list` | output schema list |
 | `data.polling.url` | `string` | polling URL |
 | `data.polling.task_tag_key` | `string` | polling task identifier field |
