@@ -62,4 +62,6 @@ urlpatterns = [
     url(r"^diagnostics/task/$", diagnostics.task_diagnostic_page),
     url(r"^diagnostics/task/detail/$", diagnostics.task_diagnostic_detail),
     url(r"^diagnostics/task/action/$", diagnostics.task_diagnostic_action),
+    url(r"^diagnostics/cases/$", diagnostics.diagnostic_case_list),
+    url(r"^diagnostics/cases/detail/$", diagnostics.diagnostic_case_detail),
 ]
