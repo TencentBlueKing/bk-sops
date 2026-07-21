@@ -216,7 +216,8 @@ class PluginGatewayCatalogService:
         if not versions:
             return None
 
-        latest_version = versions[-1]
+        # bk-plugin-framework returns versions in descending order.
+        latest_version = versions[0]
         category = meta.get("group") or meta.get("category") or meta.get("tag") or PLUGIN_SOURCE_THIRD_PARTY
         return {
             "id": plugin["code"],
