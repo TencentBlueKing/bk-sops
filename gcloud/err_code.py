@@ -27,7 +27,7 @@ SUCCESS = ErrorCode(code="0", description="success", ignore_prefix=True)
 
 REQUEST_PARAM_INVALID = ErrorCode(code="40000", description="the content of param in your request is invalid")
 REQUEST_FORBIDDEN_INVALID = ErrorCode(code="40100", description="you have no permission")
-CONTENT_NOT_EXIST = ErrorCode(code="40400", description="the content you reqeust does not exist")
+CONTENT_NOT_EXIST = ErrorCode(code="40400", description="the content you request does not exist")
 INVALID_OPERATION = ErrorCode(code="45000", description="invalid operation")
 OPERATION_FAIL = ErrorCode(code="45100", description="invalid operation")
 VALIDATION_ERROR = ErrorCode(code="46100", description="validation error")
