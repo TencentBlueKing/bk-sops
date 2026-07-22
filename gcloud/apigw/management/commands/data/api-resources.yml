@@ -1,10 +1,11 @@
-openapi: 3.0.1
-servers:
-- url: /
+swagger: '2.0'
+basePath: /
 info:
   version: '0.1'
   title: API Gateway Resources
   description: ''
+schemes:
+- http
 paths:
   /callback/{token}/:
     post:
