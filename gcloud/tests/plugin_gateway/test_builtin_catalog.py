@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -13,6 +14,9 @@ from gcloud.plugin_gateway.constants import (
 )
 from gcloud.plugin_gateway.services.builtin_catalog import BuiltinCatalogService
 from pipeline_plugins.components.collections.http.v1_0 import HttpComponent
+from pipeline_plugins.components.collections.sites.open.job.fast_execute_script.v2_0 import (
+    JobFastExecuteScriptComponent,
+)
 
 
 class TestPluginIdCodec(TestCase):
@@ -42,6 +46,16 @@ class FakeComponent:
     bound_service = FakeService
 
 
+class FakeRemotePluginComponent(FakeComponent):
+    code = "remote_plugin"
+    name = "RemotePlugin"
+
+
+class FakeSubprocessPluginComponent(FakeComponent):
+    code = "subprocess_plugin"
+    name = "SubprocessPlugin"
+
+
 class TestBuiltinCatalog(TestCase):
     @patch("gcloud.plugin_gateway.services.builtin_catalog.ComponentLibrary")
     def test_list_builtin_plugins(self, mock_lib):
@@ -58,6 +72,18 @@ class TestBuiltinCatalog(TestCase):
         self.assertIn("legacy", plugins[0]["versions"])
 
     @patch("gcloud.plugin_gateway.services.builtin_catalog.ComponentLibrary")
+    def test_list_builtin_plugins_excludes_gateway_shell_components(self, mock_lib):
+        mock_lib.component_list.return_value = [
+            FakeComponent,
+            FakeRemotePluginComponent,
+            FakeSubprocessPluginComponent,
+        ]
+
+        plugins = BuiltinCatalogService.list_plugins()
+
+        self.assertEqual([plugin["plugin_code"] for plugin in plugins], ["job_execute_task"])
+
+    @patch("gcloud.plugin_gateway.services.builtin_catalog.ComponentLibrary")
     def test_http_detail_exposes_runtime_timeout_input(self, mock_lib):
         mock_lib.get_component_class.return_value = HttpComponent
 
@@ -66,3 +92,24 @@ class TestBuiltinCatalog(TestCase):
         input_keys = [item["key"] for item in detail["inputs"]]
         self.assertIn("bk_http_timeout", input_keys)
         self.assertNotIn("bk_http_request_timeout", input_keys)
+
+        fields = {item["key"]: item for item in detail["inputs"]}
+        self.assertEqual(fields["bk_http_timeout"]["type"], "int")
+        self.assertEqual(fields["bk_http_request_header"]["type"], "list")
+        self.assertEqual(fields["bk_http_request_header"]["form_type"], "table")
+        self.assertEqual(
+            [item["key"] for item in fields["bk_http_request_header"]["table"]["fields"]],
+            ["name", "value"],
+        )
+
+    @patch("gcloud.plugin_gateway.services.builtin_catalog.ComponentLibrary")
+    def test_builtin_detail_exposes_declarative_form_schema(self, mock_lib):
+        mock_lib.get_component_class.return_value = JobFastExecuteScriptComponent
+
+        detail = BuiltinCatalogService.get_plugin_detail("job_fast_execute_script", "v2.0")
+
+        self.assertEqual(
+            detail["form_schema"]["properties"]["job_content"]["ui:component"]["name"],
+            "codeEditor",
+        )
+        json.dumps(detail["form_schema"])

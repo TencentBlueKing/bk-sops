@@ -305,6 +305,45 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         BK_APIGW_NAME="bk-sops",
         BK_APIGW_STAGE_NAME="stage",
     )
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.get_plugin_detail")
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    def test_get_builtin_plugin_detail_preserves_form_schema(self, mock_builtin_list, mock_builtin_detail):
+        mock_builtin_list.return_value = [
+            {
+                "id": "builtin__job_fast_execute_script",
+                "name": "快速执行脚本",
+                "plugin_source": PLUGIN_SOURCE_BUILTIN,
+                "plugin_code": "job_fast_execute_script",
+                "wrapper_version": UNIFORM_API_WRAPPER_VERSION,
+                "default_version": "v2.0",
+                "latest_version": "v2.0",
+                "versions": ["v2.0"],
+                "category": "JOB",
+                "description": "",
+            }
+        ]
+        mock_builtin_detail.return_value = {
+            "inputs": [],
+            "outputs": [],
+            "form_schema": {
+                "type": "object",
+                "properties": {"job_content": {"type": "string", "ui:component": {"name": "codeEditor"}}},
+            },
+        }
+
+        detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=self.request,
+            plugin_id="builtin__job_fast_execute_script",
+            version="v2.0",
+        )
+
+        self.assertEqual(detail["form_schema"]["properties"]["job_content"]["ui:component"]["name"], "codeEditor")
+
+    @override_settings(
+        BK_API_URL_TMPL="https://{api_name}.apigw.example.com",
+        BK_APIGW_NAME="bk-sops",
+        BK_APIGW_STAGE_NAME="stage",
+    )
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
@@ -328,6 +367,14 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                         "type": "integer",
                         "description": "业务 ID",
                         "default": 2,
+                        "ui:component": {
+                            "name": "select",
+                            "props": {
+                                "datasource": [
+                                    {"label": "业务 2", "value": 2},
+                                ]
+                            },
+                        },
                     }
                 },
                 "required": ["biz_id"],
@@ -342,6 +389,21 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 }
             },
             "context_inputs": {"properties": {}},
+            "forms": {
+                "renderform": {
+                    "type": "object",
+                    "properties": {
+                        "biz_id": {
+                            "ui:reactions": [
+                                {
+                                    "lifetime": "init",
+                                    "then": {"actions": ["{{ $loadDataSource }}"]},
+                                }
+                            ]
+                        }
+                    },
+                }
+            },
         }
         mock_client_cls.get_plugin_list.return_value = {
             "result": True,
@@ -368,7 +430,8 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 {
                     "key": "biz_id",
                     "name": "业务ID",
-                    "type": "integer",
+                    "type": "int",
+                    "desc": "业务 ID",
                     "description": "业务 ID",
                     "required": True,
                     "default": 2,
@@ -381,8 +444,20 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 {
                     "key": "job_instance_id",
                     "name": "作业实例 ID",
-                    "type": "integer",
+                    "type": "int",
+                    "desc": "JOB instance id",
                     "description": "JOB instance id",
+                }
+            ],
+        )
+        self.assertEqual(detail["desc"], "remote plugin")
+        self.assertEqual(detail["form_schema"]["properties"]["biz_id"]["ui:component"]["name"], "select")
+        self.assertEqual(
+            detail["form_schema"]["properties"]["biz_id"]["ui:reactions"],
+            [
+                {
+                    "lifetime": "init",
+                    "then": {"actions": ["{{ $loadDataSource }}"]},
                 }
             ],
         )
