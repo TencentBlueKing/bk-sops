@@ -88,8 +88,10 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
 | `data.url` | `string` | execution registration URL |
 | `data.methods` | `list` | allowed methods |
 | `data.inputs` | `list` | input schema list using `string`, `int`, `bool`, `list`, or `json`; retained as the compatibility rendering path |
-| `data.form_schema` | `object` | optional full JSON form schema; returned when a third-party plugin exposes structured form metadata and should take precedence |
+| `data.form_schema` | `object` | optional full JSON form schema; returned for structured third-party forms or declaratively adapted built-in controls and should take precedence |
 | `data.outputs` | `list` | output schema list |
 | `data.polling.url` | `string` | polling URL |
 | `data.polling.task_tag_key` | `string` | polling task identifier field |
 | `data.polling.running_tag` | `object` | running-state matching rule; current value is `RUNNING` |
+
+Standard control names in `form_schema` include `input`, `textarea`, `password`, `codeEditor`, `select`, `radio`, `checkbox`, `switcher`, and `table`. `codeEditor` may specify `language`, `height`, and `showMiniMap`. The configuration is JSON-only and never contains or executes legacy SOPS form JavaScript. Consumers should fall back to a type-based widget when a control is unsupported.

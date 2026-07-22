@@ -109,7 +109,7 @@ class PluginGatewayCatalogService:
             detail_schema = BuiltinCatalogService.get_plugin_detail(plugin["plugin_code"], selected_version)
             inputs = detail_schema.get("inputs", [])
             outputs = detail_schema.get("outputs", [])
-            form_schema = None
+            form_schema = detail_schema.get("form_schema")
         else:
             detail_schema = cls._get_plugin_detail_schema(plugin["plugin_code"], selected_version)
             inputs = convert_json_schema_fields(

@@ -88,8 +88,10 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy
 | `data.url` | `string` | 创建执行记录的地址 |
 | `data.methods` | `list` | 允许的调用方法 |
 | `data.inputs` | `list` | 插件输入 schema 列表；类型使用 `string`、`int`、`bool`、`list`、`json`，作为兼容渲染路径 |
-| `data.form_schema` | `object` | 可选的完整 JSON 表单 schema；第三方插件提供结构化表单时返回，接入方应优先使用 |
+| `data.form_schema` | `object` | 可选的完整 JSON 表单 schema；第三方插件提供结构化表单或内置插件存在声明式控件适配时返回，接入方应优先使用 |
 | `data.outputs` | `list` | 插件输出 schema 列表 |
 | `data.polling.url` | `string` | 轮询状态地址 |
 | `data.polling.task_tag_key` | `string` | 轮询时使用的任务标识字段 |
 | `data.polling.running_tag` | `object` | 运行中状态匹配规则，当前值为 `RUNNING` |
+
+`form_schema` 中的标准控件名包括 `input`、`textarea`、`password`、`codeEditor`、`select`、`radio`、`checkbox`、`switcher` 和 `table`。其中 `codeEditor` 的配置可包含 `language`、`height` 和 `showMiniMap`。所有配置均为 JSON 数据，不包含或执行标准运维旧式表单 JavaScript；接入方不支持某个控件时应按字段类型降级渲染。

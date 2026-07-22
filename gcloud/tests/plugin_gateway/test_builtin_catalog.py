@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import json
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -13,6 +14,9 @@ from gcloud.plugin_gateway.constants import (
 )
 from gcloud.plugin_gateway.services.builtin_catalog import BuiltinCatalogService
 from pipeline_plugins.components.collections.http.v1_0 import HttpComponent
+from pipeline_plugins.components.collections.sites.open.job.fast_execute_script.v2_0 import (
+    JobFastExecuteScriptComponent,
+)
 
 
 class TestPluginIdCodec(TestCase):
@@ -97,3 +101,15 @@ class TestBuiltinCatalog(TestCase):
             [item["key"] for item in fields["bk_http_request_header"]["table"]["fields"]],
             ["name", "value"],
         )
+
+    @patch("gcloud.plugin_gateway.services.builtin_catalog.ComponentLibrary")
+    def test_builtin_detail_exposes_declarative_form_schema(self, mock_lib):
+        mock_lib.get_component_class.return_value = JobFastExecuteScriptComponent
+
+        detail = BuiltinCatalogService.get_plugin_detail("job_fast_execute_script", "v2.0")
+
+        self.assertEqual(
+            detail["form_schema"]["properties"]["job_content"]["ui:component"]["name"],
+            "codeEditor",
+        )
+        json.dumps(detail["form_schema"])

@@ -305,6 +305,45 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         BK_APIGW_NAME="bk-sops",
         BK_APIGW_STAGE_NAME="stage",
     )
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.get_plugin_detail")
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
+    def test_get_builtin_plugin_detail_preserves_form_schema(self, mock_builtin_list, mock_builtin_detail):
+        mock_builtin_list.return_value = [
+            {
+                "id": "builtin__job_fast_execute_script",
+                "name": "快速执行脚本",
+                "plugin_source": PLUGIN_SOURCE_BUILTIN,
+                "plugin_code": "job_fast_execute_script",
+                "wrapper_version": UNIFORM_API_WRAPPER_VERSION,
+                "default_version": "v2.0",
+                "latest_version": "v2.0",
+                "versions": ["v2.0"],
+                "category": "JOB",
+                "description": "",
+            }
+        ]
+        mock_builtin_detail.return_value = {
+            "inputs": [],
+            "outputs": [],
+            "form_schema": {
+                "type": "object",
+                "properties": {"job_content": {"type": "string", "ui:component": {"name": "codeEditor"}}},
+            },
+        }
+
+        detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=self.request,
+            plugin_id="builtin__job_fast_execute_script",
+            version="v2.0",
+        )
+
+        self.assertEqual(detail["form_schema"]["properties"]["job_content"]["ui:component"]["name"], "codeEditor")
+
+    @override_settings(
+        BK_API_URL_TMPL="https://{api_name}.apigw.example.com",
+        BK_APIGW_NAME="bk-sops",
+        BK_APIGW_STAGE_NAME="stage",
+    )
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
