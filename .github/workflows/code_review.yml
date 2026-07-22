@@ -11,25 +11,55 @@ jobs:
   security-check:
     name: 安全检查
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       is_safe: ${{ steps.check.outputs.is_safe }}
       author_association: ${{ steps.check.outputs.author_association }}
+      author_permission: ${{ steps.check.outputs.author_permission }}
+      sender_permission: ${{ steps.check.outputs.sender_permission }}
     steps:
       - name: 检查贡献者身份
         id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          EVENT_SENDER: ${{ github.event.sender.login }}
+          AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
         run: |
-          echo "作者关联: ${{ github.event.pull_request.author_association }}"
-          # 允许的身份：OWNER（所有者）、MEMBER（成员）、COLLABORATOR（协作者）
-          if [[ "${{ github.event.pull_request.author_association }}" == "OWNER" ]] || \
-             [[ "${{ github.event.pull_request.author_association }}" == "MEMBER" ]] || \
-             [[ "${{ github.event.pull_request.author_association }}" == "COLLABORATOR" ]]; then
-            echo "✅ 可信任的贡献者，允许自动审查"
-            echo "is_safe=true" >> $GITHUB_OUTPUT
+          get_permission() {
+            local username="$1"
+            gh api "repos/${REPOSITORY}/collaborators/${username}/permission" \
+              --jq '.permission' 2>/dev/null || echo "none"
+          }
+
+          is_trusted_permission() {
+            # GitHub 的 permission 字段会把 maintain 映射为 write。
+            case "$1" in
+              admin|write) return 0 ;;
+              *) return 1 ;;
+            esac
+          }
+
+          AUTHOR_PERMISSION="$(get_permission "$PR_AUTHOR")"
+          SENDER_PERMISSION="$(get_permission "$EVENT_SENDER")"
+
+          echo "作者关联: $AUTHOR_ASSOCIATION"
+          echo "PR 作者 $PR_AUTHOR 的仓库权限: $AUTHOR_PERMISSION"
+          echo "事件触发者 $EVENT_SENDER 的仓库权限: $SENDER_PERMISSION"
+
+          if is_trusted_permission "$AUTHOR_PERMISSION" && \
+            is_trusted_permission "$SENDER_PERMISSION"; then
+            echo "✅ PR 作者和事件触发者均具备写权限，允许自动审查"
+            echo "is_safe=true" >> "$GITHUB_OUTPUT"
           else
-            echo "⚠️ 外部贡献者，需要手动批准"
-            echo "is_safe=false" >> $GITHUB_OUTPUT
+            echo "⚠️ PR 作者或事件触发者不具备写权限，跳过自动审查"
+            echo "is_safe=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "author_association=${{ github.event.pull_request.author_association }}" >> $GITHUB_OUTPUT
+          echo "author_association=$AUTHOR_ASSOCIATION" >> "$GITHUB_OUTPUT"
+          echo "author_permission=$AUTHOR_PERMISSION" >> "$GITHUB_OUTPUT"
+          echo "sender_permission=$SENDER_PERMISSION" >> "$GITHUB_OUTPUT"
   # 第二步：代码审查（只对可信贡献者自动运行）
   code-review:
     name: 自动代码审查
@@ -48,6 +78,9 @@ jobs:
           fetch-depth: 0
           # 关键：检出 PR 的代码，而不是默认分支
           ref: ${{ github.event.pull_request.head.sha }}
+          # 前置安全检查已确认 PR 作者与本次事件触发者均具备写权限。
+          # CodeBuddy 需要完整 PR 工作区进行跨文件审查，因此显式允许可信 fork 的 Head checkout。
+          allow-unsafe-pr-checkout: true
 
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
