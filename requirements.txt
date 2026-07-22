@@ -27,10 +27,11 @@ pyinstrument==3.1.3
 djangorestframework==3.11.2
 django-filter==2.4.0
 prometheus-client==0.9.0
-# 流程卡住治理 M1：诊断增量计划以 3.24.13(基于 3.24.11,不含 3.24.12 的 mako 加固)发布,
-# 升级后 pipeline.contrib.diagnostics 生效(检测打底自动激活)。
-# 3.24.13 发布前保持 3.24.11:诊断 app 条件注册、相关周期任务惰性降级,不影响启动。
-bamboo-pipeline==3.24.11
+# 流程卡住治理 M1：诊断检测能力已随 bamboo-pipeline 3.24.13rc0 发布
+# (基于 3.24.11,不含 3.24.12 的 mako 加固；仅 runtime 侧，core 仍依赖 bamboo-engine 2.6.3)。
+# 升级后 pipeline.contrib.diagnostics 条件注册生效、周期扫描自动激活；
+# 默认 SCAN 开、EVENT/ALERT/APPLY 关(只读检测，低风险)。转正式版后改为 ==3.24.13。
+bamboo-pipeline==3.24.13rc0
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 pyyaml==5.4.1
