@@ -1,0 +1,210 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>卡住流程治理控制台</title>
+  <style>
+    body { font-family: -apple-system, "PingFang SC", Arial, sans-serif; margin: 16px; color: #313238; }
+    h1 { font-size: 18px; }
+    .filters { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .filters input, .filters select { padding: 4px 6px; border: 1px solid #c4c6cc; border-radius: 2px; }
+    button { padding: 4px 10px; border: 1px solid #c4c6cc; background: #fff; border-radius: 2px; cursor: pointer; }
+    button.primary { background: #3a84ff; color: #fff; border-color: #3a84ff; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { border: 1px solid #dcdee5; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #fafbfd; }
+    .tag { padding: 1px 6px; border-radius: 2px; font-size: 12px; }
+    .sev-critical { background: #ffe6e6; color: #ea3636; font-weight: bold; }
+    .sev-warning { background: #fff3e1; color: #ff9c01; }
+    .sev-info { background: #f0f1f5; color: #63656e; }
+    .drawer { position: fixed; top: 0; right: 0; width: 560px; height: 100%; background: #fff;
+              box-shadow: -2px 0 8px rgba(0,0,0,.1); padding: 16px; overflow: auto; display: none; }
+    .drawer.open { display: block; }
+    .drawer .close { float: right; }
+    pre { background: #f5f7fa; padding: 8px; overflow: auto; max-height: 240px; }
+    .muted { color: #979ba5; }
+    .row-actions button { margin-right: 4px; }
+    #result-box { margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1 class="diagnostics-board">卡住流程治理控制台 <span class="muted" style="font-size:12px">(超管专用 · 全局)</span></h1>
+  <div class="muted" style="margin-bottom:8px">
+    单任务诊断: <a href="{{ SITE_URL }}admin/diagnostics/task/">{{ SITE_URL }}admin/diagnostics/task/</a>
+  </div>
+
+  <div class="filters">
+    <select id="f-status">
+      <option value="">全部状态</option>
+      <option value="open">待治理</option>
+      <option value="resolved">已解决</option>
+      <option value="ignored">已忽略</option>
+    </select>
+    <input id="f-stuck_type" placeholder="stuck_type">
+    <select id="f-severity">
+      <option value="">全部级别</option>
+      <option value="info">提示</option>
+      <option value="warning">告警</option>
+      <option value="critical">严重</option>
+    </select>
+    <input id="f-root_pipeline_id" placeholder="root_pipeline_id">
+    <button class="primary" onclick="loadList(1)">查询</button>
+    <span id="total" class="muted"></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>任务</th><th>业务</th><th>模板</th><th>stuck_type</th><th>级别</th>
+        <th>状态</th><th>卡住时长(s)</th><th>命中</th><th>最近出现</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div style="margin-top:10px">
+    <button onclick="loadList(state.page-1)" id="prev">上一页</button>
+    <span id="page-info" class="muted"></span>
+    <button onclick="loadList(state.page+1)" id="next">下一页</button>
+  </div>
+
+  <div class="drawer" id="drawer">
+    <button class="close" onclick="closeDrawer()">关闭</button>
+    <div id="drawer-body"></div>
+  </div>
+
+<script>
+  const SITE_URL = "{{ SITE_URL }}";
+  var state = { page: 1, page_size: 50, total: 0 };
+  var CSRF_TOKEN = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
+
+  function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function sevTag(sev) {
+    return '<span class="tag sev-' + esc(sev) + '">' + esc(sev) + '</span>';
+  }
+
+  function loadList(page) {
+    if (page < 1) return;
+    var params = new URLSearchParams();
+    params.set('page', page);
+    params.set('page_size', state.page_size);
+    ['status', 'stuck_type', 'severity', 'root_pipeline_id'].forEach(function (k) {
+      var v = document.getElementById('f-' + k).value.trim();
+      if (v) params.set(k, v);
+    });
+    fetch(SITE_URL + 'admin/diagnostics/cases/?' + params.toString(), { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (body) {
+        if (!body.result) { alert(body.message || '加载失败'); return; }
+        state.page = body.data.page;
+        state.total = body.data.total;
+        renderList(body.data.items);
+        document.getElementById('total').textContent = '共 ' + body.data.total + ' 条';
+        document.getElementById('page-info').textContent = '第 ' + state.page + ' 页';
+      });
+  }
+
+  function renderList(items) {
+    var rows = items.map(function (it) {
+      var task = it.task;
+      var taskCell = task
+        ? '<a href="' + esc(task.task_url) + '" target="_blank">' + esc(task.task_name || task.task_id) + '</a>'
+        : '<span class="muted">' + esc(it.root_pipeline_id) + '</span>';
+      var bizCell = task ? esc(task.project_name || task.project_id || '') : '';
+      var tplCell = task ? esc(task.template_id || '') : '';
+      return '<tr>' +
+        '<td>' + taskCell + '</td>' +
+        '<td>' + bizCell + '</td>' +
+        '<td>' + tplCell + '</td>' +
+        '<td>' + esc(it.stuck_type) + '</td>' +
+        '<td>' + sevTag(it.severity) + '</td>' +
+        '<td>' + esc(it.status) + '</td>' +
+        '<td>' + esc(it.stall_seconds == null ? '' : it.stall_seconds) + '</td>' +
+        '<td>' + esc(it.hit_count) + '</td>' +
+        '<td>' + esc(it.last_seen_at || '') + '</td>' +
+        '<td class="row-actions"><button onclick="openDetail(' + it.id + ')">详情</button></td>' +
+        '</tr>';
+    });
+    document.getElementById('tbody').innerHTML = rows.join('') || '<tr><td colspan="10" class="muted">无数据</td></tr>';
+  }
+
+  function openDetail(caseId) {
+    fetch(SITE_URL + 'admin/diagnostics/cases/detail/?case_id=' + caseId, { credentials: 'same-origin' })
+      .then(function (r) { return r.json(); })
+      .then(function (body) {
+        if (!body.result) { alert(body.message || '加载失败'); return; }
+        renderDetail(body.data);
+        document.getElementById('drawer').classList.add('open');
+      });
+  }
+
+  function renderDetail(d) {
+    var task = d.task;
+    var taskLine = task
+      ? '<a href="' + esc(task.task_url) + '" target="_blank">' + esc(task.task_name || task.task_id) + '</a> '
+        + '(业务: ' + esc(task.project_name || '') + ' · 执行人: ' + esc(task.executor || '') + ')'
+      : '<span class="muted">未关联到任务, root_pipeline_id=' + esc(d.root_pipeline_id) + '</span>';
+    var audits = (d.audit_history || []).map(function (a) {
+      return '<li>' + esc(a.created_at) + ' · ' + esc(a.operation_type) + ' · ' + esc(a.operator)
+        + ' · ' + esc(a.mode) + '</li>';
+    }).join('');
+    var actionBtns = ['inspect_ack_converge', 'inspect_node_runtime_readiness', 'resend_schedule',
+      'expire_stale_schedule', 'replay_callback_data'].map(function (act) {
+      return '<button onclick="runAction(' + d.id + ',\'' + act + '\',\'dry_run\')">' + act + ' (dry-run)</button>';
+    }).join(' ');
+
+    document.getElementById('drawer-body').innerHTML =
+      '<h2>病历 #' + d.id + '</h2>' +
+      '<p><b>关联任务:</b> ' + taskLine + '</p>' +
+      '<p><b>节点:</b> ' + esc(d.node_name || '') + ' <span class="muted">(' + esc(d.node_id) + ')</span></p>' +
+      '<p><b>类型/级别/状态:</b> ' + esc(d.stuck_type) + ' / ' + sevTag(d.severity) + ' / ' + esc(d.status) + '</p>' +
+      '<p><b>诊断信息:</b> ' + esc(d.message || '') + '</p>' +
+      '<p><b>证据:</b></p><pre>' + esc(JSON.stringify(d.evidence, null, 2)) + '</pre>' +
+      '<p><b>推荐动作:</b> ' + esc(JSON.stringify(d.recommended_actions)) + '</p>' +
+      '<p><b>禁止动作:</b> ' + esc(JSON.stringify(d.forbidden_actions)) + '</p>' +
+      '<hr><p><b>状态管理:</b> ' +
+      '<button onclick="setStatus(' + d.id + ',\'resolved\')">标记已解决</button> ' +
+      '<button onclick="setStatus(' + d.id + ',\'ignored\')">标记已忽略</button> ' +
+      '<button onclick="setStatus(' + d.id + ',\'open\')">重开</button></p>' +
+      '<p><b>诊断/恢复(dry-run):</b><br>' + actionBtns + '</p>' +
+      '<div id="result-box"></div>' +
+      '<hr><p><b>操作审计:</b></p><ul>' + (audits || '<li class="muted">无</li>') + '</ul>';
+  }
+
+  function post(url, payload) {
+    return fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); });
+  }
+
+  function setStatus(caseId, status) {
+    if (!confirm('确认把病历 #' + caseId + ' 状态改为 ' + status + ' ?')) return;
+    post(SITE_URL + 'admin/diagnostics/cases/status/', { case_id: caseId, status: status }).then(function (body) {
+      if (!body.result) { alert(body.message || '操作失败'); return; }
+      closeDrawer();
+      loadList(state.page);
+    });
+  }
+
+  function runAction(caseId, action, mode) {
+    post(SITE_URL + 'admin/diagnostics/cases/action/', { case_id: caseId, action: action, mode: mode }).then(function (body) {
+      document.getElementById('result-box').innerHTML =
+        '<p><b>' + esc(action) + ' 结果:</b></p><pre>' + esc(JSON.stringify(body, null, 2)) + '</pre>';
+    });
+  }
+
+  function closeDrawer() { document.getElementById('drawer').classList.remove('open'); }
+
+  loadList(1);
+</script>
+</body>
+</html>

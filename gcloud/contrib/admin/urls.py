@@ -59,9 +59,12 @@ urlpatterns = [
     url(r"^batch_delete_project_based_component/$", batch_delete_project_based_component),
     url(r"^batch_revoke_task/$", batch_revoke_task),
     url(r"^command/get_enabled_periodic_task/$", views.get_enabled_periodic_task),
+    url(r"^diagnostics/board/$", diagnostics.diagnostic_board),
     url(r"^diagnostics/task/$", diagnostics.task_diagnostic_page),
     url(r"^diagnostics/task/detail/$", diagnostics.task_diagnostic_detail),
     url(r"^diagnostics/task/action/$", diagnostics.task_diagnostic_action),
     url(r"^diagnostics/cases/$", diagnostics.diagnostic_case_list),
     url(r"^diagnostics/cases/detail/$", diagnostics.diagnostic_case_detail),
+    url(r"^diagnostics/cases/status/$", diagnostics.diagnostic_case_status),
+    url(r"^diagnostics/cases/action/$", diagnostics.diagnostic_case_action),
 ]
