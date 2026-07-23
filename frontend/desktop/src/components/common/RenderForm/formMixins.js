@@ -272,10 +272,20 @@ export const getFormMixins = (attrs = {}) => {
                             break
                         case 'custom':
                             if (!/^\${[^${}]+}$/.test(value)) {
-                                const validateInfo = config.args.call(this, value, parentValue)
-                                if (!validateInfo.result) {
-                                    valid = false
-                                    message = validateInfo.error_message
+                                const customResult = config.args.call(this, value, parentValue)
+                                // 兼容两种返回值格式：
+                                // 1. 对象格式: { result: true/false, error_message: '...' }
+                                // 2. 简化格式: true / '错误信息字符串'
+                                if (typeof customResult === 'object' && customResult !== null) {
+                                    if (!customResult.result) {
+                                        valid = false
+                                        message = customResult.error_message
+                                    }
+                                } else {
+                                    if (customResult !== true) {
+                                        valid = false
+                                        message = typeof customResult === 'string' ? customResult : ''
+                                    }
                                 }
                             }
                             break
