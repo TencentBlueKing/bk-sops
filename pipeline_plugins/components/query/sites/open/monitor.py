@@ -15,8 +15,13 @@ logger = logging.getLogger("root")
 
 def monitor_get_strategy(request, biz_cc_id):
     client = get_client_by_username(username=request.user.username, stage=settings.BK_APIGW_STAGE_NAME)
+    data = {
+        "bk_biz_id": biz_cc_id,
+        "page_size": 0,
+        "page": 0
+    }
     response = client.api.search_alarm_strategy(
-        {"bk_biz_id": biz_cc_id}, headers={"X-Bk-Tenant-Id": request.user.tenant_id}
+        data, headers={"X-Bk-Tenant-Id": request.user.tenant_id}
     )
     if not response["result"]:
         message = _(
