@@ -11,9 +11,12 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
+import json
+
+from django.test import TestCase, override_settings
 
 from gcloud.core.models import Project
+from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_THIRD_PARTY
 from gcloud.plugin_gateway.exceptions import PluginGatewayContextResolveError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.context import PluginGatewayContextService
@@ -80,4 +83,64 @@ class PluginGatewayContextResolveTestCase(TestCase):
             PluginGatewayContextService.resolve_run_context(
                 self.source_config,
                 {"scope_type": "space", "scope_value": "404"},
+            )
+
+    @override_settings(BK_SOPS_HOST="https://bksops.example.com/")
+    def test_resolve_form_context_reuses_biz_project_resolution(self):
+        project = Project.objects.create(name="biz100605", creator="admin", bk_biz_id=100605, from_cmdb=True)
+
+        context = PluginGatewayContextService.resolve_form_context(
+            source_config=self.source_config,
+            scope_type="biz",
+            scope_value="100605",
+            plugin_source=PLUGIN_SOURCE_THIRD_PARTY,
+            plugin_code="danny-test-plugi",
+        )
+
+        self.assertEqual(context["project"]["id"], project.id)
+        self.assertEqual(context["project"]["bk_biz_id"], 100605)
+        self.assertTrue(context["project"]["from_cmdb"])
+        self.assertEqual(context["biz_cc_id"], 100605)
+        self.assertEqual(context["site_url"], "https://bksops.example.com/")
+        self.assertEqual(context["component"], "https://bksops.example.com/api/v3/component/")
+        self.assertEqual(
+            context["bk_plugin_api_host"]["danny-test-plugi"],
+            "https://bksops.example.com/plugin_service/data_api/danny-test-plugi/",
+        )
+        self.assertNotIn("operator", context)
+        json.dumps(context)
+
+    def test_resolve_form_context_reuses_scope_project_map(self):
+        context = PluginGatewayContextService.resolve_form_context(
+            source_config=self.source_config,
+            scope_type="space",
+            scope_value="88",
+        )
+
+        self.assertEqual(context["project"]["id"], self.project.id)
+        self.assertEqual(context["biz_cc_id"], self.project.bk_biz_id)
+
+    def test_resolve_form_context_reuses_default_project(self):
+        self.source_config.scope_project_map = {}
+        self.source_config.default_project_id = self.project.id
+        self.source_config.save(update_fields=["scope_project_map", "default_project_id"])
+
+        context = PluginGatewayContextService.resolve_form_context(
+            source_config=self.source_config,
+            scope_type=None,
+            scope_value=None,
+        )
+
+        self.assertEqual(context["project"]["id"], self.project.id)
+
+    def test_resolve_form_context_raises_when_project_cannot_be_resolved(self):
+        self.source_config.scope_project_map = {}
+        self.source_config.default_project_id = None
+        self.source_config.save(update_fields=["scope_project_map", "default_project_id"])
+
+        with self.assertRaises(PluginGatewayContextResolveError):
+            PluginGatewayContextService.resolve_form_context(
+                source_config=self.source_config,
+                scope_type="space",
+                scope_value="missing",
             )

@@ -3,12 +3,13 @@ from unittest.mock import call, patch
 
 from django.test import RequestFactory, TestCase, override_settings
 
+from gcloud.core.models import Project
 from gcloud.plugin_gateway.constants import (
     PLUGIN_SOURCE_BUILTIN,
     PLUGIN_SOURCE_THIRD_PARTY,
     UNIFORM_API_WRAPPER_VERSION,
 )
-from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError
+from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError, PluginGatewayVersionNotFoundError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
 from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME
@@ -38,6 +39,13 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
                 cache_clear = getattr(func, "cache_clear", None)
                 if cache_clear is not None:
                     cache_clear()
+        clear_plugin_reference_cache = getattr(
+            PluginGatewayCatalogService,
+            "clear_plugin_reference_cache",
+            None,
+        )
+        if clear_plugin_reference_cache is not None:
+            clear_plugin_reference_cache()
 
     @patch("plugin_service.plugin_client.env.USE_PLUGIN_SERVICE", "1")
     @patch.object(PluginServiceApiClient, "get_paas_plugin_info")
@@ -339,6 +347,57 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
 
         self.assertEqual(detail["form_schema"]["properties"]["job_content"]["ui:component"]["name"], "codeEditor")
 
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayContextService.resolve_form_context")
+    @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.get_plugin_detail")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService.get_plugin_reference")
+    def test_get_plugin_detail_adds_form_context_only_for_source_request(
+        self, mock_get_plugin_reference, mock_builtin_detail, mock_resolve_form_context
+    ):
+        project = Project.objects.create(name="biz100605", creator="admin", bk_biz_id=100605, from_cmdb=True)
+        source_config = PluginGatewaySourceConfig.objects.create(
+            source_key="bkflow",
+            display_name="BKFlow",
+            default_project_id=project.id,
+            is_enabled=True,
+        )
+        mock_get_plugin_reference.return_value = {
+            "id": "builtin__job_fast_execute_script",
+            "name": "快速执行脚本",
+            "plugin_source": PLUGIN_SOURCE_BUILTIN,
+            "plugin_code": "job_fast_execute_script",
+            "wrapper_version": UNIFORM_API_WRAPPER_VERSION,
+            "default_version": "v2.0",
+            "latest_version": "v2.0",
+            "versions": ["v2.0"],
+        }
+        mock_builtin_detail.return_value = {"inputs": [], "outputs": [], "forms": {"input": None, "output": None}}
+        mock_resolve_form_context.return_value = {"project": {"id": project.id}}
+
+        old_detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=self.request,
+            plugin_id="builtin__job_fast_execute_script",
+            version="v2.0",
+        )
+        detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=self.request,
+            plugin_id="builtin__job_fast_execute_script",
+            version="v2.0",
+            source_config=source_config,
+            scope_type="biz",
+            scope_value="100605",
+            operator="dannydeng",
+        )
+
+        self.assertNotIn("form_context", old_detail)
+        self.assertEqual(detail["form_context"], {"project": {"id": project.id}})
+        mock_resolve_form_context.assert_called_once_with(
+            source_config=source_config,
+            scope_type="biz",
+            scope_value="100605",
+            plugin_source=PLUGIN_SOURCE_BUILTIN,
+            plugin_code="job_fast_execute_script",
+        )
+
     @override_settings(
         BK_API_URL_TMPL="https://{api_name}.apigw.example.com",
         BK_APIGW_NAME="bk-sops",
@@ -451,6 +510,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             ],
         )
         self.assertEqual(detail["desc"], "remote plugin")
+        self.assertEqual(detail["forms"], {"input": None, "output": None})
         self.assertEqual(detail["form_schema"]["properties"]["biz_id"]["ui:component"]["name"], "select")
         self.assertEqual(
             detail["form_schema"]["properties"]["biz_id"]["ui:reactions"],
@@ -469,6 +529,62 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             detail["polling"]["url"],
             "https://bk-sops.apigw.example.com/stage/plugin-gateway/runs/status/",
         )
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService.get_plugin_reference")
+    def test_get_plugin_detail_exposes_renderform_with_selected_version(
+        self, mock_get_plugin_reference, mock_get_plugin_detail_schema
+    ):
+        mock_get_plugin_reference.return_value = {
+            "id": "danny-test-plugi",
+            "name": "Danny Test Plugin",
+            "plugin_source": PLUGIN_SOURCE_THIRD_PARTY,
+            "plugin_code": "danny-test-plugi",
+            "wrapper_version": UNIFORM_API_WRAPPER_VERSION,
+            "default_version": "1.2.3",
+            "latest_version": "1.2.3",
+            "versions": ["1.2.3"],
+            "description": "remote plugin",
+        }
+        mock_get_plugin_detail_schema.return_value = {
+            "inputs": {"properties": {}},
+            "outputs": {"properties": {}},
+            "forms": {"renderform": "window.$.atoms.dannyTest = []"},
+        }
+
+        detail = PluginGatewayCatalogService.get_plugin_detail(
+            request=self.request,
+            plugin_id="danny-test-plugi",
+            version="1.2.3",
+        )
+
+        self.assertEqual(detail["plugin_version"], "1.2.3")
+        self.assertEqual(detail["forms"]["input"]["type"], "renderform")
+        self.assertEqual(detail["forms"]["input"]["key"], "danny-test-plugi")
+        self.assertIn("form_schema", detail)
+        mock_get_plugin_detail_schema.assert_called_once_with("danny-test-plugi", "1.2.3")
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_detail_schema")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService.get_plugin_reference")
+    def test_get_plugin_detail_rejects_unavailable_version_before_loading_detail(
+        self, mock_get_plugin_reference, mock_get_plugin_detail_schema
+    ):
+        mock_get_plugin_reference.return_value = {
+            "id": "danny-test-plugi",
+            "plugin_source": PLUGIN_SOURCE_THIRD_PARTY,
+            "plugin_code": "danny-test-plugi",
+            "default_version": "1.2.3",
+            "versions": ["1.2.3"],
+        }
+
+        with self.assertRaises(PluginGatewayVersionNotFoundError):
+            PluginGatewayCatalogService.get_plugin_detail(
+                request=self.request,
+                plugin_id="danny-test-plugi",
+                version="9.9.9",
+            )
+
+        mock_get_plugin_detail_schema.assert_not_called()
 
     def test_build_third_party_plugin_reference_uses_first_framework_version_as_latest(self):
         plugin = {"code": "bk_plugin_demo", "name": "Demo Plugin"}
@@ -594,6 +710,102 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             offset=0,
             distributor_code_name=PLUGIN_DISTRIBUTOR_NAME,
         )
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_list")
+    def test_get_plugin_reference_caches_exact_third_party_reference(self, mock_get_plugin_list, mock_get_plugin_meta):
+        mock_get_plugin_list.return_value = {
+            "result": True,
+            "data": {
+                "count": 1,
+                "plugins": [
+                    {
+                        "code": "bk_plugin_demo",
+                        "name": "Demo Plugin",
+                        "logo_url": "https://example.com/logo.png",
+                        "creator": "admin",
+                        "tag_info": {"code_name": "DEVOPS", "name": "DevOps"},
+                    }
+                ],
+            },
+        }
+        mock_get_plugin_meta.return_value = {
+            "description": "remote plugin",
+            "versions": ["2.1.0", "1.4.0"],
+        }
+
+        first = PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+        second = PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+
+        self.assertEqual(first["versions"], ["2.1.0", "1.4.0"])
+        self.assertEqual(second, first)
+        self.assertEqual(mock_get_plugin_list.call_count, 1)
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_list")
+    def test_plugin_reference_cache_can_be_cleared_deterministically(self, mock_get_plugin_list, mock_get_plugin_meta):
+        mock_get_plugin_list.return_value = {
+            "result": True,
+            "data": {
+                "count": 1,
+                "plugins": [
+                    {
+                        "code": "bk_plugin_demo",
+                        "name": "Demo Plugin",
+                        "logo_url": "https://example.com/logo.png",
+                        "creator": "admin",
+                        "tag_info": {"code_name": "DEVOPS", "name": "DevOps"},
+                    }
+                ],
+            },
+        }
+        mock_get_plugin_meta.return_value = {"description": "remote plugin", "versions": ["2.1.0"]}
+
+        PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+        PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+        clear_plugin_reference_cache = getattr(
+            PluginGatewayCatalogService,
+            "clear_plugin_reference_cache",
+            None,
+        )
+        if clear_plugin_reference_cache is not None:
+            clear_plugin_reference_cache()
+        PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+
+        self.assertEqual(mock_get_plugin_list.call_count, 2)
+
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient.get_plugin_list")
+    def test_blacklist_is_evaluated_after_plugin_reference_cache_hit(self, mock_get_plugin_list, mock_get_plugin_meta):
+        mock_get_plugin_list.return_value = {
+            "result": True,
+            "data": {
+                "count": 1,
+                "plugins": [
+                    {
+                        "code": "bk_plugin_demo",
+                        "name": "Demo Plugin",
+                        "logo_url": "https://example.com/logo.png",
+                        "creator": "admin",
+                        "tag_info": {"code_name": "DEVOPS", "name": "DevOps"},
+                    }
+                ],
+            },
+        }
+        mock_get_plugin_meta.return_value = {"description": "remote plugin", "versions": ["2.1.0"]}
+
+        first = PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+        cached = PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+        PluginGatewaySourceConfig.objects.create(
+            source_key="bkflow-cache-test",
+            display_name="BKFlow Cache Test",
+            do_not_open_list=["bk_plugin_demo"],
+        )
+        blocked = PluginGatewayCatalogService.get_plugin_reference("bk_plugin_demo")
+
+        self.assertEqual(cached, first)
+        self.assertIsNone(blocked)
+        self.assertEqual(mock_get_plugin_list.call_count, 1)
 
     @patch("gcloud.plugin_gateway.services.catalog.BuiltinCatalogService.list_plugins")
     @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")

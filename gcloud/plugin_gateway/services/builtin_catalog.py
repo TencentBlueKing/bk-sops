@@ -16,6 +16,7 @@ from pipeline.component_framework.library import ComponentLibrary
 from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_BUILTIN, UNIFORM_API_WRAPPER_VERSION, encode_plugin_id
 from gcloud.plugin_gateway.services.builtin_form_schema import build_builtin_form_schema
 from gcloud.plugin_gateway.services.form_schema import convert_component_io
+from gcloud.plugin_gateway.services.native_forms import build_component_forms
 
 INTERNAL_COMPONENT_CODES = {"remote_plugin", "subprocess_plugin"}
 
@@ -49,6 +50,7 @@ class BuiltinCatalogService:
         input_format = service.inputs_format()
         meta["inputs"] = convert_component_io(input_format)
         meta["outputs"] = convert_component_io(service.outputs_format())
+        meta["forms"] = build_component_forms(component_cls)
         form_schema = build_builtin_form_schema(code, input_format)
         if form_schema is not None:
             meta["form_schema"] = form_schema
