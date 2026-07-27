@@ -17,3 +17,13 @@ from django.apps import AppConfig
 class PluginGatewayConfig(AppConfig):
     name = "gcloud.plugin_gateway"
     verbose_name = "Plugin Gateway"
+
+    def ready(self):
+        from corsheaders.signals import check_request_enabled
+
+        from gcloud.plugin_gateway.cors import allow_plugin_form_cors
+
+        check_request_enabled.connect(
+            allow_plugin_form_cors,
+            dispatch_uid="plugin_gateway_form_cors",
+        )

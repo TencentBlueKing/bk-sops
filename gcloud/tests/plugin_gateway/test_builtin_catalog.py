@@ -3,7 +3,7 @@
 import json
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from gcloud.plugin_gateway.constants import (
     PLUGIN_SOURCE_BUILTIN,
@@ -14,6 +14,7 @@ from gcloud.plugin_gateway.constants import (
 )
 from gcloud.plugin_gateway.services.builtin_catalog import BuiltinCatalogService
 from pipeline_plugins.components.collections.http.v1_0 import HttpComponent
+from pipeline_plugins.components.collections.sites.open.job.execute_task.v2_0 import JobExecuteTaskComponent
 from pipeline_plugins.components.collections.sites.open.job.fast_execute_script.v2_0 import (
     JobFastExecuteScriptComponent,
 )
@@ -103,13 +104,45 @@ class TestBuiltinCatalog(TestCase):
         )
 
     @patch("gcloud.plugin_gateway.services.builtin_catalog.ComponentLibrary")
+    @override_settings(BK_SOPS_HOST="https://bksops.example.com/")
     def test_builtin_detail_exposes_declarative_form_schema(self, mock_lib):
         mock_lib.get_component_class.return_value = JobFastExecuteScriptComponent
 
         detail = BuiltinCatalogService.get_plugin_detail("job_fast_execute_script", "v2.0")
 
+        self.assertEqual(detail["forms"]["input"]["type"], "component_js")
+        self.assertEqual(detail["forms"]["input"]["key"], "job_fast_execute_script")
+        self.assertTrue(detail["forms"]["input"]["data"].startswith("https://bksops.example.com/"))
+        self.assertIsNone(detail["forms"]["output"])
         self.assertEqual(
             detail["form_schema"]["properties"]["job_content"]["ui:component"]["name"],
             "codeEditor",
         )
         json.dumps(detail["form_schema"])
+
+    @patch("gcloud.plugin_gateway.services.builtin_catalog.ComponentLibrary")
+    @override_settings(BK_SOPS_HOST="https://bksops.example.com/")
+    def test_job_execute_task_detail_exposes_native_input_and_output_forms(self, mock_lib):
+        mock_lib.get_component_class.return_value = JobExecuteTaskComponent
+
+        detail = BuiltinCatalogService.get_plugin_detail("job_execute_task", "2.0")
+
+        self.assertEqual(
+            detail["forms"],
+            {
+                "input": {
+                    "type": "component_js",
+                    "key": "job_execute_task",
+                    "data": "https://bksops.example.com/static/components/atoms/job/execute_task/v2_0.js",
+                    "is_embedded": False,
+                    "base": None,
+                },
+                "output": {
+                    "type": "component_js",
+                    "key": "job_execute_task",
+                    "data": "https://bksops.example.com/static/components/atoms/job/job_execute_task_output.js",
+                    "is_embedded": False,
+                    "base": None,
+                },
+            },
+        )

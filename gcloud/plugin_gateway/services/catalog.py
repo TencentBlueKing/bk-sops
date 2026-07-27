@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import copy
+import logging
 from concurrent.futures import ThreadPoolExecutor
 from threading import RLock
 from urllib.parse import urlsplit
@@ -30,10 +32,14 @@ from gcloud.plugin_gateway.constants import (
 from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError, PluginGatewayVersionNotFoundError
 from gcloud.plugin_gateway.models import PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.builtin_catalog import BuiltinCatalogService
+from gcloud.plugin_gateway.services.context import PluginGatewayContextService
 from gcloud.plugin_gateway.services.form_schema import build_structured_form_schema, convert_json_schema_fields
+from gcloud.plugin_gateway.services.native_forms import build_third_party_forms
 from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME
 from plugin_service.exceptions import PluginServiceException
 from plugin_service.plugin_client import PluginServiceApiClient
+
+logger = logging.getLogger("root")
 
 
 class PluginGatewayCatalogService:
@@ -41,6 +47,8 @@ class PluginGatewayCatalogService:
     THIRD_PARTY_LIST_PAGE_SIZE = 200
     THIRD_PARTY_META_WORKERS = 8
     APIGW_BACKEND_PATH_PREFIX = "/apigw"
+    _THIRD_PARTY_REFERENCE_CACHE = TTLCache(maxsize=128, ttl=60)
+    _THIRD_PARTY_REFERENCE_CACHE_LOCK = RLock()
 
     @classmethod
     def get_categories(cls, plugin_source=None):
@@ -94,7 +102,16 @@ class PluginGatewayCatalogService:
         return meta
 
     @classmethod
-    def get_plugin_detail(cls, request, plugin_id, version=None):
+    def get_plugin_detail(
+        cls,
+        request,
+        plugin_id,
+        version=None,
+        source_config=None,
+        scope_type=None,
+        scope_value=None,
+        operator="",
+    ):
         plugin = cls.get_plugin_reference(plugin_id)
         if plugin is None:
             return None
@@ -110,6 +127,7 @@ class PluginGatewayCatalogService:
             inputs = detail_schema.get("inputs", [])
             outputs = detail_schema.get("outputs", [])
             form_schema = detail_schema.get("form_schema")
+            forms = detail_schema.get("forms") or {"input": None, "output": None}
         else:
             detail_schema = cls._get_plugin_detail_schema(plugin["plugin_code"], selected_version)
             inputs = convert_json_schema_fields(
@@ -117,8 +135,9 @@ class PluginGatewayCatalogService:
                 required=detail_schema.get("inputs", {}).get("required", []),
             )
             outputs = convert_json_schema_fields(detail_schema.get("outputs"), required=[])
-            forms = detail_schema.get("forms") if isinstance(detail_schema.get("forms"), dict) else {}
-            form_schema = build_structured_form_schema(detail_schema.get("inputs"), forms.get("renderform"))
+            provider_forms = detail_schema.get("forms") if isinstance(detail_schema.get("forms"), dict) else {}
+            form_schema = build_structured_form_schema(detail_schema.get("inputs"), provider_forms.get("renderform"))
+            forms = build_third_party_forms(plugin["plugin_code"], detail_schema)
 
         detail = {
             "id": plugin["id"],
@@ -133,6 +152,7 @@ class PluginGatewayCatalogService:
             "methods": ["POST"],
             "inputs": inputs,
             "outputs": outputs,
+            "forms": forms,
             "polling": {
                 "url": "",
                 "task_tag_key": "open_plugin_run_id",
@@ -143,6 +163,24 @@ class PluginGatewayCatalogService:
         }
         if form_schema is not None:
             detail["form_schema"] = form_schema
+        if source_config is not None:
+            detail["form_context"] = PluginGatewayContextService.resolve_form_context(
+                source_config=source_config,
+                scope_type=scope_type,
+                scope_value=scope_value,
+                plugin_source=plugin["plugin_source"],
+                plugin_code=plugin["plugin_code"],
+            )
+            logger.info(
+                "[plugin_gateway] resolve detail form context source_key=%s plugin_id=%s plugin_version=%s "
+                "scope_type=%s scope_value=%s operator=%s",
+                source_config.source_key,
+                plugin_id,
+                selected_version,
+                scope_type,
+                scope_value,
+                operator,
+            )
         detail["url"] = cls._build_public_api_url(request, "apigw_plugin_gateway_run_create")
         detail["polling"]["url"] = cls._build_public_api_url(request, "apigw_plugin_gateway_run_status")
         return detail
@@ -262,17 +300,35 @@ class PluginGatewayCatalogService:
         if plugin_source != PLUGIN_SOURCE_THIRD_PARTY:
             return None
 
+        plugin_reference = cls._get_third_party_plugin_reference(plugin_code)
+        return copy.deepcopy(plugin_reference)
+
+    @staticmethod
+    @cached(
+        cache=_THIRD_PARTY_REFERENCE_CACHE,
+        key=lambda plugin_code: plugin_code,
+        lock=_THIRD_PARTY_REFERENCE_CACHE_LOCK,
+    )
+    def _get_third_party_plugin_reference(plugin_code):
         plugin = next(
             (
                 item
-                for item in cls._get_third_party_plugin_entries(search_term=plugin_code)
+                for item in PluginGatewayCatalogService._get_third_party_plugin_entries(search_term=plugin_code)
                 if item["code"] == plugin_code
             ),
             None,
         )
         if plugin is None:
             return None
-        return cls._build_third_party_plugin_reference(plugin, cls._get_plugin_meta(plugin_code))
+        return PluginGatewayCatalogService._build_third_party_plugin_reference(
+            plugin,
+            PluginGatewayCatalogService._get_plugin_meta(plugin_code),
+        )
+
+    @classmethod
+    def clear_plugin_reference_cache(cls):
+        with cls._THIRD_PARTY_REFERENCE_CACHE_LOCK:
+            cls._THIRD_PARTY_REFERENCE_CACHE.clear()
 
     @classmethod
     def _build_public_api_url(cls, request, view_name, kwargs=None):

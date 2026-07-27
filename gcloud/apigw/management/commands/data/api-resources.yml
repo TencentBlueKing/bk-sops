@@ -572,9 +572,116 @@ paths:
                         items:
                           type: object
                         description: 输入 schema 列表
+                      forms:
+                        type: object
+                        description: 原生表单协议，固定包含 input 和 output；每项为表单描述符或 null
+                        required:
+                        - input
+                        - output
+                        properties:
+                          input:
+                            type: object
+                            nullable: true
+                            description: 输入表单描述符；没有原生输入表单时为 null
+                            required:
+                            - type
+                            - key
+                            - data
+                            - is_embedded
+                            - base
+                            properties:
+                              type:
+                                type: string
+                                description: 表单类型；jsonschema 是消费端支持的可选 provider 扩展
+                                enum:
+                                - component_js
+                                - renderform
+                                - jsonschema
+                              key:
+                                type: string
+                              data:
+                                oneOf:
+                                - type: string
+                                - type: object
+                              is_embedded:
+                                type: boolean
+                              base:
+                                type: string
+                                nullable: true
+                          output:
+                            type: object
+                            nullable: true
+                            description: 输出表单描述符；没有原生输出表单时为 null
+                            required:
+                            - type
+                            - key
+                            - data
+                            - is_embedded
+                            - base
+                            properties:
+                              type:
+                                type: string
+                                description: 表单类型；jsonschema 是消费端支持的可选 provider 扩展
+                                enum:
+                                - component_js
+                                - renderform
+                                - jsonschema
+                              key:
+                                type: string
+                              data:
+                                oneOf:
+                                - type: string
+                                - type: object
+                              is_embedded:
+                                type: boolean
+                              base:
+                                type: string
+                                nullable: true
                       form_schema:
                         type: object
-                        description: 可选的完整 JSON 表单 schema，存在时接入方应优先使用
+                        description: 过渡期兼容的完整 JSON 表单 schema，仍可能存在；新接入应读取 forms
+                      form_context:
+                        type: object
+                        description: 可选的 JSON 表单上下文；仅在请求提供 source_key 时返回
+                        required:
+                        - project
+                        - biz_cc_id
+                        - site_url
+                        - component
+                        - variable
+                        - template
+                        - instance
+                        - bk_plugin_api_host
+                        properties:
+                          project:
+                            type: object
+                            required:
+                            - id
+                            - bk_biz_id
+                            - from_cmdb
+                            properties:
+                              id:
+                                type: integer
+                              bk_biz_id:
+                                type: integer
+                              from_cmdb:
+                                type: boolean
+                          biz_cc_id:
+                            type: integer
+                          site_url:
+                            type: string
+                          component:
+                            type: string
+                          variable:
+                            type: string
+                          template:
+                            type: string
+                          instance:
+                            type: string
+                          bk_plugin_api_host:
+                            type: object
+                            additionalProperties:
+                              type: string
                       outputs:
                         type: array
                         items:
@@ -609,6 +716,24 @@ paths:
           type: string
         required: false
         description: 插件版本；不传时使用默认版本
+      - in: query
+        name: source_key
+        schema:
+          type: string
+        required: false
+        description: 来源标识；不传时保持旧 detail 行为，不解析 form_context
+      - in: query
+        name: scope_type
+        schema:
+          type: string
+        required: false
+        description: 项目解析使用的范围类型；仅在提供 source_key 时参与解析
+      - in: query
+        name: scope_value
+        schema:
+          type: string
+        required: false
+        description: 项目解析使用的范围值；仅在提供 source_key 时参与解析
       x-bk-apigateway-resource:
         isPublic: false
         allowApplyPermission: false

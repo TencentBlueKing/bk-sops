@@ -12,8 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 from copy import deepcopy
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
+from gcloud.conf import settings
+from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_THIRD_PARTY
 from gcloud.plugin_gateway.exceptions import PluginGatewayContextResolveError
 
 
@@ -56,6 +58,42 @@ class PluginGatewayContextService:
         for key in cls.RUN_CONTEXT_KEYS:
             resolved[key] = context.get(key)
         return resolved
+
+    @classmethod
+    def resolve_form_context(cls, source_config, scope_type, scope_value, plugin_source=None, plugin_code=None):
+        resolved = cls.resolve_run_context(
+            source_config,
+            {"scope_type": scope_type, "scope_value": scope_value},
+        )
+
+        from gcloud.core.models import Project
+
+        try:
+            project = Project.objects.get(id=resolved["project_id"])
+        except Project.DoesNotExist:
+            raise PluginGatewayContextResolveError("resolved project_id={} not found".format(resolved["project_id"]))
+
+        site_url = settings.BK_SOPS_HOST.rstrip("/") + "/"
+        context = {
+            "project": {
+                "id": project.id,
+                "bk_biz_id": project.bk_biz_id,
+                "from_cmdb": project.from_cmdb,
+            },
+            "biz_cc_id": project.bk_biz_id,
+            "site_url": site_url,
+            "component": urljoin(site_url, "api/v3/component/"),
+            "variable": urljoin(site_url, "api/v3/variable/"),
+            "template": urljoin(site_url, "api/v3/template/"),
+            "instance": urljoin(site_url, "api/v3/taskflow/"),
+            "bk_plugin_api_host": {},
+        }
+        if plugin_source == PLUGIN_SOURCE_THIRD_PARTY and plugin_code:
+            context["bk_plugin_api_host"][plugin_code] = urljoin(
+                site_url,
+                "plugin_service/data_api/{}/".format(plugin_code),
+            )
+        return context
 
     @staticmethod
     def _resolve_project_id(source_config, scope_type, scope_value):

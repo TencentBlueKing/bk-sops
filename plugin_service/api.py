@@ -15,12 +15,21 @@ import logging
 
 from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_THIRD_PARTY
+from gcloud.plugin_gateway.cors import (
+    PLUGIN_FORM_ORIGIN_ABSENT,
+    PLUGIN_FORM_ORIGIN_ALLOWED_CROSS_ORIGIN,
+    PLUGIN_FORM_ORIGIN_SAME_ORIGIN,
+    classify_plugin_form_request_origin,
+)
+from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError
+from gcloud.plugin_gateway.services.catalog import PluginGatewayCatalogService
 from gcloud.utils import crypto
-
 from plugin_service import env
 from plugin_service.api_decorators import inject_plugin_client, validate_params
 from plugin_service.conf import PLUGIN_DISTRIBUTOR_NAME, PLUGIN_LOGGER
@@ -261,12 +270,36 @@ def get_plugin_app_detail(request: Request):
 
 
 @swagger_auto_schema(
-    methods=["GET", "POST", "PUT", "PATCH", "DELETE"], operation_summary="获取插件服务提供的数据接口数据",
-    responses={200: "插件数据接口返回"}
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"], operation_summary="获取插件服务提供的数据接口数据", responses={200: "插件数据接口返回"}
 )
 @api_view(["GET", "POST", "PUT", "PATCH", "DELETE"])
 def get_plugin_api_data(request: Request, plugin_code: str, data_api_path: str):
     """获取插件服务提供的数据接口数据"""
+    origin_type = classify_plugin_form_request_origin(request)
+    if origin_type not in {
+        PLUGIN_FORM_ORIGIN_ABSENT,
+        PLUGIN_FORM_ORIGIN_SAME_ORIGIN,
+        PLUGIN_FORM_ORIGIN_ALLOWED_CROSS_ORIGIN,
+    }:
+        return Response(
+            {"result": False, "data": None, "message": "origin is not allowed"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if origin_type == PLUGIN_FORM_ORIGIN_ALLOWED_CROSS_ORIGIN:
+        try:
+            plugin = PluginGatewayCatalogService.get_plugin_reference(plugin_code)
+        except PluginGatewaySourceUnavailableError:
+            return Response(
+                {"result": False, "data": None, "message": "plugin source is unavailable"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        if not plugin or plugin.get("plugin_source") != PLUGIN_SOURCE_THIRD_PARTY:
+            return Response(
+                {"result": False, "data": None, "message": "plugin is not available"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
     try:
         client = PluginServiceApiClient(plugin_code)
     except PluginServiceException as e:
@@ -321,10 +354,7 @@ def _decrypt_request_data(data, plugin_code: str):
         return data, {}
 
     # 先检测是否需要解密
-    need_password_handle = any(
-        isinstance(v, dict) and v.get("type") == "password_value"
-        for v in data.values()
-    )
+    need_password_handle = any(isinstance(v, dict) and v.get("type") == "password_value" for v in data.values())
 
     if not need_password_handle:
         return data, {}

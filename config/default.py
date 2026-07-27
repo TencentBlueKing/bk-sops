@@ -69,7 +69,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.operate_record",
     "gcloud.contrib.template_market",
     "gcloud.apigw",
-    "gcloud.plugin_gateway",
+    "gcloud.plugin_gateway.apps.PluginGatewayConfig",
     "gcloud.common_template",
     "gcloud.label",
     "gcloud.contrib.cleaner",
@@ -192,12 +192,26 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
+PLUGIN_GATEWAY_FORM_CORS_ALLOW = str(env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW or "").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+PLUGIN_GATEWAY_FORM_CORS_ALLOWED_ORIGINS = {
+    origin.strip().rstrip("/") for origin in env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST.split(",") if origin.strip()
+}
+
 if env.BKAPP_CORS_ALLOW:
-    MIDDLEWARE = ("corsheaders.middleware.CorsMiddleware",) + MIDDLEWARE
-    CORS_ALLOW_CREDENTIALS = True
     CORS_ORIGIN_WHITELIST = env.BKAPP_CORS_WHITELIST.split(",")
-else:
-    CORS_ALLOW_CREDENTIALS = False
+
+if env.BKAPP_CORS_ALLOW or PLUGIN_GATEWAY_FORM_CORS_ALLOW:
+    MIDDLEWARE = (
+        "gcloud.plugin_gateway.cors.PluginFormCorsResponseMiddleware",
+        "corsheaders.middleware.CorsMiddleware",
+    ) + MIDDLEWARE
+
+CORS_ALLOW_CREDENTIALS = bool(env.BKAPP_CORS_ALLOW or PLUGIN_GATEWAY_FORM_CORS_ALLOW)
 
 if env.BKAPP_PYINSTRUMENT_ENABLE:
     MIDDLEWARE += ("pyinstrument.middleware.ProfilerMiddleware",)
