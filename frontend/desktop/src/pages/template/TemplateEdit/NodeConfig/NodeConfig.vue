@@ -952,11 +952,8 @@
                         const oldVariable = oldForms[cur]
                         const isHooked = this.isInputParamsInConstants(variable)
                         if (oldVariable && !isHooked) { // 旧版本中存在相同key的表单项，且不是勾选状态
-                            if (variable.custom_type || oldVariable.custom_type) {
-                                canReuse = variable.custom_type === oldVariable.custom_type
-                            } else {
-                                canReuse = variable.source_tag === oldVariable.source_tag
-                            }
+                            // 与批量更新逻辑保持一致
+                            canReuse = variable.custom_type === oldVariable.custom_type || variable.source_tag === oldVariable.source_tag
                         }
                         const val = canReuse ? this.inputsParamValue[cur] : variable.value
                         acc[variable.key] = tools.deepClone(val)
@@ -1189,6 +1186,74 @@
                         return acc
                     }, {})
                     this.subflowUpdated = true
+                    this.$nextTick(() => {
+                        this.updateIsMetaVariables()
+                    })
+                })
+            },
+            /**
+             * 子流程版本更新后，更新 is_meta 变量的 form_schema、meta 和 value
+             * 与批量更新子流程的 handleVariableChange 中 is_meta 处理逻辑保持一致
+             */
+            updateIsMetaVariables () {
+                const inputRef = this.$refs.inputParams
+                const reusedKeys = []
+                for (const key in this.inputsParamValue) {
+                    const val = this.inputsParamValue[key]
+                    if (typeof val === 'string' && val.startsWith('${') && val.endsWith('}')) {
+                        if (!reusedKeys.includes(val)) {
+                            reusedKeys.push(val)
+                        }
+                    }
+                }
+                Object.keys(this.localConstants).forEach(key => {
+                    const constantValue = this.localConstants[key]
+                    const val = constantValue.value
+                    if (typeof val === 'string' && val.startsWith('${') && val.endsWith('}')) {
+                        if (!reusedKeys.includes(val)) {
+                            reusedKeys.push(val)
+                        }
+                    }
+                })
+                Object.keys(this.localConstants).forEach(key => {
+                    const constantValue = this.localConstants[key]
+                    if (constantValue.reuse) {
+                        delete constantValue.reuse
+                    }
+                    // 根据source_info中获取勾选的表单项code
+                    const [formCode] = constantValue.source_info[this.nodeId] || []
+                    if (!formCode) return
+                    const formValue = this.subflowForms[formCode]
+                    let hook = false
+                    // 获取输入参数的勾选状态
+                    if (inputRef && inputRef.hooked) {
+                        hook = inputRef.hooked[formCode] || false
+                    }
+                    // 同步新版本表单项的 custom_type、source_tag 和 is_meta 到全局变量
+                    if (formValue) {
+                        constantValue.custom_type = formValue.custom_type
+                        constantValue.source_tag = formValue.source_tag
+                        constantValue.is_meta = formValue.is_meta || false
+                    }
+                    if (constantValue.is_meta && formValue && hook) {
+                        const schema = formSchema.getSchema(formValue.key, this.inputs)
+                        constantValue['form_schema'] = schema
+                        constantValue.meta = formValue.meta
+                        // 复用变量不修改变量值
+                        const isReused = reusedKeys.includes('${' + key + '}') || reusedKeys.includes(key)
+                        if (!isReused) {
+                            // 如果之前选中的下拉项被删除了，则删除对应的值
+                            const curVal = constantValue.value
+                            const isMatch = curVal && schema.attrs && schema.attrs.items
+                                ? schema.attrs.items.find(item => item.value === curVal)
+                                : true
+                            constantValue.value = isMatch ? curVal : ''
+                        }
+                    } else if (!constantValue.is_meta && formValue && hook) {
+                        // 变量从 is_meta 变成非 is_meta（如 select→input），清除不再适用的 meta 属性
+                        constantValue.form_schema = formValue.custom_type ? formSchema.getSchema(formValue.key, this.inputs) : {}
+                        constantValue.meta = formValue.meta || {}
+                    }
                 })
             },
             /**
