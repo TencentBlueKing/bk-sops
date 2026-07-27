@@ -20,7 +20,7 @@ def absolute_sops_url(value):
     if urlsplit(value).scheme:
         return value
 
-    return urljoin(settings.BK_SOPS_HOST.rstrip("/") + "/", value.lstrip("/"))
+    return urljoin(settings.BK_SOPS_HOST.rstrip("/") + "/", value)
 
 
 def _component_form(component_cls, form_attr, embedded_attr, key, base=None):
