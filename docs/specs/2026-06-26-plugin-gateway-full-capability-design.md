@@ -7,6 +7,8 @@
 原 MVP 的实现边界是「仅第三方 + 同步完成型、目录只返回第三方」。本设计在该基线之上给出标准运维侧的完整方案；MVP 设计文档已在本轮迭代后回写为已收敛状态。
 
 > 配套文档：BKFlow 侧设计见 BKFlow 仓库 `docs/specs/2026-06-26-sops-open-plugin-full-capability-design.md`；需求与协议背景见 BKFlow 仓库 `docs/specs/2026-04-20-sops-open-plugin-integration-design.md`。本文为 brainstorming skill 输出。
+>
+> **2026-07-23 修订：** 插件表单改为原生协议透传。标准运维内置插件保留 `component_js`，第三方插件保留 `renderform/jsonschema`；BKFlow V4 通过统一详情接口按类型加载。该修订替代本文此前的声明式 `form_schema` 转换方案。
 
 ## 范围
 
@@ -86,21 +88,90 @@ BKFlow 侧的协议构造、空间准入与服务端校验在配套 BKFlow 设�
 
 透传标准运维内部 `group/category`，避免只粗分 builtin / third_party 两档（沿用 `2026-04-20` 集成设计 5.3）。分类与列表接口支持用 `plugin_source=builtin|third_party` 固定过滤来源，供 BKFlow 配置为两个独立的顶层 API 插件入口；过滤后左侧分类仍返回各来源内部真实的 `group/category`，不会把 `builtin / third_party` 当作业务分类。两个入口在治理和执行层仍属于同一个标准运维来源。
 
-### 1.3 schema 转换
+### 1.3 执行 schema 与原生表单协议
 
-把组件 `inputs_format / outputs_format / form` 转成 v4 `inputs / outputs` schema。现有 `_convert_schema_fields` 是 JSON-Schema 形态雏形，需适配内置组件的 schema 形态。
+组件 `inputs_format / outputs_format` 继续转换为 v4 `inputs / outputs`，用于执行参数、输出参数和无表单时的通用表单兜底。表单不再转换为能力受限的 `form_schema`，而是保留插件在标准运维中的原始形式：
 
-内置组件的 `form` 是可执行 JavaScript，不能跨系统透传。插件网关额外输出可选的声明式 `form_schema`，标准控件词汇限定为 JSON 可序列化配置：
+- 内置插件：保留组件类的 `form / form_is_embedded / base / output_form / embedded_output_form`，对外类型为 `component_js`。
+- 第三方插件：保留插件详情中的 `forms.renderform` 或原生 JSON Schema，对外类型分别为 `renderform`、`jsonschema`。
+- 无原生表单：`forms.input = null`，由 BKFlow 根据 `inputs` 构造 `api_plugin_json`。
 
-- 基础控件：`input / textarea / password / codeEditor`
-- 选择控件：`select / radio / checkbox / switcher`
-- 结构控件：`table`
+统一表单描述如下：
 
-`form_schema` 存在时由对接方优先渲染；不支持的控件或未配置覆盖项继续按 `inputs` 类型生成通用表单。内置组件通过 `(component_code, field_key)` 显式覆盖表补充无法从 `inputs_format` 推导的 UI 语义，首批覆盖 JOB 快速执行脚本的 `job_content` 代码编辑器，以及高频多行文本和密码字段。覆盖表不得包含函数、可执行表达式或提供方私有组件。
+```json
+{
+  "forms": {
+    "input": {
+      "type": "component_js",
+      "key": "job_fast_execute_script",
+      "data": "https://bksops.example.com/static/components/atoms/job/fast_execute_script/v2_0.js",
+      "is_embedded": false,
+      "base": null
+    },
+    "output": null
+  }
+}
+```
 
-`tree / upload / cascader / category / combine` 等依赖远程数据源或动作函数的旧控件不在本轮伪兼容；后续需先定义统一数据源与动作协议，再逐类接入。
+- `type`：`component_js / renderform / jsonschema`。
+- `key`：JS 执行后注册到 `$.atoms` 的真实 key，不要求等于对外 `plugin_id`。
+- `data`：原始 JavaScript、JSON Schema 或可直接加载的绝对静态资源 URL。
+- `is_embedded`：`true` 表示 `data` 是内嵌内容；`false` 表示 `data` 是资源 URL。
+- `base`：组件表单依赖的可选前置 JavaScript 资源，返回绝对 URL。
+- `output`：可选输出表单，字段结构与 `input` 一致；没有时固定为 `null`。
 
-### 1.4 黑名单一致性
+detail 必须按请求中的 `plugin_version` 精确读取组件类或第三方插件详情。已指定版本不存在或已下架时返回明确错误，不得回退到 `default_version/latest_version`；只有用户首次选择插件且尚未形成节点配置时，BKFlow 才能依据目录中的 `default_version` 主动补齐请求版本。
+
+原生表单资源加载或执行失败时不得静默退回通用 input。只有提供方没有返回 `forms.input` 时，BKFlow 才能根据 `inputs` 生成通用表单。
+
+过渡发布期间 detail 可同时保留现有 `form_schema`，供尚未升级的 BKFlow 使用；BKFlow 切换并完成 Stage 验证后，删除 `form_schema` 转换和插件级控件覆盖表。
+
+### 1.4 表单上下文
+
+插件详情查询增加可选的 `scope_type / scope_value`。operator 从经过认证的请求身份读取，不接受查询参数伪造。标准运维复用执行侧 Project 解析顺序：
+
+1. `scope_type == "biz"`：按 `bk_biz_id = scope_value` 解析 Project。
+2. 否则查来源级 `scope_project_map`。
+3. 否则使用 `default_project_id`。
+4. 仍无法解析则详情查询明确失败。
+
+解析成功后返回 JSON 可序列化的 `form_context`：
+
+```json
+{
+  "form_context": {
+    "project": {
+      "id": 123,
+      "bk_biz_id": 100605,
+      "from_cmdb": true
+    },
+    "biz_cc_id": 100605,
+    "site_url": "https://bksops.example.com/",
+    "component": "https://bksops.example.com/api/v3/component/",
+    "variable": "https://bksops.example.com/api/v3/variable/",
+    "template": "https://bksops.example.com/api/v3/template/",
+    "instance": "https://bksops.example.com/api/v3/taskflow/",
+    "bk_plugin_api_host": {}
+  }
+}
+```
+
+第三方插件的 `bk_plugin_api_host[plugin_code]` 指向标准运维的绝对 `plugin_service/data_api/<plugin_code>/` 地址。`get/getBkBizId/getProjectId/canSelectBiz/getConstants/getInput/getOutput/getNodeStatus` 等函数由 BKFlow 本地实现，不通过协议传输函数。
+
+### 1.5 有限 CORS
+
+标准运维复用现有 `django-cors-headers`，增加插件表单专用开关与 Origin 白名单。CORS 必须同时满足：
+
+- Origin 精确命中配置的 BKFlow 域名，不允许 `*`。
+- 路由已登记为插件表单辅助接口，不按整个 `/pipeline/` 前缀开放。
+- 返回 `Access-Control-Allow-Credentials: true` 与 `Vary: Origin`。
+- OPTIONS 预检和实际 HTTP 方法均由目标 View 的方法限制约束。
+
+首批覆盖 JOB/CC 表单使用的业务、脚本、账号和作业实例查询，以及第三方插件的 `plugin_service/data_api/<plugin_code>/<path>`。后者只允许访问插件网关目录中可见、未命中 `do_not_open_list` 的第三方插件。
+
+BKFlow 通过 `withCredentials` 携带同域共享的 `bk_token/bk_ticket` 登录态。Stage 必须验证用户只登录 BKFlow 时标准运维仍能识别真实用户名；若 Cookie 或 CSRF 机制不满足该前提，暂停联调并重新确认认证方案，不允许匿名降级。
+
+### 1.6 黑名单一致性
 
 来源级 `do_not_open_list(plugin_id)` 在 list / detail / execute 登记三处一致拦截：不暴露、不可取详情、不可执行。
 
@@ -145,7 +216,7 @@ BKFlow 侧的协议构造、空间准入与服务端校验在配套 BKFlow 设�
 execute 体新增可选 `context` 对象，标准运维侧读取字段：`scope_type / scope_value / operator / space_id / task_id / node_id / task_name`。
 
 - 不传 `context`（老来源 / 老协议）→ 按 `default_project_id` 兜底，保持兼容。
-- `detail_meta`、polling / callback 协议不变。
+- execute 的 polling / callback 协议不变；detail_meta 向后兼容地增加可选 `forms / form_context`。
 - 不升 wrapper 版本：这是补齐 `2026-04-20` 集成设计 6.5 中规划但 MVP 未实现的 `context`。
 
 ## 5. 状态机与回调桥接
@@ -176,6 +247,11 @@ execute 体新增可选 `context` 对象，标准运维侧读取字段：`scope_
 ## 9. 测试与验收（标准运维侧）
 
 - 目录返回内置 + 第三方，分类透传 `group/category`；黑名单三处一致拦截。
+- detail 原样返回内置 `component_js`、第三方 `renderform/jsonschema`、真实表单注册 key 和绝对资源 URL。
+- detail 精确返回请求版本，版本不存在或下架时不回退到默认或最新版本。
+- detail 的 `form_context` 与执行使用相同的 Project 解析结果，解析失败时明确报错。
+- 仅白名单 Origin 和登记路由返回凭证型 CORS；非白名单 Origin、未登记接口和黑名单插件数据请求被拒绝。
+- 用户只登录 BKFlow 时，跨域表单数据请求仍能识别真实 operator。
 - 内置插件经运行壳真实执行：同步 / 异步轮询 / 回调三模式。
 - project 混合映射（biz 自动 / 映射表 / default）；operator 透传且无权限被正确拒绝。
 - 独立 worker 队列隔离，不影响存量任务执行链路。
@@ -184,6 +260,7 @@ execute 体新增可选 `context` 对象，标准运维侧读取字段：`scope_
 ## 10. 迁移与兼容
 
 - **协议向后兼容**：不传 `context` → `default_project_id` 兜底，老第三方来源零改造。
+- **表单发布顺序**：先加法返回 `forms/form_context` 并保留 `form_schema`，待 BKFlow V4 切换和 Stage 验证后再删除声明式转换。
 - **第三方执行切换**：从直连 `PluginServiceApiClient` 改走运行壳（`RemotePluginComponent`），需回归证明行为等价；建议先并存、再收敛。
 - **`running_tag` 恢复 `RUNNING`**：影响轮询语义，需回归现有第三方链路。
 - **配套产物**：同步 APIGW 资源定义、中英文 apidoc、`apigw-docs.tgz` 归档。
@@ -194,3 +271,5 @@ execute 体新增可选 `context` 对象，标准运维侧读取字段：`scope_
 2. `parent_data` 构造对任意组件不完备：以 `context_inputs` 声明做可用性判定，构造不出的进黑名单。
 3. operator 权限依赖：BKFlow 用户需在对应业务下有权限，否则插件执行被底层系统拒绝；这是产品前提，需在联调与运营中明确。
 4. 统计口径需扩展到 `(plugin_source, plugin_code, plugin_version)`，避免不同来源同 code / 跨版本统计混淆。
+5. 原生表单会执行标准运维和第三方插件已有 JavaScript。本轮接受与标准运维 SaaS 相同的信任边界，通过精确 Origin、路由登记和插件黑名单限制跨域数据面，不把脚本执行能力扩展到目录之外。
+6. 跨应用表单依赖共享登录 Cookie；发布前必须在真实域名验证 Cookie Domain、SameSite、CORS 和 CSRF 行为。
