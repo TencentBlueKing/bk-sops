@@ -49,6 +49,19 @@ class BuildComponentFormsTestCase(SimpleTestCase):
 
         self.assertEqual(build_component_forms(Component), {"input": None, "output": None})
 
+    def test_preserves_protocol_relative_component_form_host(self):
+        class Component:
+            code = "job_fast_execute_script"
+            form = "//open-plugin.example.com/static/components/job.js"
+            form_is_embedded = False
+
+        forms = build_component_forms(Component)
+
+        self.assertEqual(
+            forms["input"]["data"],
+            "https://open-plugin.example.com/static/components/job.js",
+        )
+
     def test_output_key_matches_real_component_output_script_registration(self):
         static_path = urlsplit(JobExecuteTaskComponent.output_form).path
         static_prefix = urlsplit(settings.STATIC_URL).path
