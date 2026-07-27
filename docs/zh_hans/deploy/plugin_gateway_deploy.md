@@ -128,6 +128,19 @@ PluginGatewaySourceConfig.objects.update_or_create(
 - `callback_domain_allow_list` 只应配置受信任平台域名
 - 内置插件 ID 采用 `builtin__<component_code>`，第三方插件兼容裸 `code`
 
+### 3.1 原生表单凭证 CORS
+
+原生动态表单跨域访问默认关闭。仅在 Stage 已确认 BKFlow Origin 和登记接口后，显式配置：
+
+```text
+BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW=true
+BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com
+```
+
+`BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST` 中每个 Origin 必须包含 scheme，且不能带路径；不得配置 `*`。开关只为白名单 Origin 与已登记的表单辅助接口启用凭证 CORS，不会为其他 `/pipeline/` 路径或未登记的插件 data API 放行跨域请求。
+
+发布后先验证 Cookie、CSRF、CSP 和标准运维识别到的真实用户名，再测试动态表单。认证任一项失败即暂停发布，不启用匿名降级。
+
 ## 4. API 网关资源与文档同步
 
 插件网关接口已统一收敛到 APIGW 体系下，相关产物位于：

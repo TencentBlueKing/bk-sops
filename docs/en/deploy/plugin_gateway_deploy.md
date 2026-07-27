@@ -117,6 +117,19 @@ Important rules:
 - `do_not_open_list` blocks list, detail, and execute consistently
 - `execution_timeout_seconds` controls the timeout sweep for a single run
 
+### 3.1 Credentialed CORS for Native Forms
+
+Native dynamic-form cross-origin access is disabled by default. Enable it in Stage only after confirming the BKFlow origin and registered helper routes:
+
+```text
+BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW=true
+BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com
+```
+
+Every origin in `BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST` must include its scheme and must not include a path; never configure `*`. The switch enables credentialed CORS only for the allowlisted origin and registered form helper routes. It does not allow cross-origin access to other `/pipeline/` paths or unregistered plugin data APIs.
+
+After deployment, verify Cookie, CSRF, CSP, and the real username recognized by bk-sops before testing dynamic forms. Pause the rollout if any authentication check fails; do not enable an anonymous fallback.
+
 ## 4. Sync API Gateway Artifacts
 
 The gateway-related artifacts are:
