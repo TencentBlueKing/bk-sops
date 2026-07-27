@@ -109,12 +109,42 @@ def get_plugin_gateway_list(request):
 @return_json_response
 @mark_request_whether_is_trust
 def get_plugin_gateway_detail(request, plugin_id):
+    source_key = request.GET.get("source_key")
+    source_config = None
+    if source_key:
+        operator = getattr(request, "_apigw_jwt_username", "")
+        if not operator:
+            return _error_response(
+                "signed APIGW username is required when source_key is provided",
+                err_code.REQUEST_FORBIDDEN_INVALID.code,
+            )
+        try:
+            _caller_app_code(request)
+        except PermissionError as e:
+            return _error_response(str(e), err_code.REQUEST_FORBIDDEN_INVALID.code)
+        try:
+            source_config = PluginGatewaySourceConfig.objects.get(source_key=source_key, is_enabled=True)
+        except PluginGatewaySourceConfig.DoesNotExist:
+            return _error_response(
+                "plugin gateway source({}) does not exist or is disabled".format(source_key),
+                err_code.CONTENT_NOT_EXIST.code,
+                ERROR_TYPE_SOURCE_UNREACHABLE,
+            )
+    else:
+        operator = _caller_username(request)
+
     try:
         plugin_detail = PluginGatewayCatalogService.get_plugin_detail(
             request=request,
             plugin_id=plugin_id,
             version=request.GET.get("version"),
+            source_config=source_config,
+            scope_type=request.GET.get("scope_type"),
+            scope_value=request.GET.get("scope_value"),
+            operator=operator,
         )
+    except PluginGatewayContextResolveError as e:
+        return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code)
     except PluginGatewayVersionNotFoundError as e:
         return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code, ERROR_TYPE_PLUGIN_VERSION_UNAVAILABLE)
     except PluginGatewaySourceUnavailableError as e:

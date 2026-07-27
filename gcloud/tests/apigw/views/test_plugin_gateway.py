@@ -1,13 +1,23 @@
 """Tests for plugin gateway APIGW endpoints."""
 
+import os
 from unittest.mock import Mock, patch
 
 import ujson as json
+import yaml
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.test import modify_settings
 
 from gcloud import err_code
 from gcloud.tests.apigw.views.utils import TEST_APP_CODE, TEST_USERNAME, APITest
 
 
+@modify_settings(
+    MIDDLEWARE={
+        "append": "gcloud.tests.apigw.views.utils.MockApiGatewayJWTPayloadMiddleware",
+    }
+)
 class PluginGatewayAPITest(APITest):
     HEX_RUN_ID = "4f3c2b1a0d9e8f7766554433221100aa"
 
@@ -193,6 +203,199 @@ class PluginGatewayAPITest(APITest):
         self.assertFalse(data["result"], msg=data)
         self.assertEqual(data["code"], err_code.CONTENT_NOT_EXIST.code)
         self.assertEqual(data["error_type"], "plugin_removed")
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_passes_enabled_source_scope_and_authenticated_operator(self, mock_get_plugin_detail):
+        mock_get_plugin_detail.return_value = {"id": "builtin__job_fast_execute_script"}
+        source_config = self.source_model.objects.get(source_key="bkflow")
+        cookie_user = get_user_model().objects.create_user(username="cookie-user")
+        self.client.force_login(cookie_user)
+
+        response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={
+                "version": "v2.0",
+                "source_key": "bkflow",
+                "scope_type": "biz",
+                "scope_value": "100605",
+                "operator": "other",
+            },
+            HTTP_BK_JWT_USERNAME="dannydeng",
+            HTTP_BK_JWT_USER_VERIFIED=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        _, call_kwargs = mock_get_plugin_detail.call_args
+        mock_get_plugin_detail.assert_called_once_with(
+            request=call_kwargs["request"],
+            plugin_id="builtin__job_fast_execute_script",
+            version="v2.0",
+            source_config=source_config,
+            scope_type="biz",
+            scope_value="100605",
+            operator="dannydeng",
+        )
+        self.assertEqual(call_kwargs["request"].user.username, "cookie-user")
+        self.assertFalse(hasattr(call_kwargs["request"].user, "verified"))
+        self.assertTrue(getattr(call_kwargs["request"], "_apigw_jwt_user_verified", False))
+        self.assertEqual(getattr(call_kwargs["request"], "_apigw_jwt_username", ""), "dannydeng")
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_without_source_key_allows_unverified_app_only_request(self, mock_get_plugin_detail):
+        mock_get_plugin_detail.return_value = {"id": "builtin__job_fast_execute_script"}
+
+        response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            HTTP_BK_USERNAME="app-only-user",
+        )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        _, call_kwargs = mock_get_plugin_detail.call_args
+        self.assertIsNone(call_kwargs["source_config"])
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_with_source_key_accepts_unverified_signed_username(self, mock_get_plugin_detail):
+        mock_get_plugin_detail.return_value = {"id": "builtin__job_fast_execute_script"}
+
+        response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={"source_key": "bkflow"},
+            HTTP_BK_JWT_USERNAME="dannydeng",
+            HTTP_BK_JWT_USER_VERIFIED=False,
+        )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(mock_get_plugin_detail.call_args[1]["operator"], "dannydeng")
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_with_source_key_accepts_missing_verified_field(self, mock_get_plugin_detail):
+        mock_get_plugin_detail.return_value = {"id": "builtin__job_fast_execute_script"}
+
+        response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={"source_key": "bkflow"},
+            HTTP_BK_JWT_USERNAME="dannydeng",
+        )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(mock_get_plugin_detail.call_args[1]["operator"], "dannydeng")
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_with_source_key_rejects_missing_user_identity(self, mock_get_plugin_detail):
+        response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={"source_key": "bkflow"},
+            HTTP_BK_JWT_USER_VERIFIED=True,
+        )
+
+        data = json.loads(response.content)
+        self.assertFalse(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        mock_get_plugin_detail.assert_not_called()
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_with_source_key_rejects_missing_caller_app(self, mock_get_plugin_detail):
+        response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={"source_key": "bkflow"},
+            HTTP_BK_JWT_USERNAME="dannydeng",
+            HTTP_BK_APP_CODE="",
+        )
+
+        data = json.loads(response.content)
+        self.assertFalse(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        self.assertEqual(data["message"], "request app code is missing")
+        mock_get_plugin_detail.assert_not_called()
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_rejects_unknown_or_disabled_source(self, mock_get_plugin_detail):
+        unknown_response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={"source_key": "missing"},
+            HTTP_BK_JWT_USERNAME=TEST_USERNAME,
+            HTTP_BK_JWT_USER_VERIFIED=True,
+        )
+        self.source_model.objects.filter(source_key="bkflow").update(is_enabled=False)
+        disabled_response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={"source_key": "bkflow"},
+            HTTP_BK_JWT_USERNAME=TEST_USERNAME,
+            HTTP_BK_JWT_USER_VERIFIED=True,
+        )
+
+        for response in (unknown_response, disabled_response):
+            data = json.loads(response.content)
+            self.assertFalse(data["result"], msg=data)
+            self.assertEqual(data["code"], err_code.CONTENT_NOT_EXIST.code)
+            self.assertEqual(data["error_type"], "source_unreachable")
+        mock_get_plugin_detail.assert_not_called()
+
+    @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
+    def test_get_plugin_detail_maps_context_resolution_error_to_400(self, mock_get_plugin_detail):
+        from gcloud.plugin_gateway.exceptions import PluginGatewayContextResolveError
+
+        mock_get_plugin_detail.side_effect = PluginGatewayContextResolveError("cannot resolve project")
+
+        response = self.client.get(
+            path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
+            data={"source_key": "bkflow", "scope_type": "biz", "scope_value": "100605"},
+            HTTP_BK_JWT_USERNAME=TEST_USERNAME,
+            HTTP_BK_JWT_USER_VERIFIED=True,
+        )
+
+        data = json.loads(response.content)
+        self.assertFalse(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code)
+
+    def test_get_plugin_detail_openapi_schema_has_optional_fixed_form_context(self):
+        resource_path = os.path.join(
+            settings.BASE_DIR,
+            "gcloud/apigw/management/commands/data/api-resources.yml",
+        )
+        with open(resource_path, encoding="utf-8") as resource_file:
+            resources = yaml.safe_load(resource_file)
+
+        data_schema = resources["paths"]["/plugin-gateway/plugins/{plugin_id}/"]["get"]["responses"]["200"]["content"][
+            "application/json"
+        ]["schema"]["properties"]["data"]
+        self.assertIn("form_context", data_schema["properties"])
+        form_context = data_schema["properties"]["form_context"]
+        properties = form_context["properties"]
+
+        self.assertNotIn("form_context", data_schema.get("required", []))
+        self.assertEqual(
+            set(form_context["required"]),
+            {
+                "project",
+                "biz_cc_id",
+                "site_url",
+                "component",
+                "variable",
+                "template",
+                "instance",
+                "bk_plugin_api_host",
+            },
+        )
+        self.assertEqual(
+            set(properties["project"]["required"]),
+            {"id", "bk_biz_id", "from_cmdb"},
+        )
+        self.assertEqual(properties["project"]["properties"]["id"]["type"], "integer")
+        self.assertEqual(properties["project"]["properties"]["bk_biz_id"]["type"], "integer")
+        self.assertEqual(properties["project"]["properties"]["from_cmdb"]["type"], "boolean")
+        self.assertFalse(properties["project"]["properties"]["bk_biz_id"].get("nullable", False))
+        self.assertEqual(properties["biz_cc_id"]["type"], "integer")
+        self.assertFalse(properties["biz_cc_id"].get("nullable", False))
+        self.assertEqual(
+            properties["bk_plugin_api_host"]["additionalProperties"],
+            {"type": "string"},
+        )
 
     @patch("gcloud.plugin_gateway.services.execution.dispatch_plugin_gateway_run.apply_async")
     @patch("gcloud.plugin_gateway.services.execution.PluginGatewayCatalogService.get_plugin_reference")
