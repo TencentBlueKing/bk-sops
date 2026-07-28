@@ -23,7 +23,7 @@ const getAppLang = () => {
 }
 
 const getStateFavicon = () => {
-    const states = ['failed', 'finished', 'running', 'created', 'suspended']
+    const states = ['failed', 'finished', 'running', 'created', 'suspended', 'pending_processing']
     return states.reduce((acc, cur) => {
         acc[`${cur}Img`] = `${window.SITE_URL}static/core/images/bk_sops_${cur}.png`
         return acc

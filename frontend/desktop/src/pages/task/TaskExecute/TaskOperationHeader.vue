@@ -369,7 +369,7 @@
             background-color: #cfdffb;
             color: #3a84ff;
         }
-        &.SUSPENDED, &.NODE_SUSPENDED {
+        &.SUSPENDED, &.NODE_SUSPENDED, &.PENDING_PROCESSING {
             background-color: #ffe8c3;
             color: #d78300;
         }
