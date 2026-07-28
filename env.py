@@ -110,11 +110,12 @@ ARCHIVE_EXPIRED_V2_TASK_CRON = tuple(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK_CR
 ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM = int(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM", 100))
 
 # 流程卡住治理（诊断检测打底 M1）
-# 诊断能力随 bamboo-pipeline>=3.24.12 提供；下列开关默认低风险打底：
-# 只跑周期扫描检测（SCAN），关热点路径事件写（EVENT）、告警（ALERT）与写操作（APPLY）。
+# 诊断能力随 bamboo-pipeline>=3.24.12 提供；下列开关默认全关，需按运维 checklist 显式开启。
+# SCAN 默认关的原因：Layer0 分组查询（WHERE dead=0 GROUP BY root_pipeline_id）在大 eri_process
+# 表上开销不可忽略；且长等待节点（人工确认 / 长作业）心跳同样停摆，会被判为停滞产生噪音病历。
 # EVENT 与 SCAN 是两个独立开关：仅关 SCAN 不足以关热点路径事件写，务必同时关 EVENT。
 _DIAG_TRUE = ("1", "true", "yes", "on")
-DIAGNOSTICS_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SCAN_ENABLED", "1").lower() in _DIAG_TRUE
+DIAGNOSTICS_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SCAN_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_EVENT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_EVENT_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_ALERT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_ALERT_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_APPLY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_APPLY_ENABLED", "0").lower() in _DIAG_TRUE
