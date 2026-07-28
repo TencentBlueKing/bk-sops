@@ -69,11 +69,11 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 **Step 0 前置（已就绪）**
 
 - [ ] `requirements.txt` 已指向 `bamboo-pipeline==3.24.13`。
-- [ ] 默认安全配置：`SCAN` 开、`EVENT`/`ALERT`/`APPLY` 关（见下方 env 速查）。
+- [ ] 默认安全配置：`SCAN`/`EVENT`/`ALERT`/`APPLY` 全关（见下方 env 速查）。
 
 **Step 1 休眠部署（先关扫描，验证启动/迁移）**
 
-- [ ] 部署前设 `BKAPP_DIAGNOSTICS_SCAN_ENABLED=0`，其余保持默认关。
+- [ ] 保持默认即可（四个开关默认均为 `0`），无需额外设置环境变量。
 - [ ] 部署 → 确认 `migrate` 正常新建 3 张 `pipeline_diagnostics_*` 表（纯 `CREATE TABLE`，不动存量表）。
 - [ ] 确认 web / celery worker / beat 正常启动，无 `pipeline.contrib.diagnostics` import 报错（app 为条件注册）。
 - [ ] 确认引擎执行热路径行为不变（`EVENT` 关，2.6.5 钩子处于“装好但睡眠”态）。
@@ -103,7 +103,7 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 
 | 环境变量 | 默认 | 作用 |
 | --- | --- | --- |
-| `BKAPP_DIAGNOSTICS_SCAN_ENABLED` | `1` | Layer0 周期扫描（检测立案） |
+| `BKAPP_DIAGNOSTICS_SCAN_ENABLED` | `0` | Layer0 周期扫描（检测立案） |
 | `BKAPP_DIAGNOSTICS_EVENT_ENABLED` | `0` | 引擎热路径事件采集 |
 | `BKAPP_DIAGNOSTICS_ALERT_ENABLED` | `0` | 告警 |
 | `BKAPP_DIAGNOSTICS_APPLY_ENABLED` | `0` | 写 / 恢复操作（dry-run 之外） |
