@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [ master, develop, release*, feature* ]
 
+env:
+  # pyenv 2.6.32 rejects the Python 3.6.12 executable on ubuntu-22.04.
+  PYENV_GIT_TAG: v2.6.31
+
 jobs:
   build:
 

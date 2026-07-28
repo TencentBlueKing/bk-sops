@@ -53,6 +53,8 @@ def format_web_data_to_pipeline(web_pipeline: dict, is_subprocess: bool = False)
                 act["skippable"] = act.get("isSkipped", True)
             if "retryable" not in act:
                 act["retryable"] = act.get("can_retry", True)
+            if act.get("error_ignorable") and not act.get("skippable"):
+                act["skippable"] = True
 
             # 检查节点配置冲突
             if act.get("timeout_config", {}).get("enable") and (

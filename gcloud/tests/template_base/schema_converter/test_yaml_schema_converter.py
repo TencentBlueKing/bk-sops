@@ -13,8 +13,8 @@ specific language governing permissions and limitations under the License.
 import json
 import os
 
-from django.test import TestCase
 import yaml
+from django.test import TestCase
 
 from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
 
@@ -55,6 +55,65 @@ class YamlSchemaConverterTestCase(TestCase):
         reconvert_result = self.convert_handler.reconvert(self.yaml_docs)
         generated_data = reconvert_result["data"]["templates"]
         self.assertTrue(self._check_reconvert_correct(generated_data, self.original_data))
+
+    def test_reconvert_with_external_subprocess_template_id_as_int(self):
+        class _FakeTemplateObj:
+            def __init__(self, pk, project_id, pipeline_tree):
+                self.pk = pk
+                self.project_id = project_id
+                self.pipeline_tree = pipeline_tree
+
+        class _FakeQuerySet(list):
+            def filter(self, **kwargs):
+                data = list(self)
+                if "project_id" in kwargs:
+                    data = [obj for obj in data if obj.project_id == kwargs["project_id"]]
+                if "pk__in" in kwargs:
+                    target_ids = {str(pk) for pk in kwargs["pk__in"]}
+                    data = [obj for obj in data if str(obj.pk) in target_ids]
+                return _FakeQuerySet(data)
+
+        class _FakeTemplateModel:
+            objects = _FakeQuerySet(
+                [
+                    _FakeTemplateObj(
+                        1001,
+                        10,
+                        {
+                            "constants": {
+                                "sub_const": {"name": "sub_const", "source_type": "custom", "value": "value"},
+                            }
+                        },
+                    )
+                ]
+            )
+
+        yaml_docs = [
+            {
+                "schema_version": "v1",
+                "meta": {"name": "parent", "id": "parent_template"},
+                "spec": {
+                    "nodes": [
+                        {"type": "EmptyStartEvent", "id": "start", "next": ["sub"]},
+                        {"type": "SubProcess", "id": "sub", "name": "sub", "template_id": 1001, "next": ["end"]},
+                        {"type": "EmptyEndEvent", "id": "end"},
+                    ]
+                },
+            }
+        ]
+
+        reconvert_result = self.convert_handler.reconvert(
+            yaml_docs, template_model_cls=_FakeTemplateModel, project_id=10
+        )
+        self.assertTrue(reconvert_result["result"])
+        templates = reconvert_result["data"]["templates"]
+        self.assertIn("parent_template", templates)
+        subprocess_node = next(
+            activity
+            for activity in templates["parent_template"]["tree"]["activities"].values()
+            if activity["type"] == "SubProcess"
+        )
+        self.assertIn("sub_const", subprocess_node["constants"])
 
     def test_converter_remove_loop_by_bfs(self):
         nodes = {

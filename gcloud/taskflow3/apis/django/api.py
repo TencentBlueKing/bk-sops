@@ -18,6 +18,7 @@ import ujson as json
 from blueapps.account.decorators import login_exempt
 from cryptography.fernet import Fernet
 from django.db import transaction
+from django.db.models import Max, Value
 from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -62,6 +63,7 @@ from gcloud.taskflow3.apis.django.validators import (
     DetailValidator,
     GetJobInstanceLogValidator,
     GetNodeLogValidator,
+    LastExecutionConstantsValidator,
     NodesActionValidator,
     PreviewTaskTreeValidator,
     QueryTaskCountValidator,
@@ -296,7 +298,9 @@ def get_job_instance_log(request, biz_cc_id):
     job_result = client.job.get_job_instance_log(log_kwargs)
 
     if not job_result["result"]:
-        message = _(f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}] 异常信息: {job_result['message']} | get_job_instance_log")
+        message = _(
+            f"执行历史请求失败: 请求[作业平台ID: {biz_cc_id}] 异常信息: {job_result['message']} | get_job_instance_log"
+        )
 
         if job_result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
             logger.warning(message)
@@ -477,11 +481,84 @@ def preview_task_tree(request, project_id):
     try:
         data = preview_template_tree(project_id, template_source, template_id, version, exclude_task_nodes_id)
     except Exception as e:
-        message = _(f"任务数据请求失败: 请求任务数据发生异常: {e}. 请重试, 如多次失败可联系管理员处理 | preview_task_tree")
+        message = _(
+            f"任务数据请求失败: 请求任务数据发生异常: {e}. 请重试, 如多次失败可联系管理员处理 | preview_task_tree"
+        )
         logger.exception(message)
         return JsonResponse({"result": False, "message": message})
 
+    last_task_id = TaskFlowInstance.objects.filter(
+        project_id=project_id,
+        template_id=str(template_id),
+        template_source=template_source,
+        is_deleted=Value(0),
+        is_child_taskflow=Value(0),
+        pipeline_instance__is_started=True,
+        pipeline_instance__isnull=False,
+    ).aggregate(max_id=Max("id"))["max_id"]
+
+    data["last_execution_id"] = last_task_id
+
     return JsonResponse({"result": True, "data": data})
+
+
+@require_GET
+@request_validate(LastExecutionConstantsValidator)
+def last_execution_constants(request, project_id):
+    template_id = request.GET.get("template_id")
+    template_source = request.GET.get("template_source", PROJECT)
+
+    last_task_id = TaskFlowInstance.objects.filter(
+        project_id=project_id,
+        template_id=str(template_id),
+        template_source=template_source,
+        is_deleted=Value(0),
+        is_child_taskflow=Value(0),
+        pipeline_instance__is_started=True,
+        pipeline_instance__isnull=False,
+    ).aggregate(max_id=Max("id"))["max_id"]
+
+    if not last_task_id:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    try:
+        last_task = TaskFlowInstance.objects.select_related("pipeline_instance").get(id=last_task_id)
+    except TaskFlowInstance.DoesNotExist:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    if not last_task.pipeline_instance:
+        return JsonResponse(
+            {"result": False, "message": _("没有历史执行记录"), "code": err_code.CONTENT_NOT_EXIST.code, "data": None}
+        )
+
+    execution_data = last_task.pipeline_instance.execution_data
+    all_constants = execution_data.get("constants", {})
+
+    constants = {}
+    for key, val in all_constants.items():
+        if val.get("show_type") != "show":
+            continue
+        constants[key] = {
+            "key": val.get("key", key),
+            "name": val.get("name", ""),
+            "value": val.get("value"),
+            "custom_type": val.get("custom_type", ""),
+            "source_type": val.get("source_type", ""),
+        }
+
+    data = {
+        "task_id": last_task.id,
+        "task_name": last_task.pipeline_instance.name,
+        "executor": last_task.pipeline_instance.executor,
+        "create_time": last_task.pipeline_instance.create_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "constants": constants,
+    }
+
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})
 
 
 @require_POST
@@ -531,7 +608,9 @@ def get_node_log(request, project_id, node_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     if not task.has_node(node_id):
-        message = _(f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log")
+        message = _(
+            f"节点状态请求失败: 任务[ID: {task.id}]中未找到节点[ID: {node_id}]. 请重试. 如持续失败可联系管理员处理 | get_node_log"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "data": None, "message": message})
 
@@ -567,7 +646,9 @@ def node_callback(request, token):
     try:
         callback_data = json.loads(request.body)
     except Exception:
-        message = _(f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback")
+        message = _(
+            f"节点回调失败: 无效的请求, 请重试. 如持续失败可联系管理员处理. {traceback.format_exc()} | api node_callback"
+        )
         logger.error(message)
         return JsonResponse({"result": False, "message": message}, status=400)
 

@@ -247,6 +247,19 @@ class PeriodicTask(models.Model):
         elif self.template_source == COMMON:
             return CommonTemplate.objects.get(pk=self.template_id)
 
+    @property
+    def template_expired(self):
+        """周期任务关联的流程模板是否已过时（当前版本与创建时版本不一致）"""
+        if not self.template_version:
+            return None
+        try:
+            template = self.template
+        except (TaskTemplate.DoesNotExist, CommonTemplate.DoesNotExist):
+            return None
+        if template is None:
+            return None
+        return self.template_version != template.version
+
     def set_enabled(self, enabled):
         self.task.set_enabled(enabled)
 

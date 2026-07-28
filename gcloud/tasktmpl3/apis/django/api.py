@@ -22,10 +22,11 @@ from rest_framework.decorators import api_view
 
 from gcloud import err_code
 from gcloud.contrib.analysis.analyse_items import task_template
-from gcloud.core.models import ProjectConfig
+from gcloud.core.models import Project, ProjectConfig
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.project import ProjectFlowCreateInterceptor, ProjectViewInterceptor
 from gcloud.iam_auth.view_interceptors.template import (
+    AgentBeautifyTemplateLayoutInterceptor,
     AgentGenerateProcessInterceptor,
     BatchFormInterceptor,
     ConstantPreviewInterceptor,
@@ -65,8 +66,10 @@ from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import check_and_rename_params
 from pipeline_web.drawing_new.constants import CANVAS_WIDTH, POSITION
 from pipeline_web.drawing_new.drawing import draw_pipeline as draw_pipeline_tree
+from pipeline_web.drawing_new.layout import layout_pipeline_tree
 
 from .validators import (
+    AgentBeautifyTemplateLayoutValidator,
     AnalysisConstantsRefValidator,
     CheckBeforeImportValidator,
     DrawPipelineValidator,
@@ -417,7 +420,7 @@ def generate_process_with_agent(request):
     """
     try:
         request_data = json.loads(request.body)
-    except json.JSONDecodeError as e:
+    except ValueError as e:
         logger.warning("generate_process_with_agent: Invalid JSON format - {}".format(str(e)))
         return JsonResponse(
             {
@@ -465,3 +468,70 @@ def generate_process_with_agent(request):
         return JsonResponse({"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code})
 
     return JsonResponse({"result": True, "data": pipeline_tree, "code": err_code.SUCCESS.code, "message": ""})
+
+
+@require_GET
+@request_validate(AgentBeautifyTemplateLayoutValidator)
+@iam_intercept(AgentBeautifyTemplateLayoutInterceptor())
+def ai_beautify_sops_template_layout(request):
+    """
+    @summary：自动优化模板布局（基于块结构排版算法）
+    @param request:
+    @return:
+
+    请求方法: GET
+    请求参数:
+    params:
+        "project_id": 项目 ID,
+        "template_id": 模板 ID,
+        "canvas_width": 画布宽度
+    """
+
+    logger.info("beautify_sops_template_layout: request - {}".format(request.GET))
+
+    project_id = request.GET.get("project_id")
+    template_id = request.GET.get("template_id")
+    canvas_width = request.GET.get("canvas_width")
+
+    try:
+        Project.objects.get(id=project_id)
+    except Project.DoesNotExist:
+        logger.error("beautify_sops_template_layout error: project not found - {}".format(project_id))
+        return JsonResponse({"result": False, "message": "project not found", "code": err_code.UNKNOWN_ERROR.code})
+
+    ai_layout_enabled = False
+    project_config = ProjectConfig.objects.filter(project_id=project_id).first()
+    if project_config:
+        custom_configs = project_config.custom_display_configs or {}
+        ai_layout_enabled = custom_configs.get("enable_ai_layout", False)
+
+    if not ai_layout_enabled:
+        return JsonResponse(
+            {
+                "result": False,
+                "message": "该项目未开启 AI 排版功能",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
+
+    try:
+        template_obj = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
+    except TaskTemplate.DoesNotExist:
+        logger.error("beautify_sops_template_layout error: template not found - {}".format(template_id))
+        return JsonResponse({"result": False, "message": "template not found", "code": err_code.UNKNOWN_ERROR.code})
+
+    pipeline_tree = template_obj.pipeline_tree
+
+    try:
+        layout_kwargs = {}
+        if canvas_width:
+            layout_kwargs["canvas_width"] = int(canvas_width)
+        layout_pipeline_tree(pipeline_tree, **layout_kwargs)
+    except Exception as e:
+        logger.exception("beautify_sops_template_layout error: layout failed - {}".format(str(e)))
+        return JsonResponse(
+            {"result": False, "message": "beautify_sops_template_layout failed", "code": err_code.UNKNOWN_ERROR.code}
+        )
+
+    data = {"location": pipeline_tree.get("location", []), "line": pipeline_tree.get("line", [])}
+    return JsonResponse({"result": True, "data": data, "code": err_code.SUCCESS.code, "message": ""})

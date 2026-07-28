@@ -570,6 +570,26 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 
 
 class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
+    TASKFLOW_INSTANCE_TABLE_SQL = "`taskflow3_taskflowinstance`"
+    IGNORE_PRIMARY_INDEX_HINT_SQL = "IGNORE INDEX (`PRIMARY`)"
+
+    @classmethod
+    def _inject_ignore_primary_index_hint(cls, sql):
+        table_with_hint = "{} {}".format(cls.TASKFLOW_INSTANCE_TABLE_SQL, cls.IGNORE_PRIMARY_INDEX_HINT_SQL)
+        if table_with_hint in sql:
+            return sql
+
+        return sql.replace("FROM {}".format(cls.TASKFLOW_INSTANCE_TABLE_SQL), "FROM {}".format(table_with_hint), 1)
+
+    def fetch_task_list_page_ignore_primary_index(self, queryset, limit, offset):
+        sliced_queryset = queryset[offset : offset + limit]
+        if connection.vendor != "mysql":
+            return list(sliced_queryset)
+
+        sql, params = sliced_queryset.query.sql_with_params()
+        sql = self._inject_ignore_primary_index_hint(sql)
+        return list(self.raw(sql, params))
+
     @staticmethod
     def create_pipeline_instance(template, **kwargs):
         independent_subprocess = kwargs.pop(
@@ -918,6 +938,12 @@ class TaskFlowInstance(models.Model):
 
         # 如果是职能化任务流程，返回对应的职能化认领单实例
         return self.function_task.filter(task=self).values_list("claimant", flat=True).first()
+
+    # 获取职能化任务认领url
+    def get_function_task_claim_url(self):
+        if self.flow_type != "common_func":
+            return None
+        return "%sfunction/execute/%s/?instance_id=%s" % (settings.APP_HOST, self.project_id, self.id)
 
     @classmethod
     def task_url(cls, project_id, task_id):

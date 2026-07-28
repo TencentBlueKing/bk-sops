@@ -19,13 +19,17 @@ from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from pipeline.core.constants import PE
 from pipeline.exceptions import PipelineException
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
 from gcloud.apigw.validators import CreateTaskValidator
+from gcloud.apigw.views.task_node_selector import (
+    TaskNodeSelectionValidationError,
+    normalize_template_scheme_params,
+    resolve_exclude_task_nodes_id,
+)
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
@@ -42,21 +46,6 @@ from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import standardize_pipeline_node_name
 from pipeline_web.parser.validator import validate_web_pipeline_tree
-
-
-def get_exclude_nodes_by_execute_nodes(execute_nodes, pipline_tree):
-    """
-    @summary: 通过要选择执行的节点列表和任务模板获取要跳过执行的节点
-    @return: 要跳过执行的节点
-    """
-    all_nodes = set()
-    for aid, act_data in pipline_tree[PE.activities].items():
-        all_nodes.add(aid)
-    # 排除掉在all_nodes中不存在的节点
-    execute_nodes = set(execute_nodes).intersection(all_nodes)
-    # 差集计算，得出exclude_nodes
-    exclude_nodes = all_nodes - execute_nodes
-    return exclude_nodes
 
 
 @login_exempt
@@ -130,13 +119,23 @@ def create_task(request, template_id, project_id):
         params.setdefault("exclude_task_nodes_id", [])
         params.setdefault("simplify_vars", [])
         params.setdefault("execute_task_nodes_id", [])
+        params.setdefault("template_schemes_id", [])
         jsonschema.validate(params, APIGW_CREATE_TASK_PARAMS)
+        normalize_template_scheme_params(params)
     except jsonschema.ValidationError as e:
         logger.exception("[API] create_task raise prams error: %s" % e)
         message = "task params is invalid: %s" % e
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
+    except TaskNodeSelectionValidationError as e:
+        return {"result": False, "message": str(e), "code": err_code.REQUEST_PARAM_INVALID.code}
 
     create_with_tree = "pipeline_tree" in params
+    if create_with_tree and params["template_schemes_id"]:
+        return {
+            "result": False,
+            "message": "template_schemes_id can not be used with pipeline_tree",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     pipeline_instance_kwargs = {
         "name": params["name"],
@@ -174,11 +173,17 @@ def create_task(request, template_id, project_id):
         pipeline_tree = tmpl.pipeline_tree
         validate_web_pipeline_tree(pipeline_tree)
 
-        # 如果请求参数中含有非空的execute_task_nodes_id(要执行的节点)，就将其转换为exclude_task_nodes_id(要排除的节点)
-        if not params["execute_task_nodes_id"]:
-            exclude_task_nodes_id = params["exclude_task_nodes_id"]
-        else:
-            exclude_task_nodes_id = get_exclude_nodes_by_execute_nodes(params["execute_task_nodes_id"], pipeline_tree)
+        try:
+            exclude_task_nodes_id = resolve_exclude_task_nodes_id(
+                tmpl, pipeline_tree, params, support_execute_task_nodes=True
+            )
+        except TaskNodeSelectionValidationError as e:
+            return {
+                "result": False,
+                "message": str(e),
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+            }
+
         try:
             data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
                 tmpl,
@@ -235,9 +240,11 @@ def create_task(request, template_id, project_id):
         root_pipeline_id=task.pipeline_instance.instance_id,
         pipeline_tree=task.pipeline_instance.execution_data,
     )
-
+    result_data = {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree}
+    if task.flow_type == "common_func":
+        result_data["function_task_claim_url"] = task.get_function_task_claim_url()
     return {
         "result": True,
-        "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},
+        "data": result_data,
         "code": err_code.SUCCESS.code,
     }

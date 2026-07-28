@@ -131,3 +131,14 @@ class BKSopsAgentClient:
             # 返回为None时，不发送通知
             return None
         return output
+
+    def beautify_sops_template_layout(self, bk_biz_id, template_id, canvas_width):
+        user_input = (
+            f"使用beautify_sops_template_layout这个工具，帮我优化一下我的标准运维模板布局，业务ID是{bk_biz_id}"
+            f"，模板ID是{template_id}, 画布宽度为{canvas_width}"
+        )
+        agent_output = self.call_agent_apigw(user_input=user_input)
+        output = agent_output.get("outputs", {}).get("output", {})
+        if not output:
+            return None
+        return output

@@ -26,6 +26,7 @@ from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from webhook.api import verify_webhook_endpoint
+from webhook.models import Webhook
 
 from gcloud import err_code
 from gcloud.contrib.audit.utils import bk_audit_add_event
@@ -220,8 +221,8 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
         webhook_configs = get_webhook_configs(scope_code=str(instance.id))
+        data["enable_webhook"] = webhook_configs.pop("enable_webhook", False)
         data["webhook_configs"] = webhook_configs
-        data["enable_webhook"] = True if webhook_configs else False
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.FLOW_VIEW_ACTION,
@@ -238,7 +239,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
         webhook_configs = serializer.validated_data.pop("webhook_configs", {})
-        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
+        enable_webhook = serializer.validated_data.pop("enable_webhook", None)
         with transaction.atomic():
             result = manager.create_pipeline(
                 name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
@@ -252,7 +253,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
             serializer.validated_data["pipeline_template_id"] = result["data"].template_id
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
-            if enable_webhook and webhook_configs:
+            if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
@@ -299,7 +300,7 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
         webhook_configs = serializer.validated_data.pop("webhook_configs", {})
-        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
+        enable_webhook = serializer.validated_data.pop("enable_webhook", None)
         with transaction.atomic():
             result = manager.update_pipeline(
                 pipeline_template=template.pipeline_template,
@@ -316,14 +317,18 @@ class TaskTemplateViewSet(GcloudModelViewSet):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
-            if enable_webhook and webhook_configs:
+
+            if enable_webhook is not None:
+                Webhook.objects.filter(scope_type="template", scope_code=str(serializer.instance.id)).update(
+                    enable_webhook=enable_webhook
+                )
+
+            if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
                     logger.error(message)
                     raise ValidationException(message)
-            elif not enable_webhook and get_webhook_configs(str(serializer.instance.id)):
-                clear_scope_webhooks([str(serializer.instance.id)])
 
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)

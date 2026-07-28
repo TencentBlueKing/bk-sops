@@ -13,6 +13,7 @@ specific lan
 
 import logging
 
+from django.db.models import Max, Value
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from iam import Action, Subject
@@ -25,6 +26,7 @@ from rest_framework.views import APIView
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.preview import preview_template_tree_with_schemes
 
@@ -107,5 +109,19 @@ class PreviewTaskTreeWithSchemesView(APIView):
             )
             logger.exception(message)
             return Response({"result": False, "message": message, "data": {}})
+
+        if project_id:
+            last_task_id = TaskFlowInstance.objects.filter(
+                project_id=project_id,
+                template_id=str(template_id),
+                template_source=template_source,
+                is_deleted=Value(0),
+                is_child_taskflow=Value(0),
+                pipeline_instance__is_started=True,
+                pipeline_instance__isnull=False,
+            ).aggregate(max_id=Max("id"))["max_id"]
+            data["last_execution_id"] = last_task_id
+        else:
+            data["last_execution_id"] = None
 
         return Response({"result": True, "data": data, "message": "success"})
