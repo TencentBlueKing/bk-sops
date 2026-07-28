@@ -2062,6 +2062,9 @@
                     case 'SUSPENDED':
                     case 'NODE_SUSPENDED':
                         namePrefix = 'suspended'
+                        break
+                    case 'PENDING_PROCESSING':
+                        namePrefix = 'pending_processing'
                 }
                 const picName = namePrefix ? `${namePrefix}Img` : 'bk_sops'
                 setShortcutIcon(this.platformInfo[picName])
