@@ -25,6 +25,9 @@ from gcloud.plugin_gateway.services.runner import PluginGatewayRunner
 
 logger = logging.getLogger("celery")
 
+CALLBACK_READY_RETRY_INTERVAL_SECONDS = 1
+CALLBACK_READY_MAX_RETRY_TIMES = 30
+
 
 @task(queue="open_plugin_polling")
 def sweep_expired_plugin_gateway_runs():
@@ -210,7 +213,7 @@ def poll_plugin_gateway_run(open_plugin_run_id):
 
 
 @task(queue="open_plugin_callback")
-def callback_plugin_gateway_run(open_plugin_run_id, callback_data=None):
+def callback_plugin_gateway_run(open_plugin_run_id, callback_data=None, ready_retry_times=0):
     try:
         run = PluginGatewayRun.objects.get(open_plugin_run_id=open_plugin_run_id)
     except PluginGatewayRun.DoesNotExist:
@@ -219,6 +222,32 @@ def callback_plugin_gateway_run(open_plugin_run_id, callback_data=None):
 
     if run.run_status in PluginGatewayRun.Status.TERMINAL:
         logger.info("[plugin_gateway] callback task skipped for terminal run(%s)", open_plugin_run_id)
+        return
+
+    if run.run_status != PluginGatewayRun.Status.WAITING_CALLBACK:
+        if ready_retry_times >= CALLBACK_READY_MAX_RETRY_TIMES:
+            logger.warning(
+                "[plugin_gateway] callback task stops waiting for run(%s), current=%s retry=%s",
+                open_plugin_run_id,
+                run.run_status,
+                ready_retry_times,
+            )
+            return
+        logger.info(
+            "[plugin_gateway] callback task waits for run(%s) to enter callback state, current=%s retry=%s",
+            open_plugin_run_id,
+            run.run_status,
+            ready_retry_times,
+        )
+        callback_plugin_gateway_run.apply_async(
+            kwargs={
+                "open_plugin_run_id": open_plugin_run_id,
+                "callback_data": callback_data,
+                "ready_retry_times": ready_retry_times + 1,
+            },
+            countdown=CALLBACK_READY_RETRY_INTERVAL_SECONDS,
+            queue="open_plugin_callback",
+        )
         return
 
     try:

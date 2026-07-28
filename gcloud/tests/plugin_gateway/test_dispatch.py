@@ -291,3 +291,54 @@ class PluginGatewayDispatchTaskTestCase(TestCase):
             run_status=PluginGatewayRun.Status.SUCCEEDED,
             outputs={"result": 9},
         )
+
+    @patch("gcloud.plugin_gateway.tasks.callback_plugin_gateway_run.apply_async")
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayRunner.run_schedule")
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayContextService.resolve_run_context")
+    def test_callback_task_waits_for_dispatch_to_persist_callback_state(
+        self, mock_resolve_context, mock_run_schedule, mock_callback_apply_async
+    ):
+        run = self._create_run(run_status=PluginGatewayRun.Status.RUNNING)
+        callback_data = {"result": "ok"}
+
+        callback_plugin_gateway_run(
+            open_plugin_run_id=run.open_plugin_run_id,
+            callback_data=callback_data,
+            ready_retry_times=2,
+        )
+
+        mock_resolve_context.assert_not_called()
+        mock_run_schedule.assert_not_called()
+        mock_callback_apply_async.assert_called_once_with(
+            kwargs={
+                "open_plugin_run_id": run.open_plugin_run_id,
+                "callback_data": callback_data,
+                "ready_retry_times": 3,
+            },
+            countdown=1,
+            queue="open_plugin_callback",
+        )
+
+    @patch("gcloud.plugin_gateway.tasks.callback_plugin_gateway_run.apply_async")
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayCallbackService.callback_run")
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayRunner.run_schedule")
+    @patch("gcloud.plugin_gateway.tasks.PluginGatewayContextService.resolve_run_context")
+    def test_callback_task_stops_waiting_after_ready_retry_limit(
+        self,
+        mock_resolve_context,
+        mock_run_schedule,
+        mock_callback_run,
+        mock_callback_apply_async,
+    ):
+        run = self._create_run(run_status=PluginGatewayRun.Status.RUNNING)
+
+        callback_plugin_gateway_run(
+            open_plugin_run_id=run.open_plugin_run_id,
+            callback_data={"result": "ok"},
+            ready_retry_times=30,
+        )
+
+        mock_resolve_context.assert_not_called()
+        mock_run_schedule.assert_not_called()
+        mock_callback_run.assert_not_called()
+        mock_callback_apply_async.assert_not_called()

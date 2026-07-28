@@ -1060,7 +1060,7 @@ git commit -m "feat: 插件网关支持轮询型插件异步执行 --story=13364
 
 ### Task 7: 回调模式（内部回调入口 + callback 任务）
 
-> **风险标记（spec §2.4 / §11）**：回调型组件常用 `get_node_callback_url(root_pipeline_id, id, version)` 自行拼装回调地址，指向标准运维节点回调端点。运行壳没有引擎节点，需让该 run_id 的回调被路由到网关回调处理而非引擎。本任务交付网关侧回调入口与 `service.schedule(callback_data=...)` 闭环；「下游回调地址正确指向网关」这一路由缝隙在联调中确认；无法重定向回调的组件进 `do_not_open_list`。
+> **联调结论（2026-07-28）**：回调型组件继续使用 `get_node_callback_url(root_pipeline_id, id, version)` 生成带签名 token 的标准运维节点回调地址。节点回调入口在 token 中 `root_pipeline_id == node_id` 且命中 `PluginGatewayRun` 时，将请求转投 `open_plugin_callback`；普通引擎节点仍走原 `NodeCommandDispatcher`。callback 早于 dispatch 落 `WAITING_CALLBACK` 时由网关任务短暂重试，避免用未持久化的 `runtime_outputs` 提前执行 schedule。
 
 **Files:**
 - Modify: `gcloud/apigw/views/plugin_gateway.py`（新增内部回调入口）
@@ -1413,9 +1413,8 @@ git commit -m "test: 插件网关全量能力回归与修补 --story=133649781"
 - ✅ 独立 worker 队列、超时兜底、取消 best-effort、错误映射
 - ⏳ 已知限制（spec §11）：
   1. 运行壳上下文不完备的组件（强依赖全局密码变量 / 引擎节点状态 / 特殊 `parent_data`）需进黑名单
-  2. 回调型组件「回调地址指向网关」的路由缝隙待联调确认
-  3. 多版本插件不做进程级隔离
-  4. 用户级凭证透传/代理身份不在本期
+  2. 多版本插件不做进程级隔离
+  3. 用户级凭证透传/代理身份不在本期
 
 ---
 
