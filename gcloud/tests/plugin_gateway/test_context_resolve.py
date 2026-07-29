@@ -87,20 +87,20 @@ class PluginGatewayContextResolveTestCase(TestCase):
 
     @override_settings(BK_SOPS_HOST="https://bksops.example.com/")
     def test_resolve_form_context_reuses_biz_project_resolution(self):
-        project = Project.objects.create(name="biz100605", creator="admin", bk_biz_id=100605, from_cmdb=True)
+        project = Project.objects.create(name="biz9991", creator="admin", bk_biz_id=9991, from_cmdb=True)
 
         context = PluginGatewayContextService.resolve_form_context(
             source_config=self.source_config,
             scope_type="biz",
-            scope_value="100605",
+            scope_value="9991",
             plugin_source=PLUGIN_SOURCE_THIRD_PARTY,
             plugin_code="danny-test-plugi",
         )
 
         self.assertEqual(context["project"]["id"], project.id)
-        self.assertEqual(context["project"]["bk_biz_id"], 100605)
+        self.assertEqual(context["project"]["bk_biz_id"], 9991)
         self.assertTrue(context["project"]["from_cmdb"])
-        self.assertEqual(context["biz_cc_id"], 100605)
+        self.assertEqual(context["biz_cc_id"], 9991)
         self.assertEqual(context["site_url"], "https://bksops.example.com/")
         self.assertEqual(context["component"], "https://bksops.example.com/api/v3/component/")
         self.assertEqual(

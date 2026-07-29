@@ -142,10 +142,10 @@ detail 必须按请求中的 `plugin_version` 精确读取组件类或第三方�
   "form_context": {
     "project": {
       "id": 123,
-      "bk_biz_id": 100605,
+      "bk_biz_id": 9991,
       "from_cmdb": true
     },
-    "biz_cc_id": 100605,
+    "biz_cc_id": 9991,
     "site_url": "https://bksops.example.com/",
     "component": "https://bksops.example.com/api/v3/component/",
     "variable": "https://bksops.example.com/api/v3/variable/",

@@ -217,10 +217,10 @@ class PluginGatewayAPITest(APITest):
                 "version": "v2.0",
                 "source_key": "bkflow",
                 "scope_type": "biz",
-                "scope_value": "100605",
+                "scope_value": "9991",
                 "operator": "other",
             },
-            HTTP_BK_JWT_USERNAME="dannydeng",
+            HTTP_BK_JWT_USERNAME="jwt-operator",
             HTTP_BK_JWT_USER_VERIFIED=True,
         )
 
@@ -234,13 +234,13 @@ class PluginGatewayAPITest(APITest):
             version="v2.0",
             source_config=source_config,
             scope_type="biz",
-            scope_value="100605",
-            operator="dannydeng",
+            scope_value="9991",
+            operator="jwt-operator",
         )
         self.assertEqual(call_kwargs["request"].user.username, "cookie-user")
         self.assertFalse(hasattr(call_kwargs["request"].user, "verified"))
         self.assertTrue(getattr(call_kwargs["request"], "_apigw_jwt_user_verified", False))
-        self.assertEqual(getattr(call_kwargs["request"], "_apigw_jwt_username", ""), "dannydeng")
+        self.assertEqual(getattr(call_kwargs["request"], "_apigw_jwt_username", ""), "jwt-operator")
 
     @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
     def test_get_plugin_detail_without_source_key_allows_unverified_app_only_request(self, mock_get_plugin_detail):
@@ -263,13 +263,13 @@ class PluginGatewayAPITest(APITest):
         response = self.client.get(
             path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
             data={"source_key": "bkflow"},
-            HTTP_BK_JWT_USERNAME="dannydeng",
+            HTTP_BK_JWT_USERNAME="jwt-operator",
             HTTP_BK_JWT_USER_VERIFIED=False,
         )
 
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
-        self.assertEqual(mock_get_plugin_detail.call_args[1]["operator"], "dannydeng")
+        self.assertEqual(mock_get_plugin_detail.call_args[1]["operator"], "jwt-operator")
 
     @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
     def test_get_plugin_detail_with_source_key_accepts_missing_verified_field(self, mock_get_plugin_detail):
@@ -278,12 +278,12 @@ class PluginGatewayAPITest(APITest):
         response = self.client.get(
             path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
             data={"source_key": "bkflow"},
-            HTTP_BK_JWT_USERNAME="dannydeng",
+            HTTP_BK_JWT_USERNAME="jwt-operator",
         )
 
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
-        self.assertEqual(mock_get_plugin_detail.call_args[1]["operator"], "dannydeng")
+        self.assertEqual(mock_get_plugin_detail.call_args[1]["operator"], "jwt-operator")
 
     @patch("gcloud.apigw.views.plugin_gateway.PluginGatewayCatalogService.get_plugin_detail")
     def test_get_plugin_detail_with_source_key_rejects_missing_user_identity(self, mock_get_plugin_detail):
@@ -303,7 +303,7 @@ class PluginGatewayAPITest(APITest):
         response = self.client.get(
             path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
             data={"source_key": "bkflow"},
-            HTTP_BK_JWT_USERNAME="dannydeng",
+            HTTP_BK_JWT_USERNAME="jwt-operator",
             HTTP_BK_APP_CODE="",
         )
 
@@ -344,7 +344,7 @@ class PluginGatewayAPITest(APITest):
 
         response = self.client.get(
             path="/apigw/plugin-gateway/plugins/builtin__job_fast_execute_script/",
-            data={"source_key": "bkflow", "scope_type": "biz", "scope_value": "100605"},
+            data={"source_key": "bkflow", "scope_type": "biz", "scope_value": "9991"},
             HTTP_BK_JWT_USERNAME=TEST_USERNAME,
             HTTP_BK_JWT_USER_VERIFIED=True,
         )
