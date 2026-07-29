@@ -16,11 +16,23 @@ from django import forms
 
 class GetFunctionalizationTaskListForm(forms.Form):
     status = forms.CharField(required=False)
+    execute_status = forms.CharField(required=False)
     task_id_in = forms.CharField(required=False)
     id_in = forms.CharField(required=False)
     project_id = forms.IntegerField(required=False)
     create_time_lte = forms.DateTimeField(required=False)
     create_time_gte = forms.DateTimeField(required=False)
+    creator = forms.CharField(required=False)
+    claimant = forms.CharField(required=False)
+
+    def clean_execute_status(self):
+        """验证执行状态参数"""
+        execute_status = self.cleaned_data.get("execute_status")
+        if execute_status:
+            valid_values = ["nonExecution", "running", "revoked", "finished"]
+            if execute_status not in valid_values:
+                raise forms.ValidationError("execute_status 参数值错误，只能是 {} 之一".format("/".join(valid_values)))
+        return execute_status
 
     def _list_field_validate(self, field_name):
         field_value = self.cleaned_data.get(field_name)

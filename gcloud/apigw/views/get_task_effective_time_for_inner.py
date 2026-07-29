@@ -19,15 +19,29 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.analysis_statistics.service import effective_time_for_task
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
+from gcloud.apigw.decorators import mark_request_whether_is_trust
 
 
 @login_exempt
 @api_view(["GET"])
 @apigw_require
+@mark_request_whether_is_trust
 def get_task_effective_time_for_inner(request, task_id, bk_biz_id):
     """
     统计任务的有效执行时间（排除人工节点及其等待时间，以及失败后等待时间）
+
+    仅允许处于 APIGW 信任名单（is_trust）的应用调用，避免任意网关应用借此
+    绕过用户 IAM 校验跨业务读取任务有效执行时间统计（BAC / 信息泄露）
     """
+    if not request.is_trust:
+        return Response(
+            {
+                "result": False,
+                "message": "you have no permission to call this api.",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
+
     scope = request.query_params.get("scope", PROJECT_SCOPE_CMDB_BIZ)
     debug_mode = request.query_params.get("debug", "0") == "1"
     try:

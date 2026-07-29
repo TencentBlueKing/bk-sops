@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import abc
+from types import SimpleNamespace
 
 from django.conf import settings
 from django.test import Client, TestCase
@@ -45,16 +46,34 @@ def mock_inject_user(request):
 
 
 def mock_check_white_apps(request):
-    request.user = MockJwtClientAttr(
-        {
-            settings.APIGW_MANAGER_USER_USERNAME_KEY: request.META.get("HTTP_BK_USERNAME", ""),
-            "tenant_id": request.META.get("HTTP_X_BK_TENANT_ID", "system"),
-        }
-    )
+    if not getattr(getattr(request, "user", None), "is_authenticated", False):
+        request.user = MockJwtClientAttr(
+            {
+                settings.APIGW_MANAGER_USER_USERNAME_KEY: request.META.get("HTTP_BK_USERNAME", ""),
+                "tenant_id": request.META.get("HTTP_X_BK_TENANT_ID", "system"),
+            }
+        )
     request.app = MockJwtClientAttr(
         {settings.APIGW_MANAGER_APP_CODE_KEY: request.META.get("HTTP_BK_APP_CODE", TEST_APP_CODE)}
     )
     return True
+
+
+class MockApiGatewayJWTPayloadMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        username_header = "HTTP_BK_JWT_USERNAME"
+        verified_header = "HTTP_BK_JWT_USER_VERIFIED"
+        if username_header in request.META or verified_header in request.META:
+            jwt_user = {}
+            if username_header in request.META:
+                jwt_user[settings.APIGW_MANAGER_USER_USERNAME_KEY] = request.META[username_header]
+            if verified_header in request.META:
+                jwt_user["verified"] = request.META[verified_header]
+            request.jwt = SimpleNamespace(payload={"user": jwt_user})
+        return self.get_response(request)
 
 
 class APITest(TestCase, metaclass=abc.ABCMeta):

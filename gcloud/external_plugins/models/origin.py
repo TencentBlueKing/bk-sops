@@ -23,7 +23,7 @@ from pipeline.contrib.external_plugins.models.fields import JSONTextField
 from gcloud.external_plugins import CACHE_TEMP_PATH, exceptions
 from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
 from gcloud.external_plugins.models.cache import CachePackageSource
-from gcloud.external_plugins.protocol.readers import reader_cls_factory
+from gcloud.external_plugins.protocol.readers import reader_cls_factory, validate_git_branch, validate_git_repo_address
 
 source_cls_factory = {}
 ORIGIN = "origin"
@@ -135,6 +135,17 @@ class GitRepoOriginalSource(OriginalPackageSource):
     @staticmethod
     def original_type():
         return GIT
+
+    def clean(self):
+        # admin / ModelForm 校验阶段拦截危险 git 地址(ext::/file:///参数注入等),
+        # 与 GitReader.read() 的 sink 校验保持一致, 形成双重防御。
+        from django.core.exceptions import ValidationError
+
+        try:
+            validate_git_repo_address(self.repo_address)
+            validate_git_branch(self.branch)
+        except exceptions.ForbiddenExternalPluginSourceError as e:
+            raise ValidationError(str(e))
 
     @property
     def details(self):

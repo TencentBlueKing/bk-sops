@@ -19,6 +19,7 @@ from rest_framework.decorators import api_view
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.common_template import (
+    CheckBeforeImportInterceptor,
     ExportInterceptor,
     FormInterceptor,
     ImportInterceptor,
@@ -169,6 +170,7 @@ def import_templates(request):
 )
 @api_view(["POST"])
 @request_validate(CheckBeforeImportValidator)
+@iam_intercept(CheckBeforeImportInterceptor())
 def check_before_import(request):
     """
     检测 DAT 文件是否支持导入

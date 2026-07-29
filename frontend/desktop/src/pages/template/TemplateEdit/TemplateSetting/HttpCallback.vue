@@ -551,6 +551,7 @@
                     return
                 }
                 const params = {
+                    project_id: this.$store.state.project_id,
                     method: this.localWebhookForm.method,
                     endpoint: this.localWebhookForm.endpoint,
                     authorization: authorization.type === 'basic' ? basicAuth : authorization,

@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Task Diagnostics</title>
+</head>
+<body>
+  <h1>Task Diagnostics</h1>
+  <p><a href="{{ SITE_URL }}admin/diagnostics/board/">→ 卡住流程治理控制台(病历列表)</a></p>
+  <form method="get" action="/admin/diagnostics/task/detail/">
+    <label>Task ID <input name="task_id"></label>
+    <label>Node ID <input name="node_id"></label>
+    <button type="submit">Diagnose</button>
+  </form>
+</body>
+</html>

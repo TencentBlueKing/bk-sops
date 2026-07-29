@@ -21,6 +21,7 @@ from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet, GcloudUpdateViewSet
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.utils import get_user_projects
 
 
 class ProjectPermission(IamPermission):
@@ -70,6 +71,17 @@ class ProjectSetViewSet(GcloudUpdateViewSet, GcloudListViewSet):
                 IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
             ],
         )
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # list 行为原先无任何鉴权(pass_all)，会向任意登录用户暴露全平台项目清单，
+        # 这里收敛为当前用户有查看权限的项目，避免跨项目/跨业务项目枚举(信息泄露)
+        if getattr(self, "action", None) == "list":
+            user_project_ids = list(
+                get_user_projects(self.request.user.username, self.request.user.tenant_id).values_list("id", flat=True)
+            )
+            queryset = queryset.filter(id__in=user_project_ids)
+        return queryset
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

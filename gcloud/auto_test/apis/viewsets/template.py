@@ -11,13 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import logging
-from django.utils.decorators import method_decorator
 
 from blueapps.account.decorators import login_exempt
+from django.utils.decorators import method_decorator
+
 from gcloud.common_template.models import CommonTemplate
 from gcloud.tasktmpl3.models import TaskTemplate
 
 from ..mixin import BatchDeleteMixin
+from ..permission import AUTO_TEST_SCOPE_COMMON_TEMPLATE, AUTO_TEST_SCOPE_TEMPLATE
 
 logger = logging.getLogger("root")
 
@@ -31,6 +33,8 @@ class ProjectTemplateViewSet(TemplateViewSet):
     """项目流程模版"""
 
     queryset = TaskTemplate.objects.all()
+    auto_test_scope = AUTO_TEST_SCOPE_TEMPLATE
+    auto_test_require_project_id = True
 
 
 @method_decorator(login_exempt, name="dispatch")
@@ -38,3 +42,4 @@ class CommonTemplateViewSet(TemplateViewSet):
     """通用流程模版"""
 
     queryset = CommonTemplate.objects.all()
+    auto_test_scope = AUTO_TEST_SCOPE_COMMON_TEMPLATE

@@ -19,6 +19,7 @@ from gcloud.contrib.admin.views import (
     batch_delete_project_based_component,
     batch_insert_project_based_component,
     batch_revoke_task,
+    diagnostics,
 )
 from gcloud.contrib.admin.viewsets import (
     AdminPeriodicTaskViewSet,
@@ -58,4 +59,12 @@ urlpatterns = [
     re_path(r"^batch_delete_project_based_component/$", batch_delete_project_based_component),
     re_path(r"^batch_revoke_task/$", batch_revoke_task),
     re_path(r"^command/get_enabled_periodic_task/$", views.get_enabled_periodic_task),
+    re_path(r"^diagnostics/board/$", diagnostics.diagnostic_board),
+    re_path(r"^diagnostics/task/$", diagnostics.task_diagnostic_page),
+    re_path(r"^diagnostics/task/detail/$", diagnostics.task_diagnostic_detail),
+    re_path(r"^diagnostics/task/action/$", diagnostics.task_diagnostic_action),
+    re_path(r"^diagnostics/cases/$", diagnostics.diagnostic_case_list),
+    re_path(r"^diagnostics/cases/detail/$", diagnostics.diagnostic_case_detail),
+    re_path(r"^diagnostics/cases/status/$", diagnostics.diagnostic_case_status),
+    re_path(r"^diagnostics/cases/action/$", diagnostics.diagnostic_case_action),
 ]

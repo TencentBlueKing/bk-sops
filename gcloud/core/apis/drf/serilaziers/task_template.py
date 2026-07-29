@@ -137,6 +137,7 @@ class TemplateLabelQuerySerializer(serializers.Serializer):
 
 
 class WebhookConfigQuerySerializer(serializers.Serializer):
+    project_id = serializers.IntegerField(help_text=_("project id"), required=True)
     method = serializers.CharField(help_text=_("webhook method"), max_length=255, required=True)
     endpoint = serializers.URLField(help_text=_("webhook endpoint"), max_length=255, required=True)
     headers = serializers.JSONField(help_text=_("webhook headers"), required=False)

@@ -65,8 +65,6 @@ const Audit = () => import('@/pages/audit/index.vue')
 const clockedTemplateList = () => import('@/pages/task/ClockedList/index.vue')
 const periodicTemplateList = () => import('@/pages/task/PeriodicList/index.vue')
 
-const AtomDev = () => import('@/pages/atomdev/index.vue')
-
 Vue.use(VueRouter)
 
 const APPMAKER = {
@@ -466,12 +464,6 @@ const routers = new VueRouter({
                             component: SourceSync
                         }
                     ]
-                },
-                {
-                    path: 'atomdev/',
-                    name: 'atomDev',
-                    pathToRegexpOptions: { strict: true },
-                    component: AtomDev
                 }
             ]
         },

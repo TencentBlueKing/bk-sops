@@ -94,11 +94,6 @@ const ADMIN_ROUTE_LIST = [
                     name: i18n.t('运营数据'),
                     subRoutes: ['statisticsTemplate', 'statisticsInstance', 'statisticsAtom', 'statisticsAppmaker'],
                     url: '/admin/statistics/template/'
-                },
-                {
-                    id: 'atomDev',
-                    name: i18n.t('插件开发'),
-                    url: '/admin/atomdev/'
                 }
             ]
         }

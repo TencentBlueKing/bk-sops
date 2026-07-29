@@ -16,12 +16,10 @@ from blueapps.account.decorators import login_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject
-from gcloud.apigw.views.utils import logger
+from gcloud.apigw.log_auth import get_taskflow_for_log, validate_node_plugin_trace, validate_task_node
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
-from gcloud.taskflow3.models import TaskFlowInstance
 from plugin_service.plugin_client import PluginServiceApiClient
 
 
@@ -47,20 +45,20 @@ def fetch_task_plugin_log(plugin_code, trace_id, scroll_id=None):
 @iam_intercept(TaskViewInterceptor())
 def get_task_plugin_log(request, task_id, project_id):
     project = request.project
-    try:
-        TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
-    except TaskFlowInstance.DoesNotExist:
-        message = (
-            "[API] get_task_plugin_log task[id={task_id}] "
-            "of project[project_id={project_id}, biz_id={biz_id}] does not exist".format(
-                task_id=task_id, project_id=project.id, biz_id=project.bk_biz_id
-            )
-        )
-        logger.exception(message)
-        return Response({"result": False, "message": message, "code": err_code.CONTENT_NOT_EXIST.code})
+    taskflow, error_response = get_taskflow_for_log("get_task_plugin_log", task_id, project)
+    if error_response is not None:
+        return error_response
 
+    node_id = request.GET.get("node_id")
     trace_id = request.GET.get("trace_id")
     scroll_id = request.GET.get("scroll_id")
     plugin_code = request.GET.get("plugin_code")
+    error_response = validate_task_node("get_task_plugin_log", taskflow, node_id)
+    if error_response is not None:
+        return error_response
+
+    error_response = validate_node_plugin_trace("get_task_plugin_log", node_id, trace_id, plugin_code)
+    if error_response is not None:
+        return error_response
 
     return Response(fetch_task_plugin_log(plugin_code, trace_id, scroll_id))

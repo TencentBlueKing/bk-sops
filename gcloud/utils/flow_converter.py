@@ -312,9 +312,18 @@ class SimpleFlowConverter:
             "line": self._build_line_positions(flows),
         }
 
+    # 第三方插件 (remote_plugin) 框架字段默认值
+    REMOTE_PLUGIN_FRAMEWORK_FIELDS = {
+        "command": {"hook": False, "need_render": True, "value": ""},
+        "input": {"hook": False, "need_render": True, "value": ""},
+        "session_code": {"hook": False, "need_render": True, "value": ""},
+        "chat_history": {"hook": False, "need_render": True, "value": []},
+        "context": {"hook": False, "need_render": True, "value": []},
+    }
+
     def _build_activity(self, node, incoming, outgoing) -> dict:
         """
-        构建 Activity 节点
+        构建 Activity 节点，支持标准插件和第三方插件 (remote_plugin)
 
         :param node: 原始节点数据
         :param incoming: 入边列表
@@ -327,7 +336,25 @@ class SimpleFlowConverter:
         normalized_data = self._normalize_component_data(raw_data)
 
         code = node.get("code", "")
-        version = self._get_latest_component_version(code)
+        plugin_code = node.get("plugin_code", "")
+        plugin_version = node.get("plugin_version", "")
+
+        # 第三方插件 (remote_plugin): 自动补全框架字段，plugin_code/plugin_version 放入 data 内部
+        if code == "remote_plugin":
+            remote_data = {}
+            # 先填充框架字段默认值
+            for field_key, field_default in self.REMOTE_PLUGIN_FRAMEWORK_FIELDS.items():
+                remote_data[field_key] = dict(field_default)
+            # 用户业务参数覆盖
+            remote_data.update(normalized_data)
+            # plugin_code / plugin_version 放入 data 内部（不被用户参数覆盖）
+            remote_data["plugin_code"] = {"hook": False, "value": plugin_code}
+            remote_data["plugin_version"] = {"hook": False, "value": plugin_version or "1.0.0"}
+
+            normalized_data = remote_data
+            version = plugin_version or "1.0.0"
+        else:
+            version = self._get_latest_component_version(code)
 
         activity = {
             "id": node["id"],
