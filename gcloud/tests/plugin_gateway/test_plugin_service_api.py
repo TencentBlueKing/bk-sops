@@ -6,7 +6,7 @@ from django.test import TestCase, override_settings
 from gcloud.plugin_gateway.constants import PLUGIN_SOURCE_THIRD_PARTY
 from gcloud.plugin_gateway.exceptions import PluginGatewaySourceUnavailableError
 
-ALLOWED_ORIGIN = "https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com"
+ALLOWED_ORIGIN = "https://plugin-form.example.com"
 
 
 @override_settings(
@@ -96,7 +96,7 @@ class PluginServiceDataApiTestCase(TestCase):
         origins = (
             "https://evil.example",
             "null",
-            "https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com/path",
+            "https://plugin-form.example.com/path",
         )
 
         for origin in origins:

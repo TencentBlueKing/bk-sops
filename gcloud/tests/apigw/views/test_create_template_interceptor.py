@@ -34,11 +34,11 @@ class CreateTemplateInterceptorTestCase(TestCase):
         request = SimpleNamespace(
             is_trust=False,
             user=SimpleNamespace(username="tester"),
-            project=SimpleNamespace(id=42, name="project-for-biz-100605"),
+            project=SimpleNamespace(id=42, name="project-for-biz-9991"),
         )
         mocked_resources_for_project_obj.return_value = ["project-resource"]
 
-        interceptor.process(request, project_id="100605")
+        interceptor.process(request, project_id="9991")
 
         mocked_resources_for_project_obj.assert_called_once_with(request.project)
         mocked_allow_or_raise_auth_failed.assert_called_once()

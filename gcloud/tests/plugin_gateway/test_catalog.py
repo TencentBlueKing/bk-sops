@@ -353,7 +353,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
     def test_get_plugin_detail_adds_form_context_only_for_source_request(
         self, mock_get_plugin_reference, mock_builtin_detail, mock_resolve_form_context
     ):
-        project = Project.objects.create(name="biz100605", creator="admin", bk_biz_id=100605, from_cmdb=True)
+        project = Project.objects.create(name="biz9991", creator="admin", bk_biz_id=9991, from_cmdb=True)
         source_config = PluginGatewaySourceConfig.objects.create(
             source_key="bkflow",
             display_name="BKFlow",
@@ -384,8 +384,8 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
             version="v2.0",
             source_config=source_config,
             scope_type="biz",
-            scope_value="100605",
-            operator="dannydeng",
+            scope_value="9991",
+            operator="jwt-operator",
         )
 
         self.assertNotIn("form_context", old_detail)
@@ -393,7 +393,7 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         mock_resolve_form_context.assert_called_once_with(
             source_config=source_config,
             scope_type="biz",
-            scope_value="100605",
+            scope_value="9991",
             plugin_source=PLUGIN_SOURCE_BUILTIN,
             plugin_code="job_fast_execute_script",
         )

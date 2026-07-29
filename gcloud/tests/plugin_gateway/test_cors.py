@@ -2,7 +2,7 @@ from django.test import RequestFactory, SimpleTestCase, TestCase, modify_setting
 
 from gcloud.plugin_gateway.cors import allow_plugin_form_cors
 
-ALLOWED_ORIGIN = "https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com"
+ALLOWED_ORIGIN = "https://plugin-form.example.com"
 GLOBAL_ORIGIN = "https://global-cors.example.com"
 REGISTERED_PATHS = (
     "/pipeline/cc_get_business_list/",
@@ -136,8 +136,8 @@ class PluginFormCorsSignalTestCase(SimpleTestCase):
     )
     def test_rejects_suffix_or_scheme_mismatch(self):
         for origin in (
-            "http://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com",
-            "https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com.evil.example",
+            "http://plugin-form.example.com",
+            "https://plugin-form.example.com.evil.example",
         ):
             with self.subTest(origin=origin):
                 request = self.factory.get(
