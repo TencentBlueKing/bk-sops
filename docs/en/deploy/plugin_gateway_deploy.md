@@ -123,7 +123,7 @@ Native dynamic-form cross-origin access is disabled by default. Enable it in Sta
 
 ```text
 BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW=true
-BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com
+BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://plugin-form.example.com
 ```
 
 Every origin in `BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST` must include its scheme and must not include a path; never configure `*`. The switch enables credentialed CORS only for the allowlisted origin and registered form helper routes. It does not allow cross-origin access to other `/pipeline/` paths or unregistered plugin data APIs.

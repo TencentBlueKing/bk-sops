@@ -23,7 +23,7 @@
 7. 第三方 `data_api` 的同源存量调用保持原行为；仅跨 Origin 请求增加插件网关可见性与黑名单校验。
 8. 原生表单存在但加载失败时由消费方明确报错。提供方没有 `forms.input` 时才允许消费方根据 `inputs` 生成通用表单。
 9. 所有提交使用 `<type>: <subject> --story=133649781`。
-10. Stage 验收使用 `scope_type=biz`、`scope_value=100605`、operator `dannydeng`；涉及 SAP 的存量插件只验证配置和解析，禁止执行。
+10. Stage 验收使用 `scope_type=biz`、`scope_value=9991`、operator `jwt-operator`；涉及 SAP 的存量插件只验证配置和解析，禁止执行。
 
 ---
 
@@ -400,7 +400,7 @@ git commit -m "feat: 原样暴露第三方插件表单协议 --story=133649781"
 
 - [ ] **Step 1: 写上下文一致性失败测试**
 
-在 `test_context_resolve.py` 创建 `bk_biz_id=100605` 的 Project 和来源配置：
+在 `test_context_resolve.py` 创建 `bk_biz_id=9991` 的 Project 和来源配置：
 
 ```python
 @override_settings(BK_SOPS_HOST="https://bksops.example.com/")
@@ -408,13 +408,13 @@ def test_resolve_form_context_reuses_biz_project_resolution(self):
     context = PluginGatewayContextService.resolve_form_context(
         source_config=self.source_config,
         scope_type="biz",
-        scope_value="100605",
+        scope_value="9991",
         plugin_source="third_party",
         plugin_code="danny-test-plugi",
     )
     self.assertEqual(context["project"]["id"], self.project.id)
-    self.assertEqual(context["project"]["bk_biz_id"], 100605)
-    self.assertEqual(context["biz_cc_id"], 100605)
+    self.assertEqual(context["project"]["bk_biz_id"], 9991)
+    self.assertEqual(context["biz_cc_id"], 9991)
     self.assertEqual(
         context["bk_plugin_api_host"]["danny-test-plugi"],
         "https://bksops.example.com/plugin_service/data_api/danny-test-plugi/",
@@ -431,7 +431,7 @@ request.GET = {
     "version": "v2.0",
     "source_key": "sops",
     "scope_type": "biz",
-    "scope_value": "100605",
+    "scope_value": "9991",
 }
 mock_get_plugin_detail.assert_called_once_with(
     request=request,
@@ -439,8 +439,8 @@ mock_get_plugin_detail.assert_called_once_with(
     version="v2.0",
     source_config=source_config,
     scope_type="biz",
-    scope_value="100605",
-    operator="dannydeng",
+    scope_value="9991",
+    operator="jwt-operator",
 )
 ```
 
@@ -620,13 +620,13 @@ git commit -m "feat: 插件详情返回业务表单上下文 --story=133649781"
 ```python
 @override_settings(
     PLUGIN_GATEWAY_FORM_CORS_ALLOWED_ORIGINS={
-        "https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com"
+        "https://plugin-form.example.com"
     }
 )
 def test_allows_registered_route_for_exact_origin(self):
     request = self.factory.get(
         "/pipeline/cc_get_business_list/",
-        HTTP_ORIGIN="https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com",
+        HTTP_ORIGIN="https://plugin-form.example.com",
     )
     self.assertTrue(allow_plugin_form_cors(None, request))
 
@@ -641,8 +641,8 @@ def test_rejects_unregistered_pipeline_route(self):
 
 def test_rejects_suffix_or_scheme_mismatch(self):
     for origin in (
-        "http://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com",
-        "https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com.evil.example",
+        "http://plugin-form.example.com",
+        "https://plugin-form.example.com.evil.example",
     ):
         request = self.factory.get(
             "/pipeline/cc_get_business_list/",
@@ -896,7 +896,7 @@ scope_value:
 
 ```text
 BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW=true
-BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com
+BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://plugin-form.example.com
 ```
 
 写明不能配置 `*`，Origin 必须含 scheme 且不含路径；发布后先验证 Cookie、CSRF、CSP 和真实用户名，再测试动态表单。认证任一项失败即暂停，不启用匿名降级。
@@ -955,11 +955,11 @@ git commit -m "docs: 同步插件原生表单网关文档 --story=133649781"
 严格按以下顺序验收；某一步发现未发布或未配置就停止：
 
 1. detail 在不带 `source_key` 时仍返回旧兼容结构。
-2. detail 带 `source_key=sops&scope_type=biz&scope_value=100605` 时返回 Project 对应的 `form_context`。
+2. detail 带 `source_key=sops&scope_type=biz&scope_value=9991` 时返回 Project 对应的 `form_context`。
 3. JOB 快速执行脚本精确版本返回 `component_js`，注册 key 为 `job_fast_execute_script`，静态 URL 可访问。
 4. `danny-test-plugi` 精确版本返回原始 `renderform` 或 `jsonschema`，`bk_plugin_api_host` 指向该插件 data_api。
 5. BKFlow Origin 对已登记接口的 OPTIONS/GET 有凭证 CORS；未登记 `/pipeline/` 接口没有该响应头。
-6. BKFlow 通过已认证且获资源权限的 caller app 访问 `source_key` detail 时，signed JWT 携带的非空 username 仍为 `dannydeng`；不依赖浏览器 user token。
+6. BKFlow 通过已认证且获资源权限的 caller app 访问 `source_key` detail 时，signed JWT 携带的非空 username 仍为 `jwt-operator`；不依赖浏览器 user token。
 7. 黑名单插件的 list/detail/data_api 跨域请求均不可用。
 8. 已保存但已下架版本返回版本失效，不回退到 default/latest。
 9. 同步、轮询、回调执行回归均通过；SAP 存量插件不执行。

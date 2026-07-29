@@ -17,7 +17,7 @@ Get the detail of an exposed plugin by plugin id and version. Built-in plugin id
 ### Request Example
 
 ```text
-GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy&source_key=bkflow&scope_type=biz&scope_value=100605
+GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy&source_key=bkflow&scope_type=biz&scope_value=2
 ```
 
 ### Return Result Example
@@ -60,10 +60,10 @@ GET /apigw/plugin-gateway/plugins/builtin__job_execute_task/?version=legacy&sour
     "form_context": {
       "project": {
         "id": 2001,
-        "bk_biz_id": 100605,
+        "bk_biz_id": 2,
         "from_cmdb": true
       },
-      "biz_cc_id": 100605,
+      "biz_cc_id": 2,
       "site_url": "https://bk-sops.example/",
       "component": "https://bk-sops.example/api/v3/component/",
       "variable": "https://bk-sops.example/api/v3/variable/",

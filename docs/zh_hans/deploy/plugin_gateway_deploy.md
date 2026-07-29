@@ -134,7 +134,7 @@ PluginGatewaySourceConfig.objects.update_or_create(
 
 ```text
 BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW=true
-BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://stag-dot-bkflow-eng-svc.bkapps-sz.woa.com
+BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST=https://plugin-form.example.com
 ```
 
 `BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST` 中每个 Origin 必须包含 scheme，且不能带路径；不得配置 `*`。开关只为白名单 Origin 与已登记的表单辅助接口启用凭证 CORS，不会为其他 `/pipeline/` 路径或未登记的插件 data API 放行跨域请求。
