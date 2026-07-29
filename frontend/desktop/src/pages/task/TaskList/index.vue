@@ -380,7 +380,6 @@
                 firstLoading: true,
                 listLoading: false,
                 countLoading: false,
-                templateId: this.$route.query.template_id,
                 searchStr: '',
                 executeStatus: {}, // 任务执行状态
                 totalPage: 1,
@@ -1097,7 +1096,6 @@
                 }
                 // 搜索时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
-                this.templateId = ''
                 this.templateSource = ''
                 this.updateUrl()
                 this.getTaskList()
