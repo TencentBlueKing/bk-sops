@@ -1,0 +1,27 @@
+{
+  "total": 2,
+  "apis": [
+    {
+      "id": "plugin_job_execute",
+      "name": "JOB 执行作业",
+      "plugin_source": "builtin",
+      "plugin_code": "job_execute_task",
+      "wrapper_version": "v4.0.0",
+      "default_version": "1.2.0",
+      "latest_version": "1.3.0",
+      "versions": ["1.2.0", "1.3.0"],
+      "meta_url_template": ""
+    },
+    {
+      "id": "plugin_job_status",
+      "name": "JOB 查询状态",
+      "plugin_source": "builtin",
+      "plugin_code": "job_query_status",
+      "wrapper_version": "v4.0.0",
+      "default_version": "1.0.0",
+      "latest_version": "1.0.0",
+      "versions": ["1.0.0"],
+      "meta_url_template": ""
+    }
+  ]
+}

@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 
 from iam import Action, Subject, Request
 from iam.exceptions import AuthFailedException
+from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth import get_iam_client
@@ -47,3 +48,13 @@ class ModifyCronInterceptor(PeriodicTaskSingleActionInterceptor):
 
 class ModifyConstantsInterceptor(PeriodicTaskSingleActionInterceptor):
     action = IAMMeta.PERIODIC_TASK_EDIT_ACTION
+
+
+class PeriodicTaskProjectViewInterceptor(ViewInterceptor):
+    def process(self, request, *args, **kwargs):
+        project_id = kwargs["project_id"]
+
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.PROJECT_VIEW_ACTION)
+        resources = res_factory.resources_for_project(project_id)
+        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)

@@ -110,3 +110,34 @@ class AnalysisConstantsRefValidator(ObjectJsonBodyValidator):
                 return False, "{} in tree is not a object".format(obj_key)
 
         return True, ""
+
+
+class AgentBeautifyTemplateLayoutValidator(RequestValidator):
+    def validate(self, request, *args, **kwargs):
+        project_id = request.GET.get("project_id")
+        template_id = request.GET.get("template_id")
+        canvas_width = request.GET.get("canvas_width")
+
+        if not template_id or not project_id or not canvas_width:
+            return False, "template_id and project_id and canvas_width are required"
+
+        try:
+            if int(project_id) <= 0:
+                return False, "project_id must be a positive integer"
+        except ValueError:
+            return False, "project_id must be a positive integer"
+
+        # 防止 prompt 注入
+        try:
+            if int(template_id) <= 0:
+                return False, "template_id must be a positive integer"
+        except ValueError:
+            return False, "template_id must be a positive integer"
+
+        try:
+            if int(canvas_width) <= 0:
+                return False, "canvas_width must be a positive integer"
+        except ValueError:
+            return False, "canvas_width must be a positive integer"
+
+        return True, ""

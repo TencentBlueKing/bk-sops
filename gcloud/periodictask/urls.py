@@ -19,4 +19,8 @@ urlpatterns = [
     re_path(r"^api/enabled/(?P<project_id>\d+)/(?P<task_id>\d+)/$", api.set_enabled_for_periodic_task),
     re_path(r"^api/cron/(?P<project_id>\d+)/(?P<task_id>\d+)/$", api.modify_cron),
     re_path(r"^api/constants/(?P<project_id>\d+)/(?P<task_id>\d+)/$", api.modify_constants),
+    re_path(
+        r"^api/get_period_tasks_with_expired_template/(?P<project_id>\d+)/$",
+        api.get_period_tasks_with_expired_template,
+    ),
 ]

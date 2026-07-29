@@ -34,6 +34,8 @@ import { STRING_LENGTH } from '@/constants/index.js'
 import cron from '@/assets/js/node-cron-valid/node-cron-vaild.js'
 import tools from './utils/tools'
 import BkTrace from '@blueking/bk-trace-core'
+import VueCompositionAPI from '@vue/composition-api'
+
 const config = {
     errorBagName: 'veeErrors',
     fieldsBagName: 'veeFields'
@@ -74,6 +76,7 @@ Vue.use(Tooltip)
 Vue.use(Cascader)
 Vue.use(autocomplete)
 Vue.use(BkTrace, dateAccessConfig)
+Vue.use(VueCompositionAPI)
 
 window.reportInfo = function () {}
 

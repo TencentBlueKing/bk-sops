@@ -110,7 +110,7 @@
                             if (is_empty) {
                                 this._set_value(resp.data[0].value);
                             }
-                        } else if (resp.data.length > 1 && this.get_parent().get_parent().get_child("nodemgr_node_role").value === "agent") {
+                        } else if (resp.data.length > 1 && node_role === "agent") {
                             resp.data.unshift({"text": gettext("自动选择"), "value": -1});
                             if (is_empty) {
                                 this._set_value(-1);
