@@ -17,6 +17,7 @@ import traceback
 from copy import deepcopy
 
 import ujson as json
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models, transaction
 from django.db.models import Count, Q
 from django.utils.translation import gettext_lazy as _
@@ -1274,11 +1275,20 @@ class TaskFlowInstance(models.Model):
             else {"success": notify_type, "fail": notify_type, "pending_processing": notify_type}
         )
 
+    def _get_ai_notify_template(self):
+        # 一次性任务没有模板，模板被删除后也无法再读取通知配置，此时视为未配置 AI 通知
+        try:
+            return self.template
+        except (ObjectDoesNotExist, ValueError):
+            return None
+
     def get_ai_notify_type(self):
-        return self.template.ai_notify_type
+        template = self._get_ai_notify_template()
+        return template.ai_notify_type if template else None
 
     def get_ai_notify_group(self):
-        return self.template.ai_notify_group
+        template = self._get_ai_notify_template()
+        return template.ai_notify_group if template else None
 
     def record_and_get_executor_proxy(self, operator):
         if self.recorded_executor_proxy is None:
