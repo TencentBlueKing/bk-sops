@@ -82,6 +82,7 @@ from gcloud.apigw.views.query_task_count import query_task_count
 from gcloud.apigw.views.register_project import register_project
 from gcloud.apigw.views.set_periodic_task_enabled import set_periodic_task_enabled
 from gcloud.apigw.views.start_task import start_task
+from gcloud.apigw.views.get_node_execution_record import get_node_execution_record
 
 urlpatterns = [
     url(r"^dispatch_plugin_query/$", dispatch_plugin_query),
@@ -206,4 +207,5 @@ urlpatterns = [
     url(r"^get_plugin_base_info/(?P<project_id>\d+)/$", get_plugin_base_info),
     url(r"^modify_template_executor_proxy/(?P<template_id>\d+)/(?P<project_id>\d+)/$", modify_template_executor_proxy),
     url(r"^modify_project_executor_proxy/(?P<project_id>\d+)/$", modify_project_executor_proxy),
+    url(r"^get_node_execution_record/(?P<template_id>\d+)/(?P<project_id>\d+)/$", get_node_execution_record),
 ]

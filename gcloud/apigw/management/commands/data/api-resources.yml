@@ -4356,3 +4356,87 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
+  /get_node_execution_record/{template_id}/{bk_biz_id}/:
+    get:
+      operationId: get_node_execution_record
+      description: 获取节点最近执行记录
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码，0 表示成功
+                  data:
+                    type: object
+                    properties:
+                      execution_time:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            archived_time:
+                              type: string
+                              description: 归档时间
+                            elapsed_time:
+                              type: integer
+                              description: 执行耗时，单位秒
+                        description: 节点最近执行记录列表
+                      total:
+                        type: integer
+                        description: 节点执行总次数
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 查询成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+          description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 流程ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: template_node_id
+        schema:
+          type: string
+        required: true
+        description: 查询节点对应的流程节点 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: get
+          path: /{env.api_sub_path}apigw/get_node_execution_record/{template_id}/{bk_biz_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
