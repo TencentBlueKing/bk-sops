@@ -103,17 +103,14 @@ def send_task_message(pipeline_id, node_id, msg_type):
         executor = taskflow.pipeline_instance.executor
         # TODO 暂时先使用执行人作为接收人，后续支持通知分组
         receivers = executor
-        ai_notify_type = taskflow.get_ai_notify_type()
-        ai_notify_group = taskflow.get_ai_notify_group()
-        # AI分析通知开关
-        enable_analysis_notification = env.ENABLE_AI_NOTIFICATION
+        # AI分析通知开关关闭时不读取模板上的AI通知配置，避免影响后续的webhook事件广播
+        # 排除周期任务(周期任务频繁执行，避免频繁调用AI接口产生过多通知)
+        need_ai_notify = env.ENABLE_AI_NOTIFICATION and taskflow.create_method != TaskCreateMethod.PERIODIC.value
+        ai_notify_type = taskflow.get_ai_notify_type() if need_ai_notify else None
+        ai_notify_group = taskflow.get_ai_notify_group() if need_ai_notify else None
 
-        # 提交个人通知任务 排除周期任务
-        if (
-            enable_analysis_notification
-            and ai_notify_type
-            and taskflow.create_method != TaskCreateMethod.PERIODIC.value
-        ):
+        # 提交个人通知任务
+        if need_ai_notify and ai_notify_type:
 
             logger.info(
                 f"[send_task_message] ai_analysis_notify apply_async bk_biz_id: {bk_biz_id}, task_id: {task_id}"
@@ -132,12 +129,8 @@ def send_task_message(pipeline_id, node_id, msg_type):
                 routing_key="ai_notify",
             )
 
-        # 提交群聊通知任务 排除周期任务(周期任务频繁执行，避免频繁调用AI接口产生过多通知)
-        if (
-            enable_analysis_notification
-            and ai_notify_group
-            and taskflow.create_method != TaskCreateMethod.PERIODIC.value
-        ):
+        # 提交群聊通知任务
+        if need_ai_notify and ai_notify_group:
 
             logger.info(
                 f"[send_task_message] ai_analysis_notify_group_chat apply_async bk_biz_id: "
