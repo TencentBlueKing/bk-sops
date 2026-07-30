@@ -13,12 +13,13 @@ specific language governing permissions and limitations under the License.
 
 from django.shortcuts import render
 
-from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.decorators import check_db_object_exists
+from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.core.signals import user_enter
+from gcloud.iam_auth import IAMMeta
 
 
-@check_db_object_exists("AppMaker")
+@check_db_object_exists("AppMaker", iam_action=IAMMeta.MINI_APP_VIEW_ACTION)
 def task_home(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
@@ -38,7 +39,7 @@ def task_home(request, app_id, project_id):
     return render(request, "core/base_vue.html", ctx)
 
 
-@check_db_object_exists("AppMaker")
+@check_db_object_exists("AppMaker", iam_action=IAMMeta.MINI_APP_VIEW_ACTION)
 def newtask_selectnode(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
@@ -56,7 +57,7 @@ def newtask_selectnode(request, app_id, project_id):
     return render(request, "core/base_vue.html", context)
 
 
-@check_db_object_exists("AppMaker")
+@check_db_object_exists("AppMaker", iam_action=IAMMeta.MINI_APP_VIEW_ACTION)
 def newtask_paramfill(request, app_id, project_id):
     """
     @summary 通过appmaker创建任务
@@ -74,7 +75,7 @@ def newtask_paramfill(request, app_id, project_id):
     return render(request, "core/base_vue.html", context)
 
 
-@check_db_object_exists("AppMaker")
+@check_db_object_exists("AppMaker", iam_action=IAMMeta.MINI_APP_VIEW_ACTION)
 def execute(request, app_id, project_id):
     """
     @summary: 在轻应用中查看任务详情

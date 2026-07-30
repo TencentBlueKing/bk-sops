@@ -23,10 +23,11 @@ from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateRelationship, TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from webhook.api import verify_webhook_endpoint
+from webhook.models import Webhook
 
 from gcloud import err_code
 from gcloud.contrib.audit.utils import bk_audit_add_event
@@ -91,8 +92,11 @@ class TaskTemplatePermission(IamPermission):
         "update_template_labels": IamPermissionInfo(
             IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
         ),
+        # 该接口为 detail=False 的 POST，会驱动服务端向外部 URL 发起验证请求(出站请求/潜在 SSRF 入口)，
+        # 因此不能下放到 PROJECT_VIEW(任意项目查看者均可触发出站请求)。受限于 detail=False 无法做对象级
+        # FLOW_EDIT，这里收敛为项目级的写意图权限 FLOW_CREATE(具备在该项目下编排流程的权限方可校验 webhook)。
         "verify_webhook_configuration": IamPermissionInfo(
-            IAMMeta.FLOW_EDIT_ACTION, res_factory.resources_for_flow_obj, HAS_OBJECT_PERMISSION
+            IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project_id"
         ),
     }
 
@@ -241,8 +245,8 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
         webhook_configs = get_webhook_configs(scope_code=str(instance.id))
+        data["enable_webhook"] = webhook_configs.pop("enable_webhook", False)
         data["webhook_configs"] = webhook_configs
-        data["enable_webhook"] = True if webhook_configs else False
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.FLOW_VIEW_ACTION,
@@ -259,7 +263,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
         webhook_configs = serializer.validated_data.pop("webhook_configs", {})
-        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
+        enable_webhook = serializer.validated_data.pop("enable_webhook", None)
         with transaction.atomic():
             result = manager.create_pipeline(
                 name=name, creator=creator, pipeline_tree=pipeline_tree, description=description
@@ -273,7 +277,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
             serializer.validated_data["pipeline_template_id"] = result["data"].template_id
             template_labels = serializer.validated_data.pop("template_labels")
             self.perform_create(serializer)
-            if enable_webhook and webhook_configs:
+            if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
@@ -320,7 +324,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         pipeline_tree = json.loads(serializer.validated_data.pop("pipeline_tree"))
         description = serializer.validated_data.pop("description", "")
         webhook_configs = serializer.validated_data.pop("webhook_configs", {})
-        enable_webhook = serializer.validated_data.pop("enable_webhook", False)
+        enable_webhook = serializer.validated_data.pop("enable_webhook", None)
         with transaction.atomic():
             result = manager.update_pipeline(
                 pipeline_template=template.pipeline_template,
@@ -337,14 +341,18 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
 
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
-            if enable_webhook and webhook_configs:
+
+            if enable_webhook is not None:
+                Webhook.objects.filter(scope_type="template", scope_code=str(serializer.instance.id)).update(
+                    enable_webhook=enable_webhook
+                )
+
+            if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))
                 if not apply_result["result"]:
                     message = apply_result["message"]
                     logger.error(message)
                     raise ValidationException(message)
-            elif not enable_webhook and get_webhook_configs(str(serializer.instance.id)):
-                clear_scope_webhooks([str(serializer.instance.id)])
 
             self.perform_update(serializer)
             self._sync_template_lables(serializer.instance.id, template_labels)
@@ -419,6 +427,12 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
     def enable_independent_subprocess(self, request, *args, **kwargs):
         template_id = kwargs.get("pk")
         project_id = request.query_params.get("project_id")
+        # 鉴权仅校验了请求参数 project_id 的 project_view，需进一步确认 template 确属该项目，
+        # 避免借自有项目权限跨项目读取其它项目模板的子流程配置(IDOR)；
+        # template_id=-1 为新建未保存场景，无归属可校验，直接放行
+        if template_id and str(template_id) != "-1":
+            if not TaskTemplate.objects.filter(id=template_id, project_id=project_id).exists():
+                raise PermissionDenied("template does not belong to the specified project")
         independent_subprocess_enable = TaskConfig.objects.enable_independent_subprocess(project_id, template_id)
         return Response({"enable": independent_subprocess_enable})
 
@@ -426,6 +440,11 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
     @action(methods=["GET"], detail=True)
     def common_info(self, request, *args, **kwargs):
         template = self.get_object()
+        # 鉴权基于请求参数 project__id 的 project_view，但 get_object 按 pk 取任意模板，
+        # 需确认 template 确属该项目，避免借自有项目权限跨项目读取流程名称/执行方案(IDOR)
+        project_id = request.query_params.get("project__id")
+        if str(template.project_id) != str(project_id):
+            raise PermissionDenied("template does not belong to the specified project")
         schemes = TemplateScheme.objects.filter(template=template.pipeline_template).values_list("id", "name")
         schemes_info = [{"id": scheme_id, "name": scheme_name} for scheme_id, scheme_name in schemes]
         return Response({"name": template.name, "schemes": schemes_info})
@@ -450,6 +469,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         serializer.is_valid(raise_exception=True)
 
         verify_data = serializer.validated_data.copy()
+        verify_data.pop("project_id", None)
         verify_data["url"] = verify_data.pop("endpoint")
 
         try:

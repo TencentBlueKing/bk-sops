@@ -15,12 +15,10 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
 from .utils import APITest
-
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
@@ -43,9 +41,7 @@ class QueryTaskCountAPITest(APITest):
             )
         ),
     )
-    @mock.patch(
-        TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(True, TEST_DATA))
-    )
+    @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(True, TEST_DATA)))
     def test_query_task_count__success(self):
         response = self.client.post(
             path=self.url().format(project_id=TEST_PROJECT_ID),
@@ -90,9 +86,35 @@ class QueryTaskCountAPITest(APITest):
             )
         ),
     )
+    @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(True, TEST_DATA)))
+    def test_query_task_count__conditions_cannot_override_project_id(self):
+        """BAC 回归：conditions 中的 project_id 不得覆盖 URL 上已鉴权的项目作用域。"""
+        response = self.client.post(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            data=json.dumps({"group_by": "category", "conditions": {"project_id": "999"}}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        called_args = task_flow_instance.dispatch.call_args[0]
+        self.assertEqual(called_args[0], "category")
+        # 即便请求体里塞了 project_id=999，最终下发的过滤条件仍被强制收敛回 URL 项目
+        self.assertEqual(called_args[1]["project_id"], TEST_PROJECT_ID)
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+
     @mock.patch(
-        TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, ""))
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
     )
+    @mock.patch(TASKINSTANCE_EXTEN_CLASSIFIED_COUNT, MagicMock(return_value=(False, "")))
     def test_query_task_count__dispatch_fail(self):
         response = self.client.post(
             path=self.url().format(project_id=TEST_PROJECT_ID),

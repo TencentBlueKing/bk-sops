@@ -22,6 +22,7 @@ from pipeline.component_framework.component import Component
 from pipeline.core.flow.activity import StaticIntervalGenerator
 from pipeline.core.flow.io import IntItemSchema, ObjectItemSchema, StringItemSchema
 
+from gcloud.utils.validate import DomainValidator
 from pipeline_plugins.base import BasePluginService
 
 __group_name__ = _("蓝鲸服务(BK)")
@@ -85,6 +86,14 @@ class HttpRequestService(BasePluginService):
             other["headers"] = {"Content-type": "application/json"}
 
         self.logger.info("send %s request to %s" % (method, url))
+
+        valid_url, allowed_domains = DomainValidator.validate(url)
+        if not valid_url:
+            data.set_outputs(
+                "ex_data",
+                _("仅允许访问域名({allowed_domains})下的URL").format(allowed_domains=",".join(allowed_domains)),
+            )
+            return False
 
         try:
             response = requests.request(method=method, url=url, verify=False, timeout=30, **other)

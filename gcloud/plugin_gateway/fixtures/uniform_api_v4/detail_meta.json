@@ -1,0 +1,44 @@
+{
+  "apis": [
+    {
+      "id": "plugin_job_execute",
+      "name": "JOB 执行作业",
+      "plugin_source": "builtin",
+      "plugin_code": "job_execute_task",
+      "default_version": "1.2.0",
+      "latest_version": "1.3.0",
+      "versions": ["1.2.0", "1.3.0"],
+      "wrapper_version": "v4.0.0",
+      "url": "",
+      "methods": ["POST"],
+      "inputs": [],
+      "polling": {
+        "url": "",
+        "task_tag_key": "open_plugin_run_id",
+        "success_tag": {"key": "data.status", "value": "SUCCEEDED", "data_key": "data.outputs"},
+        "fail_tag": {"key": "data.status", "value": "FAILED", "msg_key": "data.error_message"},
+        "running_tag": {"key": "data.status", "value": "WAITING_CALLBACK"}
+      }
+    },
+    {
+      "id": "plugin_job_status",
+      "name": "JOB 查询状态",
+      "plugin_source": "builtin",
+      "plugin_code": "job_query_status",
+      "default_version": "1.0.0",
+      "latest_version": "1.0.0",
+      "versions": ["1.0.0"],
+      "wrapper_version": "v4.0.0",
+      "url": "",
+      "methods": ["POST"],
+      "inputs": [],
+      "polling": {
+        "url": "",
+        "task_tag_key": "open_plugin_run_id",
+        "success_tag": {"key": "data.status", "value": "SUCCEEDED", "data_key": "data.outputs"},
+        "fail_tag": {"key": "data.status", "value": "FAILED", "msg_key": "data.error_message"},
+        "running_tag": {"key": "data.status", "value": "WAITING_CALLBACK"}
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1102.769 1024" version="1.1">
+  <!-- Bars -->
+  <rect x="551.4" y="78.8" width="551.3" height="78.8" rx="39.4" fill="#919eb5"/>
+  <rect x="551.4" y="315.1" width="551.3" height="78.8" rx="39.4" fill="#919eb5"/>
+  <rect x="551.4" y="630.2" width="551.3" height="78.8" rx="39.4" fill="#919eb5"/>
+  <rect x="551.4" y="866.5" width="551.3" height="78.8" rx="39.4" fill="#919eb5"/>
+
+  <!-- Top square with bold sparkle -->
+  <rect x="0" y="0" width="472.6" height="472.6" rx="78.8" fill="#919eb5"/>
+  <path d="M236 106 L271 201 L366 236 L271 271 L236 366 L201 271 L106 236 L201 201 Z" fill="#fff"/>
+
+  <!-- Bottom square with smaller sparkle -->
+  <rect x="0" y="551.4" width="472.6" height="472.6" rx="78.8" fill="#919eb5"/>
+  <path d="M236 690 L256 758 L324 787.7 L256 817 L236 885 L216 817 L148 787.7 L216 758 Z" fill="#fff" opacity="0.75"/>
+</svg>

@@ -28,7 +28,6 @@ urlpatterns = [
     re_path(r"^$", views.home),
     re_path(r"^logout$", views.user_exit),
     re_path(r"^core/api/change_default_project/(?P<project_id>\d+)/$", api.change_default_project),
-    re_path(r"^core/api/get_roles_and_personnel/(?P<biz_cc_id>\d+)/$", api.get_roles_and_personnel),
     re_path(r"^core/api/get_basic_info/$", api.get_basic_info),
     re_path(r"^core/footer/$", api.get_footer),
     re_path(r"^core/footer_info/$", api.get_footer_info),

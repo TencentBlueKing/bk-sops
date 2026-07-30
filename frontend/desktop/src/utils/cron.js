@@ -201,7 +201,7 @@ const translateMap = {
     dayOfMonth: {
         genAll: () => i18n.t('每天'),
         [Node.TYPE_ENUM]: node => textI18n('{0}号', [node.value]),
-        [Node.TYPE_RANG]: node => textI18n('{0}号到{2}号', [node.min, node.max]),
+        [Node.TYPE_RANG]: node => textI18n('{0}号到{1}号', [node.min, node.max]),
         [Node.TYPE_REPEAT]: (node) => {
             if (node.value === '*') {
                 return textI18n('每隔{0}天', [node.repeatInterval])
@@ -229,13 +229,43 @@ const translateMap = {
         [Node.TYPE_ENUM]: node => textI18n('每{0}', [getWeekDayValue(node.value)]),
         [Node.TYPE_RANG]: node => textI18n('每{0}到{1}', [getWeekDayValue(node.min), getWeekDayValue(node.max)]),
         [Node.TYPE_REPEAT]: (node) => {
+            const step = +node.repeatInterval
             if (node.value === '*') {
+                // dayOfWeek 范围为 0-7，当 step >= 7 时只能命中起始值 0（周日）
+                if (step >= 7) {
+                    return textI18n('每{0}', [getWeekDayValue(0)])
+                }
                 return textI18n('每个星期内的每隔{0}天', [node.repeatInterval])
+            }
+            // dayOfWeek 范围为 0-7，当 step >= 7 时只能命中起始值
+            if (step >= 7) {
+                return textI18n('每{0}', [getWeekDayValue(node.value)])
             }
             return textI18n('从每{0}开始每隔{1}天', [getWeekDayValue(node.value), node.repeatInterval])
         },
         // eslint-disable-next-line max-len
-        [Node.TYPE_RANG_REPEAT]: node => textI18n('从每{0}开始到{1}的每隔{2}天', [getWeekDayValue(node.min), getWeekDayValue(node.max), node.repeatInterval])
+        /**
+         * 翻译 dayOfWeek 字段的范围步长重复（如 1-5/2 表示周一到周五每隔2天）
+         * @param {Object} node - AST节点
+         * @param {string} node.min - 起始星期值（0-7，0和7都表示周日）
+         * @param {string} node.max - 结束星期值（0-7）
+         * @param {string} node.repeatInterval - 步长值
+         *
+         * 特殊处理：Cron 的步长语法只在指定范围内有效，不会跨越范围边界：
+         * 当 步长 >= 范围大小 时，只能命中起始值
+         * 0-6/7：范围是 7 个值（0到6），步长 7 ≥ 7，只命中起始值
+         * 2-4/5：范围是 3 个值（2到4），步长 5 > 3，只命中起始值
+         */
+        [Node.TYPE_RANG_REPEAT]: (node) => {
+            const step = +node.repeatInterval
+            const min = +node.min
+            const max = +node.max
+            // dayOfWeek 范围为 0-7，当 step 使得范围内只能命中起始值时退化为固定星期
+            if (step >= 7 || Math.floor((max - min) / step) < 1) {
+                return textI18n('每{0}', [getWeekDayValue(node.min)])
+            }
+            return textI18n('从每{0}开始到{1}的每隔{2}天', [getWeekDayValue(node.min), getWeekDayValue(node.max), node.repeatInterval])
+        }
     }
 }
 

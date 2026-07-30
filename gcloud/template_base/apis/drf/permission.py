@@ -69,7 +69,9 @@ class SchemeEditPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if view.detail:
             return True
-        action = "edit" if view.action == "create" else "view"
+        # batch_operate 会批量创建/更新/删除执行方案，属于写操作，需校验编辑权限，
+        # 避免仅有查看权限的用户越权修改方案
+        action = "edit" if view.action in ("create", "batch_operate") else "view"
         self.scheme_allow_or_raise_auth_failed(request, action=action)
         return True
 

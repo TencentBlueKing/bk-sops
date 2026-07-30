@@ -13,18 +13,17 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.contrib.analysis.analyse_items import task_flow_instance
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
+from gcloud.contrib.analysis.analyse_items import task_flow_instance
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
-from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
@@ -60,6 +59,9 @@ def query_task_count(request, project_id):
 
     filters = {"project_id": project.id, "is_deleted": False}
     filters.update(conditions)
+    # 强制收敛到 URL 上已鉴权的项目，避免 conditions 携带 project_id 覆盖项目作用域
+    # 造成跨项目任务计数越权(BAC)；is_trust 应用同样不能绕过本项目限制
+    filters["project_id"] = project.id
     success, content = task_flow_instance.dispatch(group_by, filters)
     if not success:
         return {"result": False, "message": content, "code": err_code.UNKNOWN_ERROR.code}
