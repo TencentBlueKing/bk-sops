@@ -39,6 +39,7 @@ def _summarize_task(task):
         "template_id": task.template_id,
         "executor": pi.executor,
         "create_time": _format_dt(pi.create_time),
+        "start_time": _format_dt(pi.start_time),
         "task_url": _task_url(project_id, task.id) if project_id is not None else "",
     }
 

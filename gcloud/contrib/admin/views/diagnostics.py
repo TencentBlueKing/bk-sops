@@ -23,6 +23,17 @@ from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor, Ad
 
 _CASE_FILTER_FIELDS = ("status", "stuck_type", "severity", "root_pipeline_id", "node_id")
 
+# 节点执行失败后，引擎会把进程正常 sleep（asleep=True/dead=False），停在 FAILED 节点等待人工重试/跳过。
+# 这是设计内的失败态，并非引擎卡死（见 bamboo_engine handler._execute_fail -> should_sleep）。
+# 因此默认从“卡住”视图排除这类，避免淹没真实结构性问题。引擎侧根治（rules/scanner 区分终态+asleep）
+# 留待 M2 随包发布。evidence 为 JSONTextField（DB 不可按子字段过滤），故用可查询的 message 文案精确匹配。
+_FAILED_PARKED_STUCK_TYPE = "process_alive_but_terminal_state"
+_FAILED_PARKED_MESSAGE_MARK = "terminal state FAILED"
+
+
+def _failed_parked_qs(qs):
+    return qs.filter(stuck_type=_FAILED_PARKED_STUCK_TYPE, message__contains=_FAILED_PARKED_MESSAGE_MARK)
+
 
 def _diagnostic_case_model():
     try:
@@ -154,6 +165,13 @@ def diagnostic_case_list(request):
         if value:
             qs = qs.filter(**{field: value})
 
+    # 默认排除“失败等人工(FAILED 停靠)”这类预期内失败态；显式按该 stuck_type 过滤或勾选开关时保留。
+    include_failed_parked = request.GET.get("include_failed_parked") in ("1", "true", "True")
+    hidden_failed_parked = 0
+    if not include_failed_parked and request.GET.get("stuck_type") != _FAILED_PARKED_STUCK_TYPE:
+        hidden_failed_parked = _failed_parked_qs(qs).count()
+        qs = qs.exclude(stuck_type=_FAILED_PARKED_STUCK_TYPE, message__contains=_FAILED_PARKED_MESSAGE_MARK)
+
     try:
         page_size = min(max(int(request.GET.get("page_size", 50)), 1), 200)
         page_index = max(int(request.GET.get("page", 1)), 1)
@@ -174,6 +192,7 @@ def diagnostic_case_list(request):
         "page": page_obj.number,
         "page_size": page_size,
         "items": items,
+        "hidden_failed_parked": hidden_failed_parked,
     }
     return JsonResponse({"result": True, "data": data})
 

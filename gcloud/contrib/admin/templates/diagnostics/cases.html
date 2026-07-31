@@ -50,6 +50,9 @@
       <option value="critical">严重</option>
     </select>
     <input id="f-root_pipeline_id" placeholder="root_pipeline_id">
+    <label class="muted" style="display:flex;align-items:center;gap:4px">
+      <input type="checkbox" id="f-include_failed_parked" onchange="loadList(1)"> 显示失败等人工(FAILED停靠)
+    </label>
     <button class="primary" onclick="loadList(1)">查询</button>
     <span id="total" class="muted"></span>
   </div>
@@ -57,7 +60,7 @@
   <table>
     <thead>
       <tr>
-        <th>任务</th><th>业务</th><th>模板</th><th>stuck_type</th><th>级别</th>
+        <th>任务</th><th>业务</th><th>模板</th><th>执行开始时间</th><th>stuck_type</th><th>级别</th>
         <th>状态</th><th>卡住时长(s)</th><th>命中</th><th>最近出现</th><th>操作</th>
       </tr>
     </thead>
@@ -98,6 +101,7 @@
       var v = document.getElementById('f-' + k).value.trim();
       if (v) params.set(k, v);
     });
+    if (document.getElementById('f-include_failed_parked').checked) params.set('include_failed_parked', '1');
     fetch(SITE_URL + 'admin/diagnostics/cases/?' + params.toString(), { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (body) {
@@ -105,7 +109,9 @@
         state.page = body.data.page;
         state.total = body.data.total;
         renderList(body.data.items);
-        document.getElementById('total').textContent = '共 ' + body.data.total + ' 条';
+        var hidden = body.data.hidden_failed_parked || 0;
+        document.getElementById('total').textContent =
+          '共 ' + body.data.total + ' 条' + (hidden ? ' (已隐藏 ' + hidden + ' 条失败等人工)' : '');
         document.getElementById('page-info').textContent = '第 ' + state.page + ' 页';
       });
   }
@@ -118,10 +124,12 @@
         : '<span class="muted">' + esc(it.root_pipeline_id) + '</span>';
       var bizCell = task ? esc(task.project_name || task.project_id || '') : '';
       var tplCell = task ? esc(task.template_id || '') : '';
+      var startCell = task ? esc(task.start_time || '') : '';
       return '<tr>' +
         '<td>' + taskCell + '</td>' +
         '<td>' + bizCell + '</td>' +
         '<td>' + tplCell + '</td>' +
+        '<td>' + startCell + '</td>' +
         '<td>' + esc(it.stuck_type) + '</td>' +
         '<td>' + sevTag(it.severity) + '</td>' +
         '<td>' + esc(it.status) + '</td>' +
@@ -131,7 +139,7 @@
         '<td class="row-actions"><button onclick="openDetail(' + it.id + ')">详情</button></td>' +
         '</tr>';
     });
-    document.getElementById('tbody').innerHTML = rows.join('') || '<tr><td colspan="10" class="muted">无数据</td></tr>';
+    document.getElementById('tbody').innerHTML = rows.join('') || '<tr><td colspan="11" class="muted">无数据</td></tr>';
   }
 
   function openDetail(caseId) {
@@ -148,7 +156,8 @@
     var task = d.task;
     var taskLine = task
       ? '<a href="' + esc(task.task_url) + '" target="_blank">' + esc(task.task_name || task.task_id) + '</a> '
-        + '(业务: ' + esc(task.project_name || '') + ' · 执行人: ' + esc(task.executor || '') + ')'
+        + '(业务: ' + esc(task.project_name || '') + ' · 执行人: ' + esc(task.executor || '')
+        + ' · 执行开始时间: ' + esc(task.start_time || '-') + ')'
       : '<span class="muted">未关联到任务, root_pipeline_id=' + esc(d.root_pipeline_id) + '</span>';
     var audits = (d.audit_history || []).map(function (a) {
       return '<li>' + esc(a.created_at) + ' · ' + esc(a.operation_type) + ' · ' + esc(a.operator)
