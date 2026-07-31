@@ -31,7 +31,10 @@ prometheus-client==0.9.0
 # (基于 3.24.11，不含 3.24.12 的 mako 加固；依赖 bamboo-engine 2.6.5，含 engine.py 热路径钩子)。
 # 升级后 pipeline.contrib.diagnostics 条件注册生效；
 # SCAN/EVENT/ALERT/APPLY 默认全关，需按运维 checklist 显式开启。
-bamboo-pipeline==3.24.13
+# 3.24.14 增量：child_process_finish 对重复 ACK 幂等（修复子流程 ACK 重放导致的父流程异常）；
+# M2 可靠事件 pipeline.contrib.reliable_events 随包提供但未注册进 INSTALLED_APPS，
+# 本次升级下不建表、不生效，待 M2 Part B 显式接入。
+bamboo-pipeline==3.24.14
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 pyyaml==5.4.1

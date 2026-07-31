@@ -57,8 +57,9 @@
 
 ## 发布检查
 
-- 已发布版本：`bamboo-pipeline==3.24.13`（依赖 `bamboo-engine==2.6.5`，含 `engine.py` 热路径钩子），均已在 PyPI。
-- 标准运维 `requirements.txt` 已指向 `bamboo-pipeline==3.24.13`；装此一个包即拉齐 runtime 诊断 + core 钩子，不要指向未发布的未来版本。
+- 已发布版本：`bamboo-pipeline==3.24.14`（依赖 `bamboo-engine==2.6.5`，含 `engine.py` 热路径钩子），均已在 PyPI。
+- 标准运维 `requirements.txt` 已指向 `bamboo-pipeline==3.24.14`；装此一个包即拉齐 runtime 诊断 + core 钩子，不要指向未发布的未来版本。
+- 3.24.14 相对 3.24.13 的增量：`child_process_finish` 重复 ACK 幂等修复；M2 可靠事件 `pipeline.contrib.reliable_events` 随包提供但未注册进 `INSTALLED_APPS`，不建表不生效，M1 灰度不受影响。
 - 发布后先在 stage 验证 `/admin/diagnostics/task/`、`/admin/diagnostics/cases/` 页面、证据包导出命令和 dry-run 操作。
 - 观察 `[pipeline_diagnostics_alert]` 与 `[bk_sops_task_diagnostic_alert]` 日志是否符合预期。
 
@@ -68,7 +69,7 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 
 **Step 0 前置（已就绪）**
 
-- [ ] `requirements.txt` 已指向 `bamboo-pipeline==3.24.13`。
+- [ ] `requirements.txt` 已指向 `bamboo-pipeline==3.24.14`。
 - [ ] 默认安全配置：`SCAN`/`EVENT`/`ALERT`/`APPLY` 全关（见下方 env 速查）。
 
 **Step 1 休眠部署（先关扫描，验证启动/迁移）**
