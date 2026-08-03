@@ -1439,6 +1439,33 @@ class TaskConfigManager(models.Manager):
 
         return False
 
+    def enable_active_callback_takeover(self, project_id, template_id) -> bool:
+        """
+        是否允许 callback ACTIVE 兜底接管（M2 可靠事件灰度白名单判定）
+
+        模板配置优先于项目配置，两者均无配置时返回 False（保守默认：不接管）。
+        """
+        # 公共流程, 配置项template_id有-号前缀
+        if project_id and int(project_id) == -1:
+            template_id = -1 * int(template_id)
+        template_config = self.filter(
+            scope=TaskConfig.SCOPE_TYPE_TEMPLATE,
+            scope_id=template_id,
+            config_type=TaskConfig.CONFIG_TYPE_ACTIVE_CALLBACK,
+        ).only("config_value")
+        if template_config:
+            return template_config.first().config_value == TaskConfig.ENABLE_ACTIVE_CALLBACK
+
+        project_config = self.filter(
+            scope=TaskConfig.SCOPE_TYPE_PROJECT,
+            scope_id=project_id,
+            config_type=TaskConfig.CONFIG_TYPE_ACTIVE_CALLBACK,
+        ).only("config_value")
+        if project_config:
+            return project_config.first().config_value == TaskConfig.ENABLE_ACTIVE_CALLBACK
+
+        return False
+
     def enable_fill_retry_params(self, task_id) -> bool:
         """
         是否启用任务节点重试调参，默认为否，仅识别任务级别配置
@@ -1459,16 +1486,25 @@ class TaskConfig(models.Model):
     SCOPE_TYPES = ((SCOPE_TYPE_PROJECT, "project"), (SCOPE_TYPE_TEMPLATE, "template"), (SCOPE_TYPE_TASK, "task"))
     CONFIG_TYPE_SUBPROCESS = 1
     CONFIG_TYPE_RETRY_PARAMS = 2
-    CONFIG_TYPES = ((CONFIG_TYPE_SUBPROCESS, "subprocess"), (CONFIG_TYPE_RETRY_PARAMS, "retry_params"))
+    CONFIG_TYPE_ACTIVE_CALLBACK = 3
+    CONFIG_TYPES = (
+        (CONFIG_TYPE_SUBPROCESS, "subprocess"),
+        (CONFIG_TYPE_RETRY_PARAMS, "retry_params"),
+        (CONFIG_TYPE_ACTIVE_CALLBACK, "active_callback"),
+    )
     ENABLE_INDEPENDENT_SUBPROCESS = "enable_independent_subprocess"
     DISABLE_INDEPENDENT_SUBPROCESS = "disable_independent_subprocess"
     ENABLE_FILL_RETRY_PARAMS = "enable_fill_retry_params"
     DISABLE_FILL_RETRY_PARAMS = "disable_fill_retry_params"
+    ENABLE_ACTIVE_CALLBACK = "enable_active_callback"
+    DISABLE_ACTIVE_CALLBACK = "disable_active_callback"
     CONFIG_OPTIONS = (
         (ENABLE_INDEPENDENT_SUBPROCESS, _("启用独立子流程")),
         (DISABLE_INDEPENDENT_SUBPROCESS, _("禁用独立子流程")),
         (ENABLE_FILL_RETRY_PARAMS, _("启用节点重试填参")),
         (DISABLE_FILL_RETRY_PARAMS, _("禁用节点重试填参")),
+        (ENABLE_ACTIVE_CALLBACK, _("启用回调兜底接管")),
+        (DISABLE_ACTIVE_CALLBACK, _("禁用回调兜底接管")),
     )
 
     scope_id = models.IntegerField(_("范围对象ID"))

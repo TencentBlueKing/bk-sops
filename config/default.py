@@ -126,6 +126,11 @@ import importlib.util as _importlib_util  # noqa: E402
 if _importlib_util.find_spec("pipeline.contrib.diagnostics") is not None:
     INSTALLED_APPS += ("pipeline.contrib.diagnostics",)
 
+# 流程卡住治理 M2：可靠事件 app 随 bamboo-pipeline>=3.24.14 提供。
+# 同样条件注册——依赖未升级到含 reliable_events 的版本时保持惰性，不影响启动。
+if _importlib_util.find_spec("pipeline.contrib.reliable_events") is not None:
+    INSTALLED_APPS += ("pipeline.contrib.reliable_events",)
+
 # 这里是默认的中间件，大部分情况下，不需要改动
 # 如果你已经了解每个默认 MIDDLEWARE 的作用，确实需要去掉某些 MIDDLEWARE，或者改动先后顺序，请去掉下面的注释，然后修改
 # MIDDLEWARE = (
@@ -850,6 +855,17 @@ PIPELINE_DIAGNOSTICS_SECOND_CONFIRM_SECONDS = env.DIAGNOSTICS_SECOND_CONFIRM_SEC
 DIAGNOSTICS_SCAN_CRON = env.DIAGNOSTICS_SCAN_CRON
 DIAGNOSTICS_CLEANUP_CRON = env.DIAGNOSTICS_CLEANUP_CRON
 DIAGNOSTICS_SUPPLEMENT_BATCH = env.DIAGNOSTICS_SUPPLEMENT_BATCH
+
+# 流程卡住治理 M2（可靠事件 / callback ACTIVE 兜底接管）
+# PIPELINE_RELIABLE_EVENTS_* 由 bamboo-pipeline reliable_events 的 conf.py 读取，未设置时用包内默认值。
+PIPELINE_RELIABLE_EVENTS_SHADOW_ENABLED = env.RELIABLE_EVENTS_SHADOW_ENABLED
+PIPELINE_RELIABLE_EVENTS_ACTIVE_ENABLED = env.RELIABLE_EVENTS_ACTIVE_ENABLED
+PIPELINE_RELIABLE_EVENTS_DISPATCH_ENABLED = env.RELIABLE_EVENTS_DISPATCH_ENABLED
+PIPELINE_RELIABLE_EVENTS_COMPENSATION_ENABLED = env.RELIABLE_EVENTS_COMPENSATION_ENABLED
+# 模式解析归属 bk-sops：引擎只认这个点分路径，import 失败会被引擎侧吞掉并退回纯 SHADOW。
+PIPELINE_RELIABLE_EVENTS_MODE_RESOLVER = "gcloud.taskflow3.reliable_events.resolve_mode"
+# compensation_scan / purge_scan 由 pipeline.contrib.celery_tools.periodic 自注册进 beat_schedule，
+# 无需在 CELERYBEAT_SCHEDULE 重复登记，否则同一任务会被排程两次。
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
