@@ -34,6 +34,54 @@ from gcloud.taskflow3.models import TaskFlowInstance
 logger = logging.getLogger("root")
 
 
+def _attach_reliable_event_receipt(callback_result, root_pipeline_id, node_id, node_version):
+    """在回调响应上附加可靠事件受理信息（additive），best-effort，任何异常都不得影响回调主链路"""
+    try:
+        if not isinstance(callback_result, dict):
+            return
+
+        # import 放在函数内：依赖未升级到含 reliable_events 的版本、或 app 未注册时 import 会失败，必须容忍
+        from pipeline.contrib.reliable_events import conf
+        from pipeline.contrib.reliable_events.constants import EventType
+        from pipeline.contrib.reliable_events.models import EngineEventInbox
+
+        # 与引擎侧 collector.record_callback_receipt 的首行门禁保持一致：开关全关时 collector 根本不写事件。
+        # 四个开关默认全关且绝大多数部署长期处于关闭态，这里必须先读开关，避免给 callback 热路径白加一次查询。
+        if not (conf.shadow_enabled() or conf.active_enabled()):
+            return
+
+        # EngineEventInbox 的 index_together 里只有 ("root_pipeline_id", "node_id", "version") 这一组能用，
+        # 既没有 node_id 单列索引也没有 (node_id, version) 索引，不补上最左列 root_pipeline_id 就会全表扫。
+        # 当前引擎 set_callback_data 调 record_callback_receipt 时没有传 root_pipeline_id，库里实际存的是空串；
+        # 把真实 root id 一并放进候选集，是为了将来引擎开始回填这一列时这里依然正确。
+        candidates = {""}
+        if root_pipeline_id:
+            candidates.add(root_pipeline_id)
+
+        event = (
+            EngineEventInbox.objects.filter(
+                event_type=EventType.NODE_CALLBACK,
+                root_pipeline_id__in=list(candidates),
+                node_id=node_id,
+                version=node_version,
+            )
+            .order_by("-id")
+            .values("id")
+            .first()
+        )
+
+        # 查不到就什么都不加：补一个 accepted=False 会让调用方误以为回调被拒收
+        if event:
+            callback_result["accepted"] = True
+            callback_result["event_id"] = event["id"]
+    except Exception:
+        logger.exception(
+            "[node_callback] attach reliable event receipt failed. node_id: {}, node_version: {}".format(
+                node_id, node_version
+            )
+        )
+
+
 @login_exempt
 @csrf_exempt
 @require_POST
@@ -144,5 +192,7 @@ def node_callback(request, token):
                 "[node_callback] Failed to schedule async retry task. "
                 "token: {}, engine_ver: {}, node_id: {}, error: {}".format(token, engine_ver, node_id, e)
             )
+
+    _attach_reliable_event_receipt(callback_result, root_pipeline_id, node_id, node_version)
 
     return JsonResponse(callback_result)

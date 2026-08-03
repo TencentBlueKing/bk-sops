@@ -126,6 +126,22 @@ DIAGNOSTICS_SUPPLEMENT_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH
 DIAGNOSTICS_SCAN_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_SCAN_CRON", "*/10 * * * *").split())
 DIAGNOSTICS_CLEANUP_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_CLEANUP_CRON", "30 3 * * *").split())
 
+# 流程卡住治理 M2（可靠事件 / callback ACTIVE 兜底接管）
+# 可靠事件能力随 bamboo-pipeline>=3.24.14 提供；下列开关全部默认关闭，需按运维 checklist 显式开启。
+# SHADOW：只观察记录（callback 落库时旁路写一条事件），不改引擎状态，用于灰度期比对；
+# ACTIVE：允许消费者在直接驱动没成功时幂等重放 schedule，即真正的兜底接管。
+#         ACTIVE 必须配合白名单使用（见 gcloud.taskflow3.models.TaskConfig），只有命中白名单的流程才会被接管；
+#         另外 SHADOW / ACTIVE 至少开启其一，collector 才会写事件，否则后面两个开关无事可做。
+# DISPATCH：callback 落库后立即投递消费任务；关掉则不做即时投递，只依赖 COMPENSATION 的周期补偿兜底。
+# COMPENSATION：周期补偿扫描（捞出未收敛的事件重试）+ 保留期清理，purge_scan 同样受它管控。
+_RELIABLE_TRUE = ("1", "true", "yes", "on")
+RELIABLE_EVENTS_SHADOW_ENABLED = os.getenv("BKAPP_RELIABLE_EVENTS_SHADOW_ENABLED", "0").lower() in _RELIABLE_TRUE
+RELIABLE_EVENTS_ACTIVE_ENABLED = os.getenv("BKAPP_RELIABLE_EVENTS_ACTIVE_ENABLED", "0").lower() in _RELIABLE_TRUE
+RELIABLE_EVENTS_DISPATCH_ENABLED = os.getenv("BKAPP_RELIABLE_EVENTS_DISPATCH_ENABLED", "0").lower() in _RELIABLE_TRUE
+RELIABLE_EVENTS_COMPENSATION_ENABLED = (
+    os.getenv("BKAPP_RELIABLE_EVENTS_COMPENSATION_ENABLED", "0").lower() in _RELIABLE_TRUE
+)
+
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = os.getenv("BKAPP_ENABLE_SWAGGER_UI", False)
 
