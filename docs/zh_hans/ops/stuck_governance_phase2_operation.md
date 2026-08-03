@@ -112,3 +112,37 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 | `BKAPP_DIAGNOSTICS_CLEANUP_CRON` | `30 3 * * *` | 清理间隔 |
 | `BKAPP_DIAGNOSTICS_STALL_THRESHOLD_SECONDS` | `3600` | 判定停滞的静默阈值（秒） |
 | `BKAPP_DIAGNOSTICS_SCAN_BATCH` | `200` | 单轮扫描批量上限 |
+| `BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH` | `200` | 补充检测单轮候选上限 |
+| `BKAPP_DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS` | `3600` | 补充检测的运行时长门槛（秒） |
+| `BKAPP_DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH` | `500` | 单轮案例收敛的扫描上限 |
+
+## 补充检测（任务视角兜底）
+
+Layer0 从 `eri_process.last_heartbeat` 找停滞 root，进程已经消失的场景没有 heartbeat 可比，覆盖不到。补充检测从任务视角兜底：bk-sops 侧任务还是“运行中”（v2 引擎、pipeline 已启动、未完成、未撤销、运行时数据未过期、任务未删除），但引擎侧一个存活进程都没有。
+
+注意这个检测跟 Layer0 是两条独立通路：**它不受 `BKAPP_DIAGNOSTICS_SCAN_ENABLED` 控制**，只要周期任务在跑就会立案。要停它只能停 `scan_stuck_diagnostics` 这个周期任务本身，或把配置里的 `PIPELINE_DIAGNOSTICS_CASE_ENABLED` 置 `False`（这项没有对应的 env 开关，需要改配置重新发布，且 Layer0 也会一起不再立案）。
+
+### 误判防线
+
+引擎正常收尾时先写 `is_finished` 再把进程置 `dead`，这两步之间任务看起来就是“运行中且无存活进程”。短命任务（几十秒级的周期任务等）会在扫描过程中大量踩到这个窗口，因此有三道防线：
+
+1. **运行时长门槛**：只看已经运行超过 `BKAPP_DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS`（默认 1 小时）的任务，短命任务连候选都不进；
+2. **批量进程判定**：整批候选只查一次 `eri_process`，判定窗口不再随候选数放大（旧实现逐个查，200 个候选耗时接近一分钟，期间跑完的任务全被判成卡住）；
+3. **立案前二次确认**：进程判定之后重新读一次任务态，扫描期间跑完的任务不立案。
+
+调门槛前先想清楚：门槛越低发现越快，误判也越多。真实卡住的流程通常已经卡了很久，1 小时门槛不影响发现。
+
+### 案例收敛
+
+补充检测的案例由 `close_recovered_cases` 随扫描同轮收敛：任务已完成 / 已撤销 / 已过期 / 已删除 / 记录已不存在，或进程已恢复，案例即改为 `resolved`。引擎侧的 `close_stale_cases` 以 heartbeat 恢复为判据，覆盖不到这个检测（这里的 root 根本没有进程），而且它被 Layer0 扫描开关挡住，所以单独实现。
+
+看板列表和详情都带“任务当前状态”，用来区分“还卡着”和“立案之后任务已经跑完”。
+
+清算存量案例（比如修复上线前积累的误判）用命令，先 dry-run 看量：
+
+```bash
+python manage.py close_recovered_diagnostic_cases --dry-run
+python manage.py close_recovered_diagnostic_cases
+```
+
+命令按 id 游标翻页扫全量 `open` 案例，周期任务只看最近未更新的一批，两者判据一致。

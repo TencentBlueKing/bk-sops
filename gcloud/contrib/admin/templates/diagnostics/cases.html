@@ -60,8 +60,8 @@
   <table>
     <thead>
       <tr>
-        <th>任务</th><th>业务</th><th>模板</th><th>执行开始时间</th><th>stuck_type</th><th>级别</th>
-        <th>状态</th><th>卡住时长(s)</th><th>命中</th><th>最近出现</th><th>操作</th>
+        <th>任务</th><th>业务</th><th>模板</th><th>执行开始时间</th><th>任务当前状态</th><th>stuck_type</th><th>级别</th>
+        <th>案例状态</th><th>卡住时长(s)</th><th>命中</th><th>最近出现</th><th>操作</th>
       </tr>
     </thead>
     <tbody id="tbody"></tbody>
@@ -125,11 +125,13 @@
       var bizCell = task ? esc(task.project_name || task.project_id || '') : '';
       var tplCell = task ? esc(task.template_id || '') : '';
       var startCell = task ? esc(task.start_time || '') : '';
+      var taskStateCell = task ? esc(task.task_state || '') : '';
       return '<tr>' +
         '<td>' + taskCell + '</td>' +
         '<td>' + bizCell + '</td>' +
         '<td>' + tplCell + '</td>' +
         '<td>' + startCell + '</td>' +
+        '<td>' + taskStateCell + '</td>' +
         '<td>' + esc(it.stuck_type) + '</td>' +
         '<td>' + sevTag(it.severity) + '</td>' +
         '<td>' + esc(it.status) + '</td>' +
@@ -139,7 +141,7 @@
         '<td class="row-actions"><button onclick="openDetail(' + it.id + ')">详情</button></td>' +
         '</tr>';
     });
-    document.getElementById('tbody').innerHTML = rows.join('') || '<tr><td colspan="11" class="muted">无数据</td></tr>';
+    document.getElementById('tbody').innerHTML = rows.join('') || '<tr><td colspan="12" class="muted">无数据</td></tr>';
   }
 
   function openDetail(caseId) {
@@ -157,7 +159,8 @@
     var taskLine = task
       ? '<a href="' + esc(task.task_url) + '" target="_blank">' + esc(task.task_name || task.task_id) + '</a> '
         + '(业务: ' + esc(task.project_name || '') + ' · 执行人: ' + esc(task.executor || '')
-        + ' · 执行开始时间: ' + esc(task.start_time || '-') + ')'
+        + ' · 执行开始时间: ' + esc(task.start_time || '-')
+        + ' · 任务当前状态: ' + esc(task.task_state || '-') + ')'
       : '<span class="muted">未关联到任务, root_pipeline_id=' + esc(d.root_pipeline_id) + '</span>';
     var audits = (d.audit_history || []).map(function (a) {
       return '<li>' + esc(a.created_at) + ' · ' + esc(a.operation_type) + ' · ' + esc(a.operator)
