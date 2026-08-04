@@ -21,7 +21,13 @@ from gcloud.core.decorators import check_is_superuser
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor, AdminViewViewInterceptor
 
-_CASE_FILTER_FIELDS = ("status", "stuck_type", "severity", "root_pipeline_id", "node_id")
+_CASE_FILTER_FIELDS = ("stuck_type", "severity", "root_pipeline_id", "node_id")
+
+# 状态默认只看 open：终态案例（resolved/ignored）是治理历史，收敛时会刷新 last_seen_at，
+# 而列表按 last_seen_at 倒序，一批案例被自动收敛后会整批顶到首页，看着像新产出的卡住流程。
+# 要看历史显式选状态，或选“全部状态”（status=all）。
+_CASE_STATUS_ALL = "all"
+_DEFAULT_CASE_STATUS = "open"
 
 # 节点执行失败后，引擎会把进程正常 sleep（asleep=True/dead=False），停在 FAILED 节点等待人工重试/跳过。
 # 这是设计内的失败态，并非引擎卡死（见 bamboo_engine handler._execute_fail -> should_sleep）。
@@ -165,6 +171,12 @@ def diagnostic_case_list(request):
         if value:
             qs = qs.filter(**{field: value})
 
+    status = request.GET.get("status") or _DEFAULT_CASE_STATUS
+    hidden_by_status = 0
+    if status != _CASE_STATUS_ALL:
+        hidden_by_status = qs.exclude(status=status).count()
+        qs = qs.filter(status=status)
+
     # 默认排除“失败等人工(FAILED 停靠)”这类预期内失败态；显式按该 stuck_type 过滤或勾选开关时保留。
     include_failed_parked = request.GET.get("include_failed_parked") in ("1", "true", "True")
     hidden_failed_parked = 0
@@ -193,6 +205,8 @@ def diagnostic_case_list(request):
         "page_size": page_size,
         "items": items,
         "hidden_failed_parked": hidden_failed_parked,
+        "status": status,
+        "hidden_by_status": hidden_by_status,
     }
     return JsonResponse({"result": True, "data": data})
 
