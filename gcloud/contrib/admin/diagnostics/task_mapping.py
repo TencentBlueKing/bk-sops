@@ -26,6 +26,19 @@ def _task_url(project_id, task_id):
     return "{}/taskflow/execute/{}/?instance_id={}".format(host.rstrip("/"), project_id, task_id)
 
 
+def _task_state(pi):
+    """任务此刻的实际状态，便于在看板上区分"还卡着"和"案例立完之后已经跑完了"。"""
+    if pi.is_revoked:
+        return "已撤销"
+    if pi.is_finished:
+        return "已完成"
+    if pi.is_expired:
+        return "已过期"
+    if pi.is_started:
+        return "执行中"
+    return "未执行"
+
+
 def _summarize_task(task):
     pi = task.pipeline_instance
     project = getattr(task, "project", None)
@@ -40,6 +53,7 @@ def _summarize_task(task):
         "executor": pi.executor,
         "create_time": _format_dt(pi.create_time),
         "start_time": _format_dt(pi.start_time),
+        "task_state": _task_state(pi),
         "task_url": _task_url(project_id, task.id) if project_id is not None else "",
     }
 

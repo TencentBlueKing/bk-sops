@@ -64,10 +64,16 @@ def scan_stuck_diagnostics():
         logger.info("[diagnostics] scan_stuck_diagnostics upserted cases: %s", len(cases))
 
         try:
-            from gcloud.contrib.admin.diagnostics.supplement import scan_running_tasks_without_live_process
+            from gcloud.contrib.admin.diagnostics.supplement import (
+                close_recovered_cases,
+                scan_running_tasks_without_live_process,
+            )
 
             supplemented = scan_running_tasks_without_live_process()
             logger.info("[diagnostics] supplemental cases: %s", len(supplemented))
+            # 与补充检测同轮收敛：任务恢复或跑完后案例自动关闭，看板只留真正待治理的。
+            closed = close_recovered_cases()
+            logger.info("[diagnostics] supplemental cases closed: %s", closed)
         except ImportError:  # pragma: no cover - depends on engine version
             pass
         except Exception:
