@@ -3145,15 +3145,96 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
-  /get_task_operate_record/{task_id}/{project_id}/:
+  /get_task_operate_record/{task_id}/{bk_biz_id}/:
     get:
       operationId: get_task_operate_record
       description: 获取任务操作记录
       tags:
       - 通用接口
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码，0 表示成功
+                  data:
+                    type: array
+                    description: result=true 时返回的操作记录列表
+                    items:
+                      type: object
+                      properties:
+                        project_id:
+                          type: integer
+                          description: 项目ID
+                        instance_id:
+                          type: integer
+                          description: 任务实例ID
+                        operator:
+                          type: string
+                          description: 操作人
+                        operate_type:
+                          type: string
+                          description: 操作类型
+                        operate_type_name:
+                          type: string
+                          description: 操作类型中文名
+                        operate_source:
+                          type: string
+                          description: 操作来源
+                        operate_source_name:
+                          type: string
+                          description: 操作来源中文名
+                        node_id:
+                          type: string
+                          description: 任务实例节点ID，为空表示任务级操作
+                        operate_date:
+                          type: string
+                          description: 操作时间
+                        extra_info:
+                          type: object
+                          description: 任务实例节点拓展信息
+                          additionalProperties: true
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: false
+        description: 任务节点ID，不传则返回任务下所有操作记录
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -3161,7 +3242,7 @@ paths:
         backend:
           type: HTTP
           method: get
-          path: /{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{project_id}/
+          path: /{env.api_sub_path}apigw/get_task_operate_record/{task_id}/{bk_biz_id}/
           matchSubpath: false
           timeout: 0
           upstreams: {}
