@@ -662,6 +662,13 @@
         overflow: hidden;
         overflow-x: scroll;
         scrollbar-width: none;
+        outline: none;
+        box-shadow: none;
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
         ::v-deep .var-tag {
             margin-right: 1px;
             padding: 0px 4px;
