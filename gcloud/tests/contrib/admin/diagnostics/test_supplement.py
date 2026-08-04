@@ -234,6 +234,19 @@ class SupplementScanRealDataTest(DiagnosticsDataMixin, TestCase):
         self.assertEqual(self.scan(min_running_seconds=300), [])
         self.assertEqual(len(self.scan(min_running_seconds=60)), 1)
 
+    def test_task_older_than_window_is_not_flagged(self):
+        """跑了一年多、引擎侧数据早已不存在的历史僵尸：治不了也关不掉，不该占取样批次。"""
+        self.create_task("root-ancient", started_ago=480 * 24 * 3600)
+
+        self.assertEqual(self.scan(), [])
+        self.assertEqual(self.open_case_roots(), set())
+
+    def test_max_running_seconds_is_configurable(self):
+        self.create_task("root-window", started_ago=3 * 24 * 3600)
+
+        self.assertEqual(self.scan(max_running_seconds=24 * 3600), [])
+        self.assertEqual(len(self.scan(max_running_seconds=7 * 24 * 3600)), 1)
+
 
 @skipUnless(DIAGNOSTICS_AVAILABLE, "pipeline.contrib.diagnostics unavailable (requires bamboo-pipeline>=3.24.12)")
 class CloseRecoveredCasesTest(DiagnosticsDataMixin, TestCase):
@@ -248,14 +261,14 @@ class CloseRecoveredCasesTest(DiagnosticsDataMixin, TestCase):
         self.create_task("root-finished", is_finished=True)
         self.create_open_case("root-finished")
 
-        self.assertEqual(self.module.close_recovered_cases(), 1)
+        self.assertEqual(self.module.close_recovered_cases(), (1, 0))
         self.assertEqual(self.case_status("root-finished"), ["resolved"])
 
     def test_still_stuck_case_stays_open(self):
         self.create_task("root-still-stuck")
         self.create_open_case("root-still-stuck")
 
-        self.assertEqual(self.module.close_recovered_cases(), 0)
+        self.assertEqual(self.module.close_recovered_cases(), (0, 0))
         self.assertEqual(self.case_status("root-still-stuck"), ["open"])
 
     def test_recovered_process_closes_case(self):
@@ -263,14 +276,29 @@ class CloseRecoveredCasesTest(DiagnosticsDataMixin, TestCase):
         self.create_process("root-recovered", dead=False)
         self.create_open_case("root-recovered")
 
-        self.assertEqual(self.module.close_recovered_cases(), 1)
+        self.assertEqual(self.module.close_recovered_cases(), (1, 0))
         self.assertEqual(self.case_status("root-recovered"), ["resolved"])
 
     def test_case_without_task_is_closed(self):
         self.create_open_case("root-orphan")
 
-        self.assertEqual(self.module.close_recovered_cases(), 1)
+        self.assertEqual(self.module.close_recovered_cases(), (1, 0))
         self.assertEqual(self.case_status("root-orphan"), ["resolved"])
+
+    def test_case_out_of_window_is_ignored(self):
+        """任务确实还卡着，但已经超出治理窗口：治不了了，收敛成 ignored 而不是 resolved。"""
+        self.create_task("root-aged-out", started_ago=480 * 24 * 3600)
+        self.create_open_case("root-aged-out")
+
+        self.assertEqual(self.module.close_recovered_cases(), (0, 1))
+        self.assertEqual(self.case_status("root-aged-out"), ["ignored"])
+
+    def test_window_boundary_keeps_case_open(self):
+        self.create_task("root-in-window", started_ago=3 * 24 * 3600)
+        self.create_open_case("root-in-window")
+
+        self.assertEqual(self.module.close_recovered_cases(max_running_seconds=7 * 24 * 3600), (0, 0))
+        self.assertEqual(self.module.close_recovered_cases(max_running_seconds=24 * 3600), (0, 1))
 
     def test_recurrence_merges_into_existing_resolved_case(self):
         """(root, node, type, status) 唯一，已有 resolved 同键记录时把命中并进去。"""
@@ -281,7 +309,7 @@ class CloseRecoveredCasesTest(DiagnosticsDataMixin, TestCase):
         DiagnosticCase.objects.filter(id=resolved.id).update(status=DiagnosticCase.STATUS_RESOLVED)
         self.create_open_case("root-merge", hit_count=3)
 
-        self.assertEqual(self.module.close_recovered_cases(), 1)
+        self.assertEqual(self.module.close_recovered_cases(), (1, 0))
         self.assertEqual(self.case_status("root-merge"), ["resolved"])
         self.assertEqual(DiagnosticCase.objects.get(id=resolved.id).hit_count, 5)
 
@@ -291,7 +319,7 @@ class CloseRecoveredCasesTest(DiagnosticsDataMixin, TestCase):
         self.create_open_case("root-b1", last_seen_at=timezone.now() - datetime.timedelta(hours=2))
         self.create_open_case("root-b2")
 
-        self.assertEqual(self.module.close_recovered_cases(batch=1), 1)
+        self.assertEqual(self.module.close_recovered_cases(batch=1), (1, 0))
         self.assertEqual(self.case_status("root-b1"), ["resolved"])
         self.assertEqual(self.case_status("root-b2"), ["open"])
 
@@ -300,14 +328,21 @@ class CloseRecoveredCasesTest(DiagnosticsDataMixin, TestCase):
             self.create_task("root-sweep-{}".format(index), is_finished=True)
             self.create_open_case("root-sweep-{}".format(index))
 
-        self.assertEqual(self.module.sweep_recovered_cases(chunk=1), (3, 3))
+        self.assertEqual(self.module.sweep_recovered_cases(chunk=1), (3, 3, 0))
 
     def test_sweep_dry_run_reports_without_writing(self):
         self.create_task("root-dry", is_finished=True)
         self.create_open_case("root-dry")
 
-        self.assertEqual(self.module.sweep_recovered_cases(dry_run=True), (1, 1))
+        self.assertEqual(self.module.sweep_recovered_cases(dry_run=True), (1, 1, 0))
         self.assertEqual(self.case_status("root-dry"), ["open"])
+
+    def test_sweep_reports_aged_out_separately(self):
+        self.create_task("root-sweep-aged", started_ago=480 * 24 * 3600)
+        self.create_open_case("root-sweep-aged")
+
+        self.assertEqual(self.module.sweep_recovered_cases(), (1, 0, 1))
+        self.assertEqual(self.case_status("root-sweep-aged"), ["ignored"])
 
     def test_command_reports_closed_count(self):
         from io import StringIO
@@ -320,5 +355,19 @@ class CloseRecoveredCasesTest(DiagnosticsDataMixin, TestCase):
         out = StringIO()
         call_command("close_recovered_diagnostic_cases", stdout=out)
 
-        self.assertIn("scanned=1 closed=1", out.getvalue())
+        self.assertIn("scanned=1 resolved=1 ignored=0", out.getvalue())
         self.assertEqual(self.case_status("root-cmd"), ["resolved"])
+
+    def test_command_dry_run_marks_output(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        self.create_task("root-cmd-dry", is_finished=True)
+        self.create_open_case("root-cmd-dry")
+
+        out = StringIO()
+        call_command("close_recovered_diagnostic_cases", "--dry-run", stdout=out)
+
+        self.assertIn("would_resolved=1", out.getvalue())
+        self.assertEqual(self.case_status("root-cmd-dry"), ["open"])

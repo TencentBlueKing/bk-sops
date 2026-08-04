@@ -113,7 +113,8 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 | `BKAPP_DIAGNOSTICS_STALL_THRESHOLD_SECONDS` | `3600` | 判定停滞的静默阈值（秒） |
 | `BKAPP_DIAGNOSTICS_SCAN_BATCH` | `200` | 单轮扫描批量上限 |
 | `BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH` | `200` | 补充检测单轮候选上限 |
-| `BKAPP_DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS` | `3600` | 补充检测的运行时长门槛（秒） |
+| `BKAPP_DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS` | `3600` | 补充检测治理窗口下界（秒） |
+| `BKAPP_DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS` | `604800` | 补充检测治理窗口上界（秒，7 天） |
 | `BKAPP_DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH` | `500` | 单轮案例收敛的扫描上限 |
 
 ## 补充检测（任务视角兜底）
@@ -122,19 +123,37 @@ Layer0 从 `eri_process.last_heartbeat` 找停滞 root，进程已经消失的�
 
 注意这个检测跟 Layer0 是两条独立通路：**它不受 `BKAPP_DIAGNOSTICS_SCAN_ENABLED` 控制**，只要周期任务在跑就会立案。要停它只能停 `scan_stuck_diagnostics` 这个周期任务本身，或把配置里的 `PIPELINE_DIAGNOSTICS_CASE_ENABLED` 置 `False`（这项没有对应的 env 开关，需要改配置重新发布，且 Layer0 也会一起不再立案）。
 
-### 误判防线
+### 治理窗口
 
-引擎正常收尾时先写 `is_finished` 再把进程置 `dead`，这两步之间任务看起来就是“运行中且无存活进程”。短命任务（几十秒级的周期任务等）会在扫描过程中大量踩到这个窗口，因此有三道防线：
+只看启动时间落在 `[now - MAX, now - MIN]` 之间的任务，默认 1 小时 ~ 7 天。两个边界挡的是两类完全不同的问题：
 
-1. **运行时长门槛**：只看已经运行超过 `BKAPP_DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS`（默认 1 小时）的任务，短命任务连候选都不进；
-2. **批量进程判定**：整批候选只查一次 `eri_process`，判定窗口不再随候选数放大（旧实现逐个查，200 个候选耗时接近一分钟，期间跑完的任务全被判成卡住）；
-3. **立案前二次确认**：进程判定之后重新读一次任务态，扫描期间跑完的任务不立案。
+**下界挡误判。** 引擎正常收尾时先写 `is_finished` 再把进程置 `dead`，这两步之间任务看起来就是“运行中且无存活进程”。短命任务（几十秒级的周期任务等）会在扫描过程中大量踩到这个窗口。调低下界会更快发现问题，但误判也更多；真实卡住的流程通常已经卡了很久，1 小时不影响发现。
 
-调门槛前先想清楚：门槛越低发现越快，误判也越多。真实卡住的流程通常已经卡了很久，1 小时门槛不影响发现。
+**上界挡历史僵尸。** 现网存在大量启动于一两年前、`is_expired` 仍为 `False`、引擎侧 `eri_state` 已查不到任何记录的任务。这类任务永远不会 `is_finished`，也永远不会有进程，既治不了也关不掉，而候选批次只有 200，它们会长期占满取样窗口让新问题排不进来。上界把它们挡在候选池外。
+
+另两道误判防线：
+
+- **批量进程判定**：整批候选只查一次 `eri_process`，判定窗口不再随候选数放大（旧实现逐个查，200 个候选耗时接近一分钟，期间跑完的任务全被判成卡住）；
+- **立案前二次确认**：进程判定之后重新读一次任务态，扫描期间跑完的任务不立案。
+
+### Layer0 有同类风险
+
+`stalled_root_candidates` 的候选是 `eri_process` 按 root 取 `MAX(last_heartbeat)`，`order by latest` 升序取 200 —— **最久静默优先**。现网存在近两千个心跳停在两年前的 `dead=False` 僵尸进程，直接打开 `BKAPP_DIAGNOSTICS_SCAN_ENABLED` 会稳定地每轮只看这批历史垃圾，新问题一条都排不进窗口。这个上界在引擎侧（`pipeline.contrib.diagnostics.progress`），尚未提供，**开 Layer0 之前需要先解决**。
+
+另外注意 `beat()` 只在执行推进循环和 schedule 时被调用，等回调的休眠进程心跳不刷新，所以“心跳老旧”不等于卡住。Layer0 对此的防护是：候选只是入场券，真正立案要求 `diagnose_snapshot` 命中规则，单纯停滞不立案。
 
 ### 案例收敛
 
-补充检测的案例由 `close_recovered_cases` 随扫描同轮收敛：任务已完成 / 已撤销 / 已过期 / 已删除 / 记录已不存在，或进程已恢复，案例即改为 `resolved`。引擎侧的 `close_stale_cases` 以 heartbeat 恢复为判据，覆盖不到这个检测（这里的 root 根本没有进程），而且它被 Layer0 扫描开关挡住，所以单独实现。
+补充检测的案例由 `close_recovered_cases` 随扫描同轮收敛，分两种终态：
+
+- `resolved`：任务已完成 / 已撤销 / 已过期 / 已删除 / 记录已不存在，或进程已恢复 —— 问题没了；
+- `ignored`：任务确实还卡着，但已经超出治理窗口上界 —— 治不了了，不该继续占看板。
+
+窗口上界同时作用在立案和收敛两侧，这一点很关键：只加在立案侧的话，窗口外的历史僵尸案例会永远留在 `open`（任务永远不完成、进程永远不出现，`resolved` 的判据一条都不满足）。
+
+代价要清楚：一个卡了 6 天没人处理的流程，第 8 天会被自动收敛成 `ignored` 并从待治理列表消失，之后也不会再立案。告警在立案那一刻就已经发出，看板不承担长期待办的职责；如果 7 天不够，调大 `BKAPP_DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS`。
+
+引擎侧的 `close_stale_cases` 以 heartbeat 恢复为判据，覆盖不到这个检测（这里的 root 根本没有进程），而且它被 Layer0 扫描开关挡住，所以单独实现。
 
 看板列表和详情都带“任务当前状态”，用来区分“还卡着”和“立案之后任务已经跑完”。
 
@@ -145,4 +164,4 @@ python manage.py close_recovered_diagnostic_cases --dry-run
 python manage.py close_recovered_diagnostic_cases
 ```
 
-命令按 id 游标翻页扫全量 `open` 案例，周期任务只看最近未更新的一批，两者判据一致。
+命令按 id 游标翻页扫全量 `open` 案例，周期任务只看最近未更新的一批，两者判据一致。输出形如 `scanned=N resolved=X ignored=Y`，`--dry-run` 时前缀 `would_`。
