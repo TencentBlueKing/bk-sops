@@ -18,7 +18,7 @@ specific language governing permissions and limitations under the License.
 - 下界（min）挡误判：引擎正常收尾时先写 is_finished 再把进程置 dead，两步之间任务看起来就是"运行中且无进程"，
   短命任务会大量踩这个窗口，因此只看已经运行足够久的；
 - 上界（max）挡历史僵尸：跑了几百天、引擎侧数据早已不存在的任务永远不会完成也永远不会有进程，
-  既治不了也关不掉，会长期占满取样批次，让新问题排不进来。
+  既治不了也关不掉，不该立案，已立案的收敛成 ignored，不占看板。
 
 另两道误判防线：
 - 批量进程判定：一次查询判完整批候选，不再逐个查询，把整批的判定窗口从分钟级压到一次查询；
@@ -77,17 +77,24 @@ def _max_running_seconds(value=None):
 
 
 def _running_root_ids(batch, started_after, started_before):
-    """取候选 root：运行中且启动时间落在治理窗口内。
+    """取候选 root：运行中且启动时间落在治理窗口内，新任务优先。
 
-    不加 order by：start_time 无索引，排序会退化成 filesort 全量物化，而不排序时 limit 可提前终止。
-    候选池超出 batch 的部分本轮不看，下一轮再看；候选池长期大于 batch 时调大
-    BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH 即可，存活进程判定已是批量查询，候选数不再放大查询次数。
+    按 id 倒序：id 自增与启动时间强相关，倒序即"最新优先"，且窗口内的行集中在 id 高位，
+    limit 能在扫过少量行后终止。不排序会退化成按 PK 正序返回，窗口外的历史长驻任务有几十万条，
+    limit 得扫穿这段前缀才凑够一批；也不能按 start_time 排序，该列无索引会退化成 filesort 全量物化。
+
+    每轮只看最新的 batch 条候选：任务跨过时长下界时就会被捞到，立案后案例一直在，
+    之后变老排不进取样也不影响，因此"最新优先"不会漏掉持续卡住的任务。
     """
-    ids = TaskFlowInstance.objects.filter(
-        pipeline_instance__start_time__lt=started_before,
-        pipeline_instance__start_time__gte=started_after,
-        **RUNNING_TASK_FILTER
-    ).values_list("pipeline_instance__instance_id", flat=True)[:batch]
+    ids = (
+        TaskFlowInstance.objects.filter(
+            pipeline_instance__start_time__lt=started_before,
+            pipeline_instance__start_time__gte=started_after,
+            **RUNNING_TASK_FILTER
+        )
+        .order_by("-id")
+        .values_list("pipeline_instance__instance_id", flat=True)[:batch]
+    )
     return [rid for rid in ids if rid]
 
 

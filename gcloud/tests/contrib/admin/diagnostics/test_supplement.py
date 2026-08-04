@@ -228,6 +228,15 @@ class SupplementScanRealDataTest(DiagnosticsDataMixin, TestCase):
 
         self.assertEqual(len(self.scan(batch=2)), 2)
 
+    def test_candidates_prefer_newest_tasks(self):
+        """候选池超出 batch 时按 id 倒序取最新的，窗口内的长驻任务不再占满批次。"""
+        for index, started_ago in enumerate([500000, 400000, 7200, 3700]):
+            self.create_task("root-order-{}".format(index), started_ago=started_ago)
+
+        cases = self.scan(batch=2)
+
+        self.assertEqual({case.root_pipeline_id for case in cases}, {"root-order-2", "root-order-3"})
+
     def test_min_running_seconds_is_configurable(self):
         self.create_task("root-tunable", started_ago=120)
 
