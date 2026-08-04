@@ -25,7 +25,7 @@ class ScanTaskTest(TestCase):
             "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
             return_value=[],
         ) as m_supp, mock.patch(
-            "gcloud.contrib.admin.diagnostics.supplement.close_recovered_cases", return_value=0
+            "gcloud.contrib.admin.diagnostics.supplement.close_recovered_cases", return_value=(0, 0)
         ) as m_close:
             tasks.scan_stuck_diagnostics()
         self.assertTrue(m_scan.called)
@@ -49,7 +49,7 @@ class ScanTaskTest(TestCase):
         with mock.patch.object(tasks, "scan_stalled_roots", return_value=[]), mock.patch(
             "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
             return_value=[],
-        ), mock.patch("gcloud.contrib.admin.diagnostics.supplement.close_recovered_cases", return_value=0):
+        ), mock.patch("gcloud.contrib.admin.diagnostics.supplement.close_recovered_cases", return_value=(0, 0)):
             tasks.scan_stuck_diagnostics()
         # 运行结束后锁应被释放，下一轮可再次抢到
         self.assertIsNone(settings.redis_inst.get(tasks._SCAN_LOCK_KEY))

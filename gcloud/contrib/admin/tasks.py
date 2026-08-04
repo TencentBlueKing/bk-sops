@@ -71,9 +71,9 @@ def scan_stuck_diagnostics():
 
             supplemented = scan_running_tasks_without_live_process()
             logger.info("[diagnostics] supplemental cases: %s", len(supplemented))
-            # 与补充检测同轮收敛：任务恢复或跑完后案例自动关闭，看板只留真正待治理的。
-            closed = close_recovered_cases()
-            logger.info("[diagnostics] supplemental cases closed: %s", closed)
+            # 与补充检测同轮收敛：任务恢复或跑完后关成 resolved，超出治理窗口的关成 ignored。
+            resolved, aged_out = close_recovered_cases()
+            logger.info("[diagnostics] supplemental cases closed: resolved=%s aged_out=%s", resolved, aged_out)
         except ImportError:  # pragma: no cover - depends on engine version
             pass
         except Exception:
