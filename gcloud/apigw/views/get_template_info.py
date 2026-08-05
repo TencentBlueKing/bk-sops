@@ -31,6 +31,7 @@ from gcloud.iam_auth.view_interceptors.apigw import GetTemplateInfoInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
 from gcloud.utils.pipeline_tree_trimmer import trim_pipeline_tree
+from gcloud.utils.webhook import get_webhook_configs
 from gcloud.utils.yaml import NoAliasSafeDumper
 
 logger = logging.getLogger("root")
@@ -54,6 +55,7 @@ def get_template_info(request, template_id, project_id):
     include_constants = serializer.validated_data["include_constants"]
     include_executor_proxy = serializer.validated_data["include_executor_proxy"]
     include_notify = serializer.validated_data["include_notify"]
+    include_webhook = serializer.validated_data["include_webhook"]
     unfold_subprocess = serializer.validated_data["unfold_subprocess"]
     if template_source in NON_COMMON_TEMPLATE_TYPES:
         try:
@@ -136,6 +138,10 @@ def get_template_info(request, template_id, project_id):
         data["pipeline_tree"] = yaml.dump_all(
             convert_result["data"], allow_unicode=True, sort_keys=False, Dumper=NoAliasSafeDumper
         )
+    if template_source in NON_COMMON_TEMPLATE_TYPES and include_webhook:
+        webhook_configs = get_webhook_configs(scope_code=str(template_id), decrypt=False)
+        data["enable_webhook"] = webhook_configs.pop("enable_webhook", False)
+        data["webhook_configs"] = webhook_configs
 
     return {
         "result": True,

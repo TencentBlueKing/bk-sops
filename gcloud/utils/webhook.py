@@ -29,7 +29,7 @@ from gcloud.utils.local import thread_local
 logger = logging.getLogger("root")
 
 
-def get_webhook_configs(scope_code):
+def get_webhook_configs(scope_code, decrypt=True):
     """
     get webhook retry policy of scope
     """
@@ -37,10 +37,13 @@ def get_webhook_configs(scope_code):
         webhooks = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code=scope_code)
         result = {}
         for webhook in webhooks:
+            extra_info = (
+                process_sensitive_info(webhook.extra_info, is_decrypt=decrypt) if decrypt else webhook.extra_info
+            )
             result = {
                 "method": webhook.method,
                 "endpoint": webhook.endpoint,
-                "extra_info": process_sensitive_info(webhook.extra_info, is_decrypt=True),
+                "extra_info": extra_info,
                 "enable_webhook": webhook.enable_webhook,
             }
     except Exception as e:
