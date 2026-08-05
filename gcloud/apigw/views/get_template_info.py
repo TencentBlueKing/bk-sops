@@ -139,9 +139,16 @@ def get_template_info(request, template_id, project_id):
             convert_result["data"], allow_unicode=True, sort_keys=False, Dumper=NoAliasSafeDumper
         )
     if template_source in NON_COMMON_TEMPLATE_TYPES and include_webhook:
-        webhook_configs = get_webhook_configs(scope_code=str(template_id), decrypt=False)
-        data["enable_webhook"] = webhook_configs.pop("enable_webhook", False)
-        data["webhook_configs"] = webhook_configs
+        webhook_result = get_webhook_configs(scope_code=str(template_id), decrypt=False)
+        if not webhook_result["result"]:
+            return {
+                "result": False,
+                "message": webhook_result["message"],
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
+        webhook_config = webhook_result["data"]
+        data["enable_webhook"] = webhook_config.pop("enable_webhook", False)
+        data["webhook_configs"] = webhook_config
 
     return {
         "result": True,

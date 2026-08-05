@@ -50,7 +50,7 @@ def get_webhook_configs(scope_code, decrypt=True):
         logger.exception(f"get_scope_webhooks error: {e}")
         return {"result": False, "message": f"Failed to get webhook configs: {e}", "data": {}, "code": "500"}
 
-    return result
+    return {"result": True, "message": "success", "data": result, "code": "0"}
 
 
 def get_webhook_delivery_history_by_delivery_id(delivery_id):
