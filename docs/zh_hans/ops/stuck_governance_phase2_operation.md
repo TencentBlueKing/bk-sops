@@ -98,7 +98,7 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 **熔断 / 回滚（任意步骤）**
 
 - [ ] 秒级：把对应 `BKAPP_DIAGNOSTICS_*_ENABLED` 置 `0`，无需重新部署。
-- [ ] 代码回滚：`requirements.txt` pin 回 `bamboo-pipeline==3.24.11`；残留空表无害、无需清理。
+- [ ] 代码回滚：整体回退诊断能力 `requirements.txt` pin 回 `bamboo-pipeline==3.24.11`；只回退 3.24.15 的判据降噪则 pin 回 `3.24.14`（会重新产生设计内停车的噪音案例）。残留空表无害、无需清理。
 
 ### env 开关速查
 
@@ -112,6 +112,7 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 | `BKAPP_DIAGNOSTICS_CLEANUP_CRON` | `30 3 * * *` | 清理间隔 |
 | `BKAPP_DIAGNOSTICS_STALL_THRESHOLD_SECONDS` | `3600` | 判定停滞的静默阈值（秒） |
 | `BKAPP_DIAGNOSTICS_SCAN_BATCH` | `200` | 单轮扫描批量上限 |
+| `BKAPP_DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS` | `604800` | Layer0 取样池静默上界（秒，7 天；`0` 表示不设上界） |
 | `BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH` | `200` | 补充检测单轮候选上限 |
 | `BKAPP_DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS` | `3600` | 补充检测治理窗口下界（秒） |
 | `BKAPP_DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS` | `604800` | 补充检测治理窗口上界（秒，7 天） |
@@ -136,11 +137,13 @@ Layer0 从 `eri_process.last_heartbeat` 找停滞 root，进程已经消失的�
 - **批量进程判定**：整批候选只查一次 `eri_process`，判定窗口不再随候选数放大（旧实现逐个查，200 个候选耗时接近一分钟，期间跑完的任务全被判成卡住）；
 - **立案前二次确认**：进程判定之后重新读一次任务态，扫描期间跑完的任务不立案。
 
-### Layer0 有同类风险
+### Layer0 的同类风险（3.24.15 已收敛）
 
-`stalled_root_candidates` 的候选是 `eri_process` 按 root 取 `MAX(last_heartbeat)`，`order by latest` 升序取 200 —— **最久静默优先**。现网存在近两千个心跳停在两年前的 `dead=False` 僵尸进程，直接打开 `BKAPP_DIAGNOSTICS_SCAN_ENABLED` 会稳定地每轮只看这批历史垃圾，新问题一条都排不进窗口。这个上界在引擎侧（`pipeline.contrib.diagnostics.progress`），尚未提供，**开 Layer0 之前需要先解决**。
+`stalled_root_candidates` 的候选是 `eri_process` 按 root 取 `MAX(last_heartbeat)`。3.24.15 之前是 `order by latest` 升序取 200——**最久静默优先**，而现网有近两千个心跳停在两年前的 `dead=False` 僵尸进程（实测队头静默 1771 天），当时直接打开 `BKAPP_DIAGNOSTICS_SCAN_ENABLED` 会稳定地每轮只看这批历史垃圾，新问题一条都排不进窗口。
 
-另外注意 `beat()` 只在执行推进循环和 schedule 时被调用，等回调的休眠进程心跳不刷新，所以“心跳老旧”不等于卡住。Layer0 对此的防护是：候选只是入场券，真正立案要求 `diagnose_snapshot` 命中规则，单纯停滞不立案。
+3.24.15 起取样加了静默上界（`BKAPP_DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS`，默认 7 天）并改为**最近静默优先**，窗口外的历史积压交给一次性回扫，不占用周期任务名额。
+
+另外注意 `beat()` 只在执行推进循环和 schedule 时被调用，等回调的休眠进程心跳不刷新，所以“心跳老旧”不等于卡住——bk-sops 的主力 JOB 插件和 `remote_plugin` 都是回调型，一个跑 3 小时的作业必然被判静默 3 小时。Layer0 对此有两道防护：候选只是入场券，真正立案要求 `diagnose_snapshot` 命中规则；3.24.15 起判据本身也会识别设计内停车（等待外部回调、人工暂停 / 失败停车、并行网关等子进程收敛），不再判为卡住。
 
 ### 案例收敛
 
