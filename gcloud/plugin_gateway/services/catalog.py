@@ -205,7 +205,7 @@ class PluginGatewayCatalogService:
 
         worker_count = min(cls.THIRD_PARTY_META_WORKERS, len(plugin_entries))
         with ThreadPoolExecutor(max_workers=worker_count) as executor:
-            plugin_metas = executor.map(cls._get_plugin_meta, [plugin["code"] for plugin in plugin_entries])
+            plugin_metas = executor.map(cls._get_plugin_meta_safely, [plugin["code"] for plugin in plugin_entries])
 
         plugins = []
         for plugin, meta in zip(plugin_entries, plugin_metas):
@@ -381,6 +381,14 @@ class PluginGatewayCatalogService:
         if not result.get("result"):
             return None
         return result.get("data", {})
+
+    @staticmethod
+    def _get_plugin_meta_safely(plugin_code):
+        try:
+            return PluginGatewayCatalogService._get_plugin_meta(plugin_code)
+        except Exception:
+            logger.exception("[plugin_gateway] load third-party plugin meta failed plugin_code=%s", plugin_code)
+            return None
 
     @staticmethod
     @cached(
