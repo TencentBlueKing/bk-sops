@@ -34,7 +34,12 @@ prometheus-client==0.9.0
 # 3.24.14 增量：child_process_finish 对重复 ACK 幂等（修复子流程 ACK 重放导致的父流程异常）；
 # M2 可靠事件 pipeline.contrib.reliable_events 随包提供但未注册进 INSTALLED_APPS，
 # 本次升级下不建表、不生效，待 M2 Part B 显式接入。
-bamboo-pipeline==3.24.14
+# 3.24.15 增量：诊断判据降噪，把"引擎按设计停在原地"与"引擎真的推不动了"区分开——
+# 人工暂停/失败停车、并行网关等子进程收敛、节点等待外部回调期间不再判为卡住，
+# 迟到回调只比对节点当前 version；新增 schedule_missing_for_running_node（节点 RUNNING 却无调度记录）；
+# Layer0 取样池加静默上界（默认 7 天）并改为最近静默优先，避免历史僵尸 root 长期占满 batch。
+# 现网回扫数据下看板噪音从约 4700 条降到 20 条量级；纯判据与取样改动，不涉及引擎执行链路。
+bamboo-pipeline==3.24.15
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 pyyaml==5.4.1
