@@ -57,9 +57,10 @@
 
 ## 发布检查
 
-- 已发布版本：`bamboo-pipeline==3.24.14`（依赖 `bamboo-engine==2.6.5`，含 `engine.py` 热路径钩子），均已在 PyPI。
-- 标准运维 `requirements.txt` 已指向 `bamboo-pipeline==3.24.14`；装此一个包即拉齐 runtime 诊断 + core 钩子，不要指向未发布的未来版本。
+- 已发布版本：`bamboo-pipeline==3.24.16`（依赖 `bamboo-engine==2.6.5`，含 `engine.py` 热路径钩子），均已在 PyPI。
+- 标准运维 `requirements.txt` 已指向 `bamboo-pipeline==3.24.16`；装此一个包即拉齐 runtime 诊断 + core 钩子，不要指向未发布的未来版本。
 - 3.24.14 相对 3.24.13 的增量：`child_process_finish` 重复 ACK 幂等修复；M2 可靠事件 `pipeline.contrib.reliable_events` 随包提供但未注册进 `INSTALLED_APPS`，不建表不生效，M1 灰度不受影响。
+- 3.24.15 / 3.24.16 的增量都是判据降噪，见下方「判据为什么会误判」。开 `SCAN` 前务必先到 3.24.16，否则设计内停车（人工暂停 / 失败等人工 / 并行网关等失败分支）会被兜底判据报成卡住。
 - 发布后先在 stage 验证 `/admin/diagnostics/task/`、`/admin/diagnostics/cases/` 页面、证据包导出命令和 dry-run 操作。
 - 观察 `[pipeline_diagnostics_alert]` 与 `[bk_sops_task_diagnostic_alert]` 日志是否符合预期。
 
@@ -69,7 +70,7 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 
 **Step 0 前置（已就绪）**
 
-- [ ] `requirements.txt` 已指向 `bamboo-pipeline==3.24.14`。
+- [ ] `requirements.txt` 已指向 `bamboo-pipeline==3.24.16`。
 - [ ] 默认安全配置：`SCAN`/`EVENT`/`ALERT`/`APPLY` 全关（见下方 env 速查）。
 
 **Step 1 休眠部署（先关扫描，验证启动/迁移）**
@@ -98,7 +99,7 @@ M1 只做“检测立案”，只读为主、执行热路径不变。按下述�
 **熔断 / 回滚（任意步骤）**
 
 - [ ] 秒级：把对应 `BKAPP_DIAGNOSTICS_*_ENABLED` 置 `0`，无需重新部署。
-- [ ] 代码回滚：整体回退诊断能力 `requirements.txt` pin 回 `bamboo-pipeline==3.24.11`；只回退 3.24.15 的判据降噪则 pin 回 `3.24.14`（会重新产生设计内停车的噪音案例）。残留空表无害、无需清理。
+- [ ] 代码回滚：整体回退诊断能力 `requirements.txt` pin 回 `bamboo-pipeline==3.24.11`；只回退 3.24.16 的兜底降噪则 pin 回 `3.24.15`，连 3.24.15 的判据降噪一起回退则 pin 回 `3.24.14`（两者都会重新产生设计内停车的噪音案例）。残留空表无害、无需清理。
 
 ### env 开关速查
 
@@ -144,6 +145,24 @@ Layer0 从 `eri_process.last_heartbeat` 找停滞 root，进程已经消失的�
 3.24.15 起取样加了静默上界（`BKAPP_DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS`，默认 7 天）并改为**最近静默优先**，窗口外的历史积压交给一次性回扫，不占用周期任务名额。
 
 另外注意 `beat()` 只在执行推进循环和 schedule 时被调用，等回调的休眠进程心跳不刷新，所以“心跳老旧”不等于卡住——bk-sops 的主力 JOB 插件和 `remote_plugin` 都是回调型，一个跑 3 小时的作业必然被判静默 3 小时。Layer0 对此有两道防护：候选只是入场券，真正立案要求 `diagnose_snapshot` 命中规则；3.24.15 起判据本身也会识别设计内停车（等待外部回调、人工暂停 / 失败停车、并行网关等子进程收敛），不再判为卡住。
+
+### 兜底判据的补漏（3.24.16）
+
+3.24.15 只让专属判据认识了设计内停车，但 `stalled_no_progress` 这条兜底（root 长期无推进即报 warning）漏了同一层豁免，同一批流程仍会以 warning 立案。3.24.16 给兜底补齐，其中一处值得单独说明：
+
+**等 ACK 收敛的父进程算中性。** 并行网关下若有分支失败停车，父进程会永远收不齐 ACK：
+
+```
+父进程  ack=2/4  停在自己那个 FINISHED 的网关节点上
+子进程  停在 FAILED 节点 + 沉睡   <- 等人工重试或跳过
+子进程  停在 FAILED 节点 + 沉睡   <- 等人工重试或跳过
+```
+
+父进程既没有被用户暂停、也不在失败节点上，按 3.24.16 之前的写法它会被当成「还有进程在正常推进」，一票否决整个豁免。但它能否往下走完全取决于子进程，而子进程已各自被判定为失败停车，所以它在这个判断里应当中性。现网 `task 138970299`（SRE 稳定性巡检，挂 56 天）就是这个形态。
+
+这不会放过真问题：子进程若停在 RUNNING 却没有对应 version 的调度记录，由 `schedule_missing_for_running_node` 报出；子进程全死却仍未收敛，由 `parallel_ack_not_converged` 报出。
+
+需要注意「长期有失败节点无人处理」这类任务从此不再进卡住看板——它确实该有人管，但属于任务治理，和「引擎推不动」是两回事，混在一起正是早期看板噪音的成因，后续用独立报表覆盖。
 
 ### 案例收敛
 

@@ -112,8 +112,9 @@ ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM = int(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK
 # 流程卡住治理（诊断检测打底 M1）
 # 诊断能力随 bamboo-pipeline>=3.24.12 提供；下列开关默认全关，需按运维 checklist 显式开启。
 # SCAN 默认关的原因：Layer0 分组查询（WHERE dead=0 GROUP BY root_pipeline_id）在大 eri_process
-# 表上开销不可忽略。长等待节点（人工确认 / 长作业）心跳停摆产生噪音的问题已在 3.24.15 收敛：
-# 判据会识别等待外部回调、人工暂停、并行网关等收敛等设计内停车，不再判为卡住。
+# 表上开销不可忽略。长等待节点（人工确认 / 长作业）心跳停摆产生噪音的问题已在 3.24.15/3.24.16 收敛：
+# 判据会识别等待外部回调、人工暂停、失败等人工、并行网关等失败分支这类设计内停车，不再判为卡住。
+# 开 SCAN 前务必先到 3.24.16——3.24.15 只改了专属判据，兜底 stalled_no_progress 仍会报出同一批流程。
 # EVENT 与 SCAN 是两个独立开关：仅关 SCAN 不足以关热点路径事件写，务必同时关 EVENT。
 _DIAG_TRUE = ("1", "true", "yes", "on")
 DIAGNOSTICS_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SCAN_ENABLED", "0").lower() in _DIAG_TRUE

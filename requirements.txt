@@ -39,7 +39,11 @@ prometheus-client==0.9.0
 # 迟到回调只比对节点当前 version；新增 schedule_missing_for_running_node（节点 RUNNING 却无调度记录）；
 # Layer0 取样池加静默上界（默认 7 天）并改为最近静默优先，避免历史僵尸 root 长期占满 batch。
 # 现网回扫数据下看板噪音从约 4700 条降到 20 条量级；纯判据与取样改动，不涉及引擎执行链路。
-bamboo-pipeline==3.24.15
+# 3.24.16 增量：3.24.15 只让专属判据识别了设计内停车，兜底 stalled_no_progress 漏了这层豁免，
+# 同一批流程仍会以 warning 报出；本版给兜底补齐。其中"等 ACK 收敛的父进程"算中性——
+# 并行网关下分支失败停车时父进程永远收不齐 ACK，但那取决于子进程而非引擎推不动
+# （现网 task 138970299 挂 56 天即此形态）。子进程真卡了仍由专属判据接住。
+bamboo-pipeline==3.24.16
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 pyyaml==5.4.1
