@@ -30,7 +30,7 @@ from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 @project_inject
 @iam_intercept(TaskViewInterceptor())
 def get_task_operate_record(request, task_id, project_id):
-    filters = {"project_id": project_id, "instance_id": task_id}
+    filters = {"project_id": request.project.id, "instance_id": task_id}
     node_id = request.GET.get("node_id")
     if node_id:
         filters.update({"node_id": node_id})
