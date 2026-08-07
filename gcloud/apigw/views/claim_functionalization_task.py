@@ -13,18 +13,19 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-
+from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.views.utils import logger
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FunctionTaskInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.apigw.views.utils import logger
-from gcloud.iam_auth.intercept import iam_intercept
-from apigw_manager.apigw.decorators import apigw_require
 
 
 @login_exempt
@@ -50,6 +51,7 @@ def claim_functionalization_task(request, task_id, project_id):
 
     try:
         task = TaskFlowInstance.objects.get(pk=task_id, project_id=request.project.id)
+        origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, task)
         result = task.task_claim(request.user.username, constants, name)
     except Exception as e:
         logger.exception("[API] claim_functionalization_task fail: {}".format(e))
@@ -61,4 +63,11 @@ def claim_functionalization_task(request, task_id, project_id):
 
     if result["result"] is False:
         return {"result": False, "message": result["message"], "code": err_code.UNKNOWN_ERROR.code}
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.TASK_CLAIM_ACTION,
+        resource_id=IAMMeta.TASK_RESOURCE,
+        instance=task,
+        origin_data=origin_data,
+    )
     return {"result": True, "data": result["message"], "code": err_code.SUCCESS.code}

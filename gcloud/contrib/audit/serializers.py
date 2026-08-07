@@ -75,11 +75,31 @@ class TaskSerializer(serializers.ModelSerializer):
     is_revoked = serializers.BooleanField(source="pipeline_instance.is_revoked", read_only=True)
     is_started = serializers.BooleanField(source="pipeline_instance.is_started", read_only=True)
     executor_name = serializers.CharField(help_text="执行者名称", read_only=True)
+    creator_name = serializers.CharField(help_text="创建者名称", read_only=True)
     name = serializers.CharField(source="pipeline_instance.name", read_only=True)
 
     class Meta:
         model = TaskFlowInstance
-        fields = "__all__"
+        fields = [
+            "id",
+            "name",
+            "project",
+            "category",
+            "template_id",
+            "template_source",
+            "create_method",
+            "creator_name",
+            "executor_name",
+            "flow_type",
+            "current_flow",
+            "is_started",
+            "is_finished",
+            "is_revoked",
+            "is_expired",
+            "create_time",
+            "start_time",
+            "finish_time",
+        ]
 
 
 class AppmakerSerializer(serializers.ModelSerializer):
@@ -129,7 +149,6 @@ class PeriodicTaskSerializer(serializers.ModelSerializer):
             "template_id",
             "template_source",
             "total_run_count",
-            "form",
             "is_latest",
             "template_scheme_ids",
             "template_version",

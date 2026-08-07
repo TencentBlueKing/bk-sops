@@ -29,13 +29,11 @@ from rest_framework.request import Request
 
 from gcloud import err_code
 from gcloud.conf import settings
+from gcloud.contrib.audit.operations import audit_imported_templates
 from gcloud.core.models import Project
 from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.base_template import (
-    YamlExportInterceptor,
-    YamlImportInterceptor,
-)
+from gcloud.iam_auth.view_interceptors.base_template import YamlExportInterceptor, YamlImportInterceptor
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.template_base.apis.django.validators import (
     FileValidator,
@@ -45,10 +43,7 @@ from gcloud.template_base.apis.django.validators import (
 from gcloud.template_base.domains import TEMPLATE_TYPE_MODEL
 from gcloud.template_base.domains.converter_handler import YamlSchemaConverterHandler
 from gcloud.template_base.domains.importer import TemplateImporter
-from gcloud.template_base.utils import (
-    format_import_result_to_response_data,
-    read_template_data_file,
-)
+from gcloud.template_base.utils import format_import_result_to_response_data, read_template_data_file
 from gcloud.utils.dates import time_now_str
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import string_to_boolean
@@ -195,6 +190,7 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
             }
         )
 
+    audit_imported_templates(request.user.username, template_model_cls, import_result)
     return JsonResponse(format_import_result_to_response_data(import_result))
 
 

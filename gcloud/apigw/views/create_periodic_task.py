@@ -27,7 +27,10 @@ from gcloud.apigw.validators import CreatePriodicTaskValidator
 from gcloud.apigw.views.utils import info_data_from_period_task, logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.contrib.audit.mappings import get_periodic_task_create_action
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.core.models import ProjectConfig
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreatePeriodicTaskInterceptor
 from gcloud.periodictask.models import PeriodicTask
@@ -140,5 +143,13 @@ def create_periodic_task(request, template_id, project_id):
         logger.exception("[API] create_periodic_task create error: {}".format(e))
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
 
+    action_id = get_periodic_task_create_action(template_source)
+    if action_id:
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=action_id,
+            resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+            instance=task,
+        )
     data = info_data_from_period_task(task, include_edit_info=include_edit_info)
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

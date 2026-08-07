@@ -10,21 +10,21 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from rest_framework import permissions
-from rest_framework import serializers
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from iam import Subject, Action
-from iam.shortcuts import allow_or_raise_auth_failed
 from drf_yasg.utils import swagger_auto_schema
-from gcloud.contrib.operate_record.constants import OperateType, OperateSource
-from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
+from rest_framework import permissions, serializers
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType
 from gcloud.contrib.operate_record.models import TaskOperateRecord
 from gcloud.contrib.operate_record.utils import extract_extra_info
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
+from gcloud.taskflow3.models import TaskFlowInstance
 
 iam = get_iam_client()
 
@@ -84,6 +84,7 @@ class UpdateTaskConstantsView(APIView):
             return Response({"result": False, "message": e.detail, "data": ""})
 
         task = TaskFlowInstance.objects.filter(id=task_id).only("project_id", "engine_ver", "pipeline_instance").first()
+        origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, task)
         set_result = task.set_task_constants(serializer.data["constants"], serializer.data["meta_constants"])
 
         if set_result["result"]:
@@ -98,11 +99,20 @@ class UpdateTaskConstantsView(APIView):
                 project_id=task.project_id,
                 extra_info=extra_info,
             )
+            bk_audit_add_event_on_commit(
+                username=request.user.username,
+                action_id=IAMMeta.TASK_EDIT_ACTION,
+                resource_id=IAMMeta.TASK_RESOURCE,
+                instance=task,
+                origin_data=origin_data,
+            )
 
         return Response(set_result)
 
     @swagger_auto_schema(
-        method="GET", operation_summary="查看任务参数的使用信息", responses={200: TaskConstantsResponseSerializer},
+        method="GET",
+        operation_summary="查看任务参数的使用信息",
+        responses={200: TaskConstantsResponseSerializer},
     )
     @action(methods=["GET"], detail=True)
     def get(self, request, task_id, *args, **kwargs):

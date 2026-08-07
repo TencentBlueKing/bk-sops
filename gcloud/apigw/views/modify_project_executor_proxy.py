@@ -12,18 +12,20 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from rest_framework import serializers
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.audit.instances import AuditSnapshot
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
+from gcloud.core.models import ProjectConfig
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw.project_edit import ProjectEditInterceptor
-from gcloud.core.models import ProjectConfig
-from apigw_manager.apigw.decorators import apigw_require
-from rest_framework import serializers
 
 
 class ProjectExecutorProxySerializer(serializers.ModelSerializer):
@@ -74,25 +76,43 @@ def modify_project_executor_proxy(request, project_id):
     try:
         project_config, created = ProjectConfig.objects.get_or_create(project_id=project.id)
     except Exception as e:
-        return {"result": False, "message": f"Failed to get project config: {str(e)}",
-                "code": err_code.UNKNOWN_ERROR.code}
+        return {
+            "result": False,
+            "message": f"Failed to get project config: {str(e)}",
+            "code": err_code.UNKNOWN_ERROR.code,
+        }
 
     # 使用专用序列化器进行参数校验和更新（仅允许修改 executor_proxy / executor_proxy_exempts）
     serializer = ProjectExecutorProxySerializer(
         instance=project_config,
         data=params,
-        context={'request': request},
+        context={"request": request},
     )
 
     if not serializer.is_valid():
-        return {
-            "result": False,
-            "message": serializer.errors,
-            "code": err_code.REQUEST_PARAM_INVALID.code
-        }
+        return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     # 更新配置
+    origin_data = AuditSnapshot(
+        {
+            "executor_proxy": project_config.executor_proxy,
+            "executor_proxy_exempts": project_config.executor_proxy_exempts,
+        }
+    )
     serializer.save()
     data = dict(serializer.validated_data)
     data["project_id"] = project.id
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PROJECT_EDIT_ACTION,
+        resource_id=IAMMeta.PROJECT_RESOURCE,
+        instance=project,
+        origin_data=origin_data,
+        data=AuditSnapshot(
+            {
+                "executor_proxy": project_config.executor_proxy,
+                "executor_proxy_exempts": project_config.executor_proxy_exempts,
+            }
+        ),
+    )
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}

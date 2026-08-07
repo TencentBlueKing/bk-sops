@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
+from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -19,6 +20,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.contrib.audit.operations import audit_deleted_templates
 from gcloud.core.apis.drf.viewsets import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.apis.drf.permission import CommonTemplatePermission, ProjectTemplatePermission
@@ -40,6 +42,11 @@ class TemplateViewSet(ApiMixin, viewsets.GenericViewSet):
         body_serializer = self.template_ids_serializer(data=data)
         body_serializer.is_valid(raise_exception=True)
         template_ids = body_serializer.validated_data.get("template_ids")
+        instances_by_id = (
+            {instance.id: instance for instance in self.tmpl_model.objects.filter(id__in=template_ids)}
+            if settings.ENABLE_BK_AUDIT
+            else {}
+        )
         clear_result = clear_scope_webhooks(template_ids)
         if not clear_result["result"]:
             raise APIException(f'[batch_delete] clear_webhooks False: {clear_result["message"]}')
@@ -48,6 +55,12 @@ class TemplateViewSet(ApiMixin, viewsets.GenericViewSet):
         result = manager.batch_delete(template_ids)
         if not result["result"]:
             raise APIException(f'[batch_delete] result False: {result["message"]}')
+        audit_deleted_templates(
+            request.user.username,
+            self.tmpl_model,
+            instances_by_id,
+            result["data"].get("success", []),
+        )
         return Response(result["data"])
 
 

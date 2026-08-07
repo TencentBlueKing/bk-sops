@@ -32,9 +32,10 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, ONETIME, PROJECT, TASK_NAME_MAX_LENGTH, TaskCreateMethod
+from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.mappings import get_task_create_action
+from gcloud.contrib.audit.utils import bk_audit_add_event, bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -498,22 +499,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             project_id=serializer.instance.project.id,
             extra_info=extra_info,
         )
-        action_id_mappings = {
-            PROJECT: IAMMeta.FLOW_CREATE_TASK_ACTION,
-            COMMON: IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION,
-            ONETIME: IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
-        }
-        if serializer.validated_data.get("create_method") == "app_maker":
-            bk_audit_add_event(
+        action_id = get_task_create_action(
+            serializer.validated_data.get("template_source"), serializer.validated_data.get("create_method")
+        )
+        if action_id:
+            bk_audit_add_event_on_commit(
                 username=creator,
-                action_id=IAMMeta.MINI_APP_CREATE_TASK_ACTION,
-                resource_id=IAMMeta.TASK_RESOURCE,
-                instance=serializer.instance,
-            )
-        elif serializer.validated_data.get("template_source") in action_id_mappings:
-            bk_audit_add_event(
-                username=creator,
-                action_id=action_id_mappings[serializer.validated_data["template_source"]],
+                action_id=action_id,
                 resource_id=IAMMeta.TASK_RESOURCE,
                 instance=serializer.instance,
             )
@@ -525,6 +517,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 message = _("任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态")
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, instance)
         self.perform_destroy(instance)
         # 记录操作流水
         operate_record_signal.send(
@@ -535,11 +528,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             instance_id=instance.id,
             project_id=instance.project.id,
         )
-        bk_audit_add_event(
+        bk_audit_add_event_on_commit(
             username=request.user.username,
             action_id=IAMMeta.TASK_DELETE_ACTION,
             resource_id=IAMMeta.TASK_RESOURCE,
             instance=instance,
+            origin_data=origin_data,
+            data={"id": instance.id, "is_deleted": True},
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -781,9 +776,17 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                     "the number of corresponding function task should be 1. ",
                 }
             )
+        origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, task)
         with transaction.atomic():
             task.flow_type = "common"
             task.current_flow = "execute_task"
             task.save(update_fields=["flow_type", "current_flow"])
             FunctionTask.objects.filter(task_id=task.id).delete()
+            bk_audit_add_event_on_commit(
+                username=request.user.username,
+                action_id=IAMMeta.TASK_EDIT_ACTION,
+                resource_id=IAMMeta.TASK_RESOURCE,
+                instance=task,
+                origin_data=origin_data,
+            )
         return Response({"result": True, "message": "convert to common task success", "data": None})

@@ -29,7 +29,7 @@ VIEW_PATH = "gcloud.apigw.views.modify_template_executor_proxy"
 MANAGER_PATH = VIEW_PATH + ".manager"
 POST_SAVE_SIGNAL_PATH = VIEW_PATH + ".post_template_save_commit"
 OPERATE_RECORD_SIGNAL_PATH = VIEW_PATH + ".operate_record_signal"
-BK_AUDIT_ADD_EVENT_PATH = VIEW_PATH + ".bk_audit_add_event"
+BK_AUDIT_ADD_EVENT_PATH = VIEW_PATH + ".bk_audit_add_event_on_commit"
 TRANSACTION_ATOMIC_PATH = VIEW_PATH + ".transaction.atomic"
 
 
@@ -65,11 +65,13 @@ class ModifyTemplateExecutorProxyAPITest(APITest):
     def test_modify_template_executor_proxy__success(self):
         template = _build_mock_template(executor_proxy="old_proxy")
 
-        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), \
-                mock.patch(MANAGER_PATH) as mock_manager, \
-                mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, \
-                mock.patch(OPERATE_RECORD_SIGNAL_PATH) as mock_operate_record_signal, \
-                mock.patch(BK_AUDIT_ADD_EVENT_PATH) as mock_audit:
+        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), mock.patch(
+            MANAGER_PATH
+        ) as mock_manager, mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, mock.patch(
+            OPERATE_RECORD_SIGNAL_PATH
+        ) as mock_operate_record_signal, mock.patch(
+            BK_AUDIT_ADD_EVENT_PATH
+        ) as mock_audit:
             mock_manager.update_pipeline.return_value = {"result": True, "data": None, "message": "success"}
 
             response = self.client.post(
@@ -131,11 +133,13 @@ class ModifyTemplateExecutorProxyAPITest(APITest):
         original_proxy = "original_owner"
         template = _build_mock_template(executor_proxy=original_proxy)
 
-        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), \
-                mock.patch(MANAGER_PATH) as mock_manager, \
-                mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, \
-                mock.patch(OPERATE_RECORD_SIGNAL_PATH) as mock_operate_record_signal, \
-                mock.patch(BK_AUDIT_ADD_EVENT_PATH) as mock_audit:
+        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), mock.patch(
+            MANAGER_PATH
+        ) as mock_manager, mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, mock.patch(
+            OPERATE_RECORD_SIGNAL_PATH
+        ) as mock_operate_record_signal, mock.patch(
+            BK_AUDIT_ADD_EVENT_PATH
+        ) as mock_audit:
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                 data=json.dumps({}),  # 不携带 executor_proxy 字段
@@ -179,11 +183,13 @@ class ModifyTemplateExecutorProxyAPITest(APITest):
         for payload in illegal_payloads:
             template = _build_mock_template(executor_proxy="original_owner")
 
-            with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), \
-                    mock.patch(MANAGER_PATH) as mock_manager, \
-                    mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, \
-                    mock.patch(OPERATE_RECORD_SIGNAL_PATH) as mock_operate_record_signal, \
-                    mock.patch(BK_AUDIT_ADD_EVENT_PATH) as mock_audit:
+            with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), mock.patch(
+                MANAGER_PATH
+            ) as mock_manager, mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, mock.patch(
+                OPERATE_RECORD_SIGNAL_PATH
+            ) as mock_operate_record_signal, mock.patch(
+                BK_AUDIT_ADD_EVENT_PATH
+            ) as mock_audit:
                 response = self.client.post(
                     path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                     data=json.dumps(payload),
@@ -228,11 +234,13 @@ class ModifyTemplateExecutorProxyAPITest(APITest):
             pipeline_template.edit_time = "new_edit_time"
             return {"result": True, "data": pipeline_template, "message": "success"}
 
-        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), \
-                mock.patch(MANAGER_PATH) as mock_manager, \
-                mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, \
-                mock.patch(OPERATE_RECORD_SIGNAL_PATH) as mock_operate_record_signal, \
-                mock.patch(BK_AUDIT_ADD_EVENT_PATH) as mock_audit:
+        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), mock.patch(
+            MANAGER_PATH
+        ) as mock_manager, mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, mock.patch(
+            OPERATE_RECORD_SIGNAL_PATH
+        ) as mock_operate_record_signal, mock.patch(
+            BK_AUDIT_ADD_EVENT_PATH
+        ) as mock_audit:
             mock_manager.update_pipeline.side_effect = _update_pipeline_side_effect
 
             response = self.client.post(
@@ -291,11 +299,13 @@ class ModifyTemplateExecutorProxyAPITest(APITest):
         ),
     )
     def test_modify_template_executor_proxy__template_does_not_exist(self):
-        with mock.patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist)), \
-                mock.patch(MANAGER_PATH) as mock_manager, \
-                mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, \
-                mock.patch(OPERATE_RECORD_SIGNAL_PATH) as mock_operate_record_signal, \
-                mock.patch(BK_AUDIT_ADD_EVENT_PATH) as mock_audit:
+        with mock.patch(TASKTEMPLATE_GET, MagicMock(side_effect=TaskTemplate.DoesNotExist)), mock.patch(
+            MANAGER_PATH
+        ) as mock_manager, mock.patch(POST_SAVE_SIGNAL_PATH) as mock_post_save_signal, mock.patch(
+            OPERATE_RECORD_SIGNAL_PATH
+        ) as mock_operate_record_signal, mock.patch(
+            BK_AUDIT_ADD_EVENT_PATH
+        ) as mock_audit:
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                 data=json.dumps({"executor_proxy": TEST_USERNAME}),
@@ -328,8 +338,7 @@ class ModifyTemplateExecutorProxyAPITest(APITest):
     def test_modify_template_executor_proxy__proxy_must_be_self(self):
         template = _build_mock_template(executor_proxy="original_owner")
 
-        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), \
-                mock.patch(MANAGER_PATH) as mock_manager:
+        with mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)), mock.patch(MANAGER_PATH) as mock_manager:
             response = self.client.post(
                 path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
                 data=json.dumps({"executor_proxy": "someone_else"}),

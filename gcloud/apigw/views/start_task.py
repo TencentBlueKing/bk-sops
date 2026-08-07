@@ -20,9 +20,11 @@ from django.views.decorators.http import require_POST
 import env
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.trace import CallFrom, trace_view
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
@@ -55,12 +57,24 @@ def start_task(request, task_id, project_id):
     if TaskFlowInstance.objects.is_task_started(project_id=project.id, id=task_id):
         return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
 
+    task = (
+        TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
+        if settings.ENABLE_BK_AUDIT
+        else None
+    )
+
     queue, routing_key = PrepareAndStartTaskQueueResolver(
         settings.API_TASK_QUEUE_NAME_V2
     ).resolve_task_queue_and_routing_key()
 
     prepare_and_start_task.apply_async(
         kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
+    )
+    bk_audit_add_event_on_commit(
+        username=username,
+        action_id=IAMMeta.TASK_OPERATE_ACTION,
+        resource_id=IAMMeta.TASK_RESOURCE,
+        instance=task,
     )
 
     task_url = TaskFlowInstance.task_url(project_id=project.id, task_id=task_id)

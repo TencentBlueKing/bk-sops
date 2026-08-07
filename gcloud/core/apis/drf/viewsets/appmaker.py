@@ -15,7 +15,7 @@ from rest_framework import mixins, permissions
 from rest_framework.pagination import LimitOffsetPagination
 
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.utils import bk_audit_add_event, bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.appmaker import AppmakerSerializer
@@ -65,10 +65,14 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        bk_audit_add_event(
+        origin_data = get_audit_snapshot(IAMMeta.MINI_APP_RESOURCE, instance)
+        response = super(AppmakerListViewSet, self).destroy(request, *args, **kwargs)
+        bk_audit_add_event_on_commit(
             username=request.user.username,
             action_id=IAMMeta.MINI_APP_DELETE_ACTION,
             resource_id=IAMMeta.MINI_APP_RESOURCE,
             instance=instance,
+            origin_data=origin_data,
+            data={"id": instance.id, "is_deleted": True},
         )
-        return super(AppmakerListViewSet, self).destroy(request, *args, **kwargs)
+        return response

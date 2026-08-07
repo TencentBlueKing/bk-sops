@@ -17,8 +17,10 @@ from django.views.decorators.http import require_GET, require_POST
 
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, COMMON
+from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.core.models import Project
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.periodic_task import (
     ModifyConstantsInterceptor,
@@ -43,9 +45,17 @@ def set_enabled_for_periodic_task(request, project_id, task_id):
     data = json.loads(request.body)
 
     task = PeriodicTask.objects.get(id=task_id)
+    origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, task)
     task.set_enabled(data["enabled"])
     task.editor = request.user.username
     task.save(update_fields=["editor", "edit_time"])
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+        resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+        instance=task,
+        origin_data=origin_data,
+    )
 
     return JsonResponse({"result": True, "message": "success"})
 
@@ -58,6 +68,7 @@ def modify_cron(request, project_id, task_id):
 
     task = PeriodicTask.objects.get(id=task_id)
     project = Project.objects.get(id=project_id)
+    origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, task)
 
     try:
         task.modify_cron(data["cron"], project.time_zone)
@@ -65,6 +76,14 @@ def modify_cron(request, project_id, task_id):
         return JsonResponse(
             {"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
         )
+
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+        resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+        instance=task,
+        origin_data=origin_data,
+    )
 
     return JsonResponse({"result": True, "message": "success", "data": None, "code": err_code.SUCCESS.code})
 
@@ -76,6 +95,7 @@ def modify_constants(request, project_id, task_id):
     data = json.loads(request.body)
 
     task = PeriodicTask.objects.get(id=task_id)
+    origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, task)
 
     try:
         new_constants = task.modify_constants(data["constants"])
@@ -83,6 +103,14 @@ def modify_constants(request, project_id, task_id):
         return JsonResponse(
             {"result": False, "message": str(e), "data": None, "code": err_code.REQUEST_PARAM_INVALID.code}
         )
+
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+        resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+        instance=task,
+        origin_data=origin_data,
+    )
 
     return JsonResponse({"result": True, "message": "success", "data": new_constants, "code": err_code.SUCCESS.code})
 
@@ -95,8 +123,9 @@ def get_period_tasks_with_expired_template(request, project_id):
     """
 
     periodic_tasks = list(
-        PeriodicTask.objects.filter(project__id=project_id).only("id", "template_id", "template_version",
-                                                                 "template_source")
+        PeriodicTask.objects.filter(project__id=project_id).only(
+            "id", "template_id", "template_version", "template_source"
+        )
     )
 
     # 按 template_source 分组，批量查询模板以避免 N+1 查询
@@ -120,5 +149,4 @@ def get_period_tasks_with_expired_template(request, project_id):
             if task.template_version != template_version_map.get(int(task.template_id)):
                 expired_task_ids.append(task.id)
 
-    return JsonResponse(
-        {"result": True, "data": expired_task_ids, "code": err_code.SUCCESS.code, "message": ""})
+    return JsonResponse({"result": True, "data": expired_task_ids, "code": err_code.SUCCESS.code, "message": ""})

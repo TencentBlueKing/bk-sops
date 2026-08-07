@@ -34,10 +34,13 @@ from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT, TaskCreateMethod
+from gcloud.contrib.audit.mappings import get_task_create_action
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
 from gcloud.core.trace import CallFrom, trace_view
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
@@ -240,6 +243,14 @@ def create_task(request, template_id, project_id):
         root_pipeline_id=task.pipeline_instance.instance_id,
         pipeline_tree=task.pipeline_instance.execution_data,
     )
+    action_id = get_task_create_action(template_source, create_method)
+    if action_id:
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=action_id,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
     result_data = {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree}
     if task.flow_type == "common_func":
         result_data["function_task_claim_url"] = task.get_function_task_claim_url()

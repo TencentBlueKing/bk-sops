@@ -23,10 +23,8 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
-from gcloud.template_base.utils import (
-    format_import_result_to_response_data,
-    read_encoded_template_data,
-)
+from gcloud.contrib.audit.operations import audit_imported_templates
+from gcloud.template_base.utils import format_import_result_to_response_data, read_encoded_template_data
 
 
 @login_exempt
@@ -73,4 +71,5 @@ def import_common_template(request):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
+    audit_imported_templates(request.user.username, CommonTemplate, import_result)
     return format_import_result_to_response_data(import_result)

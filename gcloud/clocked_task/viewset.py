@@ -12,15 +12,16 @@ specific language governing permissions and limitations under the License.
 """
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, permissions, status
+from rest_framework import permissions, status, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.permissions import ClockedTaskPermissions
-from gcloud.clocked_task.serializer import ClockedTaskSerializer, ClockedTaskPatchSerializer
+from gcloud.clocked_task.serializer import ClockedTaskPatchSerializer, ClockedTaskSerializer
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.core.apis.drf.viewsets import ApiMixin, IAMMixin
-from gcloud.iam_auth import get_iam_client, IAMMeta
+from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
 from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
 
@@ -82,6 +83,12 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
         auth_actions = self.iam_get_instance_auth_actions(request, instance)
         if auth_actions:
             deserialized_instance["auth_actions"] = auth_actions
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=IAMMeta.CLOCKED_TASK_VIEW_ACTION,
+            resource_id=IAMMeta.CLOCKED_TASK_RESOURCE,
+            instance=instance,
+        )
         return Response(deserialized_instance)
 
     def create(self, request, *args, **kwargs):
@@ -91,10 +98,17 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
         validated_data["creator"] = request.user.username
         task = ClockedTask.objects.create_task(**validated_data)
         response_serializer = self.serializer_class(instance=task)
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
+            resource_id=IAMMeta.CLOCKED_TASK_RESOURCE,
+            instance=task,
+        )
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
+        origin_data = get_audit_snapshot(IAMMeta.CLOCKED_TASK_RESOURCE, instance)
         if "plan_start_time" in request.data:
             serializer = self.get_serializer(
                 instance, data={"plan_start_time": request.data.pop("plan_start_time")}, partial=True
@@ -106,4 +120,26 @@ class ClockedTaskViewSet(ApiMixin, IAMMixin, viewsets.ModelViewSet):
         serializer = ClockedTaskPatchSerializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=IAMMeta.CLOCKED_TASK_EDIT_ACTION,
+            resource_id=IAMMeta.CLOCKED_TASK_RESOURCE,
+            instance=instance,
+            origin_data=origin_data,
+        )
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance_id = instance.id
+        origin_data = get_audit_snapshot(IAMMeta.CLOCKED_TASK_RESOURCE, instance)
+        response = super(ClockedTaskViewSet, self).destroy(request, *args, **kwargs)
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=IAMMeta.CLOCKED_TASK_DELETE_ACTION,
+            resource_id=IAMMeta.CLOCKED_TASK_RESOURCE,
+            instance=instance,
+            origin_data=origin_data,
+            data={"id": instance_id, "is_deleted": True},
+        )
+        return response

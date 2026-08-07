@@ -15,9 +15,11 @@ import ujson as json
 from django.http.response import JsonResponse
 from django.views.decorators.http import require_POST
 
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.trace import CallFrom, trace_view
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.taskflow import NodeActionV2Inpterceptor
 from gcloud.taskflow3.apis.django.validators import NodeActionV2Validator
@@ -42,4 +44,11 @@ def node_action(request, project_id, task_id, node_id):
     }
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.nodes_action(action, node_id, username, **kwargs)
+    if ctx.get("result") is True:
+        bk_audit_add_event_on_commit(
+            username=username,
+            action_id=IAMMeta.TASK_OPERATE_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
     return JsonResponse(ctx)

@@ -13,17 +13,18 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.apigw.decorators import project_inject
-from gcloud.periodictask.models import PeriodicTask
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import PeriodicTaskEditInterceptor
-from apigw_manager.apigw.decorators import apigw_require
+from gcloud.periodictask.models import PeriodicTask
 
 
 @login_exempt
@@ -52,9 +53,18 @@ def modify_constants_for_periodic_task(request, task_id, project_id):
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
 
+    origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, task)
     try:
         new_constants = task.modify_constants(constants)
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
+
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+        resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+        instance=task,
+        origin_data=origin_data,
+    )
 
     return {"result": True, "data": new_constants, "code": err_code.SUCCESS.code}
