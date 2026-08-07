@@ -81,6 +81,21 @@ class AuditUtilsTestCase(SimpleTestCase):
         self.assertNotIn("secret-instance-body", output)
 
     @override_settings(ENABLE_BK_AUDIT=True)
+    def test_instance_id_error_isolated(self):
+        class BrokenInstance(object):
+            @property
+            def id(self):
+                raise RuntimeError("id unavailable")
+
+        try:
+            with self.assertLogs("root", level="ERROR") as logs:
+                utils.bk_audit_add_event("admin", "task_edit", "task", BrokenInstance())
+        except RuntimeError as error:
+            self.fail("audit instance id error leaked to caller: {}".format(error))
+
+        self.assertIn("bk_audit_add_event_failed", "\n".join(logs.output))
+
+    @override_settings(ENABLE_BK_AUDIT=True)
     @mock.patch("gcloud.contrib.audit.utils.bk_audit_client.add_event")
     @mock.patch("gcloud.contrib.audit.utils.build_instance", return_value="audit-instance")
     def test_event_sanitizes_origin_and_current_data(self, build_instance, add_event):
@@ -100,6 +115,16 @@ class AuditUtilsTestCase(SimpleTestCase):
         self.assertEqual(origin_data, {"password": "******", "name": "old"})
         self.assertEqual(current_data, {"token": "******", "name": "new"})
         add_event.assert_called_once()
+
+    @override_settings(ENABLE_BK_AUDIT=True)
+    def test_snapshot_accepts_lazy_data_builder(self):
+        snapshot = utils.get_audit_snapshot(
+            "periodic_task",
+            mock.Mock(id=1),
+            data=lambda: {"id": 1, "enabled": True},
+        )
+
+        self.assertEqual(snapshot, {"id": 1, "enabled": True})
 
 
 class AuditTransactionTestCase(TestCase):

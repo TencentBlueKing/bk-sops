@@ -90,7 +90,9 @@ def get_audit_snapshot(resource_id, instance, data=None):
     if not settings.ENABLE_BK_AUDIT or not resource_id or not instance:
         return None
     try:
-        snapshot = data if data is not None else build_instance_data(resource_id, instance)
+        snapshot = data() if callable(data) else data
+        if snapshot is None:
+            snapshot = build_instance_data(resource_id, instance)
         return AuditSnapshot(sanitize_audit_data(snapshot or {}))
     except Exception:
         logger.exception(
@@ -99,6 +101,24 @@ def get_audit_snapshot(resource_id, instance, data=None):
             getattr(instance, "id", None),
         )
         return None
+
+
+def get_periodic_task_audit_snapshot(instance):
+    return get_audit_snapshot(
+        "periodic_task",
+        instance,
+        data=lambda: {
+            "id": instance.id,
+            "name": instance.name,
+            "cron": instance.cron,
+            "enabled": instance.enabled,
+            "template_id": instance.template_id,
+            "template_source": instance.template_source,
+            "template_version": instance.template_version,
+            "creator": instance.creator,
+            "editor": instance.editor,
+        },
+    )
 
 
 def bk_audit_add_event_on_commit(
@@ -125,10 +145,11 @@ def bk_audit_add_event(
 ):
     if not settings.ENABLE_BK_AUDIT:
         return
-    instance_id = getattr(instance, "id", None)
-    if instance_id is None and isinstance(data, dict):
-        instance_id = data.get("id")
+    instance_id = None
     try:
+        instance_id = getattr(instance, "id", None)
+        if instance_id is None and isinstance(data, dict):
+            instance_id = data.get("id")
         logger.info(
             "bk_audit add_event: username: %s, action_id: %s, resource_id: %s, instance_id: %s",
             username,

@@ -13,8 +13,9 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from django.test import override_settings
 
-
+from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -34,7 +35,10 @@ class OperateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -60,7 +64,10 @@ class OperateTaskAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -90,3 +97,44 @@ class OperateTaskAPITest(APITest):
                 data = json.loads(response.content)
 
                 self.assertTrue(data["result"])
+
+    @override_settings(ENABLE_BK_AUDIT=True)
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_operate_task__soft_deleted_task_keeps_start_behavior_when_audit_enabled(self):
+        task = MagicMock(id=TEST_TASKFLOW_ID, is_deleted=True)
+        queryset = MagicMock()
+        queryset.select_related.return_value.first.return_value = task
+        taskflow_instance = MagicMock()
+        taskflow_instance.objects.is_task_started.return_value = False
+        taskflow_instance.objects.get.side_effect = TaskFlowInstance.DoesNotExist
+        taskflow_instance.objects.filter.return_value = queryset
+        prepare_and_start_task = MagicMock()
+
+        with mock.patch(APIGW_OPERATE_TASK_TASKFLOW_INSTANCE, taskflow_instance):
+            with mock.patch(APIGW_OPERATE_TASK_PREPARE_AND_START_TASK, prepare_and_start_task):
+                with mock.patch("gcloud.apigw.views.operate_task.bk_audit_add_event_on_commit") as add_event:
+                    response = self.client.post(
+                        path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+                        data=json.dumps({"action": "start"}),
+                        content_type="application/json",
+                    )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        prepare_and_start_task.apply_async.assert_called_once()
+        add_event.assert_called_once_with(
+            username="",
+            action_id="task_operate",
+            resource_id="task",
+            instance=task,
+        )

@@ -28,7 +28,11 @@ from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
 from gcloud.contrib.audit.mappings import get_periodic_task_create_action
-from gcloud.contrib.audit.utils import bk_audit_add_event, bk_audit_add_event_on_commit, get_audit_snapshot
+from gcloud.contrib.audit.utils import (
+    bk_audit_add_event,
+    bk_audit_add_event_on_commit,
+    get_periodic_task_audit_snapshot,
+)
 from gcloud.contrib.collection.models import Collection
 from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.filtersets import AllLookupSupportFilterSet
@@ -283,7 +287,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         instance_id = instance.id
-        origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, instance)
+        origin_data = get_periodic_task_audit_snapshot(instance)
         response = super(PeriodicTaskViewSet, self).destroy(request, *args, **kwargs)
         bk_audit_add_event_on_commit(
             username=request.user.username,
@@ -317,7 +321,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, instance)
+        origin_data = get_periodic_task_audit_snapshot(instance)
         serializer = CreatePeriodicTaskSerializer(instance, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         try:
@@ -331,12 +335,13 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
             instance=instance,
             origin_data=origin_data,
+            data=get_periodic_task_audit_snapshot(instance),
         )
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, instance)
+        origin_data = get_periodic_task_audit_snapshot(instance)
         serializer = PatchUpdatePeriodicTaskSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
@@ -360,6 +365,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
             instance=instance,
             origin_data=origin_data,
+            data=get_periodic_task_audit_snapshot(instance),
         )
 
         return Response(PeriodicTaskReadOnlySerializer(instance=instance).data)

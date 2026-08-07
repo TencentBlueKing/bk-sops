@@ -18,7 +18,7 @@ from django.views.decorators.http import require_GET, require_POST
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES
-from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_periodic_task_audit_snapshot
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
@@ -45,7 +45,7 @@ def set_enabled_for_periodic_task(request, project_id, task_id):
     data = json.loads(request.body)
 
     task = PeriodicTask.objects.get(id=task_id)
-    origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, task)
+    origin_data = get_periodic_task_audit_snapshot(task)
     task.set_enabled(data["enabled"])
     task.editor = request.user.username
     task.save(update_fields=["editor", "edit_time"])
@@ -55,6 +55,7 @@ def set_enabled_for_periodic_task(request, project_id, task_id):
         resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
         instance=task,
         origin_data=origin_data,
+        data=get_periodic_task_audit_snapshot(task),
     )
 
     return JsonResponse({"result": True, "message": "success"})
@@ -68,7 +69,7 @@ def modify_cron(request, project_id, task_id):
 
     task = PeriodicTask.objects.get(id=task_id)
     project = Project.objects.get(id=project_id)
-    origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, task)
+    origin_data = get_periodic_task_audit_snapshot(task)
 
     try:
         task.modify_cron(data["cron"], project.time_zone)
@@ -83,6 +84,7 @@ def modify_cron(request, project_id, task_id):
         resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
         instance=task,
         origin_data=origin_data,
+        data=get_periodic_task_audit_snapshot(task),
     )
 
     return JsonResponse({"result": True, "message": "success", "data": None, "code": err_code.SUCCESS.code})
@@ -95,7 +97,7 @@ def modify_constants(request, project_id, task_id):
     data = json.loads(request.body)
 
     task = PeriodicTask.objects.get(id=task_id)
-    origin_data = get_audit_snapshot(IAMMeta.PERIODIC_TASK_RESOURCE, task)
+    origin_data = get_periodic_task_audit_snapshot(task)
 
     try:
         new_constants = task.modify_constants(data["constants"])
@@ -110,6 +112,7 @@ def modify_constants(request, project_id, task_id):
         resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
         instance=task,
         origin_data=origin_data,
+        data=get_periodic_task_audit_snapshot(task),
     )
 
     return JsonResponse({"result": True, "message": "success", "data": new_constants, "code": err_code.SUCCESS.code})

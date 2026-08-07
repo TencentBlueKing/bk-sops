@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
@@ -83,7 +84,12 @@ class UpdateTaskConstantsView(APIView):
         except serializers.ValidationError as e:
             return Response({"result": False, "message": e.detail, "data": ""})
 
-        task = TaskFlowInstance.objects.filter(id=task_id).only("project_id", "engine_ver", "pipeline_instance").first()
+        task_query = TaskFlowInstance.objects.filter(id=task_id)
+        task = (
+            task_query.select_related("pipeline_instance").first()
+            if settings.ENABLE_BK_AUDIT
+            else task_query.only("project_id", "engine_ver", "pipeline_instance").first()
+        )
         origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, task)
         set_result = task.set_task_constants(serializer.data["constants"], serializer.data["meta_constants"])
 

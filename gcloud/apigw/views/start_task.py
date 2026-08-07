@@ -58,7 +58,7 @@ def start_task(request, task_id, project_id):
         return {"result": False, "code": err_code.INVALID_OPERATION.code, "message": "task already started"}
 
     task = (
-        TaskFlowInstance.objects.get(pk=task_id, project_id=project.id, is_deleted=False)
+        TaskFlowInstance.objects.filter(pk=task_id, project_id=project.id).select_related("pipeline_instance").first()
         if settings.ENABLE_BK_AUDIT
         else None
     )
