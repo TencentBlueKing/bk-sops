@@ -10,9 +10,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
 from rest_framework import permissions
 
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.utils import bk_audit_add_event, bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.core.apis.drf.filtersets import ALL_LOOKUP, AllLookupSupportFilterSet
 from gcloud.core.apis.drf.permission import HAS_OBJECT_PERMISSION, IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
@@ -77,10 +78,15 @@ class ProjectSetViewSet(GcloudUpdateViewSet, GcloudListViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        bk_audit_add_event(
-            username=request.user.username,
-            action_id=IAMMeta.PROJECT_EDIT_ACTION,
-            resource_id=IAMMeta.PROJECT_RESOURCE,
-            instance=instance,
-        )
-        return super(ProjectSetViewSet, self).update(request, *args, **kwargs)
+        origin_data = get_audit_snapshot(IAMMeta.PROJECT_RESOURCE, instance)
+        response = super(ProjectSetViewSet, self).update(request, *args, **kwargs)
+        if settings.ENABLE_BK_AUDIT:
+            instance.refresh_from_db()
+            bk_audit_add_event_on_commit(
+                username=request.user.username,
+                action_id=IAMMeta.PROJECT_EDIT_ACTION,
+                resource_id=IAMMeta.PROJECT_RESOURCE,
+                instance=instance,
+                origin_data=origin_data,
+            )
+        return response

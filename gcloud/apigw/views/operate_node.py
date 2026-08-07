@@ -20,9 +20,11 @@ from django.views.decorators.http import require_POST
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.trace import CallFrom, trace_view
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskOperateInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -75,5 +77,12 @@ def operate_node(request, project_id, task_id):
     }
     task = TaskFlowInstance.objects.get(pk=task_id)
     result = task.nodes_action(action, node_id, username, **kwargs)
+    if result.get("result") is True:
+        bk_audit_add_event_on_commit(
+            username=username,
+            action_id=IAMMeta.TASK_OPERATE_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
     result["code"] = err_code.SUCCESS.code if result["result"] else err_code.UNKNOWN_ERROR.code
     return result

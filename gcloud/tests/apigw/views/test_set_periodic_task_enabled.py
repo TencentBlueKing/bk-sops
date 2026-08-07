@@ -13,7 +13,9 @@ specific language governing permissions and limitations under the License.
 
 
 import ujson as json
+from django.test import override_settings
 
+from gcloud.contrib.audit.instances import AuditSnapshot
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
@@ -73,3 +75,63 @@ class SetPeriodicTaskEnabledAPITest(APITest):
 
         self.assertFalse(data["result"])
         self.assertTrue("message" in data)
+
+    @override_settings(ENABLE_BK_AUDIT=True)
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_set_periodic_task_enabled__audit_uses_compact_before_and_after_snapshots(self):
+        task = MockPeriodicTask(enabled=False)
+        task.set_enabled.side_effect = lambda enabled: setattr(task, "enabled", enabled)
+
+        with mock.patch(PERIODIC_TASK_GET, MagicMock(return_value=task)):
+            with mock.patch("gcloud.apigw.views.set_periodic_task_enabled.bk_audit_add_event_on_commit") as add_event:
+                response = self.client.post(
+                    path=self.url().format(task_id=TEST_PERIODIC_TASK_ID, project_id=TEST_PROJECT_ID),
+                    data=json.dumps({"enabled": True}),
+                    content_type="application/json",
+                    HTTP_BK_USERNAME=TEST_USERNAME,
+                )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(
+            add_event.call_args[1]["origin_data"],
+            AuditSnapshot(
+                {
+                    "id": task.id,
+                    "name": task.name,
+                    "cron": task.cron,
+                    "enabled": False,
+                    "template_id": task.template_id,
+                    "template_source": task.template_source,
+                    "template_version": task.template_version,
+                    "creator": task.creator,
+                    "editor": "editor",
+                }
+            ),
+        )
+        self.assertEqual(
+            add_event.call_args[1]["data"],
+            AuditSnapshot(
+                {
+                    "id": task.id,
+                    "name": task.name,
+                    "cron": task.cron,
+                    "enabled": True,
+                    "template_id": task.template_id,
+                    "template_source": task.template_source,
+                    "template_version": task.template_version,
+                    "creator": task.creator,
+                    "editor": TEST_USERNAME,
+                }
+            ),
+        )

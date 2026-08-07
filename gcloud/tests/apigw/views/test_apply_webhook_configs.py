@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
+from django.urls import resolve
 
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
@@ -65,6 +66,7 @@ class ApplyWebhookConfigsAPITest(APITest):
         ]
 
         # Mock IAM拦截器中的模板验证
+        resolve(self.url().format(project_id=TEST_PROJECT_ID))
         with mock.patch(
             "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter"
         ) as mock_task_filter:

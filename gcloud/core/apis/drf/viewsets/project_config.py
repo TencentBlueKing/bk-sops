@@ -11,18 +11,19 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
+from iam import Action, Subject
+from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.permissions import IsAdminUser
 
-from gcloud.core.models import Project, ProjectConfig
+from gcloud.contrib.audit.instances import AuditSnapshot
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
+from gcloud.core.apis.drf.exceptions import ObjectDoesNotExistException
 from gcloud.core.apis.drf.serilaziers import ProjectConfigSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
-from gcloud.core.apis.drf.exceptions import ObjectDoesNotExistException
-
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
-
-from gcloud.iam_auth import get_iam_client, IAMMeta, res_factory
+from gcloud.core.models import Project, ProjectConfig
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 
 iam = get_iam_client()
 
@@ -55,3 +56,29 @@ class ProjectConfigViewSet(ApiMixin, mixins.RetrieveModelMixin, mixins.UpdateMod
         obj, _ = ProjectConfig.objects.get_or_create(project_id=project_id)
 
         return obj
+
+    @staticmethod
+    def _audit_data(config):
+        return AuditSnapshot(
+            {
+                "executor_proxy": config.executor_proxy,
+                "executor_proxy_exempts": config.executor_proxy_exempts,
+            }
+        )
+
+    def update(self, request, *args, **kwargs):
+        config = self.get_object()
+        project = Project.objects.get(id=config.project_id) if settings.ENABLE_BK_AUDIT else None
+        origin_data = self._audit_data(config) if settings.ENABLE_BK_AUDIT else None
+        response = super(ProjectConfigViewSet, self).update(request, *args, **kwargs)
+        if settings.ENABLE_BK_AUDIT:
+            config.refresh_from_db()
+            bk_audit_add_event_on_commit(
+                username=request.user.username,
+                action_id=IAMMeta.PROJECT_EDIT_ACTION,
+                resource_id=IAMMeta.PROJECT_RESOURCE,
+                instance=project,
+                origin_data=origin_data,
+                data=self._audit_data(config),
+            )
+        return response
