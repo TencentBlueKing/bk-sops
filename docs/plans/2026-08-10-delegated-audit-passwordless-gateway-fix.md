@@ -49,7 +49,9 @@ def test_trusted_app_uses_delegated_operator_for_unverified_gateway_user(self):
 Run:
 
 ```bash
-pytest gcloud/tests/contrib/audit/test_utils.py::DelegatedAuditUsernameTestCase::test_trusted_app_uses_delegated_operator_for_unverified_gateway_user -q
+python manage.py test \
+  gcloud.tests.contrib.audit.test_utils.DelegatedAuditUsernameTestCase.test_trusted_app_uses_delegated_operator_for_unverified_gateway_user \
+  -v 2
 ```
 
 Expected: FAIL，实际值为 `executor`、期望值为 `alice`，证明失败由现有 `_apigw_jwt_user_verified` 条件触发。
@@ -71,7 +73,9 @@ if app_code not in trusted_apps or getattr(app, "verified", False) is not True:
 Run:
 
 ```bash
-pytest gcloud/tests/contrib/audit/test_utils.py::DelegatedAuditUsernameTestCase::test_trusted_app_uses_delegated_operator_for_unverified_gateway_user -q
+python manage.py test \
+  gcloud.tests.contrib.audit.test_utils.DelegatedAuditUsernameTestCase.test_trusted_app_uses_delegated_operator_for_unverified_gateway_user \
+  -v 2
 ```
 
 Expected: PASS。
@@ -81,7 +85,10 @@ Expected: PASS。
 Run:
 
 ```bash
-pytest gcloud/tests/contrib/audit/test_utils.py gcloud/tests/apigw/views/test_plugin_gateway.py -q
+python manage.py test \
+  gcloud.tests.contrib.audit.test_utils \
+  gcloud.tests.apigw.views.test_plugin_gateway \
+  -v 2
 ```
 
 Expected: 全部 PASS；非白名单应用和未验证应用仍回退 B，原始 APIGW JWT 用户捕获行为保持不变。

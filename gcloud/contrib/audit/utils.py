@@ -72,11 +72,7 @@ def get_audit_username(request):
     app_code = getattr(app, settings.APIGW_MANAGER_APP_CODE_KEY, "")
     trusted_apps = getattr(settings, "BK_AUDIT_DELEGATED_OPERATOR_APPS", set())
     trace_id = getattr(request, "trace_id", "")
-    if (
-        app_code not in trusted_apps
-        or getattr(app, "verified", False) is not True
-        or getattr(request, "_apigw_jwt_user_verified", False) is not True
-    ):
+    if app_code not in trusted_apps or getattr(app, "verified", False) is not True:
         logger.warning(
             "bk_audit delegated_operator_ignored app_code=%s proxy_username=%s trace_id=%s",
             app_code,
