@@ -105,7 +105,7 @@ PO 用户 A
 在 `gcloud/contrib/audit/utils.py` 增加公共解析函数，输入 Django request，返回最终审计用户名：
 
 - 默认返回 `request.user.username`，即 B。
-- 只有 app code 在专用白名单、原始 APIGW JWT 用户已验证且委托头合法时，返回 A。
+- 只有 APIGW JWT 应用已验证、app code 在专用白名单、原始 APIGW JWT 用户已验证且委托头合法时，返回 A。
 - 接受委托身份时记录 A、B、app code 和 trace ID 的结构化日志。
 - 请求头存在但不可信或非法时记录不包含原始非法值的告警，并回退 B。
 - 函数不得修改 `request.user`。
@@ -120,11 +120,11 @@ PO 用户 A
 
 ## 安全与失败处理
 
-- app code 必须来自 APIGW 认证后的 `request.app`，不能读取普通业务请求参数。
+- app code 必须来自 APIGW 认证后的 `request.app`，且 `request.app.verified is True`，不能读取普通业务请求参数。
 - 必须检查 `_apigw_jwt_user_verified is True`，防止未验证用户名与委托头组合。
 - 专用白名单不得复用现有 `APP_WHITELIST`，避免把其他信任应用自动扩展为审计身份代理。
 - 委托头只接受 ASCII 账号字符 `A-Z`、`a-z`、`0-9`、`_`、`-`、`.`、`@`，长度为 1 到 64。
-- 委托头缺失、非法、调用应用不可信或网关用户未验证时均回退 B，不返回错误响应。
+- 委托头缺失、非法、调用应用未验证或不可信、网关用户未验证时均回退 B，不返回错误响应。
 - 日志不得记录 token、cookie、请求体或其他敏感信息。
 
 ## API 与审计中心边界
@@ -146,7 +146,7 @@ PO 用户 A
 ### 标准运维
 
 - 可信 app、已验证 B、合法 A：解析结果和审计操作人为 A。
-- 非可信 app：忽略 A，审计操作人为 B。
+- 未验证或非可信 app：忽略 A，审计操作人为 B。
 - B 未验证：忽略 A，审计操作人为 B。
 - A 缺失、空白、超长或包含非法字符：审计操作人为 B。
 - `create_task` 的任务 creator 仍为 B，审计 username 为 A。

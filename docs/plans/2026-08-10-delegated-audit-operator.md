@@ -4,7 +4,7 @@
 
 **Goal:** 让 PO 登录用户 A 成为标准运维审计中心的最终操作人，同时保持 PO 业务执行代理人 B 负责内部网关认证、IAM 校验和任务执行。
 
-**Architecture:** PO Facade 以 B 创建 BKAPI 客户端，并在三个写入口中由后端添加 `X-BkSops-Audit-Operator: A`。标准运维从已认证的 `request.app`、原始 APIGW JWT 验证状态和专用 app code 白名单中建立可信边界，只在审计调用处使用 A；所有业务调用继续使用 `request.user.username == B`。
+**Architecture:** PO Facade 以 B 创建 BKAPI 客户端，并在三个写入口中由后端添加 `X-BkSops-Audit-Operator: A`。标准运维从已验证的 `request.app`、原始 APIGW JWT 用户验证状态和专用 app code 白名单中建立可信边界，只在审计调用处使用 A；所有业务调用继续使用 `request.user.username == B`。
 
 **Tech Stack:** Python 3.6/3.10、Django 2.2/3.2、BKAPI Client Core、APIGW Manager、`bk-audit==1.1.1`、pytest/Django TestCase、TAPD 需求 `136920805`。
 
@@ -31,7 +31,7 @@
 - Modify: `/Users/dengyh/Projects/bk-sops/.worktrees/operation-audit-phase1/gcloud/tests/contrib/audit/test_utils.py`
 
 **Interfaces:**
-- Consumes: Django request with `request.user.username`, authenticated `request.app`, `_apigw_jwt_user_verified`, `META`, and optional `trace_id`.
+- Consumes: Django request with `request.user.username`, verified `request.app`, `_apigw_jwt_user_verified`, `META`, and optional `trace_id`.
 - Produces: `get_audit_username(request) -> str` and deployment setting `BK_AUDIT_DELEGATED_OPERATOR_APPS: Set[str]`.
 
 - [ ] **Step 1: Write failing resolver tests**
@@ -40,13 +40,20 @@ Append a focused test class to `gcloud/tests/contrib/audit/test_utils.py`. Build
 
 ```python
 class DelegatedAuditUsernameTestCase(SimpleTestCase):
-    def request(self, app_code="bk-sops-facade", proxy="executor", operator=None, verified=True):
+    def request(
+        self,
+        app_code="bk-sops-facade",
+        app_verified=True,
+        proxy="executor",
+        operator=None,
+        verified=True,
+    ):
         meta = {}
         if operator is not None:
             meta["HTTP_X_BKSOPS_AUDIT_OPERATOR"] = operator
         return SimpleNamespace(
             user=SimpleNamespace(username=proxy),
-            app=SimpleNamespace(bk_app_code=app_code),
+            app=SimpleNamespace(bk_app_code=app_code, verified=app_verified),
             META=meta,
             _apigw_jwt_user_verified=verified,
             trace_id="trace-1",
@@ -64,6 +71,10 @@ class DelegatedAuditUsernameTestCase(SimpleTestCase):
         )
         self.assertEqual(
             utils.get_audit_username(self.request(operator="alice", verified=False)),
+            "executor",
+        )
+        self.assertEqual(
+            utils.get_audit_username(self.request(operator="alice", app_verified=False)),
             "executor",
         )
 
@@ -119,14 +130,15 @@ def get_audit_username(request):
     if not operator:
         return proxy_username
 
-    app_code = getattr(
-        getattr(request, "app", None),
-        settings.APIGW_MANAGER_APP_CODE_KEY,
-        "",
-    )
+    app = getattr(request, "app", None)
+    app_code = getattr(app, settings.APIGW_MANAGER_APP_CODE_KEY, "")
     trusted_apps = getattr(settings, "BK_AUDIT_DELEGATED_OPERATOR_APPS", set())
     trace_id = getattr(request, "trace_id", "")
-    if app_code not in trusted_apps or getattr(request, "_apigw_jwt_user_verified", False) is not True:
+    if (
+        app_code not in trusted_apps
+        or getattr(app, "verified", False) is not True
+        or getattr(request, "_apigw_jwt_user_verified", False) is not True
+    ):
         logger.warning(
             "bk_audit delegated_operator_ignored app_code=%s proxy_username=%s trace_id=%s",
             app_code,

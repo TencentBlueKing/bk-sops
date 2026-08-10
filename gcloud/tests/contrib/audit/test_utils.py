@@ -10,13 +10,20 @@ from gcloud.contrib.audit import utils
 
 
 class DelegatedAuditUsernameTestCase(SimpleTestCase):
-    def request(self, app_code="bk-sops-facade", proxy="executor", operator=None, verified=True):
+    def request(
+        self,
+        app_code="bk-sops-facade",
+        app_verified=True,
+        proxy="executor",
+        operator=None,
+        verified=True,
+    ):
         meta = {}
         if operator is not None:
             meta["HTTP_X_BKSOPS_AUDIT_OPERATOR"] = operator
         return SimpleNamespace(
             user=SimpleNamespace(username=proxy),
-            app=SimpleNamespace(bk_app_code=app_code),
+            app=SimpleNamespace(bk_app_code=app_code, verified=app_verified),
             META=meta,
             _apigw_jwt_user_verified=verified,
             trace_id="trace-1",
@@ -34,6 +41,10 @@ class DelegatedAuditUsernameTestCase(SimpleTestCase):
         )
         self.assertEqual(
             utils.get_audit_username(self.request(operator="alice", verified=False)),
+            "executor",
+        )
+        self.assertEqual(
+            utils.get_audit_username(self.request(operator="alice", app_verified=False)),
             "executor",
         )
 
