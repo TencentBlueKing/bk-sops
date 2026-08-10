@@ -715,7 +715,11 @@
             // 校验正则规则是否合法
             onBlurValidation () {
                 const config = tools.deepClone(this.renderConfig[0])
-                const regValidate = config.attrs.validation.find(item => item.type === 'regex')
+                const validation = config.attrs.validation
+                if (!Array.isArray(validation)) {
+                    return
+                }
+                const regValidate = validation.find(item => item.type === 'regex')
                 if (!regValidate) {
                     return
                 }
