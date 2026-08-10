@@ -22,7 +22,7 @@ from django.views.decorators.http import require_POST
 import env
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
-from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_username
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.trace import CallFrom, trace_view
@@ -81,7 +81,7 @@ def operate_task(request, task_id, project_id):
             kwargs=dict(task_id=task_id, project_id=project.id, username=username), queue=queue, routing_key=routing_key
         )
         bk_audit_add_event_on_commit(
-            username=username,
+            username=get_audit_username(request),
             action_id=IAMMeta.TASK_OPERATE_ACTION,
             resource_id=IAMMeta.TASK_RESOURCE,
             instance=task,
@@ -97,7 +97,7 @@ def operate_task(request, task_id, project_id):
     ctx = task.task_action(action, username)
     if ctx.get("result") is True:
         bk_audit_add_event_on_commit(
-            username=username,
+            username=get_audit_username(request),
             action_id=IAMMeta.TASK_OPERATE_ACTION,
             resource_id=IAMMeta.TASK_RESOURCE,
             instance=task,

@@ -35,7 +35,7 @@ from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT, TaskCreateMethod
 from gcloud.contrib.audit.mappings import get_task_create_action
-from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_username
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
@@ -246,7 +246,7 @@ def create_task(request, template_id, project_id):
     action_id = get_task_create_action(template_source, create_method)
     if action_id:
         bk_audit_add_event_on_commit(
-            username=request.user.username,
+            username=get_audit_username(request),
             action_id=action_id,
             resource_id=IAMMeta.TASK_RESOURCE,
             instance=task,

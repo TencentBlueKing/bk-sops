@@ -31,6 +31,51 @@ class OperateTaskAPITest(APITest):
     def url(self):
         return "/apigw/operate_task/{task_id}/{project_id}/"
 
+    @override_settings(ENABLE_BK_AUDIT=True)
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_start_uses_proxy_for_business_and_delegated_operator_for_audit(self):
+        task = MagicMock(id=TEST_TASKFLOW_ID)
+        queryset = MagicMock()
+        queryset.select_related.return_value.first.return_value = task
+        taskflow_instance = MagicMock()
+        taskflow_instance.objects.is_task_started.return_value = False
+        taskflow_instance.objects.filter.return_value = queryset
+        prepare_and_start_task = MagicMock()
+
+        with mock.patch(APIGW_OPERATE_TASK_TASKFLOW_INSTANCE, taskflow_instance):
+            with mock.patch(APIGW_OPERATE_TASK_PREPARE_AND_START_TASK, prepare_and_start_task):
+                with mock.patch(
+                    "gcloud.apigw.views.operate_task.get_audit_username",
+                    return_value="alice",
+                    create=True,
+                ) as get_audit_username:
+                    with mock.patch("gcloud.apigw.views.operate_task.bk_audit_add_event_on_commit") as add_event:
+                        response = self.client.post(
+                            path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+                            data=json.dumps({"action": "start"}),
+                            content_type="application/json",
+                            HTTP_BK_USERNAME="executor",
+                        )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(
+            prepare_and_start_task.apply_async.call_args.kwargs["kwargs"]["username"],
+            "executor",
+        )
+        get_audit_username.assert_called_once()
+        self.assertEqual(add_event.call_args.kwargs["username"], "alice")
+
     @mock.patch(
         PROJECT_GET,
         MagicMock(
