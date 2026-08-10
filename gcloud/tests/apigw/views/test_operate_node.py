@@ -84,7 +84,7 @@ class OperateNodeAPITest(APITest):
             flow_id=TEST_FLOW_ID,
         )
         get_audit_username.assert_called_once()
-        self.assertEqual(add_event.call_args.kwargs["username"], "alice")
+        self.assertEqual(add_event.call_args[1]["username"], "alice")
 
     @patch(
         PROJECT_GET,

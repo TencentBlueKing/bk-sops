@@ -70,11 +70,11 @@ class OperateTaskAPITest(APITest):
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
         self.assertEqual(
-            prepare_and_start_task.apply_async.call_args.kwargs["kwargs"]["username"],
+            prepare_and_start_task.apply_async.call_args[1]["kwargs"]["username"],
             "executor",
         )
         get_audit_username.assert_called_once()
-        self.assertEqual(add_event.call_args.kwargs["username"], "alice")
+        self.assertEqual(add_event.call_args[1]["username"], "alice")
 
     @mock.patch(
         PROJECT_GET,
