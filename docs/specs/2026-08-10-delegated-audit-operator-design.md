@@ -35,12 +35,13 @@ X-BkSops-Audit-Operator: A
 
 标准运维仅在以下条件全部成立时接受该值：
 
-1. 请求由 API Gateway 注入应用身份和用户身份。
-2. 原始网关 JWT 中的用户 B 已验证。
-3. 调用应用 app code 位于专用配置 `BK_AUDIT_DELEGATED_OPERATOR_APPS` 中。
-4. 请求头中的 A 非空、长度不超过 64，并且只包含允许的账号字符。
+1. 请求由 API Gateway 注入应用身份，且应用身份已经验证。
+2. 调用应用 app code 位于专用配置 `BK_AUDIT_DELEGATED_OPERATOR_APPS` 中。
+3. 请求头中的 A 非空、长度不超过 64，并且只包含允许的账号字符。
 
 接受后，仅审计事件的 `AuditContext.username` 使用 A。业务代码继续使用 `request.user.username`，因此 IAM、任务创建、异步启动、任务/节点操作均保持 B。
+
+PO Facade 使用 `get_client_by_username(B)` 走内部网关免登录认证。当 B 没有可用 access token 时，网关仍会验证 Facade 应用身份，但不会把声明的 B 标记为已验证用户。委托头由已验证且在专用白名单中的 Facade 后端生成，因此 B 的 JWT 用户验证状态不作为接受 A 的条件。
 
 ### 不采用：把网关用户改成 A
 
@@ -57,7 +58,7 @@ X-BkSops-Audit-Operator: A
 | PO 登录与业务权限校验 | A | 判断谁可以在 PO 发起操作 |
 | Facade 本地 `created_by` / `operator` / `task_creator` | A | PO 自身留痕 |
 | Facade 网关客户端 | B | 获取标准运维权限并发起请求 |
-| API Gateway 已验证用户 | B | 生成标准运维请求用户 |
+| API Gateway 免登录调用用户 | B | 生成标准运维请求用户，可能不带已验证用户标记 |
 | 标准运维 `request.user.username` | B | IAM、任务创建和任务/节点操作 |
 | 标准运维审计 `username` | A | 审计中心最终操作人 |
 | 标准运维审计资源快照 | 任务真实数据 | 可继续体现任务 creator/executor 为 B |
@@ -69,7 +70,7 @@ PO 用户 A
   -> PO 鉴权和审批
   -> Facade 读取任务执行人 B
   -> 以 B 调用 API Gateway，并由 Facade 后端添加 A 的审计头
-  -> API Gateway 验证 app code 和 B
+  -> API Gateway 验证 Facade 应用身份并携带 B
   -> 标准运维以 B 完成 IAM 与业务操作
   -> 标准运维仅在可信条件满足时以 A 上报审计
 ```
@@ -105,7 +106,7 @@ PO 用户 A
 在 `gcloud/contrib/audit/utils.py` 增加公共解析函数，输入 Django request，返回最终审计用户名：
 
 - 默认返回 `request.user.username`，即 B。
-- 只有 APIGW JWT 应用已验证、app code 在专用白名单、原始 APIGW JWT 用户已验证且委托头合法时，返回 A。
+- 只有 APIGW JWT 应用已验证、app code 在专用白名单且委托头合法时，返回 A。
 - 接受委托身份时记录 A、B、app code 和 trace ID 的结构化日志。
 - 请求头存在但不可信或非法时记录不包含原始非法值的告警，并回退 B。
 - 函数不得修改 `request.user`。
@@ -121,10 +122,10 @@ PO 用户 A
 ## 安全与失败处理
 
 - app code 必须来自 APIGW 认证后的 `request.app`，且 `request.app.verified is True`，不能读取普通业务请求参数。
-- 必须检查 `_apigw_jwt_user_verified is True`，防止未验证用户名与委托头组合。
+- 不要求 `_apigw_jwt_user_verified is True`。免登录代理调用中的 B 可能只是由已验证应用声明的执行身份；A 的可信来源是已验证且在专用白名单中的 Facade 应用，而不是 B 的用户认证状态。
 - 专用白名单不得复用现有 `APP_WHITELIST`，避免把其他信任应用自动扩展为审计身份代理。
 - 委托头只接受 ASCII 账号字符 `A-Z`、`a-z`、`0-9`、`_`、`-`、`.`、`@`，长度为 1 到 64。
-- 委托头缺失、非法、调用应用未验证或不可信、网关用户未验证时均回退 B，不返回错误响应。
+- 委托头缺失、非法、调用应用未验证或不可信时均回退 B，不返回错误响应。
 - 日志不得记录 token、cookie、请求体或其他敏感信息。
 
 ## API 与审计中心边界
@@ -145,9 +146,8 @@ PO 用户 A
 
 ### 标准运维
 
-- 可信 app、已验证 B、合法 A：解析结果和审计操作人为 A。
+- 可信且已验证 app、合法 A：无论 B 的 JWT 用户验证状态如何，解析结果和审计操作人均为 A。
 - 未验证或非可信 app：忽略 A，审计操作人为 B。
-- B 未验证：忽略 A，审计操作人为 B。
 - A 缺失、空白、超长或包含非法字符：审计操作人为 B。
 - `create_task` 的任务 creator 仍为 B，审计 username 为 A。
 - `operate_task` 的 Celery/`task_action` 用户仍为 B，审计 username 为 A。

@@ -34,18 +34,21 @@ class DelegatedAuditUsernameTestCase(SimpleTestCase):
         self.assertEqual(utils.get_audit_username(self.request(operator="alice@tai")), "alice@tai")
 
     @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
-    def test_untrusted_or_unverified_request_falls_back_to_proxy(self):
+    def test_untrusted_or_unverified_app_falls_back_to_proxy(self):
         self.assertEqual(
             utils.get_audit_username(self.request(app_code="other-app", operator="alice")),
             "executor",
         )
         self.assertEqual(
-            utils.get_audit_username(self.request(operator="alice", verified=False)),
-            "executor",
-        )
-        self.assertEqual(
             utils.get_audit_username(self.request(operator="alice", app_verified=False)),
             "executor",
+        )
+
+    @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
+    def test_trusted_app_uses_delegated_operator_for_unverified_gateway_user(self):
+        self.assertEqual(
+            utils.get_audit_username(self.request(operator="alice", verified=False)),
+            "alice",
         )
 
     @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
