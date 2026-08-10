@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import json
 import logging
+import re
 from functools import partial
 
 import six
@@ -38,6 +39,8 @@ REMOVED_AUDIT_FIELDS = {
     "task_params",
 }
 SENSITIVE_AUDIT_KEYWORDS = ("authorization", "credential", "password", "secret", "token")
+DELEGATED_AUDIT_OPERATOR_META_KEY = "HTTP_X_BKSOPS_AUDIT_OPERATOR"
+DELEGATED_AUDIT_OPERATOR_PATTERN = re.compile(r"^[A-Za-z0-9_.@-]{1,64}$")
 
 
 class ResourceType(BaseObject):
@@ -57,6 +60,48 @@ class ResourceType(BaseObject):
 
     def to_dict(self):
         return {"id": self.id}
+
+
+def get_audit_username(request):
+    proxy_username = getattr(getattr(request, "user", None), "username", "")
+    operator = getattr(request, "META", {}).get(DELEGATED_AUDIT_OPERATOR_META_KEY)
+    if not operator:
+        return proxy_username
+
+    app = getattr(request, "app", None)
+    app_code = getattr(app, settings.APIGW_MANAGER_APP_CODE_KEY, "")
+    trusted_apps = getattr(settings, "BK_AUDIT_DELEGATED_OPERATOR_APPS", set())
+    trace_id = getattr(request, "trace_id", "")
+    if (
+        app_code not in trusted_apps
+        or getattr(app, "verified", False) is not True
+        or getattr(request, "_apigw_jwt_user_verified", False) is not True
+    ):
+        logger.warning(
+            "bk_audit delegated_operator_ignored app_code=%s proxy_username=%s trace_id=%s",
+            app_code,
+            proxy_username,
+            trace_id,
+        )
+        return proxy_username
+
+    if not DELEGATED_AUDIT_OPERATOR_PATTERN.fullmatch(operator):
+        logger.warning(
+            "bk_audit delegated_operator_invalid app_code=%s proxy_username=%s trace_id=%s",
+            app_code,
+            proxy_username,
+            trace_id,
+        )
+        return proxy_username
+
+    logger.info(
+        "bk_audit delegated_operator_resolved audit_username=%s proxy_username=%s app_code=%s trace_id=%s",
+        operator,
+        proxy_username,
+        app_code,
+        trace_id,
+    )
+    return operator
 
 
 def sanitize_audit_data(data):

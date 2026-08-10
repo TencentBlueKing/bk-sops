@@ -44,6 +44,51 @@ class CreateTaskAPITest(APITest):
     def url(self):
         return "/apigw/create_task/{template_id}/{project_id}/"
 
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
+    @mock.patch(
+        TASKINSTANCE_CREATE,
+        MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
+    )
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    def test_create_task_uses_proxy_for_business_and_delegated_operator_for_audit(self):
+        tmpl = MockTaskTemplate(id=1, pipeline_template=MockPipelineTemplate(id=1, name="pt1"))
+        project = MockProject(
+            project_id=TEST_PROJECT_ID,
+            name=TEST_PROJECT_NAME,
+            bk_biz_id=TEST_BIZ_CC_ID,
+            from_cmdb=True,
+        )
+
+        with mock.patch(PROJECT_GET, MagicMock(return_value=project)):
+            with mock.patch(
+                TASKTEMPLATE_SELECT_RELATE,
+                MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+            ):
+                with mock.patch(
+                    "gcloud.apigw.views.create_task.get_audit_username",
+                    return_value="alice",
+                    create=True,
+                ) as get_audit_username:
+                    with mock.patch("gcloud.apigw.views.create_task.bk_audit_add_event_on_commit") as add_event:
+                        response = self.client.post(
+                            path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                            data=json.dumps({"name": "name", "constants": {}, "flow_type": "common"}),
+                            content_type="application/json",
+                            HTTP_BK_APP_CODE=TEST_APP_CODE,
+                            HTTP_BK_USERNAME="executor",
+                        )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        pipeline_kwargs = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.call_args[0][1]
+        self.assertEqual(pipeline_kwargs["creator"], "executor")
+        get_audit_username.assert_called_once()
+        self.assertEqual(add_event.call_args[1]["username"], "alice")
+
+        TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.reset_mock()
+        TaskFlowInstance.objects.create.reset_mock()
+
     def test_create_task_schema_accepts_template_schemes_id(self):
         jsonschema.validate(
             {"name": "name", "template_schemes_id": ["scheme_1"]},

@@ -201,6 +201,9 @@ PERIODIC_TASK_ITERATION = int(os.getenv("PERIODIC_TASK_ITERATION", 10))
 # bk_audit
 BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
+BK_AUDIT_DELEGATED_OPERATOR_APPS = {
+    app_code.strip() for app_code in os.getenv("BK_AUDIT_DELEGATED_OPERATOR_APPS", "").split(",") if app_code.strip()
+}
 
 # bk_chat通知渠道
 ENABLE_BK_CHAT_CHANNEL = False if os.getenv("BKAPP_ENABLE_BK_CHAT_CHANNEL") is None else True

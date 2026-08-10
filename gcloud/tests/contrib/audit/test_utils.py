@@ -1,11 +1,58 @@
 # -*- coding: utf-8 -*-
 import json
+from types import SimpleNamespace
 from unittest import mock
 
 from django.db import transaction
 from django.test import SimpleTestCase, TestCase, override_settings
 
 from gcloud.contrib.audit import utils
+
+
+class DelegatedAuditUsernameTestCase(SimpleTestCase):
+    def request(
+        self,
+        app_code="bk-sops-facade",
+        app_verified=True,
+        proxy="executor",
+        operator=None,
+        verified=True,
+    ):
+        meta = {}
+        if operator is not None:
+            meta["HTTP_X_BKSOPS_AUDIT_OPERATOR"] = operator
+        return SimpleNamespace(
+            user=SimpleNamespace(username=proxy),
+            app=SimpleNamespace(bk_app_code=app_code, verified=app_verified),
+            META=meta,
+            _apigw_jwt_user_verified=verified,
+            trace_id="trace-1",
+        )
+
+    @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
+    def test_trusted_verified_request_uses_delegated_operator(self):
+        self.assertEqual(utils.get_audit_username(self.request(operator="alice@tai")), "alice@tai")
+
+    @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
+    def test_untrusted_or_unverified_request_falls_back_to_proxy(self):
+        self.assertEqual(
+            utils.get_audit_username(self.request(app_code="other-app", operator="alice")),
+            "executor",
+        )
+        self.assertEqual(
+            utils.get_audit_username(self.request(operator="alice", verified=False)),
+            "executor",
+        )
+        self.assertEqual(
+            utils.get_audit_username(self.request(operator="alice", app_verified=False)),
+            "executor",
+        )
+
+    @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
+    def test_missing_or_invalid_operator_falls_back_to_proxy(self):
+        for operator in (None, "", "has space", "bad/value", "x" * 65):
+            with self.subTest(operator=operator):
+                self.assertEqual(utils.get_audit_username(self.request(operator=operator)), "executor")
 
 
 class AuditUtilsTestCase(SimpleTestCase):

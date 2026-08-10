@@ -14,10 +14,9 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
-
+from gcloud import err_code
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud import err_code
 
 from .utils import APITest
 
@@ -48,15 +47,63 @@ class OperateNodeAPITest(APITest):
             )
         ),
     )
+    def test_operate_node_uses_proxy_for_business_and_delegated_operator_for_audit(self):
+        task_instance = MagicMock(id=TEST_TASKFLOW_ID)
+        task_instance.nodes_action.return_value = {"result": True, "data": "success"}
+
+        with patch(TASKINSTANCE_GET, MagicMock(return_value=task_instance)):
+            with patch(
+                "gcloud.apigw.views.operate_node.get_audit_username",
+                return_value="alice",
+                create=True,
+            ) as get_audit_username:
+                with patch("gcloud.apigw.views.operate_node.bk_audit_add_event_on_commit") as add_event:
+                    response = self.client.post(
+                        path=self.url().format(project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID),
+                        data=json.dumps(
+                            {
+                                "node_id": TEST_NODE_ID,
+                                "action": TEST_ACTION,
+                                "data": TEST_DATA,
+                                "inputs": TEST_INPUTS,
+                                "flow_id": TEST_FLOW_ID,
+                            }
+                        ),
+                        content_type="application/json",
+                        HTTP_BK_USERNAME="executor",
+                    )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        task_instance.nodes_action.assert_called_once_with(
+            TEST_ACTION,
+            TEST_NODE_ID,
+            "executor",
+            data=TEST_DATA,
+            inputs=TEST_INPUTS,
+            flow_id=TEST_FLOW_ID,
+        )
+        get_audit_username.assert_called_once()
+        self.assertEqual(add_event.call_args[1]["username"], "alice")
+
+    @patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
     @patch(
         TASKINSTANCE_GET,
         MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
     )
     def test_opearte_node__invalid_req(self):
         response = self.client.post(
-            path=self.url().format(
-                project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID
-            ),
+            path=self.url().format(project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID),
             data="invalid_json",
             content_type="application/json",
         )
@@ -84,9 +131,7 @@ class OperateNodeAPITest(APITest):
     )
     def test_operate_node__invalid_data(self):
         response = self.client.post(
-            path=self.url().format(
-                project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID
-            ),
+            path=self.url().format(project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID),
             data=json.dumps({"data": "data"}),
             content_type="application/json",
         )
@@ -114,9 +159,7 @@ class OperateNodeAPITest(APITest):
     )
     def test_operate_node__invalid_inputs(self):
         response = self.client.post(
-            path=self.url().format(
-                project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID
-            ),
+            path=self.url().format(project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID),
             data=json.dumps({"inputs": "inputs"}),
             content_type="application/json",
         )
@@ -144,13 +187,12 @@ class OperateNodeAPITest(APITest):
         task_instance.nodes_action = MagicMock(return_value=NODES_ACTION_RETURN)
 
         with patch(
-            TASKINSTANCE_GET, MagicMock(return_value=task_instance),
+            TASKINSTANCE_GET,
+            MagicMock(return_value=task_instance),
         ):
 
             response = self.client.get(
-                path=self.url().format(
-                    project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID
-                ),
+                path=self.url().format(project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID),
                 data={
                     "node_id": TEST_NODE_ID,
                     "action": TEST_COMPONENT_CODE,

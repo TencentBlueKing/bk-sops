@@ -947,6 +947,7 @@ PERIODIC_TASK_ITERATION = env.PERIODIC_TASK_ITERATION
 
 # bk_audit
 ENABLE_BK_AUDIT = True if env.BK_AUDIT_DATA_TOKEN else False
+BK_AUDIT_DELEGATED_OPERATOR_APPS = env.BK_AUDIT_DELEGATED_OPERATOR_APPS
 BK_AUDIT_SETTINGS = {
     "log_queue_limit": 50000,
     "exporters": ["bk_audit.contrib.opentelemetry.exporters.OTLogExporter"],
