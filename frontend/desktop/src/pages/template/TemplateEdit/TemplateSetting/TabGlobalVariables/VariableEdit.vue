@@ -68,7 +68,7 @@
                     <pre class="variable-type-desc" v-if="variableDesc">{{ variableDesc }}</pre>
                 </div>
                 <!-- 验证规则 -->
-                <div v-show="['input', 'textarea'].includes(theEditingData.custom_type) && !isInternalVal" class="form-item clearfix">
+                <div v-show="['input', 'textarea'].includes(effectiveFormType) && !isInternalVal" class="form-item clearfix">
                     <label class="form-label">{{ $t('正则校验') }}</label>
                     <div class="form-content">
                         <bk-input
@@ -335,6 +335,17 @@
                     return custom_type
                 }
             },
+            /**
+             * 对于勾选生成的 component_inputs 变量，从 form_schema.type 获取原始表单类型（如 input/textarea）
+             * 对于自定义变量，沿用 custom_type
+             */
+            effectiveFormType () {
+                const { custom_type, form_schema } = this.theEditingData
+                if (this.isHookedVar && form_schema && form_schema.type) {
+                    return form_schema.type
+                }
+                return custom_type
+            },
             // 变量生命周期
             varPhase () {
                 let phaseStr = ''
@@ -578,7 +589,11 @@
                 if (is_meta && source_type === 'component_inputs' && config.meta_transform) {
                     config = config.meta_transform(meta)
                 }
-                if (['input', 'textarea'].includes(custom_type)) {
+                if (['input', 'textarea'].includes(this.effectiveFormType)) {
+                    // 输入参数勾选生成的component_inputs未带validation字段
+                    if (!Array.isArray(config.attrs.validation)) {
+                        config.attrs.validation = []
+                    }
                     config.attrs.validation.push({
                         type: 'regex',
                         args: this.getInputDefaultValueValidation(),
@@ -637,12 +652,12 @@
                 })
             },
             getValidateSet () {
-                const { show_type, custom_type } = this.theEditingData
+                const { show_type } = this.theEditingData
                 const validateSet = ['required', 'custom', 'regex']
 
                 // 隐藏状态下，默认值为必填项
                 // 输入框显示类型为隐藏时，按照正则规则校验，去掉必填项校验
-                if (show_type === 'show' || (show_type === 'hide' && ['input', 'textarea'].includes(custom_type))) {
+                if (show_type === 'show' || (show_type === 'hide' && ['input', 'textarea'].includes(this.effectiveFormType))) {
                     return validateSet.slice(1)
                 } else {
                     return validateSet
@@ -701,6 +716,9 @@
             onBlurValidation () {
                 const config = tools.deepClone(this.renderConfig[0])
                 const regValidate = config.attrs.validation.find(item => item.type === 'regex')
+                if (!regValidate) {
+                    return
+                }
                 if (!this.veeErrors.has('valueValidation')) {
                     regValidate.args = this.getInputDefaultValueValidation()
                 } else {
@@ -724,14 +742,16 @@
                 const validateSet = this.getValidateSet()
                 this.$set(this.renderOption, 'validateSet', validateSet)
 
-                if (['input', 'textarea'].includes(this.theEditingData.custom_type)) {
+                if (['input', 'textarea'].includes(this.effectiveFormType)) {
                     const config = tools.deepClone(this.renderConfig[0])
                     const regValidate = config.attrs.validation.find(item => item.type === 'regex')
-                    regValidate.args = this.getInputDefaultValueValidation()
-                    this.$set(this.renderConfig, 0, config)
-                    this.$nextTick(() => {
-                        this.$refs.renderForm.validate()
-                    })
+                    if (regValidate) {
+                        regValidate.args = this.getInputDefaultValueValidation()
+                        this.$set(this.renderConfig, 0, config)
+                        this.$nextTick(() => {
+                            this.$refs.renderForm.validate()
+                        })
+                    }
                 }
             },
             /**
