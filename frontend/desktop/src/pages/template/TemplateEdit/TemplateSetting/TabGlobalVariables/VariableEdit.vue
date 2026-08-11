@@ -341,7 +341,7 @@
              */
             effectiveFormType () {
                 const { custom_type, form_schema } = this.theEditingData
-                if (this.isHookedVar && form_schema && form_schema.type) {
+                if (this.isHookedVar && form_schema?.type) {
                     return form_schema.type
                 }
                 return custom_type
