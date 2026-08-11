@@ -95,7 +95,6 @@ class Password(LazyVariable, SelfExplainVariable):
     tag = "password.password"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("密码变量"))
-    desc = _("请注意，并非所有插件字段都支持密码变量的使用，请结合具体插件进行使用")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
