@@ -258,10 +258,15 @@
                             })
                         }
 
+                        const effectiveFormType = atomFilter.getEffectiveFormType(variable)
                         if (
-                            ['input', 'textarea'].includes(variable.custom_type)
+                            ['input', 'textarea'].includes(effectiveFormType)
                             && variable.validation !== ''
                         ) {
+                            // 输入参数原始配置可能未带 validation 字段（如勾选生成的 component_inputs 变量），需先确保其为数组
+                            if (!Array.isArray(currentFormConfig.attrs.validation)) {
+                                currentFormConfig.attrs.validation = []
+                            }
                             currentFormConfig.attrs.validation.push({
                                 type: 'regex',
                                 args: variable.validation,

@@ -340,11 +340,7 @@
              * 对于自定义变量，沿用 custom_type
              */
             effectiveFormType () {
-                const { custom_type, form_schema } = this.theEditingData
-                if (this.isHookedVar && form_schema && form_schema.type) {
-                    return form_schema.type
-                }
-                return custom_type
+                return atomFilter.getEffectiveFormType(this.theEditingData)
             },
             // 变量生命周期
             varPhase () {

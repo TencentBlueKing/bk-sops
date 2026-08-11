@@ -149,6 +149,20 @@ const atomFilter = {
         return { name, atom, tagCode, classify }
     },
     /**
+     * 获取变量的实际表单类型
+     * 自定义变量（custom_type）直接返回；勾选生成的 component_inputs 变量 custom_type 为空，
+     * 需从 form_schema.type 取原始表单类型（如 input/textarea），用于正则校验等场景
+     * @param {Object} variable 变量对象，含 custom_type / source_type / form_schema 字段
+     * @returns {String} 表单类型
+     */
+    getEffectiveFormType (variable) {
+        const { custom_type, source_type, form_schema } = variable || {}
+        if (source_type === 'component_inputs' && form_schema?.type) {
+            return form_schema.type
+        }
+        return custom_type
+    },
+    /**
      * 判断 atom 配置文件是否存在
      * @param {String} atomType 插件类型
      * @param {String} version 插件版本
