@@ -201,6 +201,29 @@ class AuditUtilsTestCase(SimpleTestCase):
         add_event.assert_called_once()
 
     @override_settings(ENABLE_BK_AUDIT=True)
+    @mock.patch("gcloud.contrib.audit.utils.bk_audit_client.add_event")
+    @mock.patch("gcloud.contrib.audit.utils.build_instance", return_value="audit-instance")
+    def test_event_sanitizes_and_forwards_extend_data(self, build_instance, add_event):
+        utils.bk_audit_add_event(
+            "alice",
+            "task_operate",
+            "task",
+            mock.Mock(id=1),
+            extend_data={
+                "proxy_username": "executor",
+                "access_token": "sensitive-value",
+            },
+        )
+
+        self.assertEqual(
+            add_event.call_args[1]["extend_data"],
+            {
+                "proxy_username": "executor",
+                "access_token": "******",
+            },
+        )
+
+    @override_settings(ENABLE_BK_AUDIT=True)
     def test_snapshot_accepts_lazy_data_builder(self):
         snapshot = utils.get_audit_snapshot(
             "periodic_task",
@@ -221,6 +244,23 @@ class AuditTransactionTestCase(TestCase):
             )
 
         add_event.assert_called_once()
+
+    @override_settings(ENABLE_BK_AUDIT=True)
+    @mock.patch("gcloud.contrib.audit.utils.bk_audit_add_event")
+    def test_commit_forwards_extend_data(self, add_event):
+        with self.captureOnCommitCallbacks(execute=True):
+            utils.bk_audit_add_event_on_commit(
+                username="alice",
+                action_id="task_operate",
+                resource_id="task",
+                instance=mock.Mock(id=1),
+                extend_data={"proxy_username": "executor"},
+            )
+
+        self.assertEqual(
+            add_event.call_args[1]["extend_data"],
+            {"proxy_username": "executor"},
+        )
 
     @override_settings(ENABLE_BK_AUDIT=True)
     @mock.patch("gcloud.contrib.audit.utils.bk_audit_add_event")

@@ -172,7 +172,7 @@ def get_periodic_task_audit_snapshot(instance):
 
 
 def bk_audit_add_event_on_commit(
-    username, action_id, resource_id=None, instance=None, origin_data=None, *args, data=None, **kwargs
+    username, action_id, resource_id=None, instance=None, origin_data=None, *args, data=None, extend_data=None, **kwargs
 ):
     """Register a success event only after the surrounding transaction commits."""
     if not settings.ENABLE_BK_AUDIT:
@@ -186,12 +186,13 @@ def bk_audit_add_event_on_commit(
             instance=instance,
             origin_data=origin_data,
             data=data,
+            extend_data=extend_data,
         )
     )
 
 
 def bk_audit_add_event(
-    username, action_id, resource_id=None, instance=None, origin_data=None, *args, data=None, **kwargs
+    username, action_id, resource_id=None, instance=None, origin_data=None, *args, data=None, extend_data=None, **kwargs
 ):
     if not settings.ENABLE_BK_AUDIT:
         return
@@ -211,6 +212,7 @@ def bk_audit_add_event(
             data = build_instance_data(resource_id, instance)
         safe_origin_data = sanitize_audit_data(origin_data)
         safe_data = sanitize_audit_data(data)
+        safe_extend_data = sanitize_audit_data(extend_data)
         instance = build_instance(resource_id, instance, safe_origin_data, safe_data)
         context = AuditContext(username=username)
         bk_audit_client.add_event(
@@ -218,6 +220,7 @@ def bk_audit_add_event(
             resource_type=ResourceType(resource_id) if resource_id else None,
             audit_context=context,
             instance=instance,
+            extend_data=safe_extend_data,
         )
         logger.info("bk_audit add_event: success")
     except Exception:
