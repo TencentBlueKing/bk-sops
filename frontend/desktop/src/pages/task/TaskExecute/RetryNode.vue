@@ -189,9 +189,7 @@
                         formItemConfig.name = variable.name
                     }
                     // 自定义输入框变量正则校验添加到插件配置项
-                    const effectiveFormType = variable.source_type === 'component_inputs' && variable.form_schema?.type
-                        ? variable.form_schema.type
-                        : variable.custom_type
+                    const effectiveFormType = atomFilter.getEffectiveFormType(variable)
                     if (['input', 'textarea'].includes(effectiveFormType) && variable.validation !== '') {
                         // 输入参数原始配置可能未带 validation 字段（如勾选生成的 component_inputs 变量），需先确保其为数组
                         if (!Array.isArray(formItemConfig.attrs.validation)) {

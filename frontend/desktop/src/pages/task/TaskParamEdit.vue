@@ -258,9 +258,7 @@
                             })
                         }
 
-                        const effectiveFormType = variable.source_type === 'component_inputs' && variable.form_schema?.type
-                            ? variable.form_schema.type
-                            : variable.custom_type
+                        const effectiveFormType = atomFilter.getEffectiveFormType(variable)
                         if (
                             ['input', 'textarea'].includes(effectiveFormType)
                             && variable.validation !== ''
