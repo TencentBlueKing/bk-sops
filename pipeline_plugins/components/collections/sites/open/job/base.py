@@ -195,8 +195,8 @@ def get_job_instance_log(
         }
 
         # 如果打开ipv6并且存在主机id的情况下，优先取bk_host_id
-        if settings.ENABLE_IPV6 and step_instance.get("bk_host_id"):
-            get_job_instance_ip_log_kwargs["bk_host_id"] = step_instance["bk_host_id"]
+        if settings.ENABLE_IPV6 and step_ip_result.get("bk_host_id"):
+            get_job_instance_ip_log_kwargs["bk_host_id"] = step_ip_result["bk_host_id"]
         else:
             get_job_instance_ip_log_kwargs["ip"] = step_ip_result["ip"]
 
