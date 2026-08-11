@@ -94,23 +94,39 @@ class OperateTaskAPITest(APITest):
             )
         ),
     )
-    def test_operate_task(self):
+    def test_operate_task_uses_proxy_for_business_and_delegated_operator_for_audit(self):
         assert_return = {"result": True}
         assert_action = "any_action"
         task = MockTaskFlowInstance(task_action_return=assert_return)
 
         with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
-            response = self.client.post(
-                path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
-                data=json.dumps({"action": assert_action}),
-                content_type="application/json",
-            )
+            with mock.patch(
+                "gcloud.apigw.views.operate_task.get_audit_event_kwargs",
+                return_value={
+                    "username": "alice",
+                    "extend_data": {"proxy_username": "executor"},
+                },
+                create=True,
+            ) as get_audit_event_kwargs:
+                with mock.patch("gcloud.apigw.views.operate_task.bk_audit_add_event_on_commit") as add_event:
+                    response = self.client.post(
+                        path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
+                        data=json.dumps({"action": assert_action}),
+                        content_type="application/json",
+                        HTTP_BK_USERNAME="executor",
+                    )
 
-            task.task_action.assert_called_once_with(assert_action, "")
+        task.task_action.assert_called_once_with(assert_action, "executor")
+        get_audit_event_kwargs.assert_called_once()
+        self.assertEqual(add_event.call_args[1]["username"], "alice")
+        self.assertEqual(
+            add_event.call_args[1]["extend_data"],
+            {"proxy_username": "executor"},
+        )
 
-            data = json.loads(response.content)
+        data = json.loads(response.content)
 
-            self.assertEqual(data, assert_return)
+        self.assertEqual(data, assert_return)
 
     @mock.patch(
         PROJECT_GET,
