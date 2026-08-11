@@ -345,7 +345,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             self.paginator.offset = self.paginator.get_offset(request)
             self.paginator.count = -1
             self.paginator.request = request
-            if self._should_ignore_primary_index_for_task_list(request):
+            if self._should_use_two_phase_unstarted_task_list(request):
+                page = TaskFlowInstance.objects.fetch_unstarted_task_list_page_two_phase(
+                    queryset=queryset, limit=self.paginator.limit, offset=self.paginator.offset
+                )
+            elif self._should_ignore_primary_index_for_task_list(request):
                 page = TaskFlowInstance.objects.fetch_task_list_page_ignore_primary_index(
                     queryset=queryset, limit=self.paginator.limit, offset=self.paginator.offset
                 )
@@ -572,6 +576,27 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             query_params.get("project__id")
             and query_params.get("pipeline_instance__name__icontains")
             and not query_params.get("order_by")
+        )
+
+    @staticmethod
+    def _is_false_query_param(value):
+        return value is False or str(value).lower() in {"false", "0"}
+
+    @classmethod
+    def _should_use_two_phase_unstarted_task_list(cls, request):
+        """
+        仅优化按项目查询未执行根任务且保持默认 ID 倒序的任务列表。
+        """
+        query_params = request.query_params
+        return bool(
+            "without_count" in query_params
+            and query_params.get("project__id")
+            and cls._is_false_query_param(query_params.get("pipeline_instance__is_started"))
+            and cls._is_false_query_param(query_params.get("is_child_taskflow"))
+            and not query_params.get("order_by")
+            and not query_params.get("pipeline_instance__name__icontains")
+            and not query_params.get("creator_or_executor")
+            and not query_params.get("task_instance_status")
         )
 
     @swagger_auto_schema(
