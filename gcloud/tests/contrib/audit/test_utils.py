@@ -52,6 +52,40 @@ class DelegatedAuditUsernameTestCase(SimpleTestCase):
         )
 
     @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
+    def test_event_kwargs_include_proxy_for_passwordless_trusted_delegation(self):
+        self.assertEqual(
+            utils.get_audit_event_kwargs(self.request(operator="alice", proxy="executor", verified=False)),
+            {
+                "username": "alice",
+                "extend_data": {"proxy_username": "executor"},
+            },
+        )
+
+    @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
+    def test_event_kwargs_omit_proxy_without_effective_delegation(self):
+        cases = (
+            (
+                self.request(operator=None, proxy="executor"),
+                {"username": "executor", "extend_data": {}},
+            ),
+            (
+                self.request(app_code="other-app", operator="alice", proxy="executor"),
+                {"username": "executor", "extend_data": {}},
+            ),
+            (
+                self.request(operator="executor", proxy="executor"),
+                {"username": "executor", "extend_data": {}},
+            ),
+            (
+                self.request(operator="alice", proxy=""),
+                {"username": "alice", "extend_data": {}},
+            ),
+        )
+        for request, expected in cases:
+            with self.subTest(request=request):
+                self.assertEqual(utils.get_audit_event_kwargs(request), expected)
+
+    @override_settings(BK_AUDIT_DELEGATED_OPERATOR_APPS={"bk-sops-facade"})
     def test_missing_or_invalid_operator_falls_back_to_proxy(self):
         for operator in (None, "", "has space", "bad/value", "x" * 65):
             with self.subTest(operator=operator):

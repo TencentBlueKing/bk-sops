@@ -100,6 +100,15 @@ def get_audit_username(request):
     return operator
 
 
+def get_audit_event_kwargs(request):
+    username = get_audit_username(request)
+    proxy_username = getattr(getattr(request, "user", None), "username", "")
+    extend_data = {}
+    if proxy_username and username != proxy_username:
+        extend_data["proxy_username"] = proxy_username
+    return {"username": username, "extend_data": extend_data}
+
+
 def sanitize_audit_data(data):
     """Remove large payloads and redact secret-like values from audit snapshots."""
     if isinstance(data, dict):
