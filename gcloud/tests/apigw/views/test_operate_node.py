@@ -53,10 +53,13 @@ class OperateNodeAPITest(APITest):
 
         with patch(TASKINSTANCE_GET, MagicMock(return_value=task_instance)):
             with patch(
-                "gcloud.apigw.views.operate_node.get_audit_username",
-                return_value="alice",
+                "gcloud.apigw.views.operate_node.get_audit_event_kwargs",
+                return_value={
+                    "username": "alice",
+                    "extend_data": {"proxy_username": "executor"},
+                },
                 create=True,
-            ) as get_audit_username:
+            ) as get_audit_event_kwargs:
                 with patch("gcloud.apigw.views.operate_node.bk_audit_add_event_on_commit") as add_event:
                     response = self.client.post(
                         path=self.url().format(project_id=TEST_PROJECT_ID, task_id=TEST_TASKFLOW_ID),
@@ -83,8 +86,12 @@ class OperateNodeAPITest(APITest):
             inputs=TEST_INPUTS,
             flow_id=TEST_FLOW_ID,
         )
-        get_audit_username.assert_called_once()
+        get_audit_event_kwargs.assert_called_once()
         self.assertEqual(add_event.call_args[1]["username"], "alice")
+        self.assertEqual(
+            add_event.call_args[1]["extend_data"],
+            {"proxy_username": "executor"},
+        )
 
     @patch(
         PROJECT_GET,

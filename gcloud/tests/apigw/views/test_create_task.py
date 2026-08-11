@@ -66,10 +66,13 @@ class CreateTaskAPITest(APITest):
                 MagicMock(return_value=MockQuerySet(get_result=tmpl)),
             ):
                 with mock.patch(
-                    "gcloud.apigw.views.create_task.get_audit_username",
-                    return_value="alice",
+                    "gcloud.apigw.views.create_task.get_audit_event_kwargs",
+                    return_value={
+                        "username": "alice",
+                        "extend_data": {"proxy_username": "executor"},
+                    },
                     create=True,
-                ) as get_audit_username:
+                ) as get_audit_event_kwargs:
                     with mock.patch("gcloud.apigw.views.create_task.bk_audit_add_event_on_commit") as add_event:
                         response = self.client.post(
                             path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -83,8 +86,12 @@ class CreateTaskAPITest(APITest):
         self.assertTrue(data["result"], msg=data)
         pipeline_kwargs = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.call_args[0][1]
         self.assertEqual(pipeline_kwargs["creator"], "executor")
-        get_audit_username.assert_called_once()
+        get_audit_event_kwargs.assert_called_once()
         self.assertEqual(add_event.call_args[1]["username"], "alice")
+        self.assertEqual(
+            add_event.call_args[1]["extend_data"],
+            {"proxy_username": "executor"},
+        )
 
         TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.reset_mock()
         TaskFlowInstance.objects.create.reset_mock()

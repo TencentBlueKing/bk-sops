@@ -55,10 +55,13 @@ class OperateTaskAPITest(APITest):
         with mock.patch(APIGW_OPERATE_TASK_TASKFLOW_INSTANCE, taskflow_instance):
             with mock.patch(APIGW_OPERATE_TASK_PREPARE_AND_START_TASK, prepare_and_start_task):
                 with mock.patch(
-                    "gcloud.apigw.views.operate_task.get_audit_username",
-                    return_value="alice",
+                    "gcloud.apigw.views.operate_task.get_audit_event_kwargs",
+                    return_value={
+                        "username": "alice",
+                        "extend_data": {"proxy_username": "executor"},
+                    },
                     create=True,
-                ) as get_audit_username:
+                ) as get_audit_event_kwargs:
                     with mock.patch("gcloud.apigw.views.operate_task.bk_audit_add_event_on_commit") as add_event:
                         response = self.client.post(
                             path=self.url().format(task_id=TEST_TASKFLOW_ID, project_id=TEST_PROJECT_ID),
@@ -73,8 +76,12 @@ class OperateTaskAPITest(APITest):
             prepare_and_start_task.apply_async.call_args[1]["kwargs"]["username"],
             "executor",
         )
-        get_audit_username.assert_called_once()
+        get_audit_event_kwargs.assert_called_once()
         self.assertEqual(add_event.call_args[1]["username"], "alice")
+        self.assertEqual(
+            add_event.call_args[1]["extend_data"],
+            {"proxy_username": "executor"},
+        )
 
     @mock.patch(
         PROJECT_GET,
@@ -179,6 +186,7 @@ class OperateTaskAPITest(APITest):
         prepare_and_start_task.apply_async.assert_called_once()
         add_event.assert_called_once_with(
             username="",
+            extend_data={},
             action_id="task_operate",
             resource_id="task",
             instance=task,
