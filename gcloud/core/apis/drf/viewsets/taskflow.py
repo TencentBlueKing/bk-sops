@@ -275,6 +275,15 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     iam_resource_helper = ViewSetResourceHelper(resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS)
     filter_class = TaskFlowFilterSet
     permission_classes = [permissions.IsAuthenticated, TaskFlowInstancePermission]
+    # 允许进入未执行任务两阶段查询的全部请求参数，出现任何其他参数都回退到原查询
+    TWO_PHASE_UNSTARTED_TASK_LIST_PARAMS = {
+        "without_count",
+        "project__id",
+        "pipeline_instance__is_started",
+        "is_child_taskflow",
+        "limit",
+        "offset",
+    }
 
     def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -586,18 +595,19 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     def _should_use_two_phase_unstarted_task_list(cls, request):
         """
         仅优化按项目查询未执行根任务且保持默认 ID 倒序的任务列表。
+
+        采用参数白名单而非排除法：带上任意附加筛选条件后，MySQL 往往存在比两阶段查询更优的执行计划
+        （例如按创建时间区间筛选时可从流水线实例侧驱动），此时继续走原查询。
         """
         query_params = request.query_params
+        if set(query_params) - cls.TWO_PHASE_UNSTARTED_TASK_LIST_PARAMS:
+            return False
+
         return bool(
             "without_count" in query_params
             and query_params.get("project__id")
             and cls._is_false_query_param(query_params.get("pipeline_instance__is_started"))
             and cls._is_false_query_param(query_params.get("is_child_taskflow"))
-            and not query_params.get("order_by")
-            and not query_params.get("pipeline_instance__name__icontains")
-            and not query_params.get("creator_or_executor")
-            and not query_params.get("task_instance_status")
-            and not query_params.get("id")
         )
 
     @swagger_auto_schema(

@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.db import DatabaseError
 from django.test import SimpleTestCase
 from mock import MagicMock, patch
 
@@ -129,18 +128,17 @@ class TaskFlowInstanceManagerTestCase(SimpleTestCase):
         queryset = MockTwoPhaseQuerySet(sql, params, detail_rows=instances)
         cursor = MagicMock()
         cursor.fetchall.return_value = [(9,), (4,), (2,)]
-        mock_connection = MagicMock()
+        mock_connection = MagicMock(vendor="mysql")
         mock_connection.cursor.return_value.__enter__.return_value = cursor
 
-        with patch.object(TaskFlowInstance.objects, "has_unstarted_task_list_covering_index", return_value=True):
-            with patch("gcloud.taskflow3.models.connection", mock_connection):
-                result = TaskFlowInstance.objects.fetch_unstarted_task_list_page_two_phase(
-                    queryset=queryset, limit=15, offset=5
-                )
+        with patch("gcloud.taskflow3.models.connection", mock_connection):
+            result = TaskFlowInstance.objects.fetch_unstarted_task_list_page_two_phase(
+                queryset=queryset, limit=15, offset=5
+            )
 
         expected_sql = sql.replace(
             "FROM `taskflow3_taskflowinstance`",
-            "FROM `taskflow3_taskflowinstance` FORCE INDEX (`idx_proj_del_child_id_pipe`)",
+            "FROM `taskflow3_taskflowinstance` IGNORE INDEX (`PRIMARY`)",
             1,
         )
         self.assertEqual([instance.id for instance in result], [9, 4, 2])
@@ -156,69 +154,31 @@ class TaskFlowInstanceManagerTestCase(SimpleTestCase):
         )
         cursor = MagicMock()
         cursor.fetchall.return_value = []
-        mock_connection = MagicMock()
+        mock_connection = MagicMock(vendor="mysql")
         mock_connection.cursor.return_value.__enter__.return_value = cursor
 
-        with patch.object(TaskFlowInstance.objects, "has_unstarted_task_list_covering_index", return_value=True):
-            with patch("gcloud.taskflow3.models.connection", mock_connection):
-                result = TaskFlowInstance.objects.fetch_unstarted_task_list_page_two_phase(
-                    queryset=queryset, limit=15, offset=0
-                )
+        with patch("gcloud.taskflow3.models.connection", mock_connection):
+            result = TaskFlowInstance.objects.fetch_unstarted_task_list_page_two_phase(
+                queryset=queryset, limit=15, offset=0
+            )
 
         self.assertEqual(result, [])
         self.assertIsNone(queryset.filter_call)
 
-    def test_fetch_unstarted_task_list_page_two_phase_falls_back_without_covering_index(self):
+    def test_fetch_unstarted_task_list_page_two_phase_falls_back_for_non_mysql(self):
         fallback_rows = [MagicMock(id=1)]
         queryset = MockTwoPhaseQuerySet(
             "SELECT `taskflow3_taskflowinstance`.`id` FROM `taskflow3_taskflowinstance`",
             [],
             fallback_rows=fallback_rows,
         )
+        mock_connection = MagicMock(vendor="sqlite")
 
-        with patch.object(TaskFlowInstance.objects, "has_unstarted_task_list_covering_index", return_value=False):
+        with patch("gcloud.taskflow3.models.connection", mock_connection):
             result = TaskFlowInstance.objects.fetch_unstarted_task_list_page_two_phase(
                 queryset=queryset, limit=15, offset=3
             )
 
         self.assertEqual(result, fallback_rows)
         self.assertEqual(queryset.used_slice, slice(3, 18, None))
-
-    def test_has_unstarted_task_list_covering_index_checks_mysql_schema(self):
-        cursor = MagicMock()
-        cursor.fetchone.return_value = ("taskflow3_taskflowinstance",)
-        mock_connection = MagicMock(vendor="mysql")
-        mock_connection.cursor.return_value.__enter__.return_value = cursor
-
-        TaskFlowInstance.objects.has_unstarted_task_list_covering_index.cache_clear()
-        with patch("gcloud.taskflow3.models.connection", mock_connection):
-            result = TaskFlowInstance.objects.has_unstarted_task_list_covering_index()
-
-        self.assertTrue(result)
-        cursor.execute.assert_called_once_with(
-            "SHOW INDEX FROM `taskflow3_taskflowinstance` WHERE Key_name = %s",
-            ["idx_proj_del_child_id_pipe"],
-        )
-        TaskFlowInstance.objects.has_unstarted_task_list_covering_index.cache_clear()
-
-    def test_has_unstarted_task_list_covering_index_returns_false_for_non_mysql(self):
-        mock_connection = MagicMock(vendor="sqlite")
-
-        TaskFlowInstance.objects.has_unstarted_task_list_covering_index.cache_clear()
-        with patch("gcloud.taskflow3.models.connection", mock_connection):
-            result = TaskFlowInstance.objects.has_unstarted_task_list_covering_index()
-
-        self.assertFalse(result)
         mock_connection.cursor.assert_not_called()
-        TaskFlowInstance.objects.has_unstarted_task_list_covering_index.cache_clear()
-
-    def test_has_unstarted_task_list_covering_index_returns_false_when_schema_check_fails(self):
-        mock_connection = MagicMock(vendor="mysql")
-        mock_connection.cursor.return_value.__enter__.side_effect = DatabaseError("schema check failed")
-
-        TaskFlowInstance.objects.has_unstarted_task_list_covering_index.cache_clear()
-        with patch("gcloud.taskflow3.models.connection", mock_connection):
-            result = TaskFlowInstance.objects.has_unstarted_task_list_covering_index()
-
-        self.assertFalse(result)
-        TaskFlowInstance.objects.has_unstarted_task_list_covering_index.cache_clear()

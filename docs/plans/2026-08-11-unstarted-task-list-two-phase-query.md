@@ -2,9 +2,15 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Multi-agent execution is not used for this task.
 
-**Goal:** Reduce the explicitly filtered unstarted task-list request from roughly 70 seconds to the verified 3-4 second ID-scan range without changing API results, ordering, pagination, or other status-filter paths.
+> **Revised after production validation:** two decisions in the steps below are superseded. Phase one now injects
+> `IGNORE INDEX (\`PRIMARY\`)` instead of `FORCE INDEX (\`idx_proj_del_child_id_pipe\`)`, and the request guard is a
+> parameter whitelist instead of a list of excluded parameters. The covering-index capability check was dropped
+> along with the forced hint. See `docs/specs/2026-08-11-unstarted-task-list-two-phase-query-design.md` for the
+> measurements behind both changes.
 
-**Architecture:** Add a narrowly gated list-view branch that asks `TaskFlowInstanceManager` for a page using two phases. Phase one compiles the fully filtered queryset as an ID-only query and injects the existing production composite-index hint; phase two reapplies the same queryset filters to those IDs, loads `pipeline_instance` and `project` in one query, and restores the phase-one order. Non-MySQL databases and schemas without the production index keep the original ORM path.
+**Goal:** Reduce the explicitly filtered unstarted task-list request from roughly 70 seconds to the verified 3-4 second ID-scan range without changing API results, ordering, pagination, or other status-filter paths, and without regressing projects whose unstarted tasks are dense enough for the optimizer to already return in milliseconds.
+
+**Architecture:** Add a narrowly gated list-view branch that asks `TaskFlowInstanceManager` for a page using two phases. Phase one compiles the fully filtered queryset as an ID-only query and excludes the `PRIMARY` index so the optimizer can pick a plan that fits the project's data distribution; phase two reapplies the same queryset filters to those IDs, loads `pipeline_instance` and `project` in one query, and restores the phase-one order. Non-MySQL databases keep the original ORM path.
 
 **Tech Stack:** Python 3.6, Django ORM, Django REST Framework, MySQL 5.7-compatible SQL, `django.test`, `mock`.
 

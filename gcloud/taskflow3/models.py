@@ -15,10 +15,9 @@ import datetime
 import logging
 import traceback
 from copy import deepcopy
-from functools import lru_cache
 
 import ujson as json
-from django.db import DatabaseError, connection, models, transaction
+from django.db import connection, models, transaction
 from django.db.models import Count, Q
 from django.utils.translation import ugettext_lazy as _
 from pipeline.component_framework.models import ComponentModel
@@ -572,8 +571,6 @@ class TaskFlowStatisticsMixin(ClassificationCountMixin):
 class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
     TASKFLOW_INSTANCE_TABLE_SQL = "`taskflow3_taskflowinstance`"
     IGNORE_PRIMARY_INDEX_HINT_SQL = "IGNORE INDEX (`PRIMARY`)"
-    TASK_LIST_UNSTARTED_COVERING_INDEX = "idx_proj_del_child_id_pipe"
-    FORCE_UNSTARTED_COVERING_INDEX_HINT_SQL = "FORCE INDEX (`idx_proj_del_child_id_pipe`)"
 
     @classmethod
     def _inject_ignore_primary_index_hint(cls, sql):
@@ -582,31 +579,6 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
             return sql
 
         return sql.replace("FROM {}".format(cls.TASKFLOW_INSTANCE_TABLE_SQL), "FROM {}".format(table_with_hint), 1)
-
-    @classmethod
-    def _inject_unstarted_covering_index_hint(cls, sql):
-        table_with_hint = "{} {}".format(cls.TASKFLOW_INSTANCE_TABLE_SQL, cls.FORCE_UNSTARTED_COVERING_INDEX_HINT_SQL)
-        if table_with_hint in sql:
-            return sql
-
-        return sql.replace("FROM {}".format(cls.TASKFLOW_INSTANCE_TABLE_SQL), "FROM {}".format(table_with_hint), 1)
-
-    @staticmethod
-    @lru_cache(maxsize=1)
-    def has_unstarted_task_list_covering_index():
-        if connection.vendor != "mysql":
-            return False
-
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    "SHOW INDEX FROM `taskflow3_taskflowinstance` WHERE Key_name = %s",
-                    [TaskFlowInstanceManager.TASK_LIST_UNSTARTED_COVERING_INDEX],
-                )
-                return cursor.fetchone() is not None
-        except DatabaseError:
-            logger.warning("failed to check unstarted task list covering index", exc_info=True)
-            return False
 
     def fetch_task_list_page_ignore_primary_index(self, queryset, limit, offset):
         sliced_queryset = queryset[offset : offset + limit]
@@ -618,12 +590,15 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         return list(self.raw(sql, params))
 
     def fetch_unstarted_task_list_page_two_phase(self, queryset, limit, offset):
-        if not self.has_unstarted_task_list_covering_index():
+        if connection.vendor != "mysql":
             return list(queryset[offset : offset + limit])
 
+        # 第一阶段只取 ID，让分页查询尽量落在二级索引上，避免逐条回表加载详情。
+        # 这里只排除 PRIMARY 而不强制某个索引：生产验证显示强制覆盖索引会让未执行任务较多的项目
+        # 从毫秒级退化到秒级，而排除 PRIMARY 后优化器能按项目数据分布选到合适的索引。
         id_queryset = queryset.values_list("id", flat=True)[offset : offset + limit]
         sql, params = id_queryset.query.sql_with_params()
-        sql = self._inject_unstarted_covering_index_hint(sql)
+        sql = self._inject_ignore_primary_index_hint(sql)
 
         with connection.cursor() as cursor:
             cursor.execute(sql, params)

@@ -197,6 +197,8 @@ class TestTaskInstanceView(
                     "pipeline_instance__is_started": false_value,
                     "is_child_taskflow": false_value,
                     "without_count": True,
+                    "limit": 15,
+                    "offset": 0,
                 }
             )
             with self.subTest(false_value=false_value):
@@ -257,6 +259,42 @@ class TestTaskInstanceView(
                 "project__id": "1",
                 "pipeline_instance__is_started": "false",
                 "is_child_taskflow": "false",
+            },
+            # 附加筛选条件下 MySQL 往往有更优计划，白名单之外的参数一律不进入两阶段查询
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "pipeline_instance__create_time__gte": "2026-08-01 00:00:00",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "pipeline_instance__start_time__lte": "2026-08-01 00:00:00",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "template_id": "10058",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "create_method": "app",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "pipeline_instance__creator__contains": "someone",
+                "without_count": True,
             },
         ]
 
