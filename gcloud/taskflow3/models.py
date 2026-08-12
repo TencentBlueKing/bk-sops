@@ -589,6 +589,28 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
         sql = self._inject_ignore_primary_index_hint(sql)
         return list(self.raw(sql, params))
 
+    def fetch_unstarted_task_list_page_two_phase(self, queryset, limit, offset):
+        if connection.vendor != "mysql":
+            return list(queryset[offset : offset + limit])
+
+        # 第一阶段只取 ID，让分页查询尽量落在二级索引上，避免逐条回表加载详情。
+        # 这里只排除 PRIMARY 而不强制某个索引：生产验证显示强制覆盖索引会让未执行任务较多的项目
+        # 从毫秒级退化到秒级，而排除 PRIMARY 后优化器能按项目数据分布选到合适的索引。
+        id_queryset = queryset.values_list("id", flat=True)[offset : offset + limit]
+        sql, params = id_queryset.query.sql_with_params()
+        sql = self._inject_ignore_primary_index_hint(sql)
+
+        with connection.cursor() as cursor:
+            cursor.execute(sql, params)
+            task_ids = [row[0] for row in cursor.fetchall()]
+
+        if not task_ids:
+            return []
+
+        instances = queryset.filter(id__in=task_ids).select_related("pipeline_instance", "project")
+        instance_by_id = {instance.id: instance for instance in instances}
+        return [instance_by_id[task_id] for task_id in task_ids if task_id in instance_by_id]
+
     @staticmethod
     def create_pipeline_instance(template, **kwargs):
         independent_subprocess = kwargs.pop(

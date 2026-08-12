@@ -160,6 +160,237 @@ class TestTaskInstanceView(
         self.assertEqual(mock_fetch.call_args[1]["limit"], 15)
         self.assertEqual(mock_fetch.call_args[1]["offset"], 0)
 
+    def test_unstarted_task_list_without_count_uses_two_phase_query(self):
+        query_params = {
+            "project__id": self.test_project.id,
+            "pipeline_instance__is_started": False,
+            "is_child_taskflow": False,
+            "without_count": True,
+            "limit": 15,
+            "offset": 0,
+        }
+
+        with patch.object(
+            TaskFlowInstance.objects,
+            "fetch_unstarted_task_list_page_two_phase",
+            return_value=[],
+            create=True,
+        ) as mock_two_phase:
+            with patch.object(
+                TaskFlowInstance.objects, "fetch_task_list_page_ignore_primary_index", return_value=[]
+            ) as mock_ignore_primary:
+                resp = self.client.get(path=self.task_url, data=query_params)
+
+        self.assertTrue(resp.data["result"])
+        mock_two_phase.assert_called_once()
+        self.assertEqual(mock_two_phase.call_args[1]["limit"], 15)
+        self.assertEqual(mock_two_phase.call_args[1]["offset"], 0)
+        mock_ignore_primary.assert_not_called()
+
+    def test_two_phase_unstarted_task_list_guard_accepts_explicit_false_values(self):
+        view = TaskFlowInstanceViewSet()
+
+        for false_value in (False, "false", "0"):
+            request = SimpleNamespace(
+                query_params={
+                    "project__id": "1",
+                    "pipeline_instance__is_started": false_value,
+                    "is_child_taskflow": false_value,
+                    "without_count": True,
+                    "limit": 15,
+                    "offset": 0,
+                }
+            )
+            with self.subTest(false_value=false_value):
+                self.assertTrue(view._should_use_two_phase_unstarted_task_list(request))
+
+    def test_two_phase_unstarted_task_list_guard_rejects_unaffected_queries(self):
+        view = TaskFlowInstanceViewSet()
+        unaffected_query_params = [
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "true",
+                "is_child_taskflow": "false",
+                "without_count": True,
+            },
+            {"project__id": "1", "is_child_taskflow": "false", "without_count": True},
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "order_by": "-pipeline_instance__create_time",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "pipeline_instance__name__icontains": "demo",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "creator_or_executor": "user",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "task_instance_status": "failed",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "id": "147883347",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "true",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+            },
+            # 附加筛选条件下 MySQL 往往有更优计划，白名单之外的参数一律不进入两阶段查询
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "pipeline_instance__create_time__gte": "2026-08-01 00:00:00",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "pipeline_instance__start_time__lte": "2026-08-01 00:00:00",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "template_id": "10058",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "create_method": "app",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "pipeline_instance__creator__contains": "someone",
+                "without_count": True,
+            },
+        ]
+
+        for query_params in unaffected_query_params:
+            with self.subTest(query_params=query_params):
+                request = SimpleNamespace(query_params=query_params)
+                self.assertFalse(view._should_use_two_phase_unstarted_task_list(request))
+
+    @factory.django.mute_signals(signals.pre_save, signals.post_save)
+    def test_two_phase_unstarted_task_list_preserves_response_order_and_fields(self):
+        unstarted_tasks = []
+        for index in range(3):
+            pipeline_instance = PipelineInstance.objects.create(
+                instance_id="unstarted_root_{}".format(index),
+                creator="creator",
+                snapshot=self.test_snapshot,
+                template=self.pipeline_template,
+                is_finished=False,
+                is_started=False,
+                is_revoked=False,
+            )
+            unstarted_tasks.append(
+                TaskFlowInstance.objects.create(
+                    project=self.test_project,
+                    pipeline_instance=pipeline_instance,
+                    template_id=self.pipeline_template.id,
+                    engine_ver=2,
+                )
+            )
+
+        expected_tasks = list(reversed(unstarted_tasks))
+        query_params = {
+            "project__id": self.test_project.id,
+            "pipeline_instance__is_started": False,
+            "is_child_taskflow": False,
+            "without_count": True,
+            "limit": 15,
+            "offset": 0,
+        }
+
+        with patch.object(
+            TaskFlowInstance.objects,
+            "fetch_unstarted_task_list_page_two_phase",
+            return_value=expected_tasks,
+        ) as mock_two_phase:
+            resp = self.client.get(path=self.task_url, data=query_params)
+
+        self.assertTrue(resp.data["result"])
+        self.assertEqual(resp.data["data"]["count"], -1)
+        results = resp.data["data"]["results"]
+        self.assertEqual([item["id"] for item in results], [task.id for task in expected_tasks])
+        self.assertTrue(all(item["is_started"] is False for item in results))
+        self.assertTrue(all(item["project"]["id"] == self.test_project.id for item in results))
+        mock_two_phase.assert_called_once()
+
+    def test_started_task_list_without_count_does_not_use_two_phase_query(self):
+        query_params = {
+            "project__id": self.test_project.id,
+            "pipeline_instance__is_started": True,
+            "is_child_taskflow": False,
+            "without_count": True,
+            "limit": 15,
+            "offset": 0,
+        }
+
+        with patch.object(
+            TaskFlowInstance.objects, "fetch_unstarted_task_list_page_two_phase", return_value=[]
+        ) as mock_two_phase:
+            resp = self.client.get(path=self.task_url, data=query_params)
+
+        self.assertTrue(resp.data["result"])
+        self.assertEqual([item["id"] for item in resp.data["data"]["results"]], [self.taskflow_instance.id])
+        mock_two_phase.assert_not_called()
+
+    def test_task_id_search_without_count_does_not_use_two_phase_query(self):
+        self.pipeline_instance.is_started = False
+        self.pipeline_instance.save()
+        query_params = {
+            "id": self.taskflow_instance.id,
+            "project__id": self.test_project.id,
+            "pipeline_instance__is_started": False,
+            "is_child_taskflow": False,
+            "without_count": True,
+            "limit": 15,
+            "offset": 0,
+        }
+
+        with patch.object(
+            TaskFlowInstance.objects, "fetch_unstarted_task_list_page_two_phase", return_value=[]
+        ) as mock_two_phase:
+            resp = self.client.get(path=self.task_url, data=query_params)
+
+        self.assertTrue(resp.data["result"])
+        self.assertEqual([item["id"] for item in resp.data["data"]["results"]], [self.taskflow_instance.id])
+        mock_two_phase.assert_not_called()
+
     def test_task_list_filter_days_disabled(self):
         """测试当项目配置了 task_list_filter_days 为 False 时，跳过日期过滤"""
         # 创建一个超过过滤天数的旧任务
