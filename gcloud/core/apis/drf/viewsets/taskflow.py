@@ -597,6 +597,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             and not query_params.get("pipeline_instance__name__icontains")
             and not query_params.get("creator_or_executor")
             and not query_params.get("task_instance_status")
+            and not query_params.get("id")
         )
 
     @swagger_auto_schema(

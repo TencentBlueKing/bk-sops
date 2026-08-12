@@ -14,7 +14,7 @@
 - Do not add or alter database indexes or migrations.
 - Preserve `TaskFlowInstance.id DESC`, `limit`, `offset`, response fields, IAM injection, and template-info injection.
 - Only the explicit `pipeline_instance__is_started=false` and `is_child_taskflow=false` list path with `without_count` and default ordering may opt in.
-- `is_started=true`, absent status, explicit ordering, name search, “我的动态”, `task_instance_status`, count, retrieve, and other endpoints must retain their existing path.
+- `is_started=true`, absent status, explicit ordering, name search, exact task-ID search, “我的动态”, `task_instance_status`, count, retrieve, and other endpoints must retain their existing path.
 - Do not silently retry a failed phase-one SQL query.
 - The current primary worktree is dirty; execution must use an isolated worktree based on the latest `upstream/master` without stashing or modifying user changes.
 - Repository commits must reference TAPD Bug `1010131351162150454`：`任务列表筛选“未执行”时接口耗时过长`。
@@ -155,6 +155,7 @@ Use `SimpleNamespace(query_params=params)` to assert the guard returns `False` f
 {"project__id": "1", "pipeline_instance__is_started": "false", "is_child_taskflow": "false", "pipeline_instance__name__icontains": "demo"}
 {"project__id": "1", "pipeline_instance__is_started": "false", "is_child_taskflow": "false", "creator_or_executor": "user"}
 {"project__id": "1", "pipeline_instance__is_started": "false", "is_child_taskflow": "false", "task_instance_status": "failed"}
+{"project__id": "1", "pipeline_instance__is_started": "false", "is_child_taskflow": "false", "id": "147883347"}
 {"project__id": "1", "pipeline_instance__is_started": "false", "is_child_taskflow": "true"}
 ```
 
@@ -180,7 +181,7 @@ def _is_false_query_param(value):
     return value is False or str(value).lower() in {"false", "0"}
 ```
 
-Add `_should_use_two_phase_unstarted_task_list` requiring project ID, false `pipeline_instance__is_started`, false `is_child_taskflow`, and the absence of `order_by`, `pipeline_instance__name__icontains`, `creator_or_executor`, and `task_instance_status`.
+Add `_should_use_two_phase_unstarted_task_list` requiring project ID, false `pipeline_instance__is_started`, false `is_child_taskflow`, and the absence of `order_by`, `pipeline_instance__name__icontains`, `creator_or_executor`, `task_instance_status`, and `id`.
 
 Inside the existing `without_count` branch, order the decisions as:
 

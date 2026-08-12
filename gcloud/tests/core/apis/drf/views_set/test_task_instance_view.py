@@ -243,6 +243,13 @@ class TestTaskInstanceView(
             {
                 "project__id": "1",
                 "pipeline_instance__is_started": "false",
+                "is_child_taskflow": "false",
+                "id": "147883347",
+                "without_count": True,
+            },
+            {
+                "project__id": "1",
+                "pipeline_instance__is_started": "false",
                 "is_child_taskflow": "true",
                 "without_count": True,
             },
@@ -309,6 +316,28 @@ class TestTaskInstanceView(
         query_params = {
             "project__id": self.test_project.id,
             "pipeline_instance__is_started": True,
+            "is_child_taskflow": False,
+            "without_count": True,
+            "limit": 15,
+            "offset": 0,
+        }
+
+        with patch.object(
+            TaskFlowInstance.objects, "fetch_unstarted_task_list_page_two_phase", return_value=[]
+        ) as mock_two_phase:
+            resp = self.client.get(path=self.task_url, data=query_params)
+
+        self.assertTrue(resp.data["result"])
+        self.assertEqual([item["id"] for item in resp.data["data"]["results"]], [self.taskflow_instance.id])
+        mock_two_phase.assert_not_called()
+
+    def test_task_id_search_without_count_does_not_use_two_phase_query(self):
+        self.pipeline_instance.is_started = False
+        self.pipeline_instance.save()
+        query_params = {
+            "id": self.taskflow_instance.id,
+            "project__id": self.test_project.id,
+            "pipeline_instance__is_started": False,
             "is_child_taskflow": False,
             "without_count": True,
             "limit": 15,

@@ -33,6 +33,7 @@
 
 - 不修改 `pipeline_instance__is_started=true` 查询。
 - 不修改未传 `pipeline_instance__is_started` 的任务列表。
+- 不修改按 `TaskFlowInstance.id` 精确查询的任务列表。
 - 不修改 `task_instance_status`、“我的动态”、任务数量和任务详情接口。
 - 不改变默认排序为 `pipeline.create_time`。
 - 本期不引入 Redis 缓存或任务列表读模型。
@@ -50,6 +51,7 @@
 7. 不包含 `creator_or_executor`。
 8. 不包含 `task_instance_status`。
 9. 不包含 `pipeline_instance__name__icontains`，避免与现有名称搜索优化路径重叠。
+10. 不包含 `id`，保留主键精确查询的 `PRIMARY + const` 执行计划。
 
 不满足任一条件时，继续使用现有 ORM 分页逻辑。
 
@@ -119,7 +121,7 @@ project_id, is_deleted, is_child_taskflow, id, pipeline_instance_id
 ### 单元测试
 
 1. 仅在显式“未执行”参数组合下触发两阶段路径。
-2. `is_started=true`、未传状态、显式排序、名称搜索、“我的动态”和 `task_instance_status` 均不触发。
+2. `is_started=true`、未传状态、显式排序、名称搜索、“我的动态”、`task_instance_status` 和任务 ID 精确查询均不触发。
 3. 第一阶段 SQL 包含 `FORCE INDEX (idx_proj_del_child_id_pipe)` 且参数仍由数据库驱动参数化。
 4. 第二阶段包含 `select_related("pipeline_instance", "project")`。
 5. 第二阶段结果严格恢复第一阶段 ID 顺序。
@@ -142,6 +144,11 @@ project_id, is_deleted, is_child_taskflow, id, pipeline_instance_id
 - 第一阶段 SQL 耗时和扫描行数；
 - DB CPU、IO 和 Buffer Pool 命中率；
 - `is_started=true` 和无状态筛选的延迟不发生回归。
+
+生产 WebConsole 对 3 个真实任务 ID 和 1 个不存在 ID 的复测显示，原路径耗时约
+`5-22ms`，强制使用 `idx_proj_del_child_id_pipe` 的两阶段路径耗时约 `222-238ms`，
+且强制索引计划会从 `PRIMARY + const` 单行查询退化为扫描项目复合索引。因此任务 ID
+精确查询必须留在原 ORM 分页路径。
 
 ## 发布与回退
 
