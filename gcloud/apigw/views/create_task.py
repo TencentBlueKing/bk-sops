@@ -97,7 +97,10 @@ def create_task(request, template_id, project_id):
         template_source = PROJECT
         try:
             tmpl = TaskTemplate.objects.select_related("pipeline_template").get(
-                id=template_id, project_id=project.id, is_deleted=False
+                id=template_id,
+                project_id=project.id,
+                project__tenant_id=request.user.tenant_id,
+                is_deleted=False,
             )
         except TaskTemplate.DoesNotExist:
             result = {
