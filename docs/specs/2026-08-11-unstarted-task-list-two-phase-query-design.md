@@ -177,11 +177,31 @@ queryset.filter(id__in=task_ids).select_related(
 `IGNORE INDEX (PRIMARY)`；带创建时间区间的组合即使改用 `IGNORE PRIMARY` 仍会回退约 9 至 10 倍，
 必须由参数白名单挡在优化路径之外。
 
-同时记录一个未在本期解决的问题：Django 把 `is_deleted=False` 一类布尔过滤编译成 `NOT col`
-而非 `col = 0`，`NOT col` 无法作为 ref 的 key part，导致
-`idx_proj_del_child_id_pipe` 在 ORM 查询下只用到首列 `project_id`，后续列形同虚设并被迫 filesort。
-手写等值条件的同一查询可以用满前三列且无需 filesort。彻底解决稀疏项目的秒级耗时需要消除跨表
-状态判断（例如把 `is_started` 冗余到任务表并配套索引），应另立需求跟进。
+合入前对最终实现做了一轮完整验证，四个性能用例加十四种参数组合的路径判定全部通过：
+
+| 场景 | 原路径 | 两阶段 + IGNORE PRIMARY | 返回结果 |
+| --- | --- | --- | --- |
+| 5001537 首页 | 8004ms 被语句超时中断 | 3809ms | 13 条，条件校验通过 |
+| 5001537 第二页 | 8003ms 被语句超时中断 | 3707ms | 空页 |
+| 5000122 首页 | 57.3ms | 43.2ms | 15 条，ID 与原路径逐个相同 |
+| 5000122 第二页 | 30.8ms | 37.4ms | 15 条，ID 与原路径逐个相同 |
+
+关键证据是 5000122 上两条路径选中了同一个索引
+`taskflow3_taskflowin_project_id_3c18b071_fk_core_proj` 且都没有 filesort，说明
+`IGNORE INDEX (PRIMARY)` 只排除了错误计划，没有干扰优化器的正常选择。另外 5001537 的原路径计划
+估算走 `PRIMARY` 只需扫 12181 行，实际要扫完两百多万行，估算偏差近两个数量级，这也说明该问题
+无法靠更新统计信息解决。
+
+同时记录一个未在本期解决的问题：Django 把布尔过滤编译成 `NOT col` 而非 `col = 0`，`NOT col`
+无法作为 ref 的 key part。视图基础 queryset 里的 `is_deleted=Value(0)` 会编译成 `= 0`，因此
+`idx_proj_del_child_id_pipe` 实际用到 `project_id` 和 `is_deleted` 两列；而 `is_child_taskflow`
+由 FilterSet 生成，仍是不可 sarg 的形式，索引到第三列即中断，`id` 接不上排序，只能 filesort。
+即使补上冗余等值条件让索引用满前三列并去掉 filesort，稀疏项目也快不了多少：其耗时主要来自约
+227 万次回流水线实例表的 eq_ref 查找，而不是排序。彻底解决需要消除跨表状态判断（例如把
+`is_started` 冗余到任务表并配套索引），应另立需求跟进。
+
+另有一个固有代价：翻页越过数据末尾时仍需扫完整个项目区间才能确认没有更多结果，稀疏项目上返回
+空页同样耗时约 3.7 秒，本期不做处理。
 
 ## 发布与回退
 
