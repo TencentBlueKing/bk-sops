@@ -688,6 +688,13 @@
         overflow: hidden;
         overflow-x: auto;
         scrollbar-width: none;
+        outline: none;
+        box-shadow: none;
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
+        }
         &::-webkit-scrollbar {
             display: none;
         }

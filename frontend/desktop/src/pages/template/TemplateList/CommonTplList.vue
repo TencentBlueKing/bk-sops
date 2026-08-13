@@ -144,6 +144,7 @@
     import i18n from '@/config/i18n/index.js'
     import { mapState, mapMutations, mapActions } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
+    import { getMyCreateFilterInfo } from '@/components/common/searchSelect/helper.js'
     import Skeleton from '@/components/skeleton/index.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
@@ -458,16 +459,7 @@
             },
             // 我创建的
             handleMyCreateFilter () {
-                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
-                let info = {}
-                if (creatorInfo) {
-                    creatorInfo.values = [this.username]
-                    info = creatorInfo
-                } else {
-                    const form = this.searchList.find(item => item.id === 'creator')
-                    info = { ...form, values: [this.username] }
-                    this.searchSelectValue.push(info)
-                }
+                const info = getMyCreateFilterInfo(this.username, this.searchSelectValue, this.searchList)
                 // 添加搜索记录
                 const searchDom = this.$refs.searchSelect
                 searchDom && searchDom.addSearchRecord(info)

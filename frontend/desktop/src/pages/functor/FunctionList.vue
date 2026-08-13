@@ -300,6 +300,7 @@
     import TableRenderHeader from '@/components/common/TableRenderHeader.vue'
     import UserDisplayName from '@/components/common/Individualization/UserDisplayName.vue'
     import toolsUtils from '@/utils/tools.js'
+    import { getMyCreateFilterInfo } from '@/components/common/searchSelect/helper.js'
     import moment from 'moment-timezone'
     import permission from '@/mixins/permission.js'
     import task from '@/mixins/task.js'
@@ -1093,16 +1094,7 @@
                 this.applyForPermission(required, data.auth_actions, permissionData)
             },
             handleMyCreateFilter () {
-                const creatorInfo = this.searchSelectValue.find(item => item.id === 'creator')
-                let info = {}
-                if (creatorInfo) {
-                    creatorInfo.values = [this.username]
-                    info = creatorInfo
-                } else {
-                    const form = this.searchList.find(item => item.id === 'creator')
-                    info = { ...form, values: [this.username] }
-                    this.searchSelectValue.push(info)
-                }
+                const info = getMyCreateFilterInfo(this.username, this.searchSelectValue, this.searchList)
                 // 添加搜索记录
                 const searchDom = this.$refs.searchSelect
                 searchDom && searchDom.addSearchRecord(info)
