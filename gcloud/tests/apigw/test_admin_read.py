@@ -1,4 +1,5 @@
 import json
+from contextlib import ExitStack
 from types import SimpleNamespace
 from unittest import mock
 
@@ -67,3 +68,76 @@ class AdminReadCacheKeyTestCase(TestCase):
         normal_key = api_hash_key(request)
         request.is_admin_read = True
         self.assertNotEqual(normal_key, api_hash_key(request))
+
+
+class AdminReadInterceptorTestCase(TestCase):
+    def build_request(self, template_source="project"):
+        return SimpleNamespace(
+            is_admin_read=True,
+            is_trust=False,
+            user=SimpleNamespace(username="po_admin"),
+            project=SimpleNamespace(id=1),
+            GET={"template_source": template_source},
+        )
+
+    def assert_iam_calls(self, interceptor, module_path, kwargs=None, template_source="project", expected_calls=0):
+        with ExitStack() as stack:
+            allow = stack.enter_context(mock.patch("{}.allow_or_raise_auth_failed".format(module_path)))
+            if module_path != "gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view":
+                stack.enter_context(mock.patch("{}.res_factory".format(module_path)))
+
+            interceptor.process(self.build_request(template_source), **(kwargs or {}))
+
+            if expected_calls:
+                allow.assert_called_once()
+            else:
+                allow.assert_not_called()
+
+    def test_project_view_skips_iam(self):
+        from gcloud.iam_auth.view_interceptors.apigw.project_view import ProjectViewInterceptor
+
+        self.assert_iam_calls(
+            ProjectViewInterceptor(), "gcloud.iam_auth.view_interceptors.apigw.project_view", {"project_id": 1}
+        )
+
+    def test_flow_view_skips_iam(self):
+        from gcloud.iam_auth.view_interceptors.apigw.flow_view import FlowViewInterceptor
+
+        self.assert_iam_calls(
+            FlowViewInterceptor(), "gcloud.iam_auth.view_interceptors.apigw.flow_view", {"template_id": 1}
+        )
+
+    def test_business_template_info_skips_iam(self):
+        from gcloud.iam_auth.view_interceptors.apigw.get_template_info import GetTemplateInfoInterceptor
+
+        self.assert_iam_calls(
+            GetTemplateInfoInterceptor(),
+            "gcloud.iam_auth.view_interceptors.apigw.get_template_info",
+            {"template_id": 1},
+            template_source="business",
+        )
+
+    def test_task_view_skips_iam(self):
+        from gcloud.iam_auth.view_interceptors.apigw.task_view import TaskViewInterceptor
+
+        self.assert_iam_calls(
+            TaskViewInterceptor(), "gcloud.iam_auth.view_interceptors.apigw.task_view", {"task_id": 1}
+        )
+
+    def test_function_view_skips_iam(self):
+        from gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view import FunctionViewInterceptor
+
+        self.assert_iam_calls(
+            FunctionViewInterceptor(), "gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view"
+        )
+
+    def test_common_template_info_keeps_iam(self):
+        from gcloud.iam_auth.view_interceptors.apigw.get_template_info import GetTemplateInfoInterceptor
+
+        self.assert_iam_calls(
+            GetTemplateInfoInterceptor(),
+            "gcloud.iam_auth.view_interceptors.apigw.get_template_info",
+            {"template_id": 1},
+            template_source="common",
+            expected_calls=1,
+        )

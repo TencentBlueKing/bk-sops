@@ -14,9 +14,7 @@ specific language governing permissions and limitations under the License.
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
-from gcloud.iam_auth import res_factory
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
 
 iam = get_iam_client()
@@ -25,6 +23,9 @@ iam = get_iam_client()
 class TaskViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         if request.is_trust:
+            return
+
+        if getattr(request, "is_admin_read", False) is True:
             return
 
         task_id = kwargs["task_id"]

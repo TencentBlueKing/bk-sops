@@ -14,12 +14,9 @@ specific language governing permissions and limitations under the License.
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
 
-from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth import get_iam_client
-from gcloud.iam_auth import res_factory
+from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
+from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
-from gcloud.constants import PROJECT
-from gcloud.constants import NON_COMMON_TEMPLATE_TYPES
 
 iam = get_iam_client()
 
@@ -34,6 +31,9 @@ class GetTemplateInfoInterceptor(ViewInterceptor):
         subject = Subject("user", request.user.username)
 
         if template_source in NON_COMMON_TEMPLATE_TYPES:
+            if getattr(request, "is_admin_read", False) is True:
+                return
+
             action = Action(IAMMeta.FLOW_VIEW_ACTION)
             resources = res_factory.resources_for_flow(template_id)
             allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
