@@ -43,7 +43,10 @@ from gcloud.taskflow3.models import TaskFlowInstance
 @iam_intercept(TaskViewInterceptor())
 def get_task_node_data(request, task_id, project_id):
     project = request.project
-    task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
+    task_filters = {"id": task_id, "project_id": project.id}
+    if getattr(request, "is_admin_read", False) is True:
+        task_filters["is_deleted"] = False
+    task = TaskFlowInstance.objects.get(**task_filters)
 
     node_id = request.GET.get("node_id")
     component_code = request.GET.get("component_code")

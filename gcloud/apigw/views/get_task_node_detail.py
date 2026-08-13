@@ -50,7 +50,10 @@ def get_task_node_detail(request, task_id, project_id):
     """
     project = request.project
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
+        task_filters = {"id": task_id, "project_id": project.id}
+        if getattr(request, "is_admin_read", False) is True:
+            task_filters["is_deleted"] = False
+        task = TaskFlowInstance.objects.get(**task_filters)
     except TaskFlowInstance.DoesNotExist:
         message = (
             "[API] get_task_node_detail task[id={task_id}] "

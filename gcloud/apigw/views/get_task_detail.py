@@ -60,7 +60,10 @@ def get_task_detail(request, task_id, project_id):
         return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     include_webhook_history = serializer.validated_data["include_webhook_history"]
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
+        task_filters = {"id": task_id, "project_id": project.id}
+        if getattr(request, "is_admin_read", False) is True:
+            task_filters["is_deleted"] = False
+        task = TaskFlowInstance.objects.get(**task_filters)
     except TaskFlowInstance.DoesNotExist:
         message = (
             "[API] get_task_detail task[id={task_id}] "

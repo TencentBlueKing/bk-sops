@@ -53,7 +53,10 @@ def mock_check_white_apps(request):
             }
         )
     request.app = MockJwtClientAttr(
-        {settings.APIGW_MANAGER_APP_CODE_KEY: request.META.get("HTTP_BK_APP_CODE", TEST_APP_CODE)}
+        {
+            settings.APIGW_MANAGER_APP_CODE_KEY: request.META.get("HTTP_BK_APP_CODE", TEST_APP_CODE),
+            "verified": True,
+        }
     )
     return True
 

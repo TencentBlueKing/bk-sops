@@ -73,6 +73,7 @@ class MockProject(object):
         self.name = kwargs.get("name", "name")
         self.bk_biz_id = kwargs.get("bk_biz_id", "bk_biz_id")
         self.from_cmdb = kwargs.get("from_cmdb", False)
+        self.is_disable = kwargs.get("is_disable", False)
         self.time_zone = kwargs.get("time_zone", "time_zone")
 
 

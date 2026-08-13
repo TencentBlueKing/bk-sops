@@ -11,6 +11,7 @@ from gcloud.apigw.decorators import mark_admin_read_request, mark_request_whethe
 from gcloud.apigw.urls import urlpatterns
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
+from pipeline_web.preview import preview_template_tree
 
 GET_ADMIN_READ_VIEWS = (
     "get_template_list",
@@ -109,7 +110,7 @@ def routed_markers():
 class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
     def setUp(self):
         self.factory = RequestFactory()
-        self.project = SimpleNamespace(id=100, bk_biz_id=200)
+        self.project = SimpleNamespace(id=100, bk_biz_id=200, is_disable=False)
 
     def build_request(self, method="get", path="/api/v3/read/", admin=True, body=None):
         headers = {}
@@ -125,15 +126,25 @@ class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
         else:
             request = self.factory.get(path, **headers)
         request.user = SimpleNamespace(username="po_admin")
-        request.app = SimpleNamespace(app_code="po-app")
-        request._apigw_jwt_user_verified = True
-        request.is_trust = False
-        return request
+        request.app = SimpleNamespace(bk_app_code="po-app", verified=True)
+        request.jwt = SimpleNamespace(payload={"user": {"username": "po_admin", "verified": True}})
+        with mock.patch("gcloud.apigw.decorators.check_white_apps", return_value=False), mock.patch(
+            "gcloud.apigw.decorators.inject_user"
+        ):
+            return mark_request_whether_is_trust(lambda marked_request: marked_request)(request)
 
     def invoke_admin_marker(self, view_name, request, **kwargs):
         marker = find_wrapper(get_view(view_name), ADMIN_READ_WRAPPER_CODE)
         self.assertIsNotNone(marker, "{} must opt in to admin read".format(view_name))
         return marker(request, **kwargs)
+
+    def mark_request_for_view(self, view_name, request):
+        marker = find_wrapper(get_view(view_name), ADMIN_READ_WRAPPER_CODE)
+        self.assertIsNotNone(marker, "{} must opt in to admin read".format(view_name))
+        return replace_marker_downstream(marker, lambda marked_request, *args, **kwargs: marked_request)(request)
+
+    def original_view(self, view_name):
+        return wrapper_chain(get_view(view_name))[-1]
 
     def test_all_routed_admin_read_markers_match_exact_allowlist_and_methods(self):
         actual = {}
@@ -263,7 +274,7 @@ class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
         get_project.return_value = self.project
 
         def reject_cross_project_task(**filters):
-            self.assertEqual(filters, {"id": "2", "project_id": 100})
+            self.assertEqual(filters, {"id": "2", "project_id": 100, "is_deleted": False})
             raise TaskFlowInstance.DoesNotExist()
 
         get_task.side_effect = reject_cross_project_task
@@ -294,7 +305,7 @@ class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
         get_project.return_value = self.project
 
         def reject_cross_project_task(**filters):
-            self.assertEqual(filters, {"id": "2", "project_id": 100})
+            self.assertEqual(filters, {"id": "2", "project_id": 100, "is_deleted": False})
             raise TaskFlowInstance.DoesNotExist()
 
         get_task.side_effect = reject_cross_project_task
@@ -303,3 +314,160 @@ class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
 
         self.assertFalse(result["result"])
         self.assertEqual(result["code"], err_code.CONTENT_NOT_EXIST.code)
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.apigw.decorators.get_project_with")
+    @mock.patch("gcloud.iam_auth.view_interceptors.apigw.task_view.res_factory")
+    @mock.patch("gcloud.iam_auth.view_interceptors.apigw.task_view.allow_or_raise_auth_failed")
+    @mock.patch("gcloud.apigw.views.get_task_detail.TaskFlowInstance.objects.get")
+    def test_task_detail_ordinary_mode_preserves_query_without_deleted_filter(
+        self, get_task, allow, res_factory, get_project, whitelist_has
+    ):
+        get_project.return_value = self.project
+
+        def reject_missing_task(**filters):
+            self.assertEqual(filters, {"id": "ordinary-task", "project_id": 100})
+            raise TaskFlowInstance.DoesNotExist()
+
+        get_task.side_effect = reject_missing_task
+        result = self.invoke_admin_marker(
+            "get_task_detail",
+            self.build_request(admin=False, path="/api/v3/read/ordinary-task/"),
+            task_id="ordinary-task",
+            project_id="200",
+        )
+
+        self.assertFalse(result["result"])
+        self.assertEqual(result["code"], err_code.CONTENT_NOT_EXIST.code)
+        allow.assert_called_once()
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.apigw.views.get_template_list.get_flow_allowed_actions_for_user", return_value={})
+    @mock.patch("gcloud.apigw.views.get_template_list.format_template_list_data", return_value=([], []))
+    @mock.patch("gcloud.apigw.views.get_template_list.TaskTemplate.objects.select_related")
+    def test_template_list_admin_mode_keeps_existing_deleted_filter(
+        self, select_related, format_template_list_data, allowed_actions, whitelist_has
+    ):
+        request = self.mark_request_for_view("get_template_list", self.build_request())
+        request.project = self.project
+        request.tz = None
+
+        result = self.original_view("get_template_list")(request, project_id="200")
+
+        self.assertTrue(result["result"])
+        select_related.return_value.filter.assert_called_once_with(is_deleted=False, project_id=100)
+
+    @mock.patch("pipeline_web.preview.PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes")
+    @mock.patch("pipeline_web.preview.TaskTemplate.objects.get")
+    def test_preview_keeps_existing_deleted_filter(self, get_template, preview_tree):
+        get_template.return_value = SimpleNamespace(get_pipeline_tree_by_version=lambda version: {"constants": {}})
+
+        preview_template_tree(100, "project", "template-1", None, [])
+
+        get_template.assert_called_once_with(pk="template-1", is_deleted=False, project_id=100)
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.apigw.views.get_task_status.TaskFlowInstance.objects.get")
+    def test_task_status_admin_mode_keeps_existing_deleted_filter(self, get_task, whitelist_has):
+        get_task.side_effect = TaskFlowInstance.DoesNotExist()
+        request = self.mark_request_for_view("get_task_status", self.build_request())
+        request.project = self.project
+
+        result = self.original_view("get_task_status")(request, task_id="status-task", project_id="200")
+
+        self.assertFalse(result["result"])
+        get_task.assert_called_once_with(pk="status-task", project_id=100, is_deleted=False)
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.apigw.views.get_template_schemes.TemplateScheme.objects.filter", return_value=[])
+    @mock.patch("gcloud.apigw.views.get_template_schemes.TaskTemplate.objects.get")
+    def test_template_schemes_adds_deleted_filter_only_in_admin_mode(
+        self, get_template, template_schemes, whitelist_has
+    ):
+        get_template.return_value = SimpleNamespace(pipeline_template=SimpleNamespace(id=11))
+
+        for admin, expected_filters in (
+            (True, {"project_id": 100, "id": "template-1", "is_deleted": False}),
+            (False, {"project_id": 100, "id": "template-1"}),
+        ):
+            with self.subTest(admin=admin):
+                request = self.mark_request_for_view("get_template_schemes", self.build_request(admin=admin))
+                request.project = self.project
+                result = self.original_view("get_template_schemes")(request, project_id="200", template_id="template-1")
+                self.assertTrue(result["result"])
+                self.assertEqual(get_template.call_args[1], expected_filters)
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.apigw.views.get_task_node_data.TaskFlowInstance.objects.get")
+    def test_task_node_data_adds_deleted_filter_only_in_admin_mode(self, get_task, whitelist_has):
+        get_task.return_value = SimpleNamespace(
+            get_node_data=lambda *args: {"result": True, "data": {}, "message": "success"}
+        )
+
+        for admin, expected_filters in (
+            (True, {"id": "node-data-task", "project_id": 100, "is_deleted": False}),
+            (False, {"id": "node-data-task", "project_id": 100}),
+        ):
+            with self.subTest(admin=admin):
+                request = self.mark_request_for_view(
+                    "get_task_node_data", self.build_request(admin=admin, path="/api/v3/node-data/?node_id=node-1")
+                )
+                request.project = self.project
+                result = self.original_view("get_task_node_data")(request, project_id="200", task_id="node-data-task")
+                self.assertTrue(result["result"])
+                self.assertEqual(get_task.call_args[1], expected_filters)
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.apigw.views.get_task_node_detail.TaskFlowInstance.objects.get")
+    def test_task_node_detail_adds_deleted_filter_only_in_admin_mode(self, get_task, whitelist_has):
+        get_task.return_value = SimpleNamespace(
+            get_node_detail=lambda **kwargs: {"result": True, "data": {"node": kwargs["node_id"]}}
+        )
+
+        for admin, expected_filters in (
+            (True, {"id": "node-detail-task", "project_id": 100, "is_deleted": False}),
+            (False, {"id": "node-detail-task", "project_id": 100}),
+        ):
+            with self.subTest(admin=admin):
+                request = self.mark_request_for_view(
+                    "get_task_node_detail", self.build_request(admin=admin, path="/api/v3/node/?node_id=node-1")
+                )
+                request.project = self.project
+                result = self.original_view("get_task_node_detail")(
+                    request, project_id="200", task_id="node-detail-task"
+                )
+                self.assertTrue(result["result"])
+                self.assertEqual(get_task.call_args[1], expected_filters)
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.taskflow3.models.TaskFlowInstance.objects.get")
+    def test_task_node_log_adds_deleted_filter_only_in_admin_mode(self, get_task, whitelist_has):
+        get_task.side_effect = TaskFlowInstance.DoesNotExist()
+
+        for admin, expected_filters in (
+            (True, {"id": "log-task", "project_id": 100, "is_deleted": False}),
+            (False, {"id": "log-task", "project_id": 100}),
+        ):
+            with self.subTest(admin=admin):
+                request = self.mark_request_for_view(
+                    "get_task_node_log", self.build_request(admin=admin, path="/api/v3/log/?node_id=node-1")
+                )
+                request.project = self.project
+                response = self.original_view("get_task_node_log")(request, task_id="log-task", project_id="200")
+                self.assertEqual(response.data["code"], err_code.CONTENT_NOT_EXIST.code)
+                self.assertEqual(get_task.call_args[1], expected_filters)
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @mock.patch("gcloud.apigw.views.get_functionalization_task_list.format_function_task_list_data", return_value=[])
+    @mock.patch("gcloud.apigw.views.get_functionalization_task_list.paginate_list_data", return_value=([], 0))
+    @mock.patch("gcloud.apigw.views.get_functionalization_task_list.FunctionTask.objects.select_related")
+    def test_functionalization_list_adds_deleted_task_filter_only_in_admin_mode(
+        self, select_related, paginate, format_data, whitelist_has
+    ):
+        for admin, expected_filters in ((True, {"task__is_deleted": False}), (False, {})):
+            with self.subTest(admin=admin):
+                request = self.mark_request_for_view("get_functionalization_task_list", self.build_request(admin=admin))
+                request.tz = None
+                result = self.original_view("get_functionalization_task_list")(request)
+                self.assertTrue(result["result"])
+                self.assertEqual(select_related.return_value.filter.call_args[1], expected_filters)

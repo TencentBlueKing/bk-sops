@@ -53,7 +53,9 @@ def fetch_task_node_log(node_id, version, page=DEFAULT_PAGE, page_size=DEFAULT_P
 @iam_intercept(TaskViewInterceptor())
 def get_task_node_log(request, task_id, project_id):
     project = request.project
-    taskflow, error_response = get_taskflow_for_log("get_task_node_log", task_id, project)
+    taskflow, error_response = get_taskflow_for_log(
+        "get_task_node_log", task_id, project, is_admin_read=getattr(request, "is_admin_read", False) is True
+    )
     if error_response is not None:
         return error_response
 

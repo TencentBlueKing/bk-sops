@@ -54,6 +54,9 @@ def get_functionalization_task_list(request):
         if param_value:
             filter_kwargs[filter_key] = param_value
 
+    if getattr(request, "is_admin_read", False) is True:
+        filter_kwargs["task__is_deleted"] = False
+
     # 处理执行状态筛选
     execute_status = params_validator.cleaned_data.get("execute_status")
     if execute_status:
