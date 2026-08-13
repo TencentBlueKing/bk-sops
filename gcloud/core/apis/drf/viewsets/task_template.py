@@ -217,9 +217,14 @@ class TaskTemplateViewSet(GcloudModelViewSet):
         data = self.injection_auth_actions(request, serializer.data, instance)
         labels = TemplateLabelRelation.objects.fetch_templates_labels([instance.id]).get(instance.id, [])
         data["template_labels"] = [label["label_id"] for label in labels]
-        webhook_configs = get_webhook_configs(scope_code=str(instance.id))
-        data["enable_webhook"] = webhook_configs.pop("enable_webhook", False)
-        data["webhook_configs"] = webhook_configs
+        webhook_result = get_webhook_configs(scope_code=str(instance.id))
+        if not webhook_result["result"]:
+            return Response(
+                {"detail": ErrorDetail(webhook_result["message"], err_code.UNKNOWN_ERROR.code)}, exception=True
+            )
+        webhook_config = webhook_result["data"]
+        data["enable_webhook"] = webhook_config.pop("enable_webhook", False)
+        data["webhook_configs"] = webhook_config
         bk_audit_add_event(
             username=request.user.username,
             action_id=IAMMeta.FLOW_VIEW_ACTION,
