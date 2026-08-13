@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import importlib
 import json
-from types import SimpleNamespace
+from types import FunctionType, SimpleNamespace
 from unittest import mock
 
 from django.test import RequestFactory, SimpleTestCase
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_admin_read_request, mark_request_whether_is_trust
+from gcloud.apigw.urls import urlpatterns
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 
@@ -23,36 +24,39 @@ GET_ADMIN_READ_VIEWS = (
     "get_functionalization_task_list",
 )
 
-MUTATING_VIEWS = (
-    "create_and_start_task",
-    "create_clocked_task",
-    "create_periodic_task",
-    "create_task",
-    "create_template",
-    "modify_constants_for_periodic_task",
-    "modify_constants_for_task",
-    "modify_cron_for_periodic_task",
-    "modify_project_executor_proxy",
-    "modify_template_executor_proxy",
-    "modify_template_notify",
-    "operate_node",
-    "operate_task",
-    "start_task",
+EXPECTED_ADMIN_READ_METHODS = dict((view_name, frozenset(("GET",))) for view_name in GET_ADMIN_READ_VIEWS)
+EXPECTED_ADMIN_READ_METHODS.update(
+    {
+        "get_user_project_list": frozenset(("GET",)),
+        "get_user_project_detail": frozenset(("GET",)),
+        "preview_task_tree": frozenset(("POST",)),
+    }
 )
 
 ADMIN_READ_WRAPPER_CODE = mark_admin_read_request()(lambda request: None).__code__
 TRUST_WRAPPER_CODE = mark_request_whether_is_trust(lambda request: None).__code__
 
 
+def closure_values(view):
+    return dict(zip(view.__code__.co_freevars, view.__closure__ or ()))
+
+
+def unwrap_api_view(view):
+    view_cls = getattr(view, "cls", None)
+    if view_cls is not None:
+        for method in getattr(view_cls, "http_method_names", ()):
+            handler = getattr(view_cls, method, None)
+            if handler is None:
+                continue
+            func_cell = closure_values(handler).get("func")
+            if func_cell is not None:
+                return func_cell.cell_contents
+    return view
+
+
 def get_view(view_name):
     module = importlib.import_module("gcloud.apigw.views.{}".format(view_name))
-    view = getattr(module, view_name)
-    if hasattr(view, "cls") and hasattr(view.cls, "get"):
-        handler = view.cls.get
-        for cell in handler.__closure__ or ():
-            if callable(cell.cell_contents):
-                return cell.cell_contents
-    return view
+    return unwrap_api_view(getattr(module, view_name))
 
 
 def wrapper_chain(view):
@@ -68,6 +72,38 @@ def find_wrapper(view, wrapper_code):
         if wrapper.__code__ is wrapper_code:
             return wrapper
     return None
+
+
+def get_marker_allowed_methods(marker):
+    return closure_values(marker)["allowed_methods"].cell_contents
+
+
+def make_cell(value):
+    def capture():
+        return value
+
+    return capture.__closure__[0]
+
+
+def replace_marker_downstream(marker, downstream):
+    # Exercise the selected view's real marker code and method closure while replacing only the heavy downstream view.
+    closure = tuple(
+        make_cell(downstream) if name == "view_func" else cell
+        for name, cell in zip(marker.__code__.co_freevars, marker.__closure__)
+    )
+    return FunctionType(marker.__code__, marker.__globals__, marker.__name__, marker.__defaults__, closure)
+
+
+def routed_markers():
+    seen_markers = set()
+    for pattern in urlpatterns:
+        callback = pattern.callback
+        for view in (callback, unwrap_api_view(callback)):
+            marker = find_wrapper(view, ADMIN_READ_WRAPPER_CODE)
+            if marker is None or id(marker) in seen_markers:
+                continue
+            seen_markers.add(id(marker))
+            yield callback.__name__, marker
 
 
 class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
@@ -99,7 +135,15 @@ class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
         self.assertIsNotNone(marker, "{} must opt in to admin read".format(view_name))
         return marker(request, **kwargs)
 
-    def test_get_allowlist_installs_marker_immediately_after_trust_marker(self):
+    def test_all_routed_admin_read_markers_match_exact_allowlist_and_methods(self):
+        actual = {}
+        for view_name, marker in routed_markers():
+            self.assertNotIn(view_name, actual, "{} must install only one admin read marker".format(view_name))
+            actual[view_name] = get_marker_allowed_methods(marker)
+
+        self.assertEqual(actual, EXPECTED_ADMIN_READ_METHODS)
+
+    def test_task4_markers_are_immediately_after_trust_marker(self):
         for view_name in GET_ADMIN_READ_VIEWS:
             with self.subTest(view=view_name):
                 chain = wrapper_chain(get_view(view_name))
@@ -108,31 +152,67 @@ class AdminReadEndpointAllowlistTestCase(SimpleTestCase):
                 trust_index = wrapper_codes.index(TRUST_WRAPPER_CODE)
                 self.assertEqual(wrapper_codes[trust_index + 1], ADMIN_READ_WRAPPER_CODE)
 
-    def test_mutating_views_do_not_opt_in(self):
-        for view_name in MUTATING_VIEWS:
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    def test_each_task4_get_marker_accepts_admin_get_and_rejects_admin_post(self, whitelist_has):
+        for view_name in GET_ADMIN_READ_VIEWS:
             with self.subTest(view=view_name):
-                self.assertIsNone(find_wrapper(get_view(view_name), ADMIN_READ_WRAPPER_CODE))
+                marker = find_wrapper(get_view(view_name), ADMIN_READ_WRAPPER_CODE)
+                self.assertIsNotNone(marker)
+                calls = []
+
+                def downstream(request, *args, **kwargs):
+                    calls.append(request.is_admin_read)
+                    return "downstream"
+
+                marker_probe = replace_marker_downstream(marker, downstream)
+                self.assertEqual(marker_probe(self.build_request(method="get")), "downstream")
+                self.assertEqual(calls, [True])
+
+                response = marker_probe(self.build_request(method="post"))
+                self.assertEqual(json.loads(response.content)["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+                self.assertEqual(calls, [True])
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    def test_preview_marker_accepts_admin_post_rejects_admin_get_and_preserves_ordinary_post(self, whitelist_has):
+        marker = find_wrapper(get_view("preview_task_tree"), ADMIN_READ_WRAPPER_CODE)
+        self.assertIsNotNone(marker)
+        calls = []
+
+        def downstream(request, *args, **kwargs):
+            calls.append(request.is_admin_read)
+            return "downstream"
+
+        marker_probe = replace_marker_downstream(marker, downstream)
+        self.assertEqual(marker_probe(self.build_request(method="post")), "downstream")
+        self.assertEqual(calls, [True])
+
+        response = marker_probe(self.build_request(method="get"))
+        self.assertEqual(json.loads(response.content)["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        self.assertEqual(calls, [True])
+
+        self.assertEqual(marker_probe(self.build_request(method="post", admin=False)), "downstream")
+        self.assertEqual(calls, [True, False])
 
     @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
     @mock.patch("gcloud.apigw.decorators.get_project_with")
     @mock.patch("gcloud.apigw.views.preview_task_tree.preview_template_tree", return_value="preview")
-    def test_preview_marker_accepts_admin_post_and_keeps_ordinary_post(self, preview, get_project, whitelist_has):
+    @mock.patch("gcloud.iam_auth.view_interceptors.apigw.flow_view.res_factory.resources_for_flow", return_value=[])
+    @mock.patch("gcloud.iam_auth.view_interceptors.apigw.flow_view.allow_or_raise_auth_failed")
+    def test_admin_and_ordinary_preview_post_reach_original_view(
+        self, allow, resources, preview, get_project, whitelist_has
+    ):
         get_project.return_value = self.project
         for admin in (True, False):
             with self.subTest(admin=admin):
                 request = self.build_request(method="post", admin=admin, body=json.dumps({}))
-                if not admin:
-                    request.is_trust = True
                 result = self.invoke_admin_marker("preview_task_tree", request, project_id="200", template_id="1")
                 self.assertTrue(result["result"])
                 self.assertEqual(result["data"], "preview")
                 self.assertIs(request.is_admin_read, admin)
+                self.assertFalse(request.is_trust)
 
-    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
-    def test_preview_marker_rejects_admin_get(self, whitelist_has):
-        request = self.build_request(method="get")
-        response = self.invoke_admin_marker("preview_task_tree", request, project_id="200", template_id="1")
-        self.assertEqual(json.loads(response.content)["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        resources.assert_called_once_with("1")
+        allow.assert_called_once()
 
     @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
     @mock.patch("gcloud.apigw.decorators.get_project_with")
