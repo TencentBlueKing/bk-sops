@@ -181,6 +181,12 @@ get_business_read_mode(request, bk_biz_id)
 
 这样可以避免“为了看数据而冒用代理人身份”，并确保日志中的查看人始终是实际管理员。
 
+管理员只读入口还必须保持“读取无本地副作用”：
+
+- 任务列表或状态接口可以实时读取 bk-sops 状态并用于本次响应，但不得调用 `TaskCreateRecord.save()`，也不得发送 `task_status.sync` 状态变更日志；
+- 工单状态可以实时读取并用于本次响应，但不得把终态回写到 `ITSMBillDetail`；
+- 普通 IAM 模式保留现有状态同步行为，避免改变现有业务语义。
+
 ### 6.3 明确保持原鉴权的入口
 
 以下入口不得使用 `can_read_business`：
@@ -232,13 +238,14 @@ ADMIN_READ_APP_WHITELIST=${po_app_code}
 
 管理员只读模式成立需要同时满足：
 
-1. 请求经过 APIGW 身份注入；
+1. 请求经过 APIGW 用户身份校验，且 `_apigw_jwt_user_verified is True`；
 2. `request.app` 中的 App Code 位于 `ADMIN_READ_APP_WHITELIST`；
 3. 请求头 `X-BkSops-Admin-Read` 为严格布尔真值；
-4. 当前 view 显式启用了 `mark_admin_read_request` 装饰器；
-5. HTTP 方法符合该 view 的只读语义。
+4. `X-BkSops-Audit-Operator` 与认证后的 `request.user.username` 完全一致；
+5. 当前 view 显式启用了 `mark_admin_read_request` 装饰器；
+6. HTTP 方法符合该 view 的只读语义。
 
-禁止仅根据请求头设置 `request.is_admin_read`，也禁止在全局中间件中为所有接口启用。`mark_admin_read_request` 只添加到选定的 bk-sops 读取接口，其职责是校验 App Code、请求头和 HTTP 方法，并显式设置 `request.is_admin_read`，不承载任何写权限。
+禁止仅根据请求头设置 `request.is_admin_read`，也禁止在全局中间件中为所有接口启用。`mark_admin_read_request` 只添加到选定的 bk-sops 读取接口，其职责是校验已认证用户、审计操作人、App Code、请求头和 HTTP 方法，并显式设置 `request.is_admin_read`，不承载任何写权限。请求未携带管理员只读头时继续原有鉴权链；一旦携带但任一校验不通过，则返回 `REQUEST_FORBIDDEN_INVALID`，不能静默退回普通模式。
 
 装饰器顺序固定为：
 
@@ -397,12 +404,14 @@ PO 记录管理员只读访问日志，至少包含：
 - 管理员同时有真实权限时写能力按原规则开放；
 - 未接入 PO 的业务返回可识别空状态；
 - 管理员只读与普通缓存 key 隔离；
+- 管理员读取任务和工单状态时不保存模型，也不发送状态变更日志；
+- 普通 IAM 模式仍保留原有任务和工单状态同步；
 - 审计日志不包含敏感响应体。
 
 ### 12.2 bk-sops 单元测试
 
 - 白名单 App + 管理员只读头 + 明确启用的读接口可以进入只读模式；
-- 非白名单 App、缺少头或非法头均失败关闭；
+- 未携带管理员只读头时继续原有 IAM；非白名单 App、非法头、未经验证的 APIGW 用户或审计操作人不一致时均失败关闭；
 - 选定的 `ProjectView`、`FlowView`、`GetTemplateInfo`、`TaskView` 和 `FunctionView` 可以按资源范围只读旁路；
 - `get_template_info` 的公共流程模板仍执行原有 IAM 校验；
 - 所有写拦截器不接受管理员只读旁路；
