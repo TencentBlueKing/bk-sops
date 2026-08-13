@@ -16,6 +16,7 @@ from django.views.decorators.http import require_GET
 
 from gcloud import err_code
 from gcloud.apigw.decorators import (
+    mark_admin_read_request,
     mark_request_whether_is_trust,
     mcp_apigw,
     project_inject,
@@ -40,6 +41,7 @@ from gcloud.tasktmpl3.models import TaskTemplate
 @mcp_apigw(exclude_responses=["data.[].auth_actions"])
 @return_json_response
 @mark_request_whether_is_trust
+@mark_admin_read_request()
 @project_inject
 @timezone_inject
 @iam_intercept(ProjectViewInterceptor())
