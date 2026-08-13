@@ -16,8 +16,8 @@ import ujson as json
 from cachetools.keys import hashkey
 from django.core.handlers.wsgi import WSGIRequest
 
-from gcloud.core.models import Project
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
+from gcloud.core.models import Project
 
 
 def get_project_with(obj_id, scope):
@@ -43,7 +43,12 @@ def deal_request_args(with_project_id, *args):
                 request_params = str(sorted(params.items()))
             else:
                 break
-            request_tag = "path:{},user:{},params:{}".format(request.path, request.user.username, request_params)
+            request_tag = "path:{},user:{},params:{},admin_read:{}".format(
+                request.path,
+                request.user.username,
+                request_params,
+                int(getattr(request, "is_admin_read", False) is True),
+            )
             new_args = args[:idx] + (request_tag,) + args[idx + 1 :]
             if with_project_id and hasattr(request, "project"):
                 project_id = request.project.id
