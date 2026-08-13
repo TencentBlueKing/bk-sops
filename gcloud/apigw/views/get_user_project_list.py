@@ -17,10 +17,15 @@ from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, return_json_response
+from gcloud.apigw.decorators import (
+    mark_admin_read_request,
+    mark_request_whether_is_trust,
+    mcp_apigw,
+    return_json_response,
+)
 from gcloud.apigw.serializers import IncludeProjectSerializer
 from gcloud.apigw.views.utils import logger
-from gcloud.core.models import ProjectConfig
+from gcloud.core.models import Project, ProjectConfig
 from gcloud.iam_auth.utils import get_user_projects
 
 
@@ -30,20 +35,24 @@ from gcloud.iam_auth.utils import get_user_projects
 @mcp_apigw()
 @return_json_response
 @mark_request_whether_is_trust
+@mark_admin_read_request()
 def get_user_project_list(request):
     serializer = IncludeProjectSerializer(data=request.GET)
     if not serializer.is_valid():
         return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     include_executor_proxy = serializer.validated_data["include_executor_proxy"]
-    try:
-        projects = get_user_projects(request.user.username)
-    except Exception as e:
-        logger.exception("[API] get_user_project_list call fail: {}".format(e))
-        return {
-            "result": False,
-            "message": "can not fetch project for user[{}]".format(request.user.username),
-            "code": err_code.UNKNOWN_ERROR.code,
-        }
+    if request.is_admin_read:
+        projects = Project.objects.filter(is_disable=False)
+    else:
+        try:
+            projects = get_user_projects(request.user.username)
+        except Exception as e:
+            logger.exception("[API] get_user_project_list call fail: {}".format(e))
+            return {
+                "result": False,
+                "message": "can not fetch project for user[{}]".format(request.user.username),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
     proxy_mapping = {}
     if include_executor_proxy:
         project_ids = [proj.id for proj in projects]

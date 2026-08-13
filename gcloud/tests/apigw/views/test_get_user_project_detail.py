@@ -10,11 +10,12 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.test import modify_settings
 from pipeline.utils.collections import FancyDict
 
+from gcloud import err_code
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud import err_code
 
 from .utils import APITest
 
@@ -29,9 +30,64 @@ TEST_BIZ_TESTER = "TEST_BIZ_TESTER"
 TEST_BIZ_PRODUCTOR = "TEST_BIZ_PRODUCTOR"
 
 
+@modify_settings(
+    MIDDLEWARE={
+        "append": "gcloud.tests.apigw.views.utils.MockApiGatewayJWTPayloadMiddleware",
+    }
+)
 class GetUserProjectDetailAPITest(APITest):
     def url(self):
         return "/apigw/get_user_project_detail/{project_id}/"
+
+    @patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @patch("gcloud.apigw.views.get_user_project_detail.get_resources_allowed_actions_for_user")
+    @patch("gcloud.apigw.views.get_user_project_detail.get_business_detail")
+    @patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_admin_read_uses_project_data_without_cmdb(self, get_business_detail, get_allowed_actions, whitelist_has):
+        get_allowed_actions.return_value = {
+            TEST_PROJECT_ID: {"project_view": False, "project_edit": True},
+        }
+
+        response = self.client.get(
+            path=self.url().format(project_id=TEST_PROJECT_ID),
+            HTTP_BK_USERNAME="tester",
+            HTTP_BK_APP_CODE="po-app",
+            HTTP_BK_JWT_USERNAME="tester",
+            HTTP_BK_JWT_USER_VERIFIED=True,
+            HTTP_X_BKSOPS_ADMIN_READ="true",
+            HTTP_X_BKSOPS_AUDIT_OPERATOR="tester",
+        )
+
+        data = json.loads(response.content)
+
+        self.assertTrue(data["result"], data)
+        self.assertEqual(
+            data["data"],
+            {
+                "project_id": TEST_PROJECT_ID,
+                "project_name": TEST_PROJECT_NAME,
+                "from_cmdb": True,
+                "bk_biz_id": TEST_BIZ_CC_ID,
+                "bk_biz_name": TEST_PROJECT_NAME,
+                "bk_biz_developer": "",
+                "bk_biz_maintainer": "",
+                "bk_biz_tester": "",
+                "bk_biz_productor": "",
+                "auth_actions": ["project_edit"],
+            },
+        )
+        get_business_detail.assert_not_called()
+        get_allowed_actions.assert_called_once()
 
     @patch(
         PROJECT_GET,
@@ -81,12 +137,27 @@ class GetUserProjectDetailAPITest(APITest):
             )
         ),
     )
+    @patch(
+        "gcloud.apigw.views.get_user_project_detail.get_resources_allowed_actions_for_user",
+        MagicMock(
+            return_value={
+                TEST_PROJECT_ID_2: {
+                    "project_view": True,
+                    "project_edit": True,
+                    "project_fast_create_task": True,
+                }
+            }
+        ),
+    )
     def test_get_user_project_detail__success(self):
-        response = self.client.get(path=self.url().format(project_id=TEST_PROJECT_ID_2))
+        response = self.client.get(
+            path=self.url().format(project_id=TEST_PROJECT_ID_2),
+            HTTP_BK_USERNAME="tester",
+        )
 
         data = json.loads(response.content)
 
-        self.assertTrue(data["result"])
+        self.assertTrue(data["result"], data)
         self.assertEqual(data["code"], err_code.SUCCESS.code)
         self.assertEqual(
             data["data"],
