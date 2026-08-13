@@ -23,7 +23,7 @@ class AdminReadDecoratorTestCase(TestCase):
             HTTP_X_BKSOPS_AUDIT_OPERATOR=operator,
         )
         request.user = self.user
-        request.app = SimpleNamespace(app_code="po-app")
+        request.app = SimpleNamespace(bk_app_code="po-app")
         request._apigw_jwt_user_verified = True
         return request
 
@@ -31,6 +31,12 @@ class AdminReadDecoratorTestCase(TestCase):
     def test_verified_whitelist_request_enables_admin_read(self, whitelist_has):
         view = mark_admin_read_request()(lambda request: request.is_admin_read)
         self.assertTrue(view(self.build_request()))
+
+    @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=False)
+    def test_unlisted_app_fails_closed(self, whitelist_has):
+        response = mark_admin_read_request()(lambda request: True)(self.build_request())
+        self.assertEqual(json.loads(response.content)["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        whitelist_has.assert_called_once_with("po-app")
 
     @mock.patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
     def test_audit_operator_mismatch_fails_closed(self, whitelist_has):

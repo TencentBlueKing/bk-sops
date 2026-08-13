@@ -1,3 +1,11 @@
+### Admin read request headers and behavior
+
+Admin read calls are available only to a configured PO backend. The caller must send both `X-BkSops-Admin-Read: true` and `X-BkSops-Audit-Operator: <authenticated username>`.
+
+This mode bypasses only view permission checks. It does not change `auth_actions` and grants no edit, create, operation, or download permissions. An invalid declaration returns `REQUEST_FORBIDDEN_INVALID`; requests without this declaration continue to use normal IAM authorization.
+
+This is the only endpoint that permits a POST admin read call; its POST returns a preview only and has no side effects.
+
 ### Functional description
 
 Get task tree after node exclude

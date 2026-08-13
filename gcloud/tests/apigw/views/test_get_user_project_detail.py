@@ -14,6 +14,7 @@ from django.test import modify_settings
 from pipeline.utils.collections import FancyDict
 
 from gcloud import err_code
+from gcloud.iam_auth.conf import PROJECT_ACTIONS, IAMMeta
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -40,6 +41,7 @@ class GetUserProjectDetailAPITest(APITest):
         return "/apigw/get_user_project_detail/{project_id}/"
 
     @patch("gcloud.apigw.decorators.admin_read_app_whitelist.has", return_value=True)
+    @patch("gcloud.apigw.views.get_user_project_detail.Resource")
     @patch("gcloud.apigw.views.get_user_project_detail.get_resources_allowed_actions_for_user")
     @patch("gcloud.apigw.views.get_user_project_detail.get_business_detail")
     @patch(
@@ -53,7 +55,9 @@ class GetUserProjectDetailAPITest(APITest):
             )
         ),
     )
-    def test_admin_read_uses_project_data_without_cmdb(self, get_business_detail, get_allowed_actions, whitelist_has):
+    def test_admin_read_uses_project_data_without_cmdb(
+        self, get_business_detail, get_allowed_actions, resource, whitelist_has
+    ):
         get_allowed_actions.return_value = {
             TEST_PROJECT_ID: {"project_view": False, "project_edit": True},
         }
@@ -87,7 +91,18 @@ class GetUserProjectDetailAPITest(APITest):
             },
         )
         get_business_detail.assert_not_called()
-        get_allowed_actions.assert_called_once()
+        resource.assert_called_once_with(
+            IAMMeta.SYSTEM_ID,
+            IAMMeta.PROJECT_RESOURCE,
+            TEST_PROJECT_ID,
+            {"name": TEST_PROJECT_NAME},
+        )
+        get_allowed_actions.assert_called_once_with(
+            username="tester",
+            system_id=IAMMeta.SYSTEM_ID,
+            actions=PROJECT_ACTIONS,
+            resources_list=[[resource.return_value]],
+        )
 
     @patch(
         PROJECT_GET,

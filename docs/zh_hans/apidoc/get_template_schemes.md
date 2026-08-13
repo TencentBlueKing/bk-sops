@@ -1,3 +1,9 @@
+### 管理员只读请求头及说明
+
+管理员只读调用仅供已配置的 PO 后端使用。调用方必须同时发送 `X-BkSops-Admin-Read: true` 与 `X-BkSops-Audit-Operator: <已认证用户名>`。
+
+该模式只跳过查看权限，不改变 `auth_actions`，不提供任何编辑、创建、操作或下载权限。非法声明返回 `REQUEST_FORBIDDEN_INVALID`；未发送声明时沿用原 IAM 鉴权。
+
 ### 功能描述
 
 获取模板的执行方案列表
