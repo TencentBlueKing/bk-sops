@@ -71,22 +71,24 @@ class AdminReadCacheKeyTestCase(TestCase):
 
 
 class AdminReadInterceptorTestCase(TestCase):
-    def build_request(self, template_source="project"):
+    def build_request(self, template_source="project", is_admin_read=True):
         return SimpleNamespace(
-            is_admin_read=True,
+            is_admin_read=is_admin_read,
             is_trust=False,
             user=SimpleNamespace(username="po_admin"),
             project=SimpleNamespace(id=1),
             GET={"template_source": template_source},
         )
 
-    def assert_iam_calls(self, interceptor, module_path, kwargs=None, template_source="project", expected_calls=0):
+    def assert_iam_calls(
+        self, interceptor, module_path, kwargs=None, template_source="project", is_admin_read=True, expected_calls=0
+    ):
         with ExitStack() as stack:
             allow = stack.enter_context(mock.patch("{}.allow_or_raise_auth_failed".format(module_path)))
             if module_path != "gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view":
                 stack.enter_context(mock.patch("{}.res_factory".format(module_path)))
 
-            interceptor.process(self.build_request(template_source), **(kwargs or {}))
+            interceptor.process(self.build_request(template_source, is_admin_read), **(kwargs or {}))
 
             if expected_calls:
                 allow.assert_called_once()
@@ -130,6 +132,43 @@ class AdminReadInterceptorTestCase(TestCase):
         self.assert_iam_calls(
             FunctionViewInterceptor(), "gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view"
         )
+
+    def test_non_true_admin_read_keeps_iam_for_all_view_interceptors(self):
+        from gcloud.iam_auth.view_interceptors.apigw.flow_view import FlowViewInterceptor
+        from gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view import FunctionViewInterceptor
+        from gcloud.iam_auth.view_interceptors.apigw.get_template_info import GetTemplateInfoInterceptor
+        from gcloud.iam_auth.view_interceptors.apigw.project_view import ProjectViewInterceptor
+        from gcloud.iam_auth.view_interceptors.apigw.task_view import TaskViewInterceptor
+
+        cases = (
+            (
+                "project",
+                ProjectViewInterceptor(),
+                "gcloud.iam_auth.view_interceptors.apigw.project_view",
+                {"project_id": 1},
+            ),
+            ("flow", FlowViewInterceptor(), "gcloud.iam_auth.view_interceptors.apigw.flow_view", {"template_id": 1}),
+            (
+                "business_template",
+                GetTemplateInfoInterceptor(),
+                "gcloud.iam_auth.view_interceptors.apigw.get_template_info",
+                {"template_id": 1},
+            ),
+            ("task", TaskViewInterceptor(), "gcloud.iam_auth.view_interceptors.apigw.task_view", {"task_id": 1}),
+            (
+                "function",
+                FunctionViewInterceptor(),
+                "gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view",
+                {},
+            ),
+        )
+
+        for is_admin_read in (False, 1):
+            for name, interceptor, module_path, kwargs in cases:
+                with self.subTest(is_admin_read=is_admin_read, interceptor=name):
+                    self.assert_iam_calls(
+                        interceptor, module_path, kwargs, is_admin_read=is_admin_read, expected_calls=1
+                    )
 
     def test_common_template_info_keeps_iam(self):
         from gcloud.iam_auth.view_interceptors.apigw.get_template_info import GetTemplateInfoInterceptor
