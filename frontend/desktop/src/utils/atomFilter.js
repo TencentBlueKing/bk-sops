@@ -206,13 +206,19 @@ const atomFilter = {
                 }
                 // 表单的 tag_code 已被替换成全局变量key，而 events.source 里存的还是原始 tag_code
                 if (sourceTagCode !== e.source) return false
-                // 优先限定为同一节点来源，避免同插件多节点重复勾选时错配
+                // 插件来源必须一致，避免不同插件存在同名 tag_code 时错配
+                const currentSourceTag = (currentVariable && currentVariable.source_tag) || ''
+                if (!currentSourceTag || currentSourceTag.split('.')[0] !== item.source_tag.split('.')[0]) {
+                    return false
+                }
+                // 节点来源限定：两者均有 source_info 时要求存在交集节点，避免同插件多节点重复勾选时错配
                 const nodesA = Object.keys((currentVariable && currentVariable.source_info) || {})
                 const nodesB = Object.keys(item.source_info || {})
                 if (nodesA.length && nodesB.length) {
                     return nodesA.some(nodeId => nodesB.includes(nodeId))
                 }
-                return true
+                // 两侧均无法确认节点来源不做替换，避免误匹配
+                return false
             })
             if (sourceVariable) {
                 e.source = sourceVariable.key
