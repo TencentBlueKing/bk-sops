@@ -304,7 +304,6 @@
                     $.atoms[code] = {}
                     const renderFrom = resp.data.forms.renderform
                     /* eslint-disable-next-line */
-                    console.log('入参填写renderform', renderFrom)
                     eval(renderFrom)
                     const atomConfig = $.atoms[code]
                     return atomConfig
