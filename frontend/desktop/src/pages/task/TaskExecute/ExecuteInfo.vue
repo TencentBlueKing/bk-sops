@@ -958,13 +958,7 @@
                         })
                     }
                     // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
-                    if (formItemConfig.hasOwnProperty('events')) {
-                        formItemConfig.events.forEach(e => {
-                            if (e.source === tagCode) {
-                                e.source = '${' + e.source + '}'
-                            }
-                        })
-                    }
+                    atomFilter.remapEventsSource(formItemConfig, tagCode, variables, variable)
                     inputs.push(formItemConfig)
                 }))
                 return inputs
