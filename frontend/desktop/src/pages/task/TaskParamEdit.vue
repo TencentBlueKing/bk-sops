@@ -250,13 +250,7 @@
                         currentFormConfig.attrs.desc = variable.desc
 
                         // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
-                        if (currentFormConfig.hasOwnProperty('events')) {
-                            currentFormConfig.events.forEach(e => {
-                                if (e.source === tagCode) {
-                                    e.source = '${' + e.source + '}'
-                                }
-                            })
-                        }
+                        atomFilter.remapEventsSource(currentFormConfig, tagCode, variableArray, variable)
 
                         const effectiveFormType = atomFilter.getEffectiveFormType(variable)
                         if (
@@ -310,6 +304,7 @@
                     $.atoms[code] = {}
                     const renderFrom = resp.data.forms.renderform
                     /* eslint-disable-next-line */
+                    console.log('入参填写renderform', renderFrom)
                     eval(renderFrom)
                     const atomConfig = $.atoms[code]
                     return atomConfig
