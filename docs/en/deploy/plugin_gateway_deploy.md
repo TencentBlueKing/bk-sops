@@ -117,7 +117,17 @@ Important rules:
 - `do_not_open_list` blocks list, detail, and execute consistently
 - `execution_timeout_seconds` controls the timeout sweep for a single run
 
-### 3.1 Credentialed CORS for Native Forms
+### 3.1 Business Scope Types
+
+The plugin gateway automatically treats the `scope_type` values configured by the following environment variable as CMDB business IDs and resolves them to bk-sops projects:
+
+```text
+BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES=biz,cmdb_biz,bkcc
+```
+
+The default is `biz,cmdb_biz,bkcc`. The comma-separated value replaces the default list. Scope types outside the configured list continue through the source-level `scope_project_map` and `default_project_id` fallbacks.
+
+### 3.2 Credentialed CORS for Native Forms
 
 Native dynamic-form cross-origin access is disabled by default. Enable it in Stage only after confirming the BKFlow origin and registered helper routes:
 
