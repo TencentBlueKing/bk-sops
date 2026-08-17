@@ -58,6 +58,16 @@ BK_NODE_LOG_PERSISTENT_DAYS = int(os.getenv("BKAPP_NODE_LOG_PERSISTENT_DAYS", 30
 # CALLBACK 回调入口，处理走网关回调的场景
 BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 
+# 插件网关按业务 ID 自动解析项目的 scope_type 列表
+BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES = tuple(
+    scope_type.strip()
+    for scope_type in os.getenv(
+        "BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES",
+        "biz,cmdb_biz,bkcc",
+    ).split(",")
+    if scope_type.strip()
+)
+
 # 网关管理员
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
 
