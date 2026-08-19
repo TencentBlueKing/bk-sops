@@ -361,6 +361,10 @@
                         const index = this.scheme.findIndex(config => config.tag_code === targetKey)
                         // 获取目标字段对应的子组件实例
                         const targetTag = this.$children[index]
+                        // 目标字段未渲染（show_type为hide）时无法控制显隐
+                        if (!targetTag) {
+                            return
+                        }
                         // 获取目标字段的相关变量信息对象
                         const relatedVarInfo = this.changeVarInfo[targetKey]
                         
