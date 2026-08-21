@@ -17,7 +17,7 @@ from django.conf import settings
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject
+from gcloud.apigw.decorators import mark_admin_read_request, mark_request_whether_is_trust, mcp_apigw, project_inject
 from gcloud.apigw.log_auth import get_taskflow_for_log, validate_task_node
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
@@ -48,11 +48,14 @@ def fetch_task_node_log(node_id, version, page=DEFAULT_PAGE, page_size=DEFAULT_P
 @apigw_require
 @mcp_apigw()
 @mark_request_whether_is_trust
+@mark_admin_read_request()
 @project_inject
 @iam_intercept(TaskViewInterceptor())
 def get_task_node_log(request, task_id, project_id):
     project = request.project
-    taskflow, error_response = get_taskflow_for_log("get_task_node_log", task_id, project)
+    taskflow, error_response = get_taskflow_for_log(
+        "get_task_node_log", task_id, project, is_admin_read=getattr(request, "is_admin_read", False) is True
+    )
     if error_response is not None:
         return error_response
 

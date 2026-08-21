@@ -17,7 +17,12 @@ from django.views.decorators.http import require_GET
 from iam import Resource
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_admin_read_request,
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.serializers import IncludeProjectSerializer
 from gcloud.apigw.utils import api_hash_key
 from gcloud.apigw.views.utils import logger
@@ -35,6 +40,7 @@ from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 @apigw_require
 @return_json_response
 @mark_request_whether_is_trust
+@mark_admin_read_request()
 @project_inject
 @iam_intercept(ProjectViewInterceptor())
 @cached(cache=TTLCache(maxsize=1024, ttl=60), key=api_hash_key)
@@ -44,17 +50,27 @@ def get_user_project_detail(request, project_id):
         return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     include_executor_proxy = serializer.validated_data["include_executor_proxy"]
     include_staff_groups = serializer.validated_data["include_staff_groups"]
-    try:
-        biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
-    except Exception as e:
-        logger.exception("[API] get_user_business_detail call fail: {}".format(e))
-        return {
-            "result": False,
-            "message": "can not get business[{}] detail for user[{}]".format(
-                request.project.bk_biz_id, request.user.username
-            ),
-            "code": err_code.UNKNOWN_ERROR.code,
+    if request.is_admin_read:
+        biz_detail = {
+            "bk_biz_id": request.project.bk_biz_id,
+            "bk_biz_name": request.project.name,
+            "bk_biz_developer": "",
+            "bk_biz_maintainer": "",
+            "bk_biz_tester": "",
+            "bk_biz_productor": "",
         }
+    else:
+        try:
+            biz_detail = get_business_detail(request.user.username, request.project.bk_biz_id)
+        except Exception as e:
+            logger.exception("[API] get_user_business_detail call fail: {}".format(e))
+            return {
+                "result": False,
+                "message": "can not get business[{}] detail for user[{}]".format(
+                    request.project.bk_biz_id, request.user.username
+                ),
+                "code": err_code.UNKNOWN_ERROR.code,
+            }
 
     project_allowed_actions = get_resources_allowed_actions_for_user(
         username=request.user.username,

@@ -24,11 +24,14 @@ def _build_error_response(message, code):
     return Response({"result": False, "message": message, "code": code})
 
 
-def get_taskflow_for_log(api_name, task_id, project):
+def get_taskflow_for_log(api_name, task_id, project, is_admin_read=False):
     from gcloud.taskflow3.models import TaskFlowInstance
 
     try:
-        return TaskFlowInstance.objects.get(id=task_id, project_id=project.id), None
+        task_filters = {"id": task_id, "project_id": project.id}
+        if is_admin_read is True:
+            task_filters["is_deleted"] = False
+        return TaskFlowInstance.objects.get(**task_filters), None
     except TaskFlowInstance.DoesNotExist:
         message = (
             "[API] {api_name} task[id={task_id}] " "of project[project_id={project_id}, biz_id={biz_id}] does not exist"

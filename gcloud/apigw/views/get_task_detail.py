@@ -16,7 +16,13 @@ from cachetools import TTLCache
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_admin_read_request,
+    mark_request_whether_is_trust,
+    mcp_apigw,
+    project_inject,
+    return_json_response,
+)
 from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.utils import BucketTTLCache, api_bucket_and_key, bucket_cached
 from gcloud.apigw.views.utils import logger
@@ -36,6 +42,7 @@ from gcloud.utils.webhook import get_webhook_delivery_history_by_delivery_id
 )
 @return_json_response
 @mark_request_whether_is_trust
+@mark_admin_read_request()
 @project_inject
 @iam_intercept(TaskViewInterceptor())
 @bucket_cached(BucketTTLCache(TTLCache, {"maxsize": 1024, "ttl": 60}), bucket_and_key_func=api_bucket_and_key)
@@ -53,7 +60,10 @@ def get_task_detail(request, task_id, project_id):
         return {"result": False, "message": serializer.errors, "code": err_code.REQUEST_PARAM_INVALID.code}
     include_webhook_history = serializer.validated_data["include_webhook_history"]
     try:
-        task = TaskFlowInstance.objects.get(id=task_id, project_id=project.id)
+        task_filters = {"id": task_id, "project_id": project.id}
+        if getattr(request, "is_admin_read", False) is True:
+            task_filters["is_deleted"] = False
+        task = TaskFlowInstance.objects.get(**task_filters)
     except TaskFlowInstance.DoesNotExist:
         message = (
             "[API] get_task_detail task[id={task_id}] "

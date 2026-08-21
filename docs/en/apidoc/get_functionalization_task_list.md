@@ -1,3 +1,9 @@
+### Admin read request headers and behavior
+
+Admin read calls are available only to a configured PO backend. The caller must send both `X-BkSops-Admin-Read: true` and `X-BkSops-Audit-Operator: <authenticated username>`.
+
+This mode bypasses only view permission checks. It does not change `auth_actions` and grants no edit, create, operation, or download permissions. An invalid declaration returns `REQUEST_FORBIDDEN_INVALID`; requests without this declaration continue to use normal IAM authorization.
+
 ### Functional description
 
 Get functionalization task list, support filtering with functionalization task status, ID and original task ID.
@@ -152,4 +158,3 @@ Get functionalization task list, support filtering with functionalization task s
 | is_finished     | bool   | task is already finished                     |
 | template_source | string | task template source, e.g. project or common |
 | template_id     | string | task template ID                             |
-

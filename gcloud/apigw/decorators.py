@@ -29,6 +29,9 @@ from gcloud.conf import settings
 from gcloud.core.models import Project
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
+admin_read_app_whitelist = EnvWhitelist(transient_list=set(), env_key="ADMIN_READ_APP_WHITELIST")
+ADMIN_READ_HEADER = "HTTP_X_BKSOPS_ADMIN_READ"
+ADMIN_READ_AUDIT_OPERATOR_HEADER = "HTTP_X_BKSOPS_AUDIT_OPERATOR"
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
 
 
@@ -84,6 +87,56 @@ def mark_request_whether_is_trust(view_func):
     return wrapper
 
 
+def _admin_read_forbidden(message):
+    return JsonResponse(
+        {
+            "result": False,
+            "data": None,
+            "message": message,
+            "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+        }
+    )
+
+
+def mark_admin_read_request(allowed_methods=("GET",)):
+    allowed_methods = frozenset(allowed_methods)
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            setattr(request, "is_admin_read", False)
+            header_value = request.META.get(ADMIN_READ_HEADER)
+            if header_value is None:
+                return view_func(request, *args, **kwargs)
+
+            app_code = getattr(request.app, settings.APIGW_MANAGER_APP_CODE_KEY, "")
+            app_verified = getattr(request.app, "verified", False)
+            audit_operator = request.META.get(ADMIN_READ_AUDIT_OPERATOR_HEADER, "")
+            username = getattr(request.user, "username", "")
+            jwt_username = getattr(request, "_apigw_jwt_username", "")
+            valid = all(
+                (
+                    header_value == "true",
+                    request.method in allowed_methods,
+                    getattr(request, "_apigw_jwt_user_verified", False) is True,
+                    bool(jwt_username),
+                    bool(username),
+                    jwt_username == username == audit_operator,
+                    app_verified is True,
+                    admin_read_app_whitelist.has(app_code),
+                )
+            )
+            if not valid:
+                return _admin_read_forbidden("invalid admin read request")
+
+            setattr(request, "is_admin_read", True)
+            return view_func(request, *args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 def _get_project_scope_from_request(request):
     if request.method == "GET":
         obj_scope = request.GET.get("scope", PROJECT_SCOPE_CMDB_BIZ)
@@ -135,6 +188,8 @@ def project_inject(view_func):
 
         try:
             project = get_project_with(obj_id=obj_id, scope=obj_scope)
+            if getattr(request, "is_admin_read", False) is True and project.is_disable:
+                raise Project.DoesNotExist()
         except Project.DoesNotExist:
             return JsonResponse(
                 {

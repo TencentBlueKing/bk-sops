@@ -17,14 +17,19 @@ from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.http import require_GET
 from pipeline.models import TemplateScheme
-from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 from gcloud import err_code
-from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.decorators import (
+    mark_admin_read_request,
+    mark_request_whether_is_trust,
+    project_inject,
+    return_json_response,
+)
+from gcloud.apigw.views.utils import logger
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.apigw.views.utils import logger
+from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 
 
 @login_exempt
@@ -32,10 +37,14 @@ from gcloud.apigw.views.utils import logger
 @apigw_require
 @return_json_response
 @mark_request_whether_is_trust
+@mark_admin_read_request()
 @project_inject
 @iam_intercept(FlowViewInterceptor())
 def get_template_schemes(request, project_id, template_id):
-    template = TaskTemplate.objects.get(project_id=request.project.id, id=template_id)
+    template_filters = {"project_id": request.project.id, "id": template_id}
+    if getattr(request, "is_admin_read", False) is True:
+        template_filters["is_deleted"] = False
+    template = TaskTemplate.objects.get(**template_filters)
 
     schemes = TemplateScheme.objects.filter(template__id=template.pipeline_template.id)
 
@@ -76,16 +85,15 @@ def get_template_schemes(request, project_id, template_id):
             # 避免每次循环重复查询数据库构建 pipeline_tree
             try:
                 tree_copy = deepcopy(pipeline_tree)
-                PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(
-                    tree_copy, exclude_task_nodes_id
-                )
-                detail = {
-                    "constants": tree_copy.get("constants", {})
-                }
+                PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(tree_copy, exclude_task_nodes_id)
+                detail = {"constants": tree_copy.get("constants", {})}
             except Exception as e:
                 logger.exception("[API] get_template_schemes fail: {}".format(e))
-                return {"result": False, "message": "get_template_schemes fail: {}".format(e),
-                        "code": err_code.UNKNOWN_ERROR.code}
+                return {
+                    "result": False,
+                    "message": "get_template_schemes fail: {}".format(e),
+                    "code": err_code.UNKNOWN_ERROR.code,
+                }
 
             scheme_info["detail"] = detail
 
