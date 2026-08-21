@@ -29,6 +29,7 @@ TEST_PLUGIN_CODE = "plugin_code"
 
 NODE_LOG_DATA_SOURCE_FACTORY = "gcloud.apigw.views.get_task_node_log.NodeLogDataSourceFactory"
 PLUGIN_SERVICE_API_CLIENT = "gcloud.apigw.views.get_task_plugin_log.PluginServiceApiClient"
+GET_EXECUTION_DATA_FOR_NODE = "gcloud.apigw.log_auth.get_execution_data_for_node"
 
 PROJECT_GET_MOCK = mock.patch(
     PROJECT_GET,
@@ -59,7 +60,9 @@ class GetTaskLogRouteAPITest(APITest):
 
     @PROJECT_GET_MOCK
     def test_get_task_node_log__task_bound_to_project_in_path(self):
-        taskinstance_get = MagicMock(return_value=MockTaskFlowInstance())
+        taskflow = MockTaskFlowInstance()
+        taskflow.has_node = MagicMock(return_value=True)
+        taskinstance_get = MagicMock(return_value=taskflow)
         with mock.patch(TASKINSTANCE_GET, taskinstance_get), mock.patch(
             NODE_LOG_DATA_SOURCE_FACTORY, mock_node_log_data_source()
         ):
@@ -88,15 +91,20 @@ class GetTaskLogRouteAPITest(APITest):
 
     @PROJECT_GET_MOCK
     def test_get_task_plugin_log__task_bound_to_project_in_path(self):
-        taskinstance_get = MagicMock(return_value=MockTaskFlowInstance())
+        taskflow = MockTaskFlowInstance()
+        taskflow.has_node = MagicMock(return_value=True)
+        taskinstance_get = MagicMock(return_value=taskflow)
         plugin_client = MagicMock()
         plugin_client.get_plugin_logs = MagicMock(return_value={"result": True, "data": {"logs": []}})
-        with mock.patch(TASKINSTANCE_GET, taskinstance_get), mock.patch(PLUGIN_SERVICE_API_CLIENT, plugin_client):
+        execution_data = MagicMock(outputs={"trace_id": TEST_TRACE_ID}, inputs={"plugin_code": TEST_PLUGIN_CODE})
+        with mock.patch(TASKINSTANCE_GET, taskinstance_get), mock.patch(
+            PLUGIN_SERVICE_API_CLIENT, plugin_client
+        ), mock.patch(GET_EXECUTION_DATA_FOR_NODE, MagicMock(return_value=(execution_data, None))):
             response = self.client.get(
                 path=self.url().format(
                     api_name="get_task_plugin_log", task_id=TEST_TASKFLOW_ID, project_id=TEST_BIZ_CC_ID
                 ),
-                data={"plugin_code": TEST_PLUGIN_CODE, "trace_id": TEST_TRACE_ID},
+                data={"node_id": TEST_NODE_ID, "plugin_code": TEST_PLUGIN_CODE, "trace_id": TEST_TRACE_ID},
             )
 
         data = json.loads(response.content)

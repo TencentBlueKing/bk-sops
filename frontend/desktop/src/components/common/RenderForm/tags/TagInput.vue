@@ -688,8 +688,15 @@
         overflow: hidden;
         overflow-x: auto;
         scrollbar-width: none;
+        outline: none;
+        box-shadow: none;
         &::-webkit-scrollbar {
             display: none;
+        }
+        &:focus,
+        &:focus-visible {
+            outline: none;
+            box-shadow: none;
         }
         ::v-deep .var-tag {
             margin-right: 1px;

@@ -107,7 +107,7 @@ def mysetting(request):
         "TEMPLATE_MARKET_DOC_URL": settings.TEMPLATE_MARKET_DOC_URL,
         "USERNAME": request.user.username,
         "DISPLAY_NAME": getattr(request.user, "display_name", request.user.username),
-        "TENANT_ID": getattr(request.user, "tenant_id", ""),
+        "TENANT_ID": getattr(request.user, "tenant_id", "default"),
         "ENABLE_MULTI_TENANT_MODE": 1,
         # 'NICK': request.session.get('nick', ''),          # 用户昵称
         "NICK": request.user.username,  # 用户昵称
