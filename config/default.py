@@ -72,6 +72,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.itsm_workflow",
     "gcloud.contrib.init_tenant",
     "gcloud.apigw",
+    "gcloud.plugin_gateway.apps.PluginGatewayConfig",
     "gcloud.common_template",
     "gcloud.label",
     "gcloud.contrib.cleaner",
@@ -120,6 +121,13 @@ INSTALLED_APPS += (
     "bk_audit.contrib.bk_audit",
     "webhook",
 )
+
+# 流程卡住治理 M1：诊断 app 随 bamboo-pipeline>=4.0.4 提供。
+# 条件注册——依赖未升级到含 diagnostics 的版本时保持惰性，不影响启动。
+import importlib.util as _importlib_util  # noqa: E402
+
+if _importlib_util.find_spec("pipeline.contrib.diagnostics") is not None:
+    INSTALLED_APPS += ("pipeline.contrib.diagnostics",)
 
 # 这里是默认的中间件，大部分情况下，不需要改动
 # 如果你已经了解每个默认 MIDDLEWARE 的作用，确实需要去掉某些 MIDDLEWARE，或者改动先后顺序，请去掉下面的注释，然后修改
@@ -190,12 +198,26 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = ()
+PLUGIN_GATEWAY_FORM_CORS_ALLOW = str(env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW or "").lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+PLUGIN_GATEWAY_FORM_CORS_ALLOWED_ORIGINS = {
+    origin.strip().rstrip("/") for origin in env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST.split(",") if origin.strip()
+}
+
 if env.BKAPP_CORS_ALLOW:
-    MIDDLEWARE = ("corsheaders.middleware.CorsMiddleware",) + MIDDLEWARE
-    CORS_ALLOW_CREDENTIALS = True
     CORS_ORIGIN_WHITELIST = env.BKAPP_CORS_WHITELIST.split(",")
-else:
-    CORS_ALLOW_CREDENTIALS = False
+
+if env.BKAPP_CORS_ALLOW or PLUGIN_GATEWAY_FORM_CORS_ALLOW:
+    MIDDLEWARE = (
+        "gcloud.plugin_gateway.cors.PluginFormCorsResponseMiddleware",
+        "corsheaders.middleware.CorsMiddleware",
+    ) + MIDDLEWARE
+
+CORS_ALLOW_CREDENTIALS = bool(env.BKAPP_CORS_ALLOW or PLUGIN_GATEWAY_FORM_CORS_ALLOW)
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -221,7 +243,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.35.3"
+STATIC_VERSION = "3.35.4"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 APIGW_DOCS_VERSION = STATIC_VERSION + "+" + str(DEPLOY_DATETIME)
 
@@ -503,6 +525,14 @@ ScalableQueues.add(name=API_TASK_QUEUE_NAME)
 PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
+# 插件网关独立队列
+OPEN_PLUGIN_DISPATCH_QUEUE_NAME = "open_plugin_dispatch"
+OPEN_PLUGIN_POLLING_QUEUE_NAME = "open_plugin_polling"
+OPEN_PLUGIN_CALLBACK_QUEUE_NAME = "open_plugin_callback"
+ScalableQueues.add(name=OPEN_PLUGIN_DISPATCH_QUEUE_NAME)
+ScalableQueues.add(name=OPEN_PLUGIN_POLLING_QUEUE_NAME)
+ScalableQueues.add(name=OPEN_PLUGIN_CALLBACK_QUEUE_NAME)
+
 from pipeline.celery.settings import *  # noqa
 from pipeline.eri.celery import queues as eri_queues  # noqa
 
@@ -518,6 +548,24 @@ CELERY_QUEUES.extend(eri_queues.QueueResolver(PERIODIC_TASK_QUEUE_NAME_V2).queue
 CELERY_QUEUES.extend(PrepareAndStartTaskQueueResolver(API_TASK_QUEUE_NAME_V2).queues())
 CELERY_QUEUES.extend(taskflow3_celery_settings.CELERY_QUEUES)
 CELERY_QUEUES.extend(cleaner_settings.CELERY_QUEUES)
+CELERY_QUEUES.extend(
+    [
+        Queue(OPEN_PLUGIN_DISPATCH_QUEUE_NAME, default_exchange, routing_key=OPEN_PLUGIN_DISPATCH_QUEUE_NAME),
+        Queue(OPEN_PLUGIN_POLLING_QUEUE_NAME, default_exchange, routing_key=OPEN_PLUGIN_POLLING_QUEUE_NAME),
+        Queue(OPEN_PLUGIN_CALLBACK_QUEUE_NAME, default_exchange, routing_key=OPEN_PLUGIN_CALLBACK_QUEUE_NAME),
+    ]
+)
+
+CELERYBEAT_SCHEDULE = locals().get("CELERYBEAT_SCHEDULE", {})
+CELERYBEAT_SCHEDULE.update(
+    {
+        "sweep_expired_plugin_gateway_runs": {
+            "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
+            "schedule": 60.0,
+            "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+        }
+    }
+)
 
 CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 
@@ -532,6 +580,11 @@ ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER
 for _setting in dir(ver_settings):
     if _setting.upper() == _setting:
         locals()[_setting] = getattr(ver_settings, _setting)
+
+# 若用户通过环境变量配置了 BKAPP_CALLBACK_KEY，则覆盖 ver_settings 中的默认值；
+# 未配置时沿用 ver_settings 内置的默认密钥（仅建议本地开发使用，生产部署请务必显式配置）
+if env.BKAPP_CALLBACK_KEY:
+    CALLBACK_KEY = env.BKAPP_CALLBACK_KEY.encode("utf-8")
 
 # version log config
 VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True, "LANGUAGE_MAPPINGS": {"en": "en"}}
@@ -775,6 +828,9 @@ PAASV3_APIGW_API_TOKEN = env.PAASV3_APIGW_API_TOKEN
 # requests请求尝试重试次数
 REQUEST_RETRY_NUMBER = env.REQUEST_RETRY_NUMBER
 
+# 节点自动重试间隔上限（秒）
+TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL = env.TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL
+
 # 请求默认重定向配置
 NEED_HTTP_REDIRECT = env.NEED_HTTP_REDIRECT
 DEFAULT_REDIRECT_HOST = env.DEFAULT_REDIRECT_HOST
@@ -800,6 +856,20 @@ CLEAN_EXPIRED_V2_TASK_PROJECTS = env.CLEAN_EXPIRED_V2_TASK_PROJECTS
 ENABLE_ARCHIVE_EXPIRED_V2_TASK = env.ENABLE_ARCHIVE_EXPIRED_V2_TASK
 ARCHIVE_EXPIRED_V2_TASK_CRON = env.ARCHIVE_EXPIRED_V2_TASK_CRON
 ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM = env.ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM
+
+# 流程卡住治理（诊断检测打底 M1）
+# PIPELINE_DIAGNOSTICS_* 由 bamboo-pipeline diagnostics 的 conf.py 读取（getattr(settings, "PIPELINE_DIAGNOSTICS_<NAME>")）。
+PIPELINE_DIAGNOSTICS_SCAN_ENABLED = env.DIAGNOSTICS_SCAN_ENABLED
+PIPELINE_DIAGNOSTICS_EVENT_ENABLED = env.DIAGNOSTICS_EVENT_ENABLED
+PIPELINE_DIAGNOSTICS_ALERT_ENABLED = env.DIAGNOSTICS_ALERT_ENABLED
+PIPELINE_DIAGNOSTICS_APPLY_ENABLED = env.DIAGNOSTICS_APPLY_ENABLED
+PIPELINE_DIAGNOSTICS_STALL_THRESHOLD_SECONDS = env.DIAGNOSTICS_STALL_THRESHOLD_SECONDS
+PIPELINE_DIAGNOSTICS_SCAN_BATCH = env.DIAGNOSTICS_SCAN_BATCH
+PIPELINE_DIAGNOSTICS_SECOND_CONFIRM_SECONDS = env.DIAGNOSTICS_SECOND_CONFIRM_SECONDS
+# bk-sops 侧周期任务调度与补充扫描
+DIAGNOSTICS_SCAN_CRON = env.DIAGNOSTICS_SCAN_CRON
+DIAGNOSTICS_CLEANUP_CRON = env.DIAGNOSTICS_CLEANUP_CRON
+DIAGNOSTICS_SUPPLEMENT_BATCH = env.DIAGNOSTICS_SUPPLEMENT_BATCH
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
@@ -895,6 +965,11 @@ PERIODIC_TASK_ITERATION = env.PERIODIC_TASK_ITERATION
 
 # 支持限制接口的 app
 ALLOWED_LIMITED_API_APPS = env.ALLOWED_LIMITED_API_APPS
+
+# 自动化测试辅助接口配置
+AUTO_TEST_ENABLE = env.AUTO_TEST_ENABLE
+AUTO_TEST_SECRET_KEY = env.AUTO_TEST_SECRET_KEY
+AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS = env.AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS
 
 # 报错联系助手链接
 MESSAGE_HELPER_URL = env.MESSAGE_HELPER_URL

@@ -2560,3 +2560,33 @@ class FormatWebDataToPipelineTestCase(TestCase):
         得到预渲染变量key列表
         """
         self.assertEqual(format_web_data_to_pipeline(web_tree), pipeline_tree)
+
+    def test_error_ignorable_node_is_skippable_for_legacy_pipeline_tree(self):
+        legacy_web_tree = {
+            "id": "pipeline",
+            "constants": {},
+            "outputs": [],
+            "activities": {
+                "node": {
+                    "id": "node",
+                    "type": "ServiceActivity",
+                    "component": {"code": "sleep_timer", "data": {}, "version": "legacy"},
+                    "error_ignorable": True,
+                    "skippable": False,
+                    "retryable": True,
+                    "incoming": "flow_start",
+                    "outgoing": "flow_end",
+                }
+            },
+            "gateways": {},
+            "flows": {
+                "flow_start": {"id": "flow_start", "source": "start", "target": "node"},
+                "flow_end": {"id": "flow_end", "source": "node", "target": "end"},
+            },
+            "start_event": {"id": "start", "type": "EmptyStartEvent", "incoming": "", "outgoing": "flow_start"},
+            "end_event": {"id": "end", "type": "EmptyEndEvent", "incoming": "flow_end", "outgoing": ""},
+        }
+
+        formatted_pipeline_tree = format_web_data_to_pipeline(legacy_web_tree)
+
+        self.assertTrue(formatted_pipeline_tree["activities"]["node"]["skippable"])

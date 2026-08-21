@@ -23,6 +23,18 @@ if IS_OPEN_V3:
 else:
     from env_v2 import *  # noqa
 
+
+def _get_int_env(name, default):
+    value = os.getenv(name)
+    if value in (None, ""):
+        return default
+
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 # 蓝鲸监控自定义上报配置
 BK_MONITOR_REPORT_ENABLE = int(os.getenv("MONITOR_REPORT_ENABLE", 0)) == 1
 BK_MONITOR_REPORT_URL = os.getenv("MONITOR_REPORT_URL")
@@ -58,6 +70,11 @@ BK_NODE_LOG_PERSISTENT_DAYS = int(os.getenv("BKAPP_NODE_LOG_PERSISTENT_DAYS", 30
 # CALLBACK 回调入口，处理走网关回调的场景
 BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 
+# node_callback 相关安全配置
+# 用于 callback token 加解密的 Fernet 密钥（URL-safe base64 编码的 32 字节随机串）
+# 配置后将覆盖 ver_settings 中的默认 CALLBACK_KEY；未配置则沿用代码内置默认值（仅建议用于本地开发）
+BKAPP_CALLBACK_KEY = os.getenv("BKAPP_CALLBACK_KEY", "")
+
 # 网关管理员
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
 
@@ -76,6 +93,9 @@ CELERY_SEND_EVENTS = bool(os.getenv("CELERY_SEND_EVENTS", False))
 
 # requests请求重试次数
 REQUEST_RETRY_NUMBER = int(os.getenv("BKAPP_REQUEST_RETRY_NUMBER", 3))
+
+# 节点自动重试间隔上限（秒）
+TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL = int(os.getenv("BKAPP_TASKFLOW_NODE_AUTO_RETRY_MAX_INTERVAL", 60))
 
 # 默认请求重定向配置
 NEED_HTTP_REDIRECT = os.getenv("BKAPP_NEED_HTTP_REDIRECT", False)
@@ -105,6 +125,23 @@ CLEAN_EXPIRED_V2_TASK_PROJECTS = json.loads(os.getenv("BKAPP_CLEAN_EXPIRED_V2_TA
 ENABLE_ARCHIVE_EXPIRED_V2_TASK = bool(os.getenv("BKAPP_ENABLE_ARCHIVE_EXPIRED_V2_TASK", False))
 ARCHIVE_EXPIRED_V2_TASK_CRON = tuple(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK_CRON", "30 0 * * *").split())
 ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM = int(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM", 100))
+
+# 流程卡住治理（诊断检测打底 M1）
+# 诊断能力随 bamboo-pipeline>=4.0.4 提供；下列开关默认全关，需按运维 checklist 显式开启。
+# SCAN 默认关的原因：Layer0 分组查询（WHERE dead=0 GROUP BY root_pipeline_id）在大 eri_process
+# 表上开销不可忽略；且长等待节点（人工确认 / 长作业）心跳同样停摆，会被判为停滞产生噪音病历。
+# EVENT 与 SCAN 是两个独立开关：仅关 SCAN 不足以关热点路径事件写，务必同时关 EVENT。
+_DIAG_TRUE = ("1", "true", "yes", "on")
+DIAGNOSTICS_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SCAN_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_EVENT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_EVENT_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_ALERT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_ALERT_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_APPLY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_APPLY_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_STALL_THRESHOLD_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_STALL_THRESHOLD_SECONDS", 3600))
+DIAGNOSTICS_SCAN_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SCAN_BATCH", 200))
+DIAGNOSTICS_SECOND_CONFIRM_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SECOND_CONFIRM_SECONDS", 3))
+DIAGNOSTICS_SUPPLEMENT_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH", 200))
+DIAGNOSTICS_SCAN_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_SCAN_CRON", "*/10 * * * *").split())
+DIAGNOSTICS_CLEANUP_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_CLEANUP_CRON", "30 3 * * *").split())
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = os.getenv("BKAPP_ENABLE_SWAGGER_UI", False)
@@ -175,6 +212,11 @@ PERIODIC_TASK_ITERATION = int(os.getenv("PERIODIC_TASK_ITERATION", 10))
 # 支持限制接口的 app
 ALLOWED_LIMITED_API_APPS = [app for app in os.getenv("BKAPP_ALLOWED_LIMITED_API_APPS", "").split(",") if app]
 
+# 自动化测试辅助接口配置
+AUTO_TEST_ENABLE = os.getenv("BKAPP_AUTO_TEST_ENABLE", "").strip().lower() in {"1", "true", "yes", "on"}
+AUTO_TEST_SECRET_KEY = os.getenv("BKAPP_AUTO_TEST_SECRET_KEY", "").strip()
+AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS = _get_int_env("BKAPP_AUTO_TEST_TOKEN_MAX_EXPIRE_SECONDS", 600)
+
 # 报错联系助手链接
 MESSAGE_HELPER_URL = os.getenv("BKAPP_MESSAGE_HELPER_URL", "")
 
@@ -205,6 +247,7 @@ ENABLE_MULTI_TENANT_MODE = (
 
 # 统计信息清理配置
 CLEAN_EXPIRED_STATISTICS_CRON = tuple(os.getenv("BKAPP_CLEAN_EXPIRED_STATISTICS_CRON", "30 0 * * *").split())
+BKPAAS_USER_URL = os.getenv("BKPAAS_USER_URL")
 
 CLEAN_EXPIRED_V2_TASK_DATA_CONFIG = os.getenv("BKAPP_CLEAN_EXPIRED_V2_TASK_DATA_CONFIG", "")
 ARCHIVE_EXPIRED_V2_TASK_DATA_CONFIG = os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK_DATA_CONFIG", "")

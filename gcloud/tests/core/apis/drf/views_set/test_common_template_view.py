@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
 
 import factory
 from django.db.models import signals
@@ -34,7 +34,9 @@ class TestCommonTemplateView(
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):
         super(TestCommonTemplateView, self).setUp()
-        self.test_snapshot = Snapshot.objects.create_snapshot({})
+        # 使用最小合法 pipeline_tree（包含 activities/gateways），避免保存流程模板时
+        # set_has_subprocess_bit / count_pipeline_tree_nodes 读取对应字段抛 KeyError
+        self.test_snapshot = Snapshot.objects.create_snapshot({"activities": {}, "gateways": {}})
         self.pipeline_template = PipelineTemplate.objects.create(
             template_id="template_id", creator="creator", snapshot=self.test_snapshot
         )
@@ -44,7 +46,13 @@ class TestCommonTemplateView(
             pipeline_template=self.pipeline_template,
         )
         self.mock_referencer_data = [
-            {"template_type": "project", "id": 2, "name": "test_task_template", "project_id": 100},
+            {
+                "template_type": "project",
+                "id": 2,
+                "name": "test_task_template",
+                "project_id": 100,
+                "project_name": "test_project",
+            },
         ]
 
     def test_filter_project_template(self):
@@ -56,7 +64,10 @@ class TestCommonTemplateView(
     def test_update_common_template(self):
         self.template_url = "/api/v3/common_template/{}/update_specific_fields/".format(self.common_template.id)
         query_params = {"project_scope": ["1"]}
-        response = self.client.post(self.template_url, data=query_params, format="json")
+        # 测试快照使用最小 pipeline_tree，而 update_specific_fields 的校验会访问 instance.pipeline_tree，
+        # 真实流程的 pipeline_tree 必然包含 activities 字段，这里 patch 为最小合法结构以聚焦接口行为校验
+        with patch.object(CommonTemplate, "pipeline_tree", new_callable=PropertyMock, return_value={"activities": {}}):
+            response = self.client.post(self.template_url, data=query_params, format="json")
         self.assertTrue(response.data["result"])
         self.assertIsNotNone(response.data["data"])
 

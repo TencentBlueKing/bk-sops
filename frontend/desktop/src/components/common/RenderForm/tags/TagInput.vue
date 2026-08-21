@@ -23,7 +23,10 @@
                     @input="handleInputChange"
                     @blur="handleBlur">
                 </el-input>
-                <div v-else class="rf-form-wrap" :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
+                <div
+                    v-else
+                    class="rf-form-wrap"
+                    :class="{ 'input-focus': input.focus, 'input-disable': isDisabled }">
                     <div
                         ref="input"
                         class="div-input"
@@ -32,6 +35,12 @@
                         }"
                         :contenteditable="!isDisabled"
                         :data-placeholder="placeholder"
+                        v-bk-overflow-tips="{
+                            content: overflowTipContent,
+                            placement: 'top',
+                            maxWidth: 550,
+                            delay: 0,
+                            allowHTML: true }"
                         data-test-name="formTag_input_divInput"
                         v-bk-clickoutside="handleClickOutSide"
                         @mouseup="handleInputMouseUp"
@@ -60,7 +69,15 @@
                     </div>
                 </transition>
             </template>
-            <span v-else class="rf-view-value">{{ viewValue }}</span>
+            <span v-else class="rf-view-value"
+                v-bk-overflow-tips="{
+                    content: overflowTipContent,
+                    placement: 'top',
+                    maxWidth: 550,
+                    delay: 0,
+                    allowHTML: true }">
+                {{ viewValue }}
+            </span>
         </div>
         <span v-show="!validateInfo.valid" class="common-error-tip error-info">{{ validateInfo.message }}</span>
     </div>
@@ -126,8 +143,8 @@
             constantArr: {
                 get () {
                     let KeyList = []
-                    if (this.constants) {
-                        KeyList = [...Object.values(this.constants)]
+                    if (this.associationConstants) {
+                        KeyList = [...Object.values(this.associationConstants)]
                     }
                     if (this.internalVariable) {
                         KeyList = [...KeyList, ...Object.values(this.internalVariable)]
@@ -156,6 +173,12 @@
             },
             isDisabled () {
                 return !this.editable || this.disabled
+            },
+            // v-bk-overflow-tips的content，转义后包一层span以便应用断行样式
+            overflowTipContent () {
+                const text = this.input.value == null ? '' : String(this.input.value)
+                const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                return `<span class="input-focus-tips-content">${escaped}</span>`
             }
         },
         watch: {
@@ -582,6 +605,7 @@
 @import '@/scss/mixins/scrollbar.scss';
 
 .tag-input {
+    position: relative;
     text-align: left;
     ::v-deep .el-input__inner {
         padding: 0 10px;
@@ -634,6 +658,7 @@
         }
     }
     .rf-form-wrap {
+        position: relative;
         line-height: 32px;
         padding: 0 10px;
         border: 1px solid #c4c6cc;
@@ -654,16 +679,20 @@
         }
     }
     .div-input {
-        height: 32px;
+        min-height: 32px;
         line-height: 18px;
         padding: 7px 0;
         color: #63656e;
+        text-align: left;
         white-space: pre;
         overflow: hidden;
-        overflow-x: scroll;
+        overflow-x: auto;
         scrollbar-width: none;
         outline: none;
         box-shadow: none;
+        &::-webkit-scrollbar {
+            display: none;
+        }
         &:focus,
         &:focus-visible {
             outline: none;
@@ -680,6 +709,10 @@
                 background: #eaebf0;
             }
         }
+        &.input-before {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
         &.input-before::before {
             position: absolute;
             left: 10px;
@@ -688,7 +721,25 @@
             max-width: calc(100% - 20px);
             text-overflow: ellipsis;
             overflow: hidden;
+            pointer-events: none;
         }
+    }
+    .common-error-tip {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        line-height: 1;
+        padding-top: 4px;
+    }
+    .rf-view-value {
+        display: inline-block;
+        max-width: 100%;
+        line-height: 32px;
+        padding: 0 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        vertical-align: middle;
     }
 }
 </style>

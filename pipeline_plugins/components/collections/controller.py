@@ -115,7 +115,9 @@ class SleepTimerService(BasePluginService):
         force_check = data.get_one_of_inputs("force_check", True)
         # 项目时区获取
         project = Project.objects.get(id=parent_data.inputs.project_id)
+
         project_tz = pytz.timezone(project.time_zone)
+        data.outputs.business_tz = project_tz
 
         now = datetime.datetime.now(tz=project_tz)
         if self.date_regex.match(str(timing)):

@@ -16,13 +16,31 @@ from blueapps.account.decorators import login_exempt
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from gcloud import err_code
+from gcloud.apigw.decorators import mark_request_whether_is_trust
 from gcloud.apigw.views.get_node_job_executed_log import fetch_node_job_executed_log
 
 
 @login_exempt
 @api_view(["GET"])
 @apigw_require
+@mark_request_whether_is_trust
 def get_node_job_executed_log_for_inner(request):
+    """
+    内部接口，仅限于内部使用，免去用户登录、IAM 鉴权等操作。
+
+    仅允许处于 APIGW 信任名单（is_trust）的应用调用，避免任意网关应用借此
+    绕过用户 IAM 校验读取作业平台执行日志（BAC / 信息泄露）
+    """
+    if not request.is_trust:
+        return Response(
+            {
+                "result": False,
+                "message": "you have no permission to call this api.",
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+            }
+        )
+
     bk_biz_id = request.query_params.get("bk_biz_id")
     node_id = request.query_params.get("node_id")
     job_scope_type = request.query_params.get("job_scope_type")

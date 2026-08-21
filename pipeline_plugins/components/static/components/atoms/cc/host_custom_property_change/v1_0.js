@@ -152,7 +152,7 @@
                         tag_code: "field_rule_code",
                         type: "select",
                         attrs: {
-                            placeholder: "请选择字段组件",
+                            placeholder: gettext("请选择字段组件"),
                             name: gettext("字段组件"),
                             validation: [
                                 {

@@ -11,14 +11,13 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.utils.decorators import method_decorator
-
-from rest_framework.response import Response
 from blueapps.account.decorators import login_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.response import Response
 
 from ..mixin import BaseAutoTestMixin
+from ..permission import AutoTestKeyPermission, EnablePermission, generate_token
 from ..serilaziers.common import AutoTestTokenSerialzer
-from ..permission import generate_token
 
 
 @method_decorator(login_exempt, name="dispatch")
@@ -26,6 +25,7 @@ class AutoTestTokenViewSet(BaseAutoTestMixin):
     """自动测试接口token"""
 
     serializer_class = AutoTestTokenSerialzer
+    permission_classes = [EnablePermission, AutoTestKeyPermission]
 
     def create(self, request, *args, **kwargs):
         """生成测试token"""

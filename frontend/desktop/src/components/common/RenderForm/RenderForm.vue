@@ -21,6 +21,7 @@
             :hook="hooked[atom.tag_code]"
             :render="renderConfig[atom.tag_code]"
             :constants="constants"
+            :association-constants="associationConstants"
             @change="updateForm"
             @onHook="updateHook"
             @onRenderChange="$emit('onRenderChange', $event)">
@@ -101,6 +102,10 @@
                 default () {
                     return {}
                 }
+            },
+            associationConstants: {
+                type: Object,
+                default: () => ({})
             }
         },
         data () {

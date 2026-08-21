@@ -202,6 +202,7 @@
                             placeholder: gettext("【IP】"),
                             width: '170px',
                             editable: true,
+                            hookable: true,
                             validation: [
                                 {
                                     type: "required"
@@ -216,6 +217,7 @@
                             name: gettext("文件路径"),
                             placeholder: gettext("多个用换行分隔"),
                             editable: true,
+                            hookable: true,
                             validation: [
                                 {
                                     type: "required"
@@ -229,6 +231,7 @@
                         attrs: {
                             name: gettext("执行账户"),
                             editable: true,
+                            hookable: true,
                             validation: [
                                 {
                                     type: "required"
@@ -287,6 +290,7 @@
                             placeholder: gettext("请选择文件源"),
                             width: '170px',
                             editable: true,
+                            hookable: true,
                             validation: [
                                 {
                                     type: "required"
@@ -301,6 +305,7 @@
                             name: gettext("文件路径"),
                             placeholder: gettext("请输入源文件在文件源中的完整路径，多个路径请选择一种分隔符进行分隔，支持换行或逗号"),
                             editable: true,
+                            hookable: true,
                             validation: [
                                 {
                                     type: "required"
@@ -442,6 +447,7 @@
                         attrs: {
                             name: gettext("IP"),
                             placeholder: gettext("IP必须填写【管控区域ID:IP】或者【IP】格式之一"),
+                            editable: true,
                             hookable: true,
                             validation: [
                                 {
@@ -456,6 +462,7 @@
                         attrs: {
                             name: gettext("目标路径"),
                             placeholder: gettext("请输入绝对路径（可用[FILESRCIP]代替源IP）"),
+                            editable: true,
                             hookable: true,
                             validation: [
                                 {
@@ -470,6 +477,7 @@
                         attrs: {
                             name: gettext("执行账户"),
                             placeholder: gettext("请输入在蓝鲸作业平台上注册的账户名"),
+                            editable: true,
                             hookable: true,
                             validation: [
                                 {

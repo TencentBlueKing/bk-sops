@@ -82,7 +82,7 @@
                         "type": "input",
                         "attrs": {
                             "name": gettext("模块拓扑"),
-                            "placeholder": "集群A>模块B",
+                            "placeholder": gettext("集群A>模块B"),
                             "width": "120px",
                             "editable": true
                         }

@@ -75,7 +75,7 @@ class HttpRequestService(BasePluginService):
             ),
             self.InputItem(
                 name=_("HTTP 请求超时时间"),
-                key="bk_http_request_timeout",
+                key="bk_http_timeout",
                 type="int",
                 schema=IntItemSchema(description=_("HTTP 请求超时时间")),
             ),

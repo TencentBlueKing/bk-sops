@@ -25,6 +25,8 @@ from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.appmaker.schema import APP_MAKER_PARAMS_SCHEMA
 from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.project import ProjectViewInterceptor
 from gcloud.utils.strings import check_and_rename_params
 
 logger = logging.getLogger("root")
@@ -105,6 +107,7 @@ def save(request, project_id):
 
 
 @require_GET
+@iam_intercept(ProjectViewInterceptor())
 def get_appmaker_count(request, project_id):
     group_by = request.GET.get("group_by", "category")
     result_dict = check_and_rename_params({}, group_by)

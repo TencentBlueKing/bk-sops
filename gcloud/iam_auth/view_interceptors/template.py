@@ -15,6 +15,7 @@ import ujson as json
 from iam import Action, Request, Subject
 from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
+from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -184,6 +185,65 @@ class AgentGenerateProcessInterceptor(ViewInterceptor):
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_CREATE_ACTION)
         resources = res_factory.resources_for_project(project_id)
+        iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
+
+        if not iam.is_allowed(iam_request):
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
+
+
+class ConstantPreviewInterceptor(ViewInterceptor):
+    """变量预览接口(get_constant_preview_result)的项目级 IAM 校验。
+
+    该接口接收前端传入的任意 constants 并在 web 进程内做 Mako 渲染，历史上仅有
+    @require_POST、无任何权限校验，导致任意登录用户即可触发渲染(叠加 Mako 模板注入
+    时构成 RCE/越权)。这里按前端实际传参补齐鉴权:
+
+    * 普通项目流程: 请求体 ``extra_data.project_id`` 存在 -> 校验该项目 FLOW_CREATE;
+    * 公共流程: 无 project_id -> 校验系统级 COMMON_FLOW_CREATE。
+
+    请求体非法或项目不存在时统一按鉴权失败(403)处理, 避免抛 500 形成探测面。
+    """
+
+    def process(self, request, *args, **kwargs):
+        tenant_id = request.user.tenant_id
+        tenant_iam = get_iam_client(tenant_id)
+        subject = Subject("user", request.user.username)
+
+        try:
+            data = json.loads(request.body)
+            extra_data = data.get("extra_data") or {}
+            project_id = extra_data.get("project_id")
+        except (ValueError, TypeError, AttributeError):
+            action = Action(IAMMeta.COMMON_FLOW_CREATE_ACTION)
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
+
+        if project_id:
+            action = Action(IAMMeta.FLOW_CREATE_ACTION)
+            try:
+                resources = res_factory.resources_for_project(project_id, tenant_id)
+            except Project.DoesNotExist:
+                raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
+            iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
+            if not tenant_iam.is_allowed(iam_request):
+                raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
+            return
+
+        # 公共流程(无 project_id): 系统级 COMMON_FLOW_CREATE
+        action = Action(IAMMeta.COMMON_FLOW_CREATE_ACTION)
+        iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, [], {})
+        if not tenant_iam.is_allowed(iam_request):
+            raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, [])
+
+
+class AgentBeautifyTemplateLayoutInterceptor(ViewInterceptor):
+    def process(self, request, *args, **kwargs):
+        tenant_id = request.user.tenant_id
+        iam = get_iam_client(tenant_id)
+        template_id = request.GET.get("template_id")
+        subject = Subject("user", request.user.username)
+        action = Action(IAMMeta.FLOW_VIEW_ACTION)
+
+        resources = res_factory.resources_for_flow(template_id, tenant_id)
         iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
 
         if not iam.is_allowed(iam_request):

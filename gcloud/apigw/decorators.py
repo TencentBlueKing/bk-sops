@@ -61,9 +61,24 @@ def inject_user(request):
     setattr(request, "user", user)
 
 
+def _capture_original_apigw_jwt_user(request):
+    jwt_info = getattr(request, "jwt", None)
+    payload = getattr(jwt_info, "payload", None)
+    jwt_user = payload.get("user") if isinstance(payload, dict) else None
+    if not isinstance(jwt_user, dict):
+        jwt_user = {}
+
+    username = jwt_user.get(settings.APIGW_MANAGER_USER_USERNAME_KEY, "")
+    if not isinstance(username, str):
+        username = ""
+    setattr(request, "_apigw_jwt_user_verified", jwt_user.get("verified") is True)
+    setattr(request, "_apigw_jwt_username", username)
+
+
 def mark_request_whether_is_trust(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        _capture_original_apigw_jwt_user(request)
         setattr(request, "is_trust", check_white_apps(request))
         setattr(request, "allow_limited_apis", check_allowed_limited_api_apps(request))
 
