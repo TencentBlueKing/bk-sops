@@ -12,6 +12,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
+import { connectToMain } from '@blueking/sub-saas'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
 const NotPermissionComponent = () => import('@/components/layout/NotPermissionComponent.vue')
@@ -74,8 +75,12 @@ const APPMAKER = {
     routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
 }
 
+// 判断是否为子系统嵌入模式
+const isInIframe = window.frames.length !== parent.frames.length
+const routerBase = isInIframe ? `${SITE_URL}sub/` : SITE_URL
+
 const routers = new VueRouter({
-    base: SITE_URL,
+    base: routerBase,
     mode: 'history',
     routes: [
         {
@@ -563,5 +568,9 @@ routers.onError(error => {
         window.location.reload(true)
     }
 })
+
+// SITE_URL非/时因pathname非/sub开头导致subEnv=false不生效
+// 路由同步postMessage
+connectToMain(routers)
 
 export default routers
