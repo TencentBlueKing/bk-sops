@@ -70,6 +70,24 @@ class _RuntimeAwareComponent:
     bound_service = _RuntimeAwareService
 
 
+class _LegacyBizContextService(_RuntimeService):
+    interval = None
+
+    def execute(self, data, parent_data):
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+        data.set_outputs("biz_cc_id", biz_cc_id)
+        return True
+
+    def need_schedule(self):
+        return False
+
+
+class _LegacyBizContextComponent:
+    code = "legacy_biz_context"
+    version = "legacy"
+    bound_service = _LegacyBizContextService
+
+
 class _ThirdPartyShellService(_RuntimeService):
     interval = None
 
@@ -164,6 +182,21 @@ class PluginGatewayRunnerExecuteTestCase(TestCase):
         self.assertTrue(result["ok"])
         self.assertEqual(result["outputs"]["runtime_id"], "a" * 32)
         self.assertEqual(result["outputs"]["runtime_root_pipeline_id"], "a" * 32)
+
+    @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
+    def test_execute_injects_legacy_biz_cc_id_context(self, mock_lib):
+        mock_lib.get_component_class.return_value = _LegacyBizContextComponent
+
+        result = PluginGatewayRunner.run_execute(
+            self._run(
+                plugin_id="builtin__legacy_biz_context",
+                trigger_payload={"inputs": {"biz_cc_id": 100605}},
+            ),
+            {"operator": "zhangsan", "project_id": 10, "bk_biz_id": 100605},
+        )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["outputs"]["biz_cc_id"], 100605)
 
     @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
     def test_execute_exception_maps_failed(self, mock_lib):
