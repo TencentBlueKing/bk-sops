@@ -76,7 +76,7 @@ const APPMAKER = {
 }
 
 // 判断是否为子系统嵌入模式
-const isInIframe = window.frames.length !== parent.frames.length
+const isInIframe = window.self !== window.top
 const routerBase = isInIframe ? `${SITE_URL}sub/` : SITE_URL
 
 const routers = new VueRouter({
@@ -571,6 +571,7 @@ routers.onError(error => {
 
 // SITE_URL非/时因pathname非/sub开头导致subEnv=false不生效
 // 路由同步postMessage
-connectToMain(routers)
-
+if (isInIframe) {
+    connectToMain(routers)
+}
 export default routers
