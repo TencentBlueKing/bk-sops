@@ -77,8 +77,8 @@ const APPMAKER = {
 
 // 判断是否为 iframe 嵌入模式
 const isInIframe = window.self !== window.top
-// 仅在iframe嵌入且路径包含/sub/时才使用子系统路由 base
-const isSubPath = isInIframe && window.location.pathname.indexOf(`${SITE_URL}sub`) === 0
+// 仅在iframe嵌入且路径以 SITE_URL + sub/ 开头时才使用子系统路由 base
+const isSubPath = isInIframe && window.location.pathname.startsWith(`${SITE_URL}sub/`)
 const routerBase = isSubPath ? `${SITE_URL}sub/` : SITE_URL
 
 const routers = new VueRouter({
