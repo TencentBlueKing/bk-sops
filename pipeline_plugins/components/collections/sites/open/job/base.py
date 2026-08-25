@@ -62,6 +62,14 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
+def _get_job_client(data, parent_data):
+    client = data.get_one_of_outputs("client")
+    if not hasattr(client, "jobv3"):
+        client = get_client_by_user(parent_data.get_one_of_inputs("executor"))
+        data.outputs.client = client
+    return client
+
+
 def get_sops_var_dict_from_log_text(log_text, service_logger):
     """
     在日志文本中提取全局变量
@@ -489,7 +497,7 @@ class JobService(BasePluginService):
 
             if self.reload_outputs:
 
-                client = data.outputs.client
+                client = _get_job_client(data, parent_data)
 
                 # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
@@ -538,7 +546,7 @@ class JobService(BasePluginService):
                 self.finish_schedule()
                 return True if job_success else False
             get_job_sops_var_dict_return = get_job_sops_var_dict(
-                data.outputs.client,
+                _get_job_client(data, parent_data),
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -736,7 +744,7 @@ class Jobv3Service(BasePluginService):
                 )
 
             if self.reload_outputs:
-                client = data.outputs.client
+                client = _get_job_client(data, parent_data)
 
                 # 判断是否对IP进行Tag分组
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
@@ -785,7 +793,7 @@ class Jobv3Service(BasePluginService):
                 return True if job_success else False
 
             get_jobv3_sops_var_dict_return = get_job_sops_var_dict(
-                data.outputs.client,
+                _get_job_client(data, parent_data),
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
