@@ -310,7 +310,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                             param["value"] = param["key"]
                         param["hook"] = True if source_type == "component_inputs" and "key" in param else False
                         for key in list(param.keys()):
-                            if key not in ["value", "hook"]:
+                            if key not in ["value", "hook", "need_render"]:
                                 param.pop(key)
                 reconverted_tree["activities"][node["id"]] = activity
             elif node["type"] == "SubProcess":
