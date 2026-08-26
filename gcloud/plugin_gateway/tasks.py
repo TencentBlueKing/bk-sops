@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from celery import current_app
+from django.conf import settings
 from django.utils import timezone
 
 from gcloud.plugin_gateway.constants import MAX_SCHEDULE_TIMES, poll_countdown
@@ -29,8 +30,23 @@ CALLBACK_READY_RETRY_INTERVAL_SECONDS = 1
 CALLBACK_READY_MAX_RETRY_TIMES = 30
 
 
+def _skip_when_disabled(task_name, open_plugin_run_id=""):
+    """开关关闭时放弃执行，避免任务内部继续向 open_plugin_* 队列投递后续消息。
+
+    正常情况下开关关闭时队列里不会有消息，这里兜住的是运行中途关闭开关的场景。
+    """
+    if settings.PLUGIN_GATEWAY_ENABLE:
+        return False
+
+    logger.info("[plugin_gateway] %s skipped because plugin gateway is disabled, run=%s", task_name, open_plugin_run_id)
+    return True
+
+
 @current_app.task(queue="open_plugin_polling")
 def sweep_expired_plugin_gateway_runs():
+    if _skip_when_disabled("sweep_expired_plugin_gateway_runs"):
+        return
+
     expired_runs = PluginGatewayRun.objects.filter(execution_expire_at__lt=timezone.now()).exclude(
         run_status__in=list(PluginGatewayRun.Status.TERMINAL)
     )
@@ -44,6 +60,9 @@ def sweep_expired_plugin_gateway_runs():
 
 @current_app.task(queue="open_plugin_dispatch")
 def dispatch_plugin_gateway_run(open_plugin_run_id):
+    if _skip_when_disabled("dispatch_plugin_gateway_run", open_plugin_run_id):
+        return
+
     try:
         run = PluginGatewayRun.objects.get(open_plugin_run_id=open_plugin_run_id)
     except PluginGatewayRun.DoesNotExist:
@@ -125,6 +144,9 @@ def dispatch_plugin_gateway_run(open_plugin_run_id):
 
 @current_app.task(queue="open_plugin_polling")
 def poll_plugin_gateway_run(open_plugin_run_id):
+    if _skip_when_disabled("poll_plugin_gateway_run", open_plugin_run_id):
+        return
+
     try:
         run = PluginGatewayRun.objects.get(open_plugin_run_id=open_plugin_run_id)
     except PluginGatewayRun.DoesNotExist:
@@ -214,6 +236,9 @@ def poll_plugin_gateway_run(open_plugin_run_id):
 
 @current_app.task(queue="open_plugin_callback")
 def callback_plugin_gateway_run(open_plugin_run_id, callback_data=None, ready_retry_times=0):
+    if _skip_when_disabled("callback_plugin_gateway_run", open_plugin_run_id):
+        return
+
     try:
         run = PluginGatewayRun.objects.get(open_plugin_run_id=open_plugin_run_id)
     except PluginGatewayRun.DoesNotExist:

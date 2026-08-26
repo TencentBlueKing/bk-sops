@@ -24,6 +24,7 @@ from gcloud.conf import settings
 from gcloud.plugin_gateway.exceptions import (
     PluginGatewayConflictError,
     PluginGatewayContextResolveError,
+    PluginGatewayDisabledError,
     PluginGatewayPluginNotEnabledError,
     PluginGatewayPluginNotFoundError,
     PluginGatewaySourceUnavailableError,
@@ -41,10 +42,15 @@ ERROR_TYPE_PLUGIN_NOT_ENABLED = "plugin_not_enabled"
 ERROR_TYPE_PLUGIN_VERSION_UNAVAILABLE = "plugin_version_unavailable"
 ERROR_TYPE_PLUGIN_REMOVED = "plugin_removed"
 ERROR_TYPE_SOURCE_UNREACHABLE = "source_unreachable"
+ERROR_TYPE_GATEWAY_DISABLED = "gateway_disabled"
 
 
 def _error_response(message, code, error_type=""):
     return {"result": False, "message": message, "code": code, "error_type": error_type}
+
+
+def _disabled_response():
+    return _error_response("plugin gateway is disabled", err_code.INVALID_OPERATION.code, ERROR_TYPE_GATEWAY_DISABLED)
 
 
 def _load_request_body(request):
@@ -195,6 +201,8 @@ def create_plugin_gateway_run(request):
         return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code, ERROR_TYPE_PLUGIN_VERSION_UNAVAILABLE)
     except PluginGatewayPluginNotEnabledError as e:
         return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code, ERROR_TYPE_PLUGIN_NOT_ENABLED)
+    except PluginGatewayDisabledError:
+        return _disabled_response()
     except PluginGatewayContextResolveError as e:
         return _error_response(str(e), err_code.REQUEST_PARAM_INVALID.code)
     except PluginGatewaySourceUnavailableError as e:
@@ -282,6 +290,9 @@ def get_plugin_gateway_run_detail(request, run_id):
 @return_json_response
 @mark_request_whether_is_trust
 def plugin_gateway_run_internal_callback(request, run_id):
+    if not settings.PLUGIN_GATEWAY_ENABLE:
+        return _disabled_response()
+
     try:
         raw_payload = _load_request_body(request)
     except ValueError as e:

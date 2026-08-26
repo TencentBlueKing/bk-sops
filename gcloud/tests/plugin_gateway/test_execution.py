@@ -2,7 +2,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.db import IntegrityError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from gcloud.plugin_gateway.exceptions import PluginGatewayConflictError, PluginGatewayPluginNotEnabledError
@@ -12,6 +12,7 @@ from gcloud.plugin_gateway.tasks import sweep_expired_plugin_gateway_runs
 from gcloud.utils import crypto
 
 
+@override_settings(PLUGIN_GATEWAY_ENABLE=True)
 class PluginGatewayExecutionServiceTestCase(TestCase):
     def setUp(self):
         self.source_config = PluginGatewaySourceConfig.objects.create(

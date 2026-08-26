@@ -61,6 +61,11 @@ BK_PLUGIN_DEVELOP_URL = os.getenv("BK_PLUGIN_DEVELOP_URL", "")
 # 蓝鲸插件授权过滤 APP
 PLUGIN_DISTRIBUTOR_NAME = os.getenv("PLUGIN_DISTRIBUTOR_NAME", os.getenv("BKAPP_PLUGIN_DISTRIBUTOR_NAME"))
 
+# 插件网关总开关，默认关闭。
+# 关闭时不会向 open_plugin_dispatch / open_plugin_polling / open_plugin_callback 投递任何消息，
+# 因此未部署对应 worker 的环境不会出现队列堆积；创建执行的网关接口会直接返回不可用。
+PLUGIN_GATEWAY_ENABLE = os.getenv("BKAPP_PLUGIN_GATEWAY_ENABLE", "").strip().lower() in {"1", "true", "yes", "on"}
+
 # IAM APIGW 地址
 BK_IAM_APIGW_HOST = os.getenv("BK_IAM_APIGW_HOST")
 

@@ -7,12 +7,13 @@ import ujson as json
 import yaml
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import modify_settings
+from django.test import modify_settings, override_settings
 
 from gcloud import err_code
 from gcloud.tests.apigw.views.utils import TEST_APP_CODE, TEST_USERNAME, APITest
 
 
+@override_settings(PLUGIN_GATEWAY_ENABLE=True)
 @modify_settings(
     MIDDLEWARE={
         "append": "gcloud.tests.apigw.views.utils.MockApiGatewayJWTPayloadMiddleware",

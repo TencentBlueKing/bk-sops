@@ -33,7 +33,21 @@ Current runtime boundary:
 
 Deploy the version that contains `gcloud.plugin_gateway` and `gcloud.apigw.views.plugin_gateway`.
 
-### 2.2 Install Dependencies
+### 2.2 Turn On the Feature Switch
+
+The gateway is controlled by `BKAPP_PLUGIN_GATEWAY_ENABLE` and is **disabled by default**. It is enabled when the value is one of `1/true/yes/on`.
+
+While disabled:
+
+- `sweep_expired_plugin_gateway_runs` is not registered, so beat never publishes to `open_plugin_polling`
+- the run creation endpoint returns `error_type=gateway_disabled` without persisting a run or publishing to `open_plugin_dispatch`
+- the internal callback endpoint and the plugin gateway branch of `node_callback` never publish to `open_plugin_callback`
+
+Deployments without `open_plugin_*` workers therefore accumulate no messages. Make sure the three queues in 2.5 have consumers before turning the switch on.
+
+Beat runs on the `django_celery_beat` `DatabaseScheduler`, which persists schedule entries into `PeriodicTask` and does not prune them when they disappear from settings. Migration `plugin_gateway.0005` deletes a leftover `sweep_expired_plugin_gateway_runs` row; beat re-registers it on startup once the switch is on, so no manual cleanup is needed.
+
+### 2.3 Install Dependencies
 
 If your deployment rebuilds the Python environment, install dependencies as usual:
 
@@ -41,7 +55,7 @@ If your deployment rebuilds the Python environment, install dependencies as usua
 pip install -r requirements.txt
 ```
 
-### 2.3 Run Migrations
+### 2.4 Run Migrations
 
 The gateway adds two models:
 
@@ -60,7 +74,7 @@ Or only for this app:
 python manage.py migrate plugin_gateway
 ```
 
-### 2.4 Restart Services
+### 2.5 Restart Services
 
 Restart at least:
 
@@ -76,7 +90,7 @@ python manage.py celery worker -l info -Q open_plugin_polling
 python manage.py celery worker -l info -Q open_plugin_callback
 ```
 
-`sweep_expired_plugin_gateway_runs` is triggered by beat every 60 seconds. Confirm the beat schedule is deployed with the code.
+When the switch is on, `sweep_expired_plugin_gateway_runs` is triggered by beat every 60 seconds. Confirm the beat schedule is deployed with the code. The periodic task is not registered while the switch is off.
 
 ## 3. Initialize Source Configuration
 
