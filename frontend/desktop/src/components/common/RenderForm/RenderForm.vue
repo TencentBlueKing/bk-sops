@@ -322,7 +322,7 @@
                         acc[cur] = val
                         return
                     }
-                    if (!acc.hasOwnProperty(cur)) {
+                    if (!acc.hasOwnProperty(cur) || acc[cur] === undefined || acc[cur] === null) {
                         acc[cur] = {}
                     }
                     return acc[cur]
