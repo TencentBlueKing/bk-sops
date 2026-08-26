@@ -243,7 +243,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.35.4"
+STATIC_VERSION = "3.35.5"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 APIGW_DOCS_VERSION = STATIC_VERSION + "+" + str(DEPLOY_DATETIME)
 
@@ -525,6 +525,9 @@ ScalableQueues.add(name=API_TASK_QUEUE_NAME)
 PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
 
+# 插件网关总开关，关闭时不向 open_plugin_* 队列投递消息
+PLUGIN_GATEWAY_ENABLE = env.PLUGIN_GATEWAY_ENABLE
+
 # 插件网关独立队列
 OPEN_PLUGIN_DISPATCH_QUEUE_NAME = "open_plugin_dispatch"
 OPEN_PLUGIN_POLLING_QUEUE_NAME = "open_plugin_polling"
@@ -557,15 +560,18 @@ CELERY_QUEUES.extend(
 )
 
 CELERYBEAT_SCHEDULE = locals().get("CELERYBEAT_SCHEDULE", {})
-CELERYBEAT_SCHEDULE.update(
-    {
-        "sweep_expired_plugin_gateway_runs": {
-            "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
-            "schedule": 60.0,
-            "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+# 插件网关关闭时不注册超时清扫周期任务：open_plugin_* 队列在未部署 worker 的环境无人消费，
+# 每分钟一条的投递会在 broker 上无限堆积。
+if PLUGIN_GATEWAY_ENABLE:
+    CELERYBEAT_SCHEDULE.update(
+        {
+            "sweep_expired_plugin_gateway_runs": {
+                "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
+                "schedule": 60.0,
+                "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+            }
         }
-    }
-)
+    )
 
 CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 

@@ -71,7 +71,8 @@ def node_callback(request, token):
         return JsonResponse({"result": False, "message": message}, status=400)
 
     if (
-        root_pipeline_id
+        settings.PLUGIN_GATEWAY_ENABLE
+        and root_pipeline_id
         and root_pipeline_id == node_id
         and PluginGatewayRun.objects.filter(open_plugin_run_id=root_pipeline_id).exists()
     ):

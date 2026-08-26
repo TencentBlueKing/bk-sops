@@ -15,11 +15,13 @@ import logging
 from datetime import timedelta
 from uuid import uuid4
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from gcloud.plugin_gateway.exceptions import (
     PluginGatewayConflictError,
+    PluginGatewayDisabledError,
     PluginGatewayPluginNotEnabledError,
     PluginGatewayPluginNotFoundError,
     PluginGatewayVersionNotFoundError,
@@ -41,6 +43,10 @@ class PluginGatewayExecutionService:
 
     @classmethod
     def create_run(cls, caller_app_code, payload):
+        # 开关关闭时直接拒绝：继续走下去会落一条永远不会被调度的 run 记录
+        if not settings.PLUGIN_GATEWAY_ENABLE:
+            raise PluginGatewayDisabledError("plugin gateway is disabled")
+
         source_config = cls._get_source_config(payload["source_key"])
         cls._validate_do_not_open_plugin(source_config, payload["plugin_id"])
         plugin_reference = cls._get_plugin_reference(payload["plugin_id"], payload["plugin_version"])

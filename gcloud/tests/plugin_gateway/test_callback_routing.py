@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 from cryptography.fernet import Fernet
 from django.conf import settings
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 
 from gcloud.plugin_gateway.models import PluginGatewayRun
 from gcloud.taskflow3.apis.django.v4.node_callback import node_callback
@@ -24,6 +24,7 @@ from gcloud.utils import crypto
 from pipeline_plugins.components.utils.sites.open.utils import get_node_callback_url
 
 
+@override_settings(PLUGIN_GATEWAY_ENABLE=True)
 class PluginGatewayCallbackRoutingTestCase(TestCase):
     def setUp(self):
         self.run = PluginGatewayRun.objects.create(

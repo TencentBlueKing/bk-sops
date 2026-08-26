@@ -33,7 +33,21 @@
 
 将包含 `gcloud.plugin_gateway` 和 `gcloud.apigw.views.plugin_gateway` 变更的版本发布到部署环境。
 
-### 2.2 安装依赖
+### 2.2 开启功能开关
+
+插件网关由 `BKAPP_PLUGIN_GATEWAY_ENABLE` 控制，**默认关闭**，取值为 `1/true/yes/on` 时开启。
+
+关闭时的行为：
+
+- 不注册 `sweep_expired_plugin_gateway_runs` 周期任务，beat 不会向 `open_plugin_polling` 投递消息
+- 创建执行接口返回 `error_type=gateway_disabled`，不会写入 run 记录，也不会向 `open_plugin_dispatch` 投递消息
+- 网关内部回调接口与 `node_callback` 的插件网关分支不会向 `open_plugin_callback` 投递消息
+
+因此未部署 `open_plugin_*` worker 的环境不会出现队列堆积。开启开关前，请先确认 2.5 中的三条队列已经有 worker 消费。
+
+beat 使用 `django_celery_beat` 的 `DatabaseScheduler`，周期任务配置会落到 `PeriodicTask` 表且不会随配置移除自动清理。迁移 `plugin_gateway.0005` 会删除残留的 `sweep_expired_plugin_gateway_runs` 记录，开关开启时 beat 启动会重新登记，无需手工处理。
+
+### 2.3 安装依赖
 
 如部署流程会重建 Python 运行环境，请按常规方式安装依赖：
 
@@ -41,7 +55,7 @@
 pip install -r requirements.txt
 ```
 
-### 2.3 执行数据库迁移
+### 2.4 执行数据库迁移
 
 插件网关新增了以下模型：
 
@@ -54,13 +68,13 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-如需只迁移该 app，可执行：
+如需只迁移该 app，可执行（迁移与开关无关，关闭状态下也可以先建表）：
 
 ```bash
 python manage.py migrate plugin_gateway
 ```
 
-### 2.4 重启服务
+### 2.5 重启服务
 
 部署后应至少重启：
 
@@ -76,7 +90,7 @@ python manage.py celery worker -l info -Q open_plugin_polling
 python manage.py celery worker -l info -Q open_plugin_callback
 ```
 
-`sweep_expired_plugin_gateway_runs` 由 beat 每 60 秒触发，建议确认 beat 配置已随代码发布生效。
+`sweep_expired_plugin_gateway_runs` 在开关开启时由 beat 每 60 秒触发，建议确认 beat 配置已随代码发布生效。开关关闭时该周期任务不会注册。
 
 ## 3. 初始化来源配置
 
