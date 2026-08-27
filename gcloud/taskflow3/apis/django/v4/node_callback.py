@@ -27,7 +27,12 @@ import env
 from gcloud.core.trace import CallFrom, start_trace
 from gcloud.plugin_gateway.models import PluginGatewayRun
 from gcloud.plugin_gateway.tasks import callback_plugin_gateway_run
-from gcloud.taskflow3.celery.tasks import async_node_callback_retry, is_schedule_not_found_error, is_sleep_process_error
+from gcloud.taskflow3.celery.tasks import (
+    async_node_callback_retry,
+    get_callback_error_reason,
+    is_schedule_not_found_error,
+    is_sleep_process_error,
+)
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -38,8 +43,6 @@ logger = logging.getLogger("root")
 @csrf_exempt
 @require_POST
 def node_callback(request, token):
-    logger.info("[node_callback]callback body for token({}): {}".format(token, request.body))
-
     try:
         f = Fernet(settings.CALLBACK_KEY)
         back_load = f.decrypt(bytes(token, encoding="utf8")).decode().split(":")
@@ -59,7 +62,7 @@ def node_callback(request, token):
         else:
             logger.error("invalid backload: %s" % back_load)
     except Exception:
-        logger.warning("invalid token %s" % token)
+        logger.warning("[node_callback] outcome=invalid_token")
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)
 
     try:
@@ -89,6 +92,12 @@ def node_callback(request, token):
             taskflow_id = qs[0]["id"]
             project_id = qs[0]["project_id"]
 
+    payload_keys = sorted(callback_data.keys()) if isinstance(callback_data, dict) else []
+    logger.info(
+        "[node_callback] outcome=received engine_ver={} taskflow_id={} node_id={} node_version={} "
+        "payload_keys={}".format(engine_ver, taskflow_id, node_id, node_version, payload_keys)
+    )
+
     dispatchers = NodeCommandDispatcher(engine_ver=engine_ver, node_id=node_id, taskflow_id=taskflow_id)
 
     # 由于回调方不一定会进行多次回调，这里为了在业务层防止出现不可抗力（网络，DB 问题等）导致失败
@@ -99,8 +108,16 @@ def node_callback(request, token):
                 command="callback", operator="", version=node_version, data=callback_data
             )
             logger.info(
-                "result of callback call(token: {} engine_ver: {} node_id: {}, node_version: {}): {}".format(
-                    token, engine_ver, node_id, node_version, callback_result
+                "[node_callback] outcome=attempt_result engine_ver={} taskflow_id={} node_id={} node_version={} "
+                "local_retry_times={} success={} error_reason={} error_code={}".format(
+                    engine_ver,
+                    taskflow_id,
+                    node_id,
+                    node_version,
+                    i,
+                    callback_result.get("result"),
+                    get_callback_error_reason(callback_result),
+                    callback_result.get("code"),
                 )
             )
             if callback_result["result"]:
@@ -115,34 +132,40 @@ def node_callback(request, token):
     if should_async_retry:
         error_type = "sleep process" if is_sleep_process_error(callback_result) else "schedule not found"
         logger.warning(
-            "[node_callback] Local retry failed with {} error, triggering async retry. "
-            "token: {}, engine_ver: {}, node_id: {}, node_version: {}, message: {}".format(
-                error_type, token, engine_ver, node_id, node_version, callback_result.get("message", "")
+            "[node_callback] outcome=async_retry_requested engine_ver={} taskflow_id={} node_id={} "
+            "node_version={} error_type={} error_reason={} error_code={}".format(
+                engine_ver,
+                taskflow_id,
+                node_id,
+                node_version,
+                error_type,
+                get_callback_error_reason(callback_result),
+                callback_result.get("code"),
             )
         )
         try:
             async_node_callback_retry.apply_async(
-                kwargs=dict(
-                    engine_ver=engine_ver,
-                    node_id=node_id,
-                    node_version=node_version,
-                    callback_data=callback_data,
-                    taskflow_id=taskflow_id,
-                    project_id=project_id,
-                    retry_times=0,
-                ),
+                kwargs={
+                    "engine_ver": engine_ver,
+                    "node_id": node_id,
+                    "node_version": node_version,
+                    "callback_data": callback_data,
+                    "taskflow_id": taskflow_id,
+                    "project_id": project_id,
+                    "retry_times": 0,
+                },
                 queue="task_callback",
                 routing_key="task_callback",
                 countdown=env.ASYNC_NODE_CALLBACK_RETRY_INTERVAL,
             )
             logger.info(
-                "[node_callback] Async retry task scheduled successfully. "
-                "token: {}, engine_ver: {}, node_id: {}".format(token, engine_ver, node_id)
+                "[node_callback] outcome=async_retry_scheduled engine_ver={} taskflow_id={} node_id={} "
+                "node_version={}".format(engine_ver, taskflow_id, node_id, node_version)
             )
         except Exception as e:
             logger.exception(
-                "[node_callback] Failed to schedule async retry task. "
-                "token: {}, engine_ver: {}, node_id: {}, error: {}".format(token, engine_ver, node_id, e)
+                "[node_callback] outcome=async_retry_schedule_failed engine_ver={} taskflow_id={} node_id={} "
+                "node_version={} error_type={}".format(engine_ver, taskflow_id, node_id, node_version, type(e).__name__)
             )
 
     return JsonResponse(callback_result)
