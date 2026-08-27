@@ -12,7 +12,9 @@ echo $STATIC_DIR
 # build frontend files
 if [ -n "$1" ]; then
   cd frontend/desktop
-  npm install
+  # 必须按 lockfile 安装：npm install 会在 package.json 的版本范围内重新解析依赖，
+  # 曾导致同一份源码在不同时间构建出行为不同的产物。
+  npm ci
   npm run build -- --STATIC_ENV=dev
   cd ../..
   if [ -d "$STATIC_DIR/bk_sops" ]; then

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --config ./builds/webpack.dev.config.js",
-    "build": "cross-env NODE_ENV=production webpack --config ./builds/webpack.prod.config.js"
+    "build": "cross-env NODE_ENV=production webpack --config ./builds/webpack.prod.config.js && npm run verify:artifacts",
+    "verify:artifacts": "node ./builds/verify-build-artifacts.js"
   },
   "author": "",
   "license": "ISC",
@@ -59,7 +60,7 @@
     "xss": "^1.0.15"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
+    "@babel/core": "7.29.0",
     "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@babel/plugin-proposal-decorators": "^7.0.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
@@ -80,7 +81,7 @@
     "acorn": "^6.1.1",
     "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^8.2.6",
-    "babel-loader": "^8.0.0",
+    "babel-loader": "8.4.1",
     "babel-plugin-component": "^1.1.1",
     "babel-plugin-dynamic-import-node": "^2.3.0",
     "babel-plugin-transform-vue-jsx": "^3.7.0",
@@ -112,15 +113,15 @@
     "sass-loader": "^14.1.1",
     "script-loader": "^0.7.2",
     "style-loader": "^3.3.4",
-    "terser-webpack-plugin": "^5.3.10",
+    "terser-webpack-plugin": "5.6.0",
     "url-loader": "^4.1.1",
     "vue-content-loader": "^0.2.3",
     "vue-json-pretty": "1.8.3",
-    "vue-loader": "^15.10.1",
-    "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4",
+    "vue-loader": "15.11.1",
+    "webpack": "5.106.2",
+    "webpack-cli": "5.1.4",
     "webpack-dev-server": "^5.0.4",
-    "webpack-merge": "^5.10.0",
+    "webpack-merge": "5.10.0",
     "worker-loader": "^3.0.8",
     "write-file-webpack-plugin": "^4.3.2"
   },
