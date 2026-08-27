@@ -19,6 +19,9 @@
  * 这类组件 render 返回 undefined，Vue 会静默替换成空注释节点——页面整块空白、无 JS 报错、不发任何请求，
  * 只能靠人工点页面才能发现，因此必须在构建阶段卡住。
  *
+ * 已知触发条件：terser 5.51.1 会让 TemplateList/index.vue 出现该问题，5.47.1 正常。
+ * terser 由 terser-webpack-plugin 以范围依赖引入，因此 package.json 把它锁成精确版本。
+ *
  * 用法：
  *   node builds/verify-build-artifacts.js [产物目录]
  * 目录默认为 builds/../static，也可指向解包后的发布包目录，用于校验已产出的 tar 包。
@@ -145,8 +148,11 @@ function main () {
             console.error(`      ${item}`)
         }
     }
-    console.error(`\n  共 ${total} 处。处置建议：清理 node_modules 与构建缓存，用 npm ci 按 lockfile 重装依赖后重新构建；`)
-    console.error('  若重建后仍复现，请对比构建工具链（webpack / terser-webpack-plugin / vue-loader）的实际安装版本。\n')
+    console.error(`\n  共 ${total} 处。首先确认 terser 的实际安装版本：`)
+    console.error('      node -p "require(\'terser/package.json\').version"   # 期望与 package.json 中锁定的版本一致')
+    console.error('  若不一致，说明依赖解析没有按 package.json 生效（例如构建机 npm 版本过低、读不懂 lockfileVersion 3），')
+    console.error('  需清理 node_modules 与 npm 缓存后重装；能用 npm ci 的环境优先用 npm ci。')
+    console.error('  若版本一致仍复现，再对比 webpack / terser-webpack-plugin / vue-loader 的实际安装版本。\n')
     process.exit(1)
 }
 
