@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -10,9 +9,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import env
+from unittest.mock import MagicMock, patch
+
 from django.test import TestCase
-from mock import MagicMock, patch
+
+import env
 
 # 兜底注入 env 中的 nodemgr 配置
 if not getattr(env, "BK_NODEMGR_WEB_URL", None):
@@ -20,17 +21,16 @@ if not getattr(env, "BK_NODEMGR_WEB_URL", None):
 if not getattr(env, "BK_NODEMGR_DEFAULT_PROXY_INFO", None):
     env.BK_NODEMGR_DEFAULT_PROXY_INFO = ""
 
-from pipeline_plugins.components.collections.sites.open.nodemgr.base import (  # noqa: E402
+from pipeline_plugins.components.collections.sites.open.nodemgr.base import (
     NodemgrBaseService,
     split_ip_list,
 )
-from pipeline_plugins.components.collections.sites.open.nodemgr.operate_node.v1_0 import (  # noqa: E402
+from pipeline_plugins.components.collections.sites.open.nodemgr.operate_node.v1_0 import (
     NodemgrOperateNodeService,
 )
-from pipeline_plugins.components.collections.sites.open.nodemgr.operate_plugin.v1_0 import (  # noqa: E402
+from pipeline_plugins.components.collections.sites.open.nodemgr.operate_plugin.v1_0 import (
     NodemgrOperatePluginService,
 )
-
 
 GET_CLIENT_BY_USER = (
     "pipeline_plugins.components.collections.sites.open.nodemgr.base.BKNodemgrClient"

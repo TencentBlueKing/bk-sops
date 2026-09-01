@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -11,57 +10,54 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
+from django.utils import translation
+
 import env
-import ujson as json
-
-from api.client import BKComponentClient
+from packages.bkapi.bk_nodemgr.client import Client as BKNodemgrApiClient
 
 
-class BKNodemgrClient(BKComponentClient):
-    def __init__(self, *args, **kwargs):
-        super(BKNodemgrClient, self).__init__(*args, **kwargs)
+class BKNodemgrClient(BKNodemgrApiClient):
+    """Nodemgr API 网关 client。
 
-        api_entry = getattr(env, "BK_NODEMGR_API_ENTRY", "") or ""
-        if not api_entry:
+    继承 packages/bkapi/bk_nodemgr SDK Client, 走统一 API 网关;
+    保留原直连版的方法签名作为薄封装, 调用方无需感知底层变更。
+    """
+
+    def __init__(self, username=None, tenant_id=None, stage=None):
+        # 统一走 API 网关: 网关地址由 BK_API_URL_TMPL 模板解析,
+        # 如 http://bkapi.xxx.com/api/{api_name} -> http://bkapi.xxx.com/api/bk-nodemgr/{stage}
+        endpoint = getattr(settings, "BK_API_URL_TMPL", "") or env.BK_APIGW_URL_TMPL
+        if not endpoint:
             raise RuntimeError(
-                "BK_NODEMGR_API_ENTRY is not configured; please set the environment "
+                "BK_API_URL_TMPL is not configured; please set the environment "
                 "variable before using the Nodemgr plugin."
             )
-        self.base_url = api_entry.rstrip("/")
-        # app_code / app_secret 已由父类 BKComponentClient.__init__ 处理，
-        # 默认回落到 settings.APP_CODE / settings.SECRET_KEY，无需在此覆盖。
+        super().__init__(
+            stage=stage or getattr(settings, "BK_APIGW_STAGE_NAME", "prod"),
+            endpoint=endpoint,
+        )
 
-    def _pre_process_headers(self, headers):
-        """使用 X-Bkapi-Authorization header 传递认证信息，而非注入 body
-
-        BKComponentClient._request 会使用 _pre_process_headers 的返回值，
-        因此既可以原地修改 headers，也可以返回新的 dict。
-        """
-        # in-place 设置必要 header
-        if "Content-Type" not in headers:
-            headers["Content-Type"] = "application/json"
-        headers["blueking-language"] = self.language
-        if self.use_test_env:
-            headers["x-use-test-env"] = "1"
-
-        auth_info = {
-            "bk_app_code": self.app_code,
-            "bk_app_secret": self.app_secret,
+        auth = {
+            "bk_app_code": settings.APP_CODE,
+            "bk_app_secret": settings.SECRET_KEY,
         }
-        if self.username:
-            auth_info["bk_username"] = self.username
-        headers["X-Bkapi-Authorization"] = json.dumps(auth_info)
-        return headers
+        if username:
+            auth["bk_username"] = username
+        self.update_bkapi_authorization(**auth)
 
-    def _pre_process_data(self, data):
-        """不在 body 中注入认证字段，认证已通过 header 传递"""
-        pass
+        # 多租户场景下透传租户 ID
+        if tenant_id:
+            self.update_headers({"X-Bk-Tenant-Id": str(tenant_id)})
+
+        # 与其他蓝鲸组件调用保持一致: 透传当前语言
+        language = translation.get_language()
+        if language:
+            self.update_headers({"blueking-language": language})
 
     # ========== Info APIs ==========
     def networkarea_list(self, offset=0, limit=1000):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/topo/networkarea/list",
+        return self.api.networkarea_list(
             data={
                 "page": {
                     "offset": offset,
@@ -71,9 +67,7 @@ class BKNodemgrClient(BKComponentClient):
         )
 
     def networkunit_list(self, networkarea_id: int, offset=0, limit=1000):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/topo/networkunit/list/brief",
+        return self.api.networkunit_list(
             data={
                 "page": {
                     "offset": offset,
@@ -88,9 +82,7 @@ class BKNodemgrClient(BKComponentClient):
             ipv4_list = []
         if ipv6_list is None:
             ipv6_list = []
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/topo/host/list",
+        return self.api.host_list(
             data={
                 "page": {
                     "offset": offset,
@@ -108,9 +100,7 @@ class BKNodemgrClient(BKComponentClient):
         )
 
     def package_list(self, node_role="agent", offset=0, limit=1000, plugin_pkg_name=None):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/package/release/{node_role}/list/brief",
+        return self.api.package_list(
             data={
                 "page": {
                     "offset": offset,
@@ -122,32 +112,27 @@ class BKNodemgrClient(BKComponentClient):
                     "name": [plugin_pkg_name] if plugin_pkg_name else [],
                 },
             },
+            path_params={"node_role": node_role},
         )
 
     def package_distinct(self, node_role="agent"):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/package/release/{node_role}/distinct",
+        return self.api.package_distinct(
             data={
                 "generation": 2,
                 "exact_include_conditions": {"enabled": [True]},
                 "distinct_field": {"os_type": True}
             },
+            path_params={"node_role": node_role},
         )
 
     def public_key_get(self):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/cipher/rsa/get_public_key",
-            data={},
-        )
+        return self.api.public_key_get(data={})
 
     def networkunit_recommand(self, hosts=None):
+        # SDK 资源名为 networkunit_recommend, 此处保留原直连版方法名(含拼写)以兼容既有调用方
         if hosts is None:
             hosts = []
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/topo/networkunit/recommend_by_network_segment",
+        return self.api.networkunit_recommend(
             data={
                 "items": hosts,
             },
@@ -155,75 +140,65 @@ class BKNodemgrClient(BKComponentClient):
 
     # ========== Node Agent APIs ==========
     def node_install_check(self, hosts, node_role="agent"):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/{node_role}/install_check",
+        return self.api.node_install_check(
             data={
                 "host": hosts,
             },
+            path_params={"node_role": node_role},
         )
 
     def node_install(self, hosts, node_role="agent"):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/{node_role}/install",
+        return self.api.node_install(
             data={
                 "host": hosts,
                 "target_version": [],
                 "is_manual": False,
             },
+            path_params={"node_role": node_role},
         )
 
     def node_upgrade(self, hosts, node_role="agent"):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/{node_role}/upgrade",
+        return self.api.node_upgrade(
             data={
                 "host": hosts,
             },
+            path_params={"node_role": node_role},
         )
 
     def node_restart(self, hosts, node_role="agent"):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/{node_role}/restart",
+        return self.api.node_restart(
             data={
                 "host": hosts,
             },
+            path_params={"node_role": node_role},
         )
 
     def node_reconfig(self, hosts, node_role="agent"):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/{node_role}/reconfig",
+        return self.api.node_reconfig(
             data={
                 "host": hosts,
             },
+            path_params={"node_role": node_role},
         )
 
     def node_uninstall(self, hosts, node_role="agent"):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/{node_role}/uninstall",
+        return self.api.node_uninstall(
             data={
                 "host": hosts,
             },
+            path_params={"node_role": node_role},
         )
 
     # ========== Plugin APIs ==========
     def plugin_install(self, plugins):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/plugin/install",
+        return self.api.plugin_install(
             data={
                 "plugin": plugins,
             },
         )
 
     def plugin_uninstall(self, plugins):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/plugin/uninstall",
+        return self.api.plugin_uninstall(
             data={
                 "plugin": plugins,
             },
@@ -234,9 +209,7 @@ class BKNodemgrClient(BKComponentClient):
             group = ["default"]
         if biz_id is None:
             biz_id = []
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/plugin/list",
+        return self.api.plugin_list(
             data={
                 "page": {
                     "offset": offset,
@@ -255,9 +228,7 @@ class BKNodemgrClient(BKComponentClient):
         if page:
             normalized_page.update({k: v for k, v in page.items() if v is not None})
 
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/workflow/operation/list",
+        return self.api.node_workflow_operation_list(
             data={
                 "workflow_id": workflow_id,
                 "only_count": False,
@@ -270,9 +241,7 @@ class BKNodemgrClient(BKComponentClient):
         if page:
             normalized_page.update({k: v for k, v in page.items() if v is not None})
 
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/plugin/workflow/operation/list",
+        return self.api.plugin_workflow_operation_list(
             data={
                 "workflow_id": workflow_id,
                 "only_count": False,
@@ -281,18 +250,14 @@ class BKNodemgrClient(BKComponentClient):
         )
 
     def node_workflow_operation_instance_log_get(self, oper_inst_id):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/node/workflow/operation/instance/log/get",
+        return self.api.node_workflow_operation_instance_log_get(
             data={
                 "oper_inst_id": oper_inst_id,
             },
         )
 
     def plugin_workflow_operation_instance_log_get(self, oper_inst_id):
-        return self._request(
-            method="post",
-            url=f"{self.base_url}/api/v3/plugin/workflow/operation/instance/log/get",
+        return self.api.plugin_workflow_operation_instance_log_get(
             data={
                 "oper_inst_id": oper_inst_id,
             },
