@@ -18,6 +18,7 @@ from gcloud import err_code
 from gcloud.taskflow3.domains.dispatchers.node import NodeCommandDispatcher
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
+from pipeline_web.parser.format import format_web_data_to_pipeline_for_node
 
 
 class GetNodeDataV2TestCase(TestCase):
@@ -67,9 +68,33 @@ class GetNodeDataV2TestCase(TestCase):
     def test_act_not_started(self):
         username = "username"
         component_code = "component_code"
-        subprocess_stack = ["1"]
+        subprocess_stack = []
         loop = 1
         pipeline_instance = MagicMock()
+        pipeline_instance.execution_data = {
+            "id": "pipeline",
+            "constants": {},
+            "outputs": [],
+            "activities": {
+                "node_id": {
+                    "id": "node_id",
+                    "type": "ServiceActivity",
+                    "component": {"code": "sleep_timer", "data": {}, "version": "legacy"},
+                    "error_ignorable": False,
+                    "skippable": True,
+                    "retryable": True,
+                    "incoming": "flow_start",
+                    "outgoing": "flow_end",
+                }
+            },
+            "gateways": {},
+            "flows": {
+                "flow_start": {"id": "flow_start", "source": "start", "target": "node_id"},
+                "flow_end": {"id": "flow_end", "source": "node_id", "target": "end"},
+            },
+            "start_event": {"id": "start", "type": "EmptyStartEvent", "incoming": "", "outgoing": "flow_start"},
+            "end_event": {"id": "end", "type": "EmptyEndEvent", "incoming": "flow_end", "outgoing": ""},
+        }
         project_id = 1
         kwargs = {"pipeline_instance": pipeline_instance, "project_id": project_id}
 
@@ -98,25 +123,39 @@ class GetNodeDataV2TestCase(TestCase):
             with patch(TASKFLOW_DISPATCHERS_NODE_BAMBOO_API, bamboo_api):
                 with patch(TASKFLOW_DISPATCHERS_NODE_GET_PIPELINE_CONTEXT, get_pipeline_context):
                     with patch(TASKFLOW_DISPATCHERS_NODE_SYSTEM_OBJ, system_obj):
-                        with patch(TASKFLOW_CUSTOM_PREVIEW_NODE_INPUTS, preview_node_inputs_result):
-                            node_data = dispatcher.get_node_data_v2(
-                                username=username,
-                                component_code=component_code,
-                                subprocess_stack=subprocess_stack,
-                                loop=loop,
-                                **kwargs
-                            )
+                        with patch(
+                            "gcloud.taskflow3.domains.dispatchers.node.preview_node_inputs", preview_node_inputs_result
+                        ):
+                            with patch(
+                                "gcloud.taskflow3.domains.dispatchers.node.format_web_data_to_pipeline_for_node",
+                                wraps=format_web_data_to_pipeline_for_node,
+                            ) as formatter:
+                                node_data = dispatcher.get_node_data_v2(
+                                    username=username,
+                                    component_code=component_code,
+                                    subprocess_stack=subprocess_stack,
+                                    loop=loop,
+                                    **kwargs
+                                )
 
         bamboo_api.get_children_states.assert_called_once_with(runtime=runtime, node_id=dispatcher.node_id)
 
         dispatcher._get_node_info.assert_called_once_with(
             node_id=dispatcher.node_id, pipeline=pipeline_instance.execution_data, subprocess_stack=subprocess_stack
         )
+        formatter.assert_called_once_with(
+            pipeline_instance.execution_data,
+            node_id=dispatcher.node_id,
+            subprocess_stack=subprocess_stack,
+        )
+        preview_node_inputs_result.assert_called_once()
+        preview_pipeline = preview_node_inputs_result.call_args[1]["pipeline"]
+        self.assertEqual(set(preview_pipeline["activities"]), {dispatcher.node_id})
         dispatcher._format_outputs.assert_called_once_with(
             outputs={},
             component_code=component_code,
             pipeline_instance=pipeline_instance,
-            subprocess_stack=["1"],
+            subprocess_stack=subprocess_stack,
         )
         self.assertEqual(
             node_data,

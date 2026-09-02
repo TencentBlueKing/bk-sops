@@ -15,7 +15,7 @@ import json
 
 from django.test import TestCase
 
-from pipeline_web.parser.format import format_web_data_to_pipeline
+from pipeline_web.parser.format import format_web_data_to_pipeline, format_web_data_to_pipeline_for_node
 
 web_tree = json.loads(
     """
@@ -2560,6 +2560,59 @@ class FormatWebDataToPipelineTestCase(TestCase):
         得到预渲染变量key列表
         """
         self.assertEqual(format_web_data_to_pipeline(web_tree), pipeline_tree)
+
+    def test_format_web_data_to_pipeline_for_root_node_only(self):
+        node_id = "nac621f53104387ebc893f3063d4656b"
+        formatted = format_web_data_to_pipeline_for_node(web_tree, node_id)
+
+        self.assertEqual(formatted["data"], pipeline_tree["data"])
+        self.assertEqual(set(formatted["activities"]), {node_id})
+        self.assertEqual(formatted["activities"][node_id], pipeline_tree["activities"][node_id])
+        self.assertIn("data", web_tree["activities"][node_id]["component"])
+
+    def test_format_web_data_to_pipeline_for_nested_node_path_only(self):
+        node_id = "ne44c8349f1b3d48bc7c0f82d5ff40bd"
+        subprocess_stack = [
+            "n635e9dbdd4731b7922d2285032e873f",
+            "nab4fa758628344f9d7c3435d62571f4",
+            "n4361d55c49f3b8fbdae08ac24031547",
+        ]
+
+        formatted = format_web_data_to_pipeline_for_node(web_tree, node_id, subprocess_stack)
+        expected_pipeline = pipeline_tree
+        actual_pipeline = formatted
+
+        for subprocess_id in subprocess_stack:
+            self.assertEqual(actual_pipeline["data"], expected_pipeline["data"])
+            self.assertEqual(set(actual_pipeline["activities"]), {subprocess_id})
+            actual_subprocess = actual_pipeline["activities"][subprocess_id]
+            expected_subprocess = expected_pipeline["activities"][subprocess_id]
+            self.assertEqual(
+                {key: value for key, value in actual_subprocess.items() if key != "pipeline"},
+                {key: value for key, value in expected_subprocess.items() if key != "pipeline"},
+            )
+            actual_pipeline = actual_subprocess["pipeline"]
+            expected_pipeline = expected_subprocess["pipeline"]
+
+        self.assertEqual(actual_pipeline["data"], expected_pipeline["data"])
+        self.assertEqual(set(actual_pipeline["activities"]), {node_id})
+        self.assertEqual(actual_pipeline["activities"][node_id], expected_pipeline["activities"][node_id])
+
+    def test_format_web_data_to_pipeline_for_subprocess_node_only(self):
+        node_id = "n635e9dbdd4731b7922d2285032e873f"
+
+        formatted = format_web_data_to_pipeline_for_node(web_tree, node_id)
+        actual_subprocess = formatted["activities"][node_id]
+        expected_subprocess = pipeline_tree["activities"][node_id]
+
+        self.assertEqual(formatted["data"], pipeline_tree["data"])
+        self.assertEqual(set(formatted["activities"]), {node_id})
+        self.assertEqual(
+            {key: value for key, value in actual_subprocess.items() if key != "pipeline"},
+            {key: value for key, value in expected_subprocess.items() if key != "pipeline"},
+        )
+        self.assertEqual(actual_subprocess["pipeline"]["data"], expected_subprocess["pipeline"]["data"])
+        self.assertEqual(actual_subprocess["pipeline"]["activities"], {})
 
     def test_error_ignorable_node_is_skippable_for_legacy_pipeline_tree(self):
         legacy_web_tree = {

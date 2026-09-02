@@ -39,7 +39,7 @@ from gcloud.taskflow3.utils import format_pipeline_status
 from gcloud.tasktmpl3.domains.constants import preview_node_inputs
 from gcloud.utils.handlers import handle_plain_log
 from pipeline_web.parser import WebPipelineAdapter
-from pipeline_web.parser.format import format_web_data_to_pipeline
+from pipeline_web.parser.format import format_web_data_to_pipeline_for_node
 
 from .base import EngineCommandDispatcher, ensure_return_is_dict
 
@@ -570,7 +570,11 @@ class NodeCommandDispatcher(EngineCommandDispatcher):
                     }
                 )
 
-                formatted_pipeline = format_web_data_to_pipeline(pipeline_instance.execution_data)
+                formatted_pipeline = format_web_data_to_pipeline_for_node(
+                    pipeline_instance.execution_data,
+                    node_id=self.node_id,
+                    subprocess_stack=subprocess_stack,
+                )
                 try:
                     preview_inputs = preview_node_inputs(
                         runtime=runtime,
