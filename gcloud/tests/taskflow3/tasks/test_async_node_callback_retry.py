@@ -16,6 +16,7 @@ from types import SimpleNamespace
 from django.test import SimpleTestCase
 from mock import MagicMock, patch
 
+import env
 from gcloud.taskflow3.celery.tasks import async_node_callback_retry
 
 
@@ -91,8 +92,23 @@ class AsyncNodeCallbackRetryTestCase(SimpleTestCase):
     def test_retry_scheduled_log_does_not_repeat_traceback(self):
         current_state = SimpleNamespace(version=self.node_version, name="RUNNING", skip=False)
 
-        _, logs = self._run_retry(current_state, retry_times=0)
+        with patch.object(async_node_callback_retry, "apply_async") as mock_apply_async:
+            _, logs = self._run_retry(current_state, retry_times=0)
 
         self.assertIn("outcome=retry_scheduled", logs)
         self.assertIn("error_reason=sleep_process_missing", logs)
         self.assertNotIn("Traceback", logs)
+        mock_apply_async.assert_called_once_with(
+            kwargs={
+                "engine_ver": self.engine_ver,
+                "node_id": self.node_id,
+                "node_version": self.node_version,
+                "callback_data": {"status": 3},
+                "taskflow_id": self.taskflow_id,
+                "project_id": self.project_id,
+                "retry_times": 1,
+            },
+            queue="task_callback",
+            routing_key="task_callback",
+            countdown=env.ASYNC_NODE_CALLBACK_RETRY_INTERVAL,
+        )
