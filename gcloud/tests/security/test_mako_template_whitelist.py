@@ -43,6 +43,34 @@ _HAS_FRAME_HARDENING = hasattr(_engine_mako_safety, "FRAME_INTROSPECTION_ATTRS")
 )
 
 
+def _probe_alwayson_hardening():
+    """探测已安装引擎是否已把危险属性/保留命名空间链下沉到 always-on 层。
+
+    直接用 always-on 的 ``SingleLineNodeVisitor`` 跑 ``${obj.os}``：加固后必抛异常。
+    """
+    try:
+        from bamboo_engine.utils.mako_safety import SingleLinCodeExtractor, SingleLineNodeVisitor
+        from bamboo_engine.utils.mako_utils.checker import check_mako_template_safety
+        from bamboo_engine.utils.mako_utils.exceptions import ForbiddenMakoTemplateException
+    except Exception:
+        return False
+    try:
+        check_mako_template_safety("${obj.os}", SingleLineNodeVisitor(), SingleLinCodeExtractor())
+        return False
+    except ForbiddenMakoTemplateException:
+        return True
+    except Exception:
+        return False
+
+
+# always-on 收紧（危险属性 + 保留命名空间链，堵住 off/warn 的模块反向 pivot）落在引擎侧
+# bamboo-pipeline 3.24.17 / bamboo-engine PR#284。装上后下面这组 off 模式不变量才生效；
+# 当前 pin（3.24.16）未装到时自动 skip。
+_HAS_ALWAYSON_HARDENING = _probe_alwayson_hardening()
+# 注入模块 deny-list（``filter_import_modules``）同 PR#284。
+_HAS_IMPORT_DENYLIST = hasattr(_engine_sandbox, "filter_import_modules")
+
+
 class MakoNameWhitelistEnforceTestCase(TestCase):
     """``enforce`` 模式：Mako 保留命名空间被拦，业务模式不受影响。"""
 
@@ -158,6 +186,10 @@ class MakoNameWhitelistOffTestCase(TestCase):
     def tearDown(self):
         BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = self._original_mode
 
+    @skipUnless(
+        not _HAS_ALWAYSON_HARDENING,
+        "引擎已把危险属性/保留命名空间链下沉 always-on，off 模式不再执行 PoC，见 MakoAlwaysOnHardeningTestCase",
+    )
     def test_self_module_namespace_executes_when_off(self):
         payload = '${self.module.cache.util.os.popen("echo OFF_MODE").read()}'
         rendered = Template({"probe": payload}).render({})
@@ -238,3 +270,103 @@ class MakoGeneratorFrameGadgetTestCase(TestCase):
         # 不能误伤安全内建与 C 扩展惰性 import 依赖的 __import__
         for name in ("len", "str", "range", "int", "__import__"):
             self.assertIn(name, rb)
+
+
+@skipUnless(_HAS_ALWAYSON_HARDENING, "当前安装的引擎未把危险属性/保留命名空间链下沉 always-on（需 bamboo-pipeline 3.24.17+）")
+class MakoAlwaysOnHardeningTestCase(TestCase):
+    """always-on 收紧回归：off 模式也拦住模块反向 pivot 与 ``self.module...`` 链。
+
+    此前危险属性名与保留命名空间链只在 enforce 白名单里挡，``off`` 模式下
+    ``${self.module.cache.util.os.popen(...)}`` / ``${os.path.os.system(...)}`` /
+    ``${json.codecs.builtins.exec(...)}`` 可反向 pivot 到真实模块拿 RCE。下沉 always-on 后
+    三档全部 inert，且与白名单模式无关。
+    """
+
+    def setUp(self):
+        self._original_mode = BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE
+
+    def tearDown(self):
+        BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = self._original_mode
+
+    def test_self_module_chain_blocked_in_all_modes(self):
+        payload = '${self.module.cache.util.os.popen("echo PWNED").read()}'
+        for mode in ("off", "warn", "enforce"):
+            with self.subTest(mode=mode):
+                BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = mode
+                rendered = Template({"probe": payload}).render({})
+                self.assertEqual(rendered["probe"], payload)
+                self.assertNotEqual(rendered["probe"].strip(), "PWNED")
+
+    def test_module_reverse_pivot_blocked_in_all_modes(self):
+        original = BambooSettings.MAKO_SANDBOX_IMPORT_MODULES
+        BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = {
+            "datetime": "datetime",
+            "re": "re",
+            "os.path": "os.path",
+            "json": "json",
+        }
+        payloads = [
+            '${os.path.os.system("echo PWNED")}',
+            '${datetime.sys.modules["os"].popen("echo PWNED").read()}',
+            '${json.codecs.builtins.exec("import os")}',
+        ]
+        try:
+            for mode in ("off", "warn", "enforce"):
+                for p in payloads:
+                    with self.subTest(mode=mode, payload=p):
+                        BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = mode
+                        self.assertEqual(Template({"x": p}).render({})["x"], p)
+        finally:
+            BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = original
+
+    def test_reserved_namespace_chain_blocked_in_all_modes(self):
+        for mode in ("off", "warn", "enforce"):
+            for p in ("${context.lookup}", "${local.something}", "${parent.foo}"):
+                with self.subTest(mode=mode, payload=p):
+                    BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = mode
+                    self.assertEqual(Template({"p": p}).render({})["p"], p)
+
+    def test_business_patterns_still_render_off_mode(self):
+        BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = "off"
+        cases = [
+            ("${name.upper()}", {"name": "hello"}, "HELLO"),
+            ("${obj._module[0]['ip']}", {"obj": type("B", (), {"_module": [{"ip": "1.1.1.1"}]})()}, "1.1.1.1"),
+            ("${[x * 2 for x in items]}", {"items": [1, 2]}, "[2, 4]"),
+        ]
+        for tpl, ctx, expected in cases:
+            with self.subTest(tpl=tpl):
+                self.assertEqual(Template(tpl).render(ctx), expected)
+
+
+@skipUnless(_HAS_IMPORT_DENYLIST, "当前安装的引擎未提供注入模块 deny-list（需 bamboo-pipeline 3.24.17+）")
+class MakoImportDenylistTestCase(TestCase):
+    """注入模块 deny-list 回归：危险模块永远进不了 Mako 沙箱。"""
+
+    def test_filter_import_modules_rejects_dangerous_keeps_safe(self):
+        src = {
+            "os": "os",
+            "subprocess": "subprocess",
+            "operator": "operator",
+            "pickle": "pickle",
+            "importlib": "importlib",
+            "os.path": "os.path",
+            "json": "json",
+            "re": "re",
+        }
+        self.assertEqual(set(_engine_sandbox.filter_import_modules(src)), {"os.path", "json", "re"})
+
+    def test_sandbox_get_does_not_expose_dangerous_module(self):
+        original = BambooSettings.MAKO_SANDBOX_IMPORT_MODULES
+        BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = {
+            "os": "os",
+            "subprocess": "subprocess",
+            "os.path": "os.path",
+            "json": "json",
+        }
+        try:
+            data = _engine_sandbox.get()
+            self.assertNotIn("subprocess", data)
+            self.assertIsNone(getattr(data.get("os"), "system", None))
+            self.assertIn("json", data)
+        finally:
+            BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = original
