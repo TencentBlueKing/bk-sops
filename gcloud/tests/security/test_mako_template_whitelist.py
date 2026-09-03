@@ -69,6 +69,7 @@ class MakoNameWhitelistEnforceTestCase(TestCase):
 
     def test_bare_caller_and_user_module_attr_render(self):
         # ``${caller}`` 会被 ``Template.render`` 按 context 键短路，AST 走不到 visitor。
+        self.assertEqual(Template("${caller}").render({"caller": "alice"}), "alice")
         # 用 ``${parent + ''}`` 迫使白名单检查命中（与引擎 Task 3 一致）。
         self.assertEqual(Template("${parent + ''}").render({"parent": "alice"}), "alice")
 
