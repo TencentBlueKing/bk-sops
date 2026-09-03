@@ -149,13 +149,19 @@ def create_task(request, template_id, project_id):
     if create_with_tree:
         try:
             pipeline_tree = params["pipeline_tree"]
-            for key, value in params["constants"].items():
-                if key in pipeline_tree["constants"]:
-                    constant = pipeline_tree["constants"][key]
-                    if constant.get("is_meta", False) and "meta" not in constant:
-                        meta = copy.deepcopy(constant)
-                        constant["meta"] = meta
-                    constant["value"] = value
+            params_constants = params["constants"]
+            for key, constant in pipeline_tree["constants"].items():
+                if not constant.get("is_meta", False):
+                    continue
+                # 补全 meta
+                if "meta" not in constant:
+                    constant["meta"] = copy.deepcopy(constant)
+                # 调用方传了参：以传入值为准
+                if key in params_constants:
+                    constant["value"] = params_constants[key]
+                else:
+                    # 未传参：回退到默认值
+                    constant["value"] = constant["value"].get("default") or constant["value"].get("default_text", "")
             standardize_pipeline_node_name(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
         except Exception as e:
