@@ -478,6 +478,7 @@ MAKO_SANDBOX_SHIELD_WORDS = [
 # format: module_path: alias
 MAKO_SANDBOX_IMPORT_MODULES = {
     "datetime": "datetime",
+    "datetime.datetime": "datetime.datetime",
     "re": "re",
     "hashlib": "hashlib",
     "random": "random",
@@ -496,8 +497,13 @@ if env.SOPS_MAKO_IMPORT_MODULES:
             raise ImportError(err)
         MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
 
+# 渲染期注入的系统根名；不要把 ``_module`` / ``caller`` 写进 extra 名单。
+MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = frozenset({"_system", "_loop"})
+
 BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = MAKO_SANDBOX_IMPORT_MODULES
 BambooSettings.MAKO_SANDBOX_SHIELD_WORDS = MAKO_SANDBOX_SHIELD_WORDS
+BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = getattr(env, "SOPS_MAKO_WHITELIST_MODE", "enforce")
+BambooSettings.MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = MAKO_TEMPLATE_NAME_EXTRA_WHITELIST
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
