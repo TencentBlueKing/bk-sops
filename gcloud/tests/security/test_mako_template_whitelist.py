@@ -27,9 +27,20 @@ bk-sops 端 Mako 根标识符白名单回归。
    未来一旦上游 deny-list 加强了对保留命名空间的拦截，能立刻提示重新评估白名单的必要性。
 """
 
+from unittest import skipUnless
+
 from bamboo_engine.config import Settings as BambooSettings
 from bamboo_engine.template import Template
+from bamboo_engine.template import sandbox as _engine_sandbox
+from bamboo_engine.utils import mako_safety as _engine_mako_safety
 from django.test import TestCase, override_settings
+
+# 生成器帧反射 RCE 的加固落在引擎侧（bamboo-pipeline 3.24.17 / bamboo-engine 2.6.6+）。
+# bk-sops 只钉不变量：装上含加固的引擎后，下面这条通用链路必须被拦死。未装到（当前 pin
+# 仍是 3.24.16）时用例自动 skip，避免对旧引擎误报。
+_HAS_FRAME_HARDENING = hasattr(_engine_mako_safety, "FRAME_INTROSPECTION_ATTRS") and hasattr(
+    _engine_sandbox, "restricted_builtins"
+)
 
 
 class MakoNameWhitelistEnforceTestCase(TestCase):
@@ -183,3 +194,47 @@ class MakoNameWhitelistConfigBindingTestCase(TestCase):
         self.assertEqual(settings.MAKO_SANDBOX_IMPORT_MODULES, {})
         self.assertNotIn("datetime.datetime", settings.MAKO_SANDBOX_IMPORT_MODULES)
         self.assertNotIn("datetime", settings.MAKO_SANDBOX_IMPORT_MODULES)
+
+
+@skipUnless(_HAS_FRAME_HARDENING, "当前安装的引擎未包含生成器帧反射加固（需 bamboo-pipeline 3.24.17+）")
+class MakoGeneratorFrameGadgetTestCase(TestCase):
+    """生成器帧反射 RCE 回归。
+
+    ``${(i for i in [1]).gi_frame.f_builtins['eval'](...)}`` 经生成器帧拿到**真实**
+    builtins，再用非 dunder 下标 ``['eval']`` 取执行原语——``gi_frame`` / ``f_builtins``
+    都不是 ``__`` 前缀，也不在旧 deny-list 里，因此 off/warn/enforce 三档全部裸奔，且与
+    ``MAKO_SANDBOX_IMPORT_MODULES`` 配置无关。
+
+    引擎加固后本仓钉两条不变量：
+    1. 该链路在三种模式下都被 inert（原样回显，不执行）；
+    2. 渲染期受限 builtins 已摘掉 eval/exec 等直接执行原语（纵深防御，防未来新反射路径）。
+    """
+
+    def setUp(self):
+        self._original_mode = BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE
+
+    def tearDown(self):
+        BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = self._original_mode
+
+    def test_generator_frame_gadget_is_inert_in_all_modes(self):
+        payload = "${(i for i in [1]).gi_frame.f_builtins['eval']" "(\"__import__('os').popen('echo PWNED').read()\")}"
+        for mode in ("off", "warn", "enforce"):
+            with self.subTest(mode=mode):
+                BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = mode
+                rendered = Template({"probe": payload}).render({})
+                self.assertEqual(rendered["probe"], payload)
+                self.assertNotEqual(rendered["probe"].strip(), "PWNED")
+
+    def test_frame_introspection_attrs_are_blocked(self):
+        for attr in ["gi_frame", "cr_frame", "ag_frame", "f_builtins", "f_globals", "f_back"]:
+            with self.subTest(attr=attr):
+                payload = "${obj.%s}" % attr
+                self.assertEqual(Template({"p": payload}).render({})["p"], payload)
+
+    def test_render_builtins_strip_execution_primitives(self):
+        rb = _engine_sandbox.restricted_builtins()
+        for name in ("eval", "exec", "compile", "open", "input", "breakpoint"):
+            self.assertNotIn(name, rb)
+        # 不能误伤安全内建与 C 扩展惰性 import 依赖的 __import__
+        for name in ("len", "str", "range", "int", "__import__"):
+            self.assertIn(name, rb)
