@@ -149,13 +149,25 @@ def create_task(request, template_id, project_id):
     if create_with_tree:
         try:
             pipeline_tree = params["pipeline_tree"]
-            for key, value in params["constants"].items():
-                if key in pipeline_tree["constants"]:
-                    constant = pipeline_tree["constants"][key]
-                    if constant.get("is_meta", False) and "meta" not in constant:
-                        meta = copy.deepcopy(constant)
-                        constant["meta"] = meta
-                    constant["value"] = value
+            params_constants = params["constants"]
+            for key, constant in pipeline_tree["constants"].items():
+                if not constant.get("is_meta", False):
+                    if key in params_constants:
+                        constant["value"] = params_constants[key]
+                    continue
+                # 补全 meta
+                if "meta" not in constant:
+                    constant["meta"] = copy.deepcopy(constant)
+                # 调用方传了参：以传入值为准
+                if key in params_constants:
+                    constant["value"] = params_constants[key]
+                else:
+                    # 未传参：回退到默认值；constant["value"] 可能是下拉框元数据 dict，也可能是字符串/列表等已合法值
+                    if isinstance(constant.get("value"), dict):
+                        default_val = constant["value"].get("default")
+                        if default_val is None:
+                            default_val = constant["value"].get("default_text", "")
+                        constant["value"] = default_val
             standardize_pipeline_node_name(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
         except Exception as e:
