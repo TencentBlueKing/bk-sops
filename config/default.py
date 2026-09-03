@@ -497,6 +497,13 @@ if env.SOPS_MAKO_IMPORT_MODULES:
             raise ImportError(err)
         MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
 
+# 旧 pipeline 的 import_module 无法绑定类路径（如 datetime.datetime），
+# 在尚未安装带 resolve_import_object 的引擎前跳过该别名，避免进程启动/渲染崩溃。
+try:
+    from bamboo_engine.template.sandbox import resolve_import_object  # noqa: F401
+except ImportError:
+    MAKO_SANDBOX_IMPORT_MODULES.pop("datetime.datetime", None)
+
 # 渲染期注入的系统根名；不要把 ``_module`` / ``caller`` 写进 extra 名单。
 MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = frozenset({"_system", "_loop"})
 

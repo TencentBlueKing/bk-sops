@@ -170,3 +170,11 @@ class MakoNameWhitelistConfigBindingTestCase(TestCase):
             BambooSettings.MAKO_SANDBOX_IMPORT_MODULES.get("datetime.datetime"),
             "datetime.datetime",
         )
+
+    def test_datetime_datetime_alias_kept_when_resolve_import_object_available(self):
+        """引擎已提供 ``resolve_import_object`` 时，Django settings 必须保留类路径别名。"""
+        from bamboo_engine.template.sandbox import resolve_import_object  # noqa: F401
+        from django.conf import settings
+
+        self.assertIn("datetime.datetime", settings.MAKO_SANDBOX_IMPORT_MODULES)
+        self.assertEqual(settings.MAKO_SANDBOX_IMPORT_MODULES["datetime.datetime"], "datetime.datetime")
