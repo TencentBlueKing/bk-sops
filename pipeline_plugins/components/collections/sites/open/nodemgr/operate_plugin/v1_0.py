@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -13,10 +12,10 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import env
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
 
+import env
 from gcloud.conf import settings
 
 from ..base import NodemgrBaseService, split_ip_list
@@ -28,7 +27,7 @@ logger = logging.getLogger("root")
 
 class NodemgrOperatePluginService(NodemgrBaseService):
     def __init__(self, *args, **kwargs):
-        super(NodemgrOperatePluginService, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.web_url = env.BK_NODEMGR_WEB_URL
 
@@ -64,7 +63,7 @@ class NodemgrOperatePluginService(NodemgrBaseService):
         else:
             raise Exception(f"Invalid nodemgr_operation_type: {operation_type}")
 
-    def fetch_hosts(self, biz_id, hosts, username=None):
+    def fetch_hosts(self, biz_id, hosts, username=None, tenant_id=None):
         """
         根据 hosts 列表中的 inner_ip 和 networkarea_id 获取 真实的 host 信息(含bk_host_id)
 
@@ -88,10 +87,12 @@ class NodemgrOperatePluginService(NodemgrBaseService):
             if inner_ip:
                 networkarea_ip_dict[networkarea_id].append(inner_ip)
 
-        return self.list_host_by_ip(biz_id=biz_id, networkarea_ip_dict=networkarea_ip_dict, username=username)
+        return self.list_host_by_ip(
+            biz_id=biz_id, networkarea_ip_dict=networkarea_ip_dict, username=username, tenant_id=tenant_id
+        )
 
-    def do_install(self, username, data):
-        client = self.get_client(username=username)
+    def do_install(self, username, tenant_id, data):
+        client = self.get_client(username=username, tenant_id=tenant_id)
 
         biz_id = data.inputs.nodemgr_biz_id
         operation_info = data.inputs.nodemgr_op_info
@@ -99,7 +100,7 @@ class NodemgrOperatePluginService(NodemgrBaseService):
         hosts = self.wrap_hosts(data)
 
         # 获取 host 信息
-        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username)
+        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username, tenant_id=tenant_id)
 
         # 构造 install 参数
         install_plugins = []
@@ -140,8 +141,8 @@ class NodemgrOperatePluginService(NodemgrBaseService):
 
         return True
 
-    def do_uninstall(self, username, data):
-        client = self.get_client(username=username)
+    def do_uninstall(self, username, tenant_id, data):
+        client = self.get_client(username=username, tenant_id=tenant_id)
 
         biz_id = data.inputs.nodemgr_biz_id
         operation_info = data.inputs.nodemgr_op_info
@@ -149,7 +150,7 @@ class NodemgrOperatePluginService(NodemgrBaseService):
         hosts = self.wrap_hosts(data)
 
         # 获取 host 信息
-        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username)
+        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username, tenant_id=tenant_id)
 
         # 构造 uninstall 参数
         uninstall_plugins = []
@@ -191,6 +192,7 @@ class NodemgrOperatePluginService(NodemgrBaseService):
 
     def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
         operation_info = data.inputs.nodemgr_op_info
         operation_type = operation_info.get("nodemgr_operation_type", "")
@@ -198,11 +200,11 @@ class NodemgrOperatePluginService(NodemgrBaseService):
         try:
             # 根据操作类型调用不同的 API
             if operation_type == "install":
-                if not self.do_install(username=executor, data=data):
+                if not self.do_install(username=executor, tenant_id=tenant_id, data=data):
                     return False
 
             elif operation_type == "uninstall":
-                if not self.do_uninstall(username=executor, data=data):
+                if not self.do_uninstall(username=executor, tenant_id=tenant_id, data=data):
                     return False
 
             else:
@@ -223,13 +225,14 @@ class NodemgrOperatePluginService(NodemgrBaseService):
 
     def plugin_schedule(self, data, parent_data, callback_data=None):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         workflow_id = data.get_one_of_outputs("workflow_id")
 
         if not workflow_id:
             self.finish_schedule()
             return True
 
-        client = self.get_client(username=executor)
+        client = self.get_client(username=executor, tenant_id=tenant_id)
 
         # 检查 workflow 执行结果
         is_finished, is_success, success_count, failed_count, error_message = (
@@ -260,6 +263,6 @@ if env.BK_NODEMGR_ENABLE:
         name = _("插件操作")
         code = "nodemgr_operate_plugin"
         bound_service = NodemgrOperatePluginService
-        form = "%scomponents/atoms/nodemgr/operate_plugin/v1_0.js" % settings.STATIC_URL
+        form = f"{settings.STATIC_URL}components/atoms/nodemgr/operate_plugin/v1_0.js"
         version = "v1.0"
         desc = _("节点管理器插件操作（安装/升级/卸载/应用配置）")

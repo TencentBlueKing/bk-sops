@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -13,11 +12,11 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import env
-import ujson as json
 from django.utils.translation import gettext_lazy as _
 from pipeline.component_framework.component import Component
+import ujson as json
 
+import env
 from gcloud.conf import settings
 
 from ..base import NodemgrBaseService, split_ip_list
@@ -35,7 +34,7 @@ NODEMGR_DEFAULT_PROXY_INFO = {
 
 class NodemgrOperateNodeService(NodemgrBaseService):
     def __init__(self, *args, **kwargs):
-        super(NodemgrOperateNodeService, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.web_url = env.BK_NODEMGR_WEB_URL
 
@@ -145,7 +144,7 @@ class NodemgrOperateNodeService(NodemgrBaseService):
         else:
             raise Exception("Invalid nodemgr_hosts_param_mode")
 
-    def fetch_hosts(self, biz_id, hosts, username=None):
+    def fetch_hosts(self, biz_id, hosts, username=None, tenant_id=None):
         """
         根据 hosts 列表中的 inner_ip 和 networkarea_id 获取 真实的 host 信息(含bk_host_id)
 
@@ -169,10 +168,12 @@ class NodemgrOperateNodeService(NodemgrBaseService):
             if inner_ip:
                 networkarea_ip_dict[networkarea_id].append(inner_ip)
 
-        return self.list_host_by_ip(biz_id=biz_id, networkarea_ip_dict=networkarea_ip_dict, username=username)
+        return self.list_host_by_ip(
+            biz_id=biz_id, networkarea_ip_dict=networkarea_ip_dict, username=username, tenant_id=tenant_id
+        )
 
-    def do_install(self, username, data):
-        client = self.get_client(username=username)
+    def do_install(self, username, tenant_id, data):
+        client = self.get_client(username=username, tenant_id=tenant_id)
 
         biz_id = data.inputs.nodemgr_biz_id
         operation_info = data.inputs.nodemgr_op_info
@@ -287,10 +288,10 @@ class NodemgrOperateNodeService(NodemgrBaseService):
             }
             if host.get("login_mode") == "password":
                 install_host["login_password"] = self.encrypt_credit(
-                    username=username, auth_info=host.get("login_password"))
+                    username=username, tenant_id=tenant_id, auth_info=host.get("login_password"))
             elif host.get("login_mode") == "keyfile":
                 install_host["login_key_file"] = self.encrypt_credit(
-                    username=username, auth_info=host.get("login_password"))
+                    username=username, tenant_id=tenant_id, auth_info=host.get("login_password"))
             elif host.get("login_mode") == "password_vault":
                 # 密码库(TJJ)模式: login_mode 透传 password_vault，凭据由 Nodemgr 侧从密码库读取，
                 # 此处不携带 login_password / login_key_file（显式置空，避免上游用旧值）。
@@ -330,8 +331,8 @@ class NodemgrOperateNodeService(NodemgrBaseService):
 
         return True
 
-    def do_upgrade(self, username, data):
-        client = self.get_client(username=username)
+    def do_upgrade(self, username, tenant_id, data):
+        client = self.get_client(username=username, tenant_id=tenant_id)
 
         biz_id = data.inputs.nodemgr_biz_id
         operation_info = data.inputs.nodemgr_op_info
@@ -344,7 +345,7 @@ class NodemgrOperateNodeService(NodemgrBaseService):
             raise Exception(f"Invalid nodemgr_node_role: {node_role}")
 
         # 获取 host 信息
-        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username)
+        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username, tenant_id=tenant_id)
 
         # 构造 upgrade 请求
         upgrade_hosts = []
@@ -391,8 +392,8 @@ class NodemgrOperateNodeService(NodemgrBaseService):
 
         return True
 
-    def do_restart(self, username, data):
-        client = self.get_client(username=username)
+    def do_restart(self, username, tenant_id, data):
+        client = self.get_client(username=username, tenant_id=tenant_id)
 
         biz_id = data.inputs.nodemgr_biz_id
         operation_info = data.inputs.nodemgr_op_info
@@ -406,7 +407,7 @@ class NodemgrOperateNodeService(NodemgrBaseService):
             raise Exception(f"Invalid nodemgr_node_role: {node_role}")
 
         # 获取 host 信息
-        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username)
+        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username, tenant_id=tenant_id)
 
         # 构造 restart 请求
         restart_hosts = []
@@ -451,8 +452,8 @@ class NodemgrOperateNodeService(NodemgrBaseService):
 
         return True
 
-    def do_uninstall(self, username, data):
-        client = self.get_client(username=username)
+    def do_uninstall(self, username, tenant_id, data):
+        client = self.get_client(username=username, tenant_id=tenant_id)
 
         biz_id = data.inputs.nodemgr_biz_id
         operation_info = data.inputs.nodemgr_op_info
@@ -463,7 +464,7 @@ class NodemgrOperateNodeService(NodemgrBaseService):
             raise Exception(f"Invalid nodemgr_node_role: {node_role}")
 
         # 获取 host 信息
-        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username)
+        fetched_hosts_dict = self.fetch_hosts(biz_id=biz_id, hosts=hosts, username=username, tenant_id=tenant_id)
 
         # 构造 uninstall 请求
         uninstall_hosts = []
@@ -504,6 +505,7 @@ class NodemgrOperateNodeService(NodemgrBaseService):
 
     def plugin_execute(self, data, parent_data):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
 
         operation_info = data.inputs.nodemgr_op_info
         operation_type = operation_info.get("nodemgr_operation_type", "")
@@ -511,19 +513,19 @@ class NodemgrOperateNodeService(NodemgrBaseService):
         try:
             # 根据操作类型调用不同的 API
             if operation_type == "install":
-                if not self.do_install(username=executor, data=data):
+                if not self.do_install(username=executor, tenant_id=tenant_id, data=data):
                     return False
 
             elif operation_type == "upgrade":
-                if not self.do_upgrade(username=executor, data=data):
+                if not self.do_upgrade(username=executor, tenant_id=tenant_id, data=data):
                     return False
 
             elif operation_type == "restart":
-                if not self.do_restart(username=executor, data=data):
+                if not self.do_restart(username=executor, tenant_id=tenant_id, data=data):
                     return False
 
             elif operation_type == "uninstall":
-                if not self.do_uninstall(username=executor, data=data):
+                if not self.do_uninstall(username=executor, tenant_id=tenant_id, data=data):
                     return False
 
             else:
@@ -544,13 +546,14 @@ class NodemgrOperateNodeService(NodemgrBaseService):
 
     def plugin_schedule(self, data, parent_data, callback_data=None):
         executor = parent_data.inputs.executor
+        tenant_id = parent_data.get_one_of_inputs("tenant_id")
         workflow_id = data.get_one_of_outputs("workflow_id")
 
         if not workflow_id:
             self.finish_schedule()
             return True
 
-        client = self.get_client(username=executor)
+        client = self.get_client(username=executor, tenant_id=tenant_id)
 
         # 检查 workflow 执行结果
         is_finished, is_success, success_count, failed_count, error_message = (
@@ -581,6 +584,6 @@ if env.BK_NODEMGR_ENABLE:
         name = _("节点操作")
         code = "nodemgr_operate_node"
         bound_service = NodemgrOperateNodeService
-        form = "%scomponents/atoms/nodemgr/operate_node/v1_0.js" % settings.STATIC_URL
+        form = f"{settings.STATIC_URL}components/atoms/nodemgr/operate_node/v1_0.js"
         version = "v1.0"
         desc = _("节点管理器节点操作（安装/升级/重启/重配/卸载）")
