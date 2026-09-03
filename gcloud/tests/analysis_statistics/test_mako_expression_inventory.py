@@ -18,13 +18,17 @@ class AnalyzeExpressionTestCase(TestCase):
         self.assertEqual(result["unknown_roots"], ["ip_list"])
 
     def test_injected_module_and_deep_attr(self):
-        result = analyze_expression("${os.path.join(a, b)}")
+        result = analyze_expression("${os.path.join(a, b)}", import_modules={"os.path": "os.path"})
         self.assertTrue(result["uses_injected_module"])
         self.assertEqual(result["used_modules"], ["os"])
         self.assertTrue(result["has_deep_attr"])
         self.assertGreaterEqual(result["attr_depth"], 2)
         self.assertFalse(result["hits_policy"])
         self.assertEqual(result["risk_level"], "潜在unknown_root")
+
+    def test_empty_import_table_does_not_mark_os_as_injected(self):
+        result = analyze_expression("${os.path.join(a, b)}", import_modules={})
+        self.assertFalse(result["uses_injected_module"])
 
     def test_format_is_unconditional_hit_and_not_v2_matchable(self):
         result = analyze_expression('${"gamedb.{}.xzj.db".format(name)}')
@@ -111,7 +115,10 @@ class CollectTemplateExpressionsTestCase(TestCase):
             "outputs": ["${ip_list}"],
         }
 
-        rows = collect_template_expressions(tree)
+        rows = collect_template_expressions(
+            tree,
+            import_modules={"os.path": "os.path", "re": "re"},
+        )
         by_expr = {item["expr"]: item for item in rows}
 
         self.assertIn('${os.path.join(work_dir, "a")}', by_expr)

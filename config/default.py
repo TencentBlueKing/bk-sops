@@ -475,34 +475,45 @@ MAKO_SANDBOX_SHIELD_WORDS = [
     "__import__",
 ]
 
-# format: module_path: alias
-MAKO_SANDBOX_IMPORT_MODULES = {
-    "datetime": "datetime",
-    "datetime.datetime": "datetime.datetime",
-    "re": "re",
-    "hashlib": "hashlib",
-    "random": "random",
-    "time": "time",
-    "os.path": "os.path",
-    "config.mock.mock_json": "json",
-}
-
-if env.SOPS_MAKO_IMPORT_MODULES:
-    for module_name in env.SOPS_MAKO_IMPORT_MODULES.split(","):
-        try:
-            __import__(module_name)
-        except ImportError as e:
-            err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(module_name, e)
-            print(err)
-            raise ImportError(err)
-        MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
-
-# 旧 pipeline 的 import_module 无法绑定类路径（如 datetime.datetime），
-# 在尚未安装带 resolve_import_object 的引擎前跳过该别名，避免进程启动/渲染崩溃。
+# 不再预置导入表。环境管理员通过 BKAPP_SOPS_MAKO_IMPORT_MODULES 主动配置，
+# 逗号分隔；``path:alias`` 可把模块挂到不同于路径的根名。
+# 例：datetime,datetime.datetime,re,hashlib,random,time,os.path,json
+# 或：config.mock.mock_json:json
+# 类路径（datetime.datetime）需要引擎提供 resolve_import_object，否则跳过该项。
 try:
-    from bamboo_engine.template.sandbox import resolve_import_object  # noqa: F401
+    from bamboo_engine.template.sandbox import resolve_import_object as _resolve_mako_import
+
+    _HAS_RESOLVE_IMPORT_OBJECT = True
 except ImportError:
-    MAKO_SANDBOX_IMPORT_MODULES.pop("datetime.datetime", None)
+    _HAS_RESOLVE_IMPORT_OBJECT = False
+
+    def _resolve_mako_import(mod_path):
+        return importlib.import_module(mod_path)
+
+
+MAKO_SANDBOX_IMPORT_MODULES = {}
+for _raw in (getattr(env, "SOPS_MAKO_IMPORT_MODULES", "") or "").split(","):
+    _item = _raw.strip()
+    if not _item:
+        continue
+    if ":" in _item:
+        _mod_path, _alias = [part.strip() for part in _item.split(":", 1)]
+    else:
+        _mod_path = _alias = _item
+    try:
+        _resolve_mako_import(_mod_path)
+    except (ImportError, AttributeError) as e:
+        if _mod_path.count(".") and not _HAS_RESOLVE_IMPORT_OBJECT:
+            print(
+                "skip {} in BKAPP_SOPS_MAKO_IMPORT_MODULES: class path needs resolve_import_object ({})".format(
+                    _mod_path, e
+                )
+            )
+            continue
+        err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(_mod_path, e)
+        print(err)
+        raise ImportError(err)
+    MAKO_SANDBOX_IMPORT_MODULES[_mod_path] = _alias
 
 # 渲染期注入的系统根名；不要把 ``_module`` / ``caller`` 写进 extra 名单。
 MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = frozenset({"_system", "_loop"})

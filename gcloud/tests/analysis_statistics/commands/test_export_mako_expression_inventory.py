@@ -6,7 +6,7 @@ from pathlib import Path
 import factory
 from django.core.management import call_command
 from django.db.models import signals
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 from pipeline.utils.uniqid import uniqid
@@ -18,6 +18,13 @@ from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 
 
+@override_settings(
+    MAKO_SANDBOX_IMPORT_MODULES={
+        "os.path": "os.path",
+        "datetime": "datetime",
+        "datetime.datetime": "datetime.datetime",
+    }
+)
 class ExportMakoExpressionInventoryCommandTestCase(TestCase):
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):

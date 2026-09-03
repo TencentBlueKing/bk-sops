@@ -31,13 +31,6 @@ from bamboo_engine.config import Settings as BambooSettings
 from bamboo_engine.template import Template
 from django.test import TestCase, override_settings
 
-try:
-    from bamboo_engine.template.sandbox import resolve_import_object  # noqa: F401
-
-    RESOLVE_IMPORT_OBJECT_AVAILABLE = True
-except ImportError:
-    RESOLVE_IMPORT_OBJECT_AVAILABLE = False
-
 
 class MakoNameWhitelistEnforceTestCase(TestCase):
     """``enforce`` 模式：Mako 保留命名空间被拦，业务模式不受影响。"""
@@ -122,13 +115,21 @@ class MakoNameWhitelistEnforceTestCase(TestCase):
         self.assertEqual(Template("by=${_system.executor}").render(ctx), "by=alice")
 
     def test_imported_modules_render(self):
-        """``MAKO_SANDBOX_IMPORT_MODULES`` 中的别名（``datetime / os.path / json``）的
-        首段必须自动进入白名单。"""
+        """管理员通过导入表配置的别名，首段必须自动进入白名单。"""
         import datetime as _dt
 
-        out = Template('${datetime.datetime.now().strftime("%Y")}').render({})
-        self.assertEqual(out, _dt.datetime.now().strftime("%Y"))
-        self.assertEqual(Template('${os.path.join("a", "b")}').render({}), "a/b")
+        original = BambooSettings.MAKO_SANDBOX_IMPORT_MODULES
+        BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = {
+            "datetime": "datetime",
+            "datetime.datetime": "datetime.datetime",
+            "os.path": "os.path",
+        }
+        try:
+            out = Template('${datetime.datetime.now().strftime("%Y")}').render({})
+            self.assertEqual(out, _dt.datetime.now().strftime("%Y"))
+            self.assertEqual(Template('${os.path.join("a", "b")}').render({}), "a/b")
+        finally:
+            BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = original
 
 
 class MakoNameWhitelistOffTestCase(TestCase):
@@ -173,20 +174,12 @@ class MakoNameWhitelistConfigBindingTestCase(TestCase):
         # 精确策略禁止靠 extra 名单救 ``_module`` / ``caller``
         self.assertNotIn("_module", BambooSettings.MAKO_TEMPLATE_NAME_EXTRA_WHITELIST)
         self.assertNotIn("caller", BambooSettings.MAKO_TEMPLATE_NAME_EXTRA_WHITELIST)
-        if RESOLVE_IMPORT_OBJECT_AVAILABLE:
-            self.assertEqual(
-                BambooSettings.MAKO_SANDBOX_IMPORT_MODULES.get("datetime.datetime"),
-                "datetime.datetime",
-            )
-        else:
-            self.assertNotIn("datetime.datetime", BambooSettings.MAKO_SANDBOX_IMPORT_MODULES)
+        # 导入表默认空，只认 BKAPP_SOPS_MAKO_IMPORT_MODULES
+        self.assertEqual(BambooSettings.MAKO_SANDBOX_IMPORT_MODULES, {})
 
-    def test_datetime_datetime_alias_kept_when_resolve_import_object_available(self):
-        """引擎已提供 ``resolve_import_object`` 时，Django settings 必须保留类路径别名。"""
-        if not RESOLVE_IMPORT_OBJECT_AVAILABLE:
-            self.skipTest("resolve_import_object is not available in this bamboo-engine build")
-
+    def test_default_import_table_is_empty(self):
         from django.conf import settings
 
-        self.assertIn("datetime.datetime", settings.MAKO_SANDBOX_IMPORT_MODULES)
-        self.assertEqual(settings.MAKO_SANDBOX_IMPORT_MODULES["datetime.datetime"], "datetime.datetime")
+        self.assertEqual(settings.MAKO_SANDBOX_IMPORT_MODULES, {})
+        self.assertNotIn("datetime.datetime", settings.MAKO_SANDBOX_IMPORT_MODULES)
+        self.assertNotIn("datetime", settings.MAKO_SANDBOX_IMPORT_MODULES)

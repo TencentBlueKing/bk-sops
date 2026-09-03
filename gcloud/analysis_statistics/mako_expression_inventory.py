@@ -107,16 +107,7 @@ SAFE_BUILTIN_NAMES = frozenset(
         "any",
     }
 )
-DEFAULT_IMPORT_MODULES = {
-    "datetime": "datetime",
-    "datetime.datetime": "datetime.datetime",
-    "re": "re",
-    "hashlib": "hashlib",
-    "random": "random",
-    "time": "time",
-    "os.path": "os.path",
-    "config.mock.mock_json": "json",
-}
+DEFAULT_IMPORT_MODULES = {}
 DEFAULT_EXTRA_WHITELIST = frozenset({"_system", "_loop"})
 DEEP_ATTR_THRESHOLD = 2
 
@@ -130,7 +121,7 @@ def load_import_modules():
         from django.conf import settings
 
         modules = getattr(settings, "MAKO_SANDBOX_IMPORT_MODULES", None)
-        if modules:
+        if modules is not None:
             return dict(modules)
     except Exception:
         pass
