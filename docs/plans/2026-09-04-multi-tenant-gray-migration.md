@@ -1232,11 +1232,36 @@ legacy 排空检查演练。保存每个门禁的指标截图和命令输出，�
 
 ## 依赖顺序
 
-```text
-Internal Overlay Task 0 -> Target Task 3 -> 4 -------------------^         -> 12 -> 13
-                         Data Task 10A -> 10 --------------------|--------------^
-Bridge Task 1 -> 2 -> 5 -> 6 -> 7 -> 8 -> 9 -> 11 --------------|
-All tasks -> Task 14 -> Task 15
+```mermaid
+flowchart TD
+    T0["Internal Overlay Task 0<br/>工蜂多租户集成主线"]
+    T3["Target Task 3<br/>幂等建单"]
+    T4["Target Task 4<br/>版本化内部 API"]
+    T12["Task 12<br/>新版 Add-only 运行资源"]
+
+    T10A["Data Task 10A<br/>共享租户 Schema"]
+    T10["Data Task 10<br/>分批可恢复回填"]
+    T13["Task 13<br/>旧页面到新版后台适配"]
+
+    T1["Bridge Task 1<br/>路由数据模型"]
+    T2["Bridge Task 2<br/>灰度与任务粘滞"]
+    T5["Bridge Task 5<br/>签名 HTTP 客户端"]
+    T6["Bridge Task 6<br/>建单协调状态机"]
+    T7["Bridge Task 7<br/>建单入口"]
+    T8["Bridge Task 8<br/>操作、查询与回调"]
+    T9["Bridge Task 9<br/>周期任务与全局委派"]
+    T11["Bridge Task 11<br/>对账、排空与指标"]
+
+    T14["Task 14<br/>上线 Runbook 与端到端演练"]
+    T15["Task 15<br/>发布前联合验收"]
+
+    T0 --> T3 --> T4 --> T12
+    T10A --> T10 --> T13
+    T1 --> T2 --> T5 --> T6 --> T7 --> T8 --> T9 --> T11
+    T11 --> T14
+    T12 --> T14
+    T13 --> T14
+    T14 --> T15
 ```
 
 Bridge Task 1-2 可以与 Internal Overlay Task 0 并行；Target Task 3-4 必须从已验收的

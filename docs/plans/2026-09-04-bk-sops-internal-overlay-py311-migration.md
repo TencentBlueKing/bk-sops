@@ -591,31 +591,21 @@ git commit -m "ci: 固化多租户内部集成门禁 --story=${BK_SOPS_MIGRATION
 
 ## 依赖顺序
 
-```text
-Task 1 内部差异清单
-        |
-        +------> Task 2 工蜂目标主线
-        |              |
-        |              v
-        +------> Task 3 依赖与运行时
-                       |
-                       v
-                 Task 4 内部对接
-                       |
-                       v
-                 Task 5 内部插件
-                       |
-                       v
-                 Task 6 模块与制品
-                       |
-                       v
-                 Task 7 业务准入
-                       |
-                       v
-                 Task 8 影子验收
-                       |
-                       v
-                 Task 9 持续同步治理
+```mermaid
+flowchart TD
+    T1["Task 1<br/>内部差异清单"]
+    T2["Task 2<br/>工蜂目标主线"]
+    T3["Task 3<br/>依赖与运行时"]
+    T4["Task 4<br/>内部对接"]
+    T5["Task 5<br/>内部插件"]
+    T6["Task 6<br/>模块与制品"]
+    T7["Task 7<br/>业务准入"]
+    T8["Task 8<br/>影子验收"]
+    T9["Task 9<br/>持续同步治理"]
+
+    T1 --> T3
+    T2 --> T3
+    T3 --> T4 --> T5 --> T6 --> T7 --> T8 --> T9
 ```
 
 Task 1 的清单和 Task 2 的目标主线可以并行准备，但任何内部代码移植都必须同时引用两者。
