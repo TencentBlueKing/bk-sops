@@ -43,6 +43,9 @@ prometheus-client==0.9.0
 # 同一批流程仍会以 warning 报出；本版给兜底补齐。其中"等 ACK 收敛的父进程"算中性——
 # 并行网关下分支失败停车时父进程永远收不齐 ACK，但那取决于子进程而非引擎推不动
 # （现网 task 138970299 挂 56 天即此形态）。子进程真卡了仍由专属判据接住。
+# mako 安全：生成器帧反射 RCE（${(g).gi_frame.f_builtins['eval'](...)}）的加固落在
+# bamboo-pipeline 3.24.17 / bamboo-engine 2.6.6（PR bamboo-engine#284）。发布后升到 3.24.17，
+# gcloud/tests/security 的 MakoGeneratorFrameGadgetTestCase 会由 skip 转为强制校验。
 bamboo-pipeline==3.24.16
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
