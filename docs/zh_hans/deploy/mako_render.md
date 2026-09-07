@@ -13,7 +13,9 @@ BKAPP_MAKO_RENDER_BACKEND=inprocess
 ```
 
 - 导入表是**逗号分隔字符串**，格式为 `path` 或 `path:alias`，会替换整张表，未配置则为空。`config.mock.mock_json:json` 保留原有 JSON 包装模块。危险模块仍会被拒绝，`os.path` 是允许的例外，不能换成 `os`。
+- 新旧引擎均在导入前过滤危险路径，包括 `io` / `_io` 文件访问模块以及 `http`、`urllib` 等网络模块，避免先导入再拒绝造成副作用。缺失模块会使配置加载失败；旧引擎仅跳过已确认存在、但不支持导入的类路径。
 - `warn` 延后白名单阻断并记录命中；`.format()` 只在 `enforce` 下拒绝。`off` 同样放行 `.format()`，但不记录白名单告警。自定义 filter、`.format_map()`、危险属性等无条件限制不受该开关控制。
+- 白名单模式去除首尾空格并转成小写，仅接受 `off` / `warn` / `enforce`；空值或拼写错误会使配置加载失败，避免静默关闭检查。未配置时仍默认为 `enforce`。
 - `inprocess` 是默认值，保持进程内渲染。此时子进程池、超时、资源及网络隔离参数不参与渲染。
 - 将相同配置下发到 Web 和所有执行任务的 Celery/Worker 进程，随版本发布重启。只在 WebConsole 当前 shell 中修改变量，不会更新已经运行的服务进程。
 

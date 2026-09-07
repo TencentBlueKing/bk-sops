@@ -481,6 +481,63 @@ MAKO_SANDBOX_SHIELD_WORDS = [
 # 例：datetime,datetime.datetime,re,hashlib,random,time,os.path,json
 # 或：config.mock.mock_json:json
 # 类路径（datetime.datetime）需要引擎提供 resolve_import_object，否则跳过该项。
+# 在解析对象前拒绝危险路径，避免模块导入本身的副作用；新旧引擎均执行此检查。
+_MAKO_IMPORT_DENY_ROOTS = frozenset(
+    {
+        "os",
+        "sys",
+        "subprocess",
+        "importlib",
+        "imp",
+        "runpy",
+        "operator",
+        "inspect",
+        "pickle",
+        "_pickle",
+        "cpickle",
+        "marshal",
+        "shelve",
+        "dill",
+        "ctypes",
+        "cffi",
+        "pty",
+        "platform",
+        "pydoc",
+        "code",
+        "codeop",
+        "builtins",
+        "__builtin__",
+        "gc",
+        "socket",
+        "shutil",
+        "signal",
+        "multiprocessing",
+        "threading",
+        "_thread",
+        "mmap",
+        "fcntl",
+        "resource",
+        "tempfile",
+        "pdb",
+        "bdb",
+        "trace",
+        "timeit",
+        "ast",
+        "compileall",
+        "py_compile",
+        "io",
+        "_io",
+        "http",
+        "urllib",
+        "ftplib",
+        "smtplib",
+        "xmlrpc",
+        "webbrowser",
+        "antigravity",
+    }
+)
+_MAKO_IMPORT_SAFE_SUBMODULES = frozenset({"os.path"})
+
 try:
     from bamboo_engine.template.sandbox import resolve_import_object as _resolve_mako_import
 
@@ -490,6 +547,15 @@ except ImportError:
 
     def _resolve_mako_import(mod_path):
         return importlib.import_module(mod_path)
+
+    def _is_mako_class_path(mod_path):
+        module_path, _, class_name = mod_path.rpartition(".")
+        if not module_path:
+            return False
+        try:
+            return isinstance(getattr(importlib.import_module(module_path), class_name), type)
+        except (ImportError, AttributeError):
+            return False
 
 
 MAKO_SANDBOX_IMPORT_MODULES = {}
@@ -501,10 +567,13 @@ for _raw in (getattr(env, "SOPS_MAKO_IMPORT_MODULES", "") or "").split(","):
         _mod_path, _alias = [part.strip() for part in _item.split(":", 1)]
     else:
         _mod_path = _alias = _item
+    if _mod_path not in _MAKO_IMPORT_SAFE_SUBMODULES and _mod_path.split(".", 1)[0] in _MAKO_IMPORT_DENY_ROOTS:
+        print("refuse dangerous mako import module: {} (alias={})".format(_mod_path, _alias))
+        continue
     try:
         _resolve_mako_import(_mod_path)
     except (ImportError, AttributeError) as e:
-        if _mod_path.count(".") and not _HAS_RESOLVE_IMPORT_OBJECT:
+        if not _HAS_RESOLVE_IMPORT_OBJECT and _is_mako_class_path(_mod_path):
             print(
                 "skip {} in BKAPP_SOPS_MAKO_IMPORT_MODULES: class path needs resolve_import_object ({})".format(
                     _mod_path, e
@@ -516,76 +585,22 @@ for _raw in (getattr(env, "SOPS_MAKO_IMPORT_MODULES", "") or "").split(","):
         raise ImportError(err)
     MAKO_SANDBOX_IMPORT_MODULES[_mod_path] = _alias
 
-# 注入模块 deny-list 兜底：拒绝把可执行代码 / 导入 / 反序列化 / 触达 frame 的危险模块注入
-# Mako 沙箱。注入白名单是整个沙箱的信任根，一旦注入 os / pickle / operator / importlib 等，
-# ``${module.<primitive>(...)}`` 直接绕过 AST deny-list 与根名白名单拿到 RCE。
-# 优先复用引擎的 ``filter_import_modules``（bamboo-pipeline 含 PR#284 加固后可用）；未装到时
-# 用本地兜底黑名单，保证升级引擎前也生效。
+# 叠加引擎自身的导入策略；旧引擎没有该函数时，保留上面已过滤的导入表。
 try:
     from bamboo_engine.template.sandbox import filter_import_modules as _filter_mako_import_modules
 except ImportError:
-    _MAKO_IMPORT_DENY_ROOTS = frozenset(
-        {
-            "os",
-            "sys",
-            "subprocess",
-            "importlib",
-            "imp",
-            "runpy",
-            "operator",
-            "inspect",
-            "pickle",
-            "_pickle",
-            "cpickle",
-            "marshal",
-            "shelve",
-            "dill",
-            "ctypes",
-            "cffi",
-            "pty",
-            "platform",
-            "pydoc",
-            "code",
-            "codeop",
-            "builtins",
-            "__builtin__",
-            "gc",
-            "socket",
-            "shutil",
-            "signal",
-            "multiprocessing",
-            "threading",
-            "_thread",
-            "mmap",
-            "fcntl",
-            "resource",
-            "tempfile",
-            "pdb",
-            "bdb",
-            "trace",
-            "timeit",
-            "ast",
-            "compileall",
-            "py_compile",
-        }
-    )
-    _MAKO_IMPORT_SAFE_SUBMODULES = frozenset({"os.path"})
 
     def _filter_mako_import_modules(modules):
-        safe = {}
-        for _p, _a in modules.items():
-            if _p not in _MAKO_IMPORT_SAFE_SUBMODULES and _p.split(".", 1)[0] in _MAKO_IMPORT_DENY_ROOTS:
-                print("refuse dangerous mako import module: {} (alias={})".format(_p, _a))
-                continue
-            safe[_p] = _a
-        return safe
+        return modules
 
 
 MAKO_SANDBOX_IMPORT_MODULES = _filter_mako_import_modules(MAKO_SANDBOX_IMPORT_MODULES)
 
 # 渲染期注入的系统根名；不要把 ``_module`` / ``caller`` 写进 extra 名单。
 MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = frozenset({"_system", "_loop"})
-MAKO_TEMPLATE_NAME_WHITELIST_MODE = getattr(env, "SOPS_MAKO_WHITELIST_MODE", "enforce")
+MAKO_TEMPLATE_NAME_WHITELIST_MODE = getattr(env, "SOPS_MAKO_WHITELIST_MODE", "enforce").strip().lower()
+if MAKO_TEMPLATE_NAME_WHITELIST_MODE not in {"off", "warn", "enforce"}:
+    raise ValueError("BKAPP_SOPS_MAKO_WHITELIST_MODE must be off, warn or enforce")
 
 BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = MAKO_SANDBOX_IMPORT_MODULES
 BambooSettings.MAKO_SANDBOX_SHIELD_WORDS = MAKO_SANDBOX_SHIELD_WORDS

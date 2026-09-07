@@ -119,12 +119,14 @@ class ExportMakoExpressionInventoryCommandTestCase(TestCase):
         self.assertEqual(sample["最近执行方式"], "直接执行")
         self.assertIn("taskflow/execute/{}/?instance_id={}".format(self.project.id, self.task.id), sample["最近执行任务链接"])
 
-        self.assertEqual(exprs['${"x{}".format(name)}']["命中无条件策略"], "是")
-        self.assertEqual(exprs['${"x{}".format(name)}']["风险档位"], "无条件阻断")
+        self.assertEqual(exprs['${"x{}".format(name)}']["命中无条件策略"], "否")
+        self.assertEqual(exprs['${"x{}".format(name)}']["命中白名单策略"], "是")
+        self.assertEqual(exprs['${"x{}".format(name)}']["风险档位"], "仅enforce阻断")
         self.assertEqual(exprs['${"x{}".format(name)}']["v2引擎能匹配"], "否")
         self.assertEqual(exprs["${res._module}"]["命中白名单策略"], "否")
         self.assertEqual(exprs["${caller}"]["命中白名单策略"], "否")
-        self.assertEqual(exprs["${self.module.x}"]["命中白名单策略"], "是")
+        self.assertEqual(exprs["${self.module.x}"]["命中白名单策略"], "否")
+        self.assertEqual(exprs["${self.module.x}"]["命中无条件策略"], "是")
 
     def test_hits_only_filters_policy_rows(self):
         with tempfile.TemporaryDirectory() as tmp:

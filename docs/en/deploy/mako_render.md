@@ -12,7 +12,11 @@ BKAPP_MAKO_RENDER_BACKEND=inprocess
 
 The import setting is a comma-separated replacement table, using `path` or `path:alias`. It defaults to empty. Merge any additional existing application imports into this value. Keep the original JSON wrapper mapping. Dangerous imports remain blocked; `os.path` is an allowed exception, while `os` is not.
 
+Both engine versions filter dangerous paths before importing them, including file-access modules `io` / `_io` and network modules such as `http` and `urllib`, to avoid import side effects. Missing modules fail configuration loading. The legacy resolver only skips class paths confirmed to exist but unsupported by that resolver.
+
 `warn` logs whitelist violations without enforcing them; `off` also disables these warnings. `.format()` is blocked only in `enforce`. Custom filters, `.format_map()` and dangerous attributes remain subject to unconditional checks. `inprocess` preserves in-process rendering; subprocess options are inactive with this backend.
+
+Whitelist mode is trimmed and lowercased, then validated against `off`, `warn` and `enforce`. Empty or misspelled values fail configuration loading instead of silently disabling checks. When unset, the default remains `enforce`.
 
 Apply the same environment to Web and all task-executing Celery/Worker processes and restart them with the release. Changing variables inside a WebConsole shell does not update running services.
 

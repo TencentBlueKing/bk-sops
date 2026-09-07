@@ -30,13 +30,20 @@ class AnalyzeExpressionTestCase(TestCase):
         result = analyze_expression("${os.path.join(a, b)}", import_modules={})
         self.assertFalse(result["uses_injected_module"])
 
-    def test_format_is_unconditional_hit_and_not_v2_matchable(self):
+    def test_format_is_enforce_only_hit_and_not_v2_matchable(self):
         result = analyze_expression('${"gamedb.{}.xzj.db".format(name)}')
-        self.assertTrue(result["hits_unconditional"])
+        self.assertFalse(result["hits_unconditional"])
+        self.assertTrue(result["hits_whitelist"])
         self.assertTrue(result["hits_policy"])
-        self.assertEqual(result["risk_level"], "无条件阻断")
+        self.assertEqual(result["risk_level"], "仅enforce阻断")
         self.assertFalse(result["v2_matchable"])
         self.assertTrue(any(item.startswith("forbidden_method:format") for item in result["reasons"]))
+
+    def test_format_map_remains_unconditional(self):
+        result = analyze_expression("${pattern.format_map(values)}")
+        self.assertTrue(result["hits_unconditional"])
+        self.assertFalse(result["hits_whitelist"])
+        self.assertEqual(result["risk_level"], "无条件阻断")
 
     def test_custom_filter_is_unconditional_hit(self):
         result = analyze_expression("${cc|str_set_name}")
@@ -54,9 +61,10 @@ class AnalyzeExpressionTestCase(TestCase):
         self.assertFalse(result["hits_unconditional"])
         self.assertNotEqual(result["risk_level"], "仅enforce阻断")
 
-    def test_reserved_namespace_attribute_is_whitelist_hit(self):
+    def test_reserved_namespace_attribute_is_unconditional_hit(self):
         result = analyze_expression("${caller.body()}")
-        self.assertTrue(result["hits_whitelist"])
+        self.assertTrue(result["hits_unconditional"])
+        self.assertFalse(result["hits_whitelist"])
         self.assertTrue(any(item.startswith("reserved_namespace:") for item in result["reasons"]))
 
     def test_user_module_attr_is_not_whitelist_hit(self):
@@ -65,8 +73,9 @@ class AnalyzeExpressionTestCase(TestCase):
         self.assertFalse(any(item == "private_attr:_module" for item in result["reasons"]))
 
     def test_import_deep_attr_is_whitelist_hit(self):
-        result = analyze_expression("${json.codecs.builtins.exec('1')}")
+        result = analyze_expression("${json.decoder.JSONDecoder()}", import_modules={"json": "json"})
         self.assertTrue(result["hits_whitelist"])
+        self.assertFalse(result["hits_unconditional"])
         self.assertTrue(
             any(
                 item.startswith("import_attr_depth:") or item.startswith("dangerous_attr:")
@@ -74,10 +83,16 @@ class AnalyzeExpressionTestCase(TestCase):
             )
         )
 
-    def test_dangerous_attr_is_whitelist_hit(self):
+    def test_dangerous_attr_is_unconditional_hit(self):
         result = analyze_expression("${os.path.os.popen('id')}")
-        self.assertTrue(result["hits_whitelist"])
+        self.assertTrue(result["hits_unconditional"])
         self.assertTrue(any(item.startswith("dangerous_attr:") for item in result["reasons"]))
+
+    def test_import_violation_keeps_specific_reason(self):
+        result = analyze_expression("${os.getcwd()}", import_modules={"os.path": "os.path"})
+        self.assertTrue(any("import path not configured" in item for item in result["reasons"]))
+        result = analyze_expression("${json.decoder.JSONDecoder()}", import_modules={"json": "json"})
+        self.assertTrue(any("import attr deeper than one level" in item for item in result["reasons"]))
 
     def test_system_and_loop_are_extra_whitelist(self):
         result = analyze_expression("${_system.executor}")

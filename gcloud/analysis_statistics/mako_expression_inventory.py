@@ -483,8 +483,9 @@ def analyze_expression(expr, import_modules=None, extra_whitelist=None):
     reasons.extend(visitor.reasons)
     aliases = frozenset(alias for alias in import_modules.values() if alias)
     for root, attrs in visitor.import_chains:
-        if import_chain_violation(root, attrs, aliases):
-            reasons.append("import_attr_depth:{}.{}".format(root, ".".join(attrs)))
+        violation = import_chain_violation(root, attrs, aliases)
+        if violation:
+            reasons.append("import_attr_depth:{}.{}:{}".format(root, ".".join(attrs), violation))
     # 保序去重
     seen = set()
     unique_reasons = []
@@ -518,10 +519,16 @@ def analyze_expression(expr, import_modules=None, extra_whitelist=None):
         "private_key:",
         "private_attr:",
         "import_stmt:",
+        "reserved_namespace:",
+        "dangerous_attr:",
     )
-    whitelist_prefixes = ("reserved_namespace:", "dangerous_attr:", "import_attr_depth:")
-    hits_unconditional = any(reason.startswith(unconditional_prefixes) for reason in unique_reasons)
-    hits_whitelist = any(reason.startswith(whitelist_prefixes) for reason in unique_reasons)
+    # .format() 仅在 enforce 阻断，.format_map() 及危险属性仍无条件阻断。
+    hits_unconditional = any(
+        reason != "forbidden_method:format" and reason.startswith(unconditional_prefixes) for reason in unique_reasons
+    )
+    hits_whitelist = any(
+        reason == "forbidden_method:format" or reason.startswith("import_attr_depth:") for reason in unique_reasons
+    )
     hits_policy = hits_unconditional or hits_whitelist
 
     if hits_unconditional:

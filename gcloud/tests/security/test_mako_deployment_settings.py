@@ -115,6 +115,48 @@ class MakoDeploymentSettingsTestCase(TestCase):
                 self.assertEqual(scope["MAKO_SANDBOX_IMPORT_MODULES"]["config.mock.mock_json"], "json")
                 self.assertEqual(scope["MAKO_SANDBOX_IMPORT_MODULES"]["os.path"], "os.path")
 
+    def test_whitelist_mode_is_normalized_and_validated_in_both_paas_versions(self):
+        for version in (2, 3):
+            for raw, expected in [(" off ", "off"), ("WARN", "warn"), (" Enforce ", "enforce")]:
+                with self.subTest(version=version, raw=raw):
+                    scope = load_mako_settings({"BKAPP_SOPS_MAKO_WHITELIST_MODE": raw}, env_version=version)
+                    self.assertEqual(scope["MAKO_TEMPLATE_NAME_WHITELIST_MODE"], expected)
+                    self.assertEqual(scope["BambooSettings"].MAKO_TEMPLATE_NAME_WHITELIST_MODE, expected)
+            for raw in ("enfroce", "", "   ", "disabled"):
+                with self.subTest(version=version, raw=raw), self.assertRaisesRegex(
+                    ValueError, "BKAPP_SOPS_MAKO_WHITELIST_MODE"
+                ):
+                    load_mako_settings({"BKAPP_SOPS_MAKO_WHITELIST_MODE": raw}, env_version=version)
+
+    def test_file_and_network_modules_are_rejected_before_import(self):
+        blocked = {"io", "_io", "http", "urllib", "ftplib", "smtplib", "xmlrpc", "webbrowser", "antigravity"}
+        original_import = importlib.import_module
+
+        def guarded_import(name, *args, **kwargs):
+            self.assertNotIn(name.split(".", 1)[0], blocked, "rejected modules must not be imported first")
+            return original_import(name, *args, **kwargs)
+
+        for legacy in (False, True):
+            with self.subTest(legacy=legacy), mock.patch.dict(sandbox.__dict__):
+                if legacy:
+                    del sandbox.resolve_import_object
+                    del sandbox.filter_import_modules
+                modules = COMPAT_IMPORTS + "," + ",".join(sorted(blocked)) + ",io.open:reader,urllib.request:client"
+                with mock.patch.object(importlib, "import_module", side_effect=guarded_import):
+                    scope = load_mako_settings({"BKAPP_SOPS_MAKO_IMPORT_MODULES": modules})
+                self.assertEqual(len(scope["MAKO_SANDBOX_IMPORT_MODULES"]), 7)
+                self.assertEqual(scope["MAKO_SANDBOX_IMPORT_MODULES"]["os.path"], "os.path")
+                self.assertEqual(scope["MAKO_SANDBOX_IMPORT_MODULES"]["config.mock.mock_json"], "json")
+
+    def test_legacy_resolver_only_skips_existing_class_paths(self):
+        with mock.patch.dict(sandbox.__dict__):
+            del sandbox.resolve_import_object
+            scope = load_mako_settings({"BKAPP_SOPS_MAKO_IMPORT_MODULES": "datetime,datetime.datetime"})
+            self.assertEqual(scope["MAKO_SANDBOX_IMPORT_MODULES"], {"datetime": "datetime"})
+            for missing in ("missing_mako_test_package.utils", "datetime.missing_mako_class"):
+                with self.subTest(missing=missing), self.assertRaises(ImportError):
+                    load_mako_settings({"BKAPP_SOPS_MAKO_IMPORT_MODULES": missing})
+
     def test_format_and_compatibility_imports_in_both_engines(self):
         from pipeline.core.data import expression, sandbox_builder
 
