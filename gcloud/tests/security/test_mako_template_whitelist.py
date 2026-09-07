@@ -36,8 +36,8 @@ from bamboo_engine.utils import mako_safety as _engine_mako_safety
 from django.test import TestCase, override_settings
 
 # 生成器帧反射 RCE 的加固落在引擎侧（bamboo-pipeline 3.24.17 / bamboo-engine 2.6.6+）。
-# bk-sops 只钉不变量：装上含加固的引擎后，下面这条通用链路必须被拦死。未装到（当前 pin
-# 仍是 3.24.16）时用例自动 skip，避免对旧引擎误报。
+# bk-sops 钉住不变量：下面这条通用链路必须被拦死。部署配置测试额外断言所需能力已安装，
+# 避免依赖被意外降级后，仅因跳过用例就报告安全回归通过。
 _HAS_FRAME_HARDENING = hasattr(_engine_mako_safety, "FRAME_INTROSPECTION_ATTRS") and hasattr(
     _engine_sandbox, "restricted_builtins"
 )
@@ -65,7 +65,7 @@ def _probe_alwayson_hardening():
 
 # always-on 收紧（危险属性 + 保留命名空间链，堵住 off/warn 的模块反向 pivot）落在引擎侧
 # bamboo-pipeline 3.24.17 / bamboo-engine PR#284。装上后下面这组 off 模式不变量才生效；
-# 当前 pin（3.24.16）未装到时自动 skip。
+# 所需引擎能力由 MakoDeploymentSettingsTestCase 强制校验。
 _HAS_ALWAYSON_HARDENING = _probe_alwayson_hardening()
 # 注入模块 deny-list（``filter_import_modules``）同 PR#284。
 _HAS_IMPORT_DENYLIST = hasattr(_engine_sandbox, "filter_import_modules")

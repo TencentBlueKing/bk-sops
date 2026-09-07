@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 import importlib
+import os
 import sys
 from urllib.parse import urlparse
 
@@ -584,11 +585,48 @@ MAKO_SANDBOX_IMPORT_MODULES = _filter_mako_import_modules(MAKO_SANDBOX_IMPORT_MO
 
 # 渲染期注入的系统根名；不要把 ``_module`` / ``caller`` 写进 extra 名单。
 MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = frozenset({"_system", "_loop"})
+MAKO_TEMPLATE_NAME_WHITELIST_MODE = getattr(env, "SOPS_MAKO_WHITELIST_MODE", "enforce")
 
 BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = MAKO_SANDBOX_IMPORT_MODULES
 BambooSettings.MAKO_SANDBOX_SHIELD_WORDS = MAKO_SANDBOX_SHIELD_WORDS
-BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = getattr(env, "SOPS_MAKO_WHITELIST_MODE", "enforce")
+BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = MAKO_TEMPLATE_NAME_WHITELIST_MODE
 BambooSettings.MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = MAKO_TEMPLATE_NAME_EXTRA_WHITELIST
+
+
+# bamboo-engine 不会自动读取环境变量或 Django settings，需在首次渲染前显式绑定。
+# PaaS V2/V3 共用此入口；首发保持 inprocess，具体灰度配置见部署文档 mako_render.md。
+def _mako_render_bool(name, default):
+    value = os.getenv(name, default).strip().lower()
+    if value not in {"0", "1", "false", "true"}:
+        raise ValueError("{} must be 0/1 or false/true".format(name))
+    return value in {"1", "true"}
+
+
+MAKO_RENDER_BACKEND = os.getenv("BKAPP_MAKO_RENDER_BACKEND", "inprocess").strip().lower()
+if MAKO_RENDER_BACKEND not in {"inprocess", "subprocess"}:
+    raise ValueError("BKAPP_MAKO_RENDER_BACKEND must be inprocess or subprocess")
+MAKO_RENDER_POOL_SIZE = int(os.getenv("BKAPP_MAKO_RENDER_POOL_SIZE", "4"))
+MAKO_RENDER_MAX_USES = int(os.getenv("BKAPP_MAKO_RENDER_MAX_USES", "500"))
+MAKO_RENDER_TIMEOUT = float(os.getenv("BKAPP_MAKO_RENDER_TIMEOUT", "30"))
+MAKO_RENDER_FALLBACK_INPROCESS = _mako_render_bool("BKAPP_MAKO_RENDER_FALLBACK_INPROCESS", "0")
+MAKO_RENDER_OS_HARDEN = _mako_render_bool("BKAPP_MAKO_RENDER_OS_HARDEN", "1")
+MAKO_RENDER_NO_NETWORK = _mako_render_bool("BKAPP_MAKO_RENDER_NO_NETWORK", "1")
+MAKO_RENDER_RLIMIT_CPU = int(os.getenv("BKAPP_MAKO_RENDER_RLIMIT_CPU", "30"))
+MAKO_RENDER_RLIMIT_AS_MB = int(os.getenv("BKAPP_MAKO_RENDER_RLIMIT_AS_MB", "1024"))
+MAKO_RENDER_ENV_SCRUB_EXTRA = [
+    name.strip() for name in os.getenv("BKAPP_MAKO_RENDER_ENV_SCRUB_EXTRA", "").split(",") if name.strip()
+]
+
+BambooSettings.MAKO_RENDER_BACKEND = MAKO_RENDER_BACKEND
+BambooSettings.MAKO_RENDER_POOL_SIZE = MAKO_RENDER_POOL_SIZE
+BambooSettings.MAKO_RENDER_MAX_USES = MAKO_RENDER_MAX_USES
+BambooSettings.MAKO_RENDER_TIMEOUT = MAKO_RENDER_TIMEOUT
+BambooSettings.MAKO_RENDER_FALLBACK_INPROCESS = MAKO_RENDER_FALLBACK_INPROCESS
+BambooSettings.MAKO_RENDER_OS_HARDEN = MAKO_RENDER_OS_HARDEN
+BambooSettings.MAKO_RENDER_NO_NETWORK = MAKO_RENDER_NO_NETWORK
+BambooSettings.MAKO_RENDER_RLIMIT_CPU = MAKO_RENDER_RLIMIT_CPU
+BambooSettings.MAKO_RENDER_RLIMIT_AS_MB = MAKO_RENDER_RLIMIT_AS_MB
+BambooSettings.MAKO_RENDER_ENV_SCRUB_EXTRA = MAKO_RENDER_ENV_SCRUB_EXTRA
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
