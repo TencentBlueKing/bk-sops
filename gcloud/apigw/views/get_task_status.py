@@ -24,6 +24,7 @@ from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.taskflow3.utils import add_node_name_to_status_tree, extract_failed_nodes, get_failed_nodes_info
+from gcloud.utils.dates import format_datetime
 
 
 def cache_decisioner(key, value):
@@ -109,5 +110,9 @@ def get_task_status(request, task_id, project_id):
             }
 
     result["data"]["name"] = task.name
+
+    # result 从引擎取的 archived_time，如果任务终止则没有finish_time，使用task.finish_time兜底
+    if result["data"].get("finish_time") is None and task.finish_time:
+        result["data"]["finish_time"] = format_datetime(task.finish_time)
 
     return result
