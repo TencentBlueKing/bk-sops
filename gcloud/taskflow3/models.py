@@ -697,7 +697,15 @@ class TaskFlowInstanceManager(models.Manager, TaskFlowStatisticsMixin):
                 constant["meta"] = deepcopy(constant)
                 # 下拉框类型默认值字段为default，表格类型为default_text, 父流程勾选时类型为str
                 if isinstance(constant["value"], dict):
-                    constant["value"] = constant["value"].get("default") or constant["value"].get("default_text", "")
+                    default_val = constant["value"].get("default") or constant["value"].get("default_text", "")
+                    if (
+                        constant.get("custom_type") == "text_value_select"
+                        and constant["value"].get("type") == "1"
+                        and isinstance(default_val, str)
+                    ):
+                        default_val = [item.strip() for item in default_val.split(",") if item.strip()]
+
+                    constant["value"] = default_val
             if key in constants:
                 constant["value"] = constants[key]
 

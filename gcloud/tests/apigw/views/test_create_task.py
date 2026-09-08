@@ -22,7 +22,7 @@ from gcloud.apigw.schemas import APIGW_CREATE_TASK_PARAMS
 from gcloud.apigw.views import create_task
 from gcloud.apigw.views.task_node_selector import TaskNodeSelectionValidationError
 from gcloud.constants import TaskCreateMethod
-from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.taskflow3.models import TaskFlowInstance, TaskFlowInstanceManager
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -1061,3 +1061,286 @@ class CreateTaskAPITest(APITest):
                 description="",
                 pipeline_tree=TEST_PIPELINE_TREE,
             )
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
+    @mock.patch(
+        TASKINSTANCE_CREATE,
+        MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
+    )
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE_INSTANCE, MagicMock(return_value=TEST_DATA))
+    def test_create_task__text_value_select_multiple_default_transform(self):
+        """文本值下拉框多选默认值未传覆盖参数时，字符串需按逗号拆分并去两端空白转成列表。
+
+        复现：custom_type="text_value_select"、type="1"、default="v1,v2"，不传 constants 覆盖，
+        旧逻辑直接保存字符串 "v1,v2"，运行时 process_info_value 会把它当作单个选项，
+        导致无法匹配两个独立选项。此处断言创建后的 value 已转换为 ["v1", "v2"]。
+        """
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        pipeline_tree = {
+            "constants": {
+                "key1": {
+                    "is_meta": True,
+                    "custom_type": "text_value_select",
+                    "value": {
+                        "datasource": "0",
+                        "items_text": '[{"text": "t1", "value": "v1"}, {"text": "t2", "value": "v2"}]',
+                        "type": "1",
+                        "default": " v1 , v2 ",
+                    },
+                }
+            }
+        }
+
+        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+            response = self.client.post(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "constants": {},
+                        "pipeline_tree": pipeline_tree,
+                        "flow_type": "common",
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
+            )
+
+            data = json.loads(response.content)
+            self.assertTrue(data["result"], msg=data)
+
+            called_pipeline_tree = TaskFlowInstance.objects.create_pipeline_instance.call_args[1]["pipeline_tree"]
+            self.assertEqual(called_pipeline_tree["constants"]["key1"]["value"], ["v1", "v2"])
+
+            TaskFlowInstance.objects.create_pipeline_instance.reset_mock()
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
+    @mock.patch(
+        TASKINSTANCE_CREATE,
+        MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)),
+    )
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    @mock.patch(TASKINSTANCE_CREATE_PIPELINE_INSTANCE, MagicMock(return_value=TEST_DATA))
+    def test_create_task__text_value_select_single_default_keep_string(self):
+        """文本值下拉框单选默认值未传覆盖参数时，应保持原字符串，不做拆分。"""
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(id=1, pipeline_template=pt1)
+
+        pipeline_tree = {
+            "constants": {
+                "key1": {
+                    "is_meta": True,
+                    "custom_type": "text_value_select",
+                    "value": {
+                        "datasource": "0",
+                        "items_text": '[{"text": "t1", "value": "v1"}, {"text": "t2", "value": "v2"}]',
+                        "type": "0",
+                        "default": "v1",
+                    },
+                }
+            }
+        }
+
+        with mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+            response = self.client.post(
+                path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                data=json.dumps(
+                    {
+                        "name": "name",
+                        "constants": {},
+                        "pipeline_tree": pipeline_tree,
+                        "flow_type": "common",
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
+            )
+
+            data = json.loads(response.content)
+            self.assertTrue(data["result"], msg=data)
+
+            called_pipeline_tree = TaskFlowInstance.objects.create_pipeline_instance.call_args[1]["pipeline_tree"]
+            self.assertEqual(called_pipeline_tree["constants"]["key1"]["value"], "v1")
+
+            TaskFlowInstance.objects.create_pipeline_instance.reset_mock()
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)))
+    @mock.patch(
+        "gcloud.taskflow3.models.TaskFlowInstanceManager.create_pipeline_instance",
+        MagicMock(return_value=TEST_DATA),
+    )
+    @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    def test_create_task__exclude_nodes_text_value_select_multiple_default_transform(self):
+        """exclude_task_nodes 路径：文本值下拉框多选默认值未传覆盖参数时，字符串需按逗号拆分转列表。
+
+        与 create_with_tree 路径（test_create_task__text_value_select_multiple_default_transform）行为一致，
+        回归 create_pipeline_instance_exclude_task_nodes 内部的 meta 常量拆分逻辑。
+        """
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(
+            id=1,
+            pipeline_template=pt1,
+            pipeline_tree={
+                "constants": {
+                    "key1": {
+                        "is_meta": True,
+                        "custom_type": "text_value_select",
+                        "value": {
+                            "datasource": "0",
+                            "items_text": '[{"text": "t1", "value": "v1"}, {"text": "t2", "value": "v2"}]',
+                            "type": "1",
+                            "default": " v1 , v2 ",
+                        },
+                    }
+                }
+            },
+        )
+
+        with mock.patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            with mock.patch.object(
+                create_task,
+                "resolve_exclude_task_nodes_id",
+                MagicMock(return_value=[]),
+                create=True,
+            ):
+                response = self.client.post(
+                    path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                    data=json.dumps(
+                        {
+                            "name": "name",
+                            "constants": {},
+                            "exclude_task_nodes_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                            "flow_type": "common",
+                        }
+                    ),
+                    content_type="application/json",
+                    HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
+                )
+
+                data = json.loads(response.content)
+                self.assertTrue(data["result"], msg=data)
+
+                called_pipeline_tree = TaskFlowInstanceManager.create_pipeline_instance.call_args[1]["pipeline_tree"]
+                self.assertEqual(called_pipeline_tree["constants"]["key1"]["value"], ["v1", "v2"])
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    @mock.patch(TASKINSTANCE_CREATE, MagicMock(return_value=MockTaskFlowInstance(id=TEST_TASKFLOW_ID)))
+    @mock.patch(
+        "gcloud.taskflow3.models.TaskFlowInstanceManager.create_pipeline_instance",
+        MagicMock(return_value=TEST_DATA),
+    )
+    @mock.patch(TASKINSTANCE_PREVIEW_TREE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_NODE_NAME_HANDLE, MagicMock())
+    @mock.patch(APIGW_CREATE_TASK_VALIDATE_WEB_PIPELINE_TREE, MagicMock())
+    def test_create_task__exclude_nodes_text_value_select_single_default_keep_string(self):
+        """exclude_task_nodes 路径：文本值下拉框单选默认值未传覆盖参数时，应保持原字符串不做拆分。"""
+        pt1 = MockPipelineTemplate(id=1, name="pt1")
+        tmpl = MockTaskTemplate(
+            id=1,
+            pipeline_template=pt1,
+            pipeline_tree={
+                "constants": {
+                    "key1": {
+                        "is_meta": True,
+                        "custom_type": "text_value_select",
+                        "value": {
+                            "datasource": "0",
+                            "items_text": '[{"text": "t1", "value": "v1"}, {"text": "t2", "value": "v2"}]',
+                            "type": "0",
+                            "default": "v1",
+                        },
+                    }
+                }
+            },
+        )
+
+        with mock.patch(
+            TASKTEMPLATE_SELECT_RELATE,
+            MagicMock(return_value=MockQuerySet(get_result=tmpl)),
+        ):
+            with mock.patch.object(
+                create_task,
+                "resolve_exclude_task_nodes_id",
+                MagicMock(return_value=[]),
+                create=True,
+            ):
+                response = self.client.post(
+                    path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
+                    data=json.dumps(
+                        {
+                            "name": "name",
+                            "constants": {},
+                            "exclude_task_nodes_id": ["ne584c1e69f53d109f0d99eacc3bd670"],
+                            "flow_type": "common",
+                        }
+                    ),
+                    content_type="application/json",
+                    HTTP_BK_APP_CODE=TEST_APP_CODE,
+                    HTTP_BK_USERNAME=TEST_USERNAME,
+                )
+
+                data = json.loads(response.content)
+                self.assertTrue(data["result"], msg=data)
+
+                called_pipeline_tree = TaskFlowInstanceManager.create_pipeline_instance.call_args[1]["pipeline_tree"]
+                self.assertEqual(called_pipeline_tree["constants"]["key1"]["value"], "v1")
