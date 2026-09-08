@@ -164,9 +164,25 @@ def create_task(request, template_id, project_id):
                 else:
                     # 未传参：回退到默认值；constant["value"] 可能是下拉框元数据 dict，也可能是字符串/列表等已合法值
                     if isinstance(constant.get("value"), dict):
+                        if set(constant["value"].keys()) == {
+                            "value",
+                            "text",
+                            "text_not_selected",
+                            "value_not_selected",
+                        }:
+                            constant["value"] = constant["value"]["value"]
+                            continue
                         default_val = constant["value"].get("default")
                         if default_val is None:
                             default_val = constant["value"].get("default_text", "")
+
+                        if (
+                            constant.get("custom_type") == "text_value_select"
+                            and constant["value"].get("type") == "1"
+                            and isinstance(default_val, str)
+                        ):
+                            default_val = [item.strip() for item in default_val.split(",") if item.strip()]
+
                         constant["value"] = default_val
             standardize_pipeline_node_name(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
