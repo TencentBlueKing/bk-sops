@@ -1,30 +1,51 @@
-# dev_multi_tenant_0729_merge 的自动代码审查
+# AI 自动代码审查
 
-本次接入沿用 CodeBuddy iOA 通道，主命令和兼容命令均指定 `glm-5.3-ioa`；复用仓库级 `CODEBUDDY_API_KEY` 和 Actions 的 `github.token`，不新增模型密钥。
+本仓库通过 CodeBuddy 公司通道运行 AI 审查。模型由仓库 Actions variable `AI_REVIEW_MODEL` 集中选择；Actions、任务和评论标题固定使用通用名称，切换模型无需改标题或脚本。审查仅辅助人工决策，不替代既有 lint、单测、发布检查或真实集成验收。
 
-## 工作流入口与生效条件
+## 触发与权限
 
-2026-09-09 核验的仓库默认分支是 `release_humming_bird`。GitHub 当前 `pull_request_target` 从仓库默认分支取工作流，与 PR 的目标分支不同；参见 [GitHub 官方说明](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target) 和 [默认分支语义变更](https://github.blog/changelog/2025-11-07-actions-pull_request_target-and-environment-branch-protections-changes/)。
+- PR 新建、更新、重新打开或退出草稿时运行；PR 作者和事件发起人都必须拥有仓库 write/maintain/admin 权限。外部贡献者的 PR 会明确跳过，可由维护者人工审查；不能靠加标签放开凭据。
+- 管理员在 GitHub 仓库 Actions Secrets 中配置 `CODEBUDDY_API_KEY`，值为公司 CodeBuddy API key；不使用 OpenClaw OAuth token。缺少或失效会失败，不发布“无问题”结论。密钥到期前由维护者更新该 Secret。
+- 管理员在同一设置页的 Variables 中配置 `AI_REVIEW_MODEL` 为公司通道可用的模型 ID。该值不是秘密，所有维护分支共用；缺少或格式无效会在启动 CLI 前失败，不静默回退到其他模型。本地验证真实调用时也须提供该环境变量；无凭据单测使用测试模型值。
+- `pull_request_target` 从仓库默认分支读取工作流；本工作流再显式检出 PR Base SHA，只执行该目标分支已合入的审查脚本和知识。接入 PR 的检查不证明其 head 配置已经生效；后续 PR 事件才会加载已合入的方案。
+- 不创建自动合入、自动批准或发布任务；暂不把 AI 判断设为必需合入门禁。
 
-- 默认分支 PR [#8513](https://github.com/TencentBlueKing/bk-sops/pull/8513) 负责全仓模型选择和规则加载逻辑；合入后，后续 opened/synchronize/reopened/ready_for_review 事件才使用该默认分支版本。不能把某个非默认分支上的 workflow 副本当作其 PR 的实际执行入口。
-- 本分支 `dev_multi_tenant_0729_merge` 的 `knowledge.md`/`rules.md` 合入后，指向本分支的 PR 在 base SHA 包含这些文件时才能加载对应知识。旧 PR head 不需要同步规则；规则修改 PR 本轮仍读取已有 base 版本。
-- 完整接入要同时核验默认分支的执行入口和目标 base 中的知识文件；只合入目标分支副本不会改变全仓模型/加载逻辑。这里保留 workflow 副本便于维护和将来变更默认分支时同步，但它不能覆盖当前默认分支入口。
+## LTS 与开发分支覆盖
 
-工作流先检查 PR 作者和事件触发者的当前仓库权限，两者都为 write/admin 才审查。job 保留 contents:read 与 pull-requests:write；提示词限定 comment，禁止 approve/request-changes。待审 PR 内容不授权运行脚本或读取秘密。
+默认分支的工作流是全仓触发入口；每条 PR 目标分支还必须拥有审查脚本和知识规则。默认分支已经接入、工作流没有 `branches` 过滤，都不意味着其他 LTS 自动获得完整审查。新建或保留维护分支时，将六份接入文件一起补齐，并按该分支真实模块、版本和兼容约束调整知识与规则；各分支的工作流副本供维护回移使用，当前执行入口仍来自默认分支。
 
-## 分批合入时的规则加载
+目标 base 完全没有审查脚本/两份规则时，工作流明确标记尚未接入并跳过模型调用；仅缺少部分文件则失败，避免不完整配置静默运行。合入 LTS 的完整接入文件后，后续事件才执行该 LTS 的审查。工作流逻辑变更还必须合入默认分支，单独修改 LTS 的工作流副本不会改变当前入口。
 
-源码显式检出 PR Head SHA；规则从 PR Base SHA 的 `.ai/review/knowledge.md` 与 `.ai/review/rules.md` 读取，不回退到 PR head。
+仓库级 `CODEBUDDY_API_KEY` Secret 由同一仓库的分支共享，无需逐分支创建。合入后用新的维护 PR 验证 `review` 调用模型、`publish` 发布对应 head 的评论；仅 `validate` 通过只能证明 runner 单测通过。已有 PR 不会因目标分支补接入而自动重跑，需要后续更新、重新打开或退出草稿事件。
 
-| base 中的文件 | 行为 |
-| --- | --- |
-| 两份都存在且非空 | 完整读取并将知识、规则加入提示词；读取错误会失败。 |
-| 两份都缺失 | 明确输出 warning，沿用原有基础目标/流程/评论提示；日志和提示词说明未加载分支知识。 |
-| 只存在一份，或任意一份为空 | 输出 error 并失败，避免以不完整约束审查。 |
-| base commit 不可读取 | 直接失败，不把对象缺失误判为尚未接入。 |
+## 审查上下文
 
-默认入口可以先合入而不阻断尚未补知识的目标分支；这类运行仍属于基础审查，不能报告成分支知识已生效。后续目标知识合入并触发事件后，再以实际 base SHA 和加载日志验收。
+- `.ai/review/knowledge.md`：仓库模块、依赖与协议事实。
+- `.ai/review/rules.md`：按改动范围追踪的约束及证据要求。
+- 每次针对 merge-base 到事件 head 的完整 diff；不依赖单次 webhook 的增量片段。模型可以用 Read/Glob/Grep 阅读 head 的普通文件快照，不能执行 PR 脚本、测试或修改文件；StructuredOutput 只提交结构化结果。
+- PR 中的新规则仅作为待审查内容，本轮使用已合入目标分支的规则，避免 PR 自行改变审查标准。
+- 不加载项目/用户 CodeBuddy 设置或 MCP；Read/Glob/Grep 使用快照目录的默认读取边界，目录外请求在非交互模式下拒绝；快照排除符号链接、Git/Agent 配置和大于 250 KB 的文件。过滤清单进入提示和结果边界，diff 仍保留相关改动。diff 超过 400 KB、差异定位结构超过 96 KB 或快照超过 60 MB 会失败并提示拆分，避免把不完整阅读报成全量通过。
 
-## 验证范围
+## 输出与故障处理
 
-静态检查包括 YAML、run shell 语法、完整/缺失/半缺/空文件/base 不可读的加载边界、提示词展开、源码路径和 diff 格式。模型真实调用、GitHub 运行结果、应用单测、前端构建及部署验收分别记录；本次不以静态检查证明线上成功，也不升级 `.github/workflows/unittest.yml` 的应用环境。
+最多报告 8 个有触发条件、调用链、影响和修复建议的 P1/P2 问题，用中文输出到一条可更新的 PR 评论，附本次 commit 的源码行链接。仅允许引用本次新增/删除行。重复运行更新同一评论，也兼容旧模型命名版本的评论标记，将其更新为通用标题；发布前重新检查 head 和 base，过期结果不发布。
+
+模型任务只有仓库只读权限；评论发布在独立 job 中持有 PR 写权限。CLI 原始输出由私有临时文件接收，避免进程退出时尚未写完的管道造成长 JSON 截断；文件关闭即删除。仅传递验证后的结果和提交元数据，不上传原始对话、源码快照或配置目录。Actions 固定到提交 SHA，CLI 固定 `@tencent-ai/codebuddy-code@2.147.0`。
+
+模型调用、JSON 校验或凭据失败会使检查失败；查看失败步骤处理，不能据“没有评论”认定通过。更新依赖或约束后先跑下列验证，再用正常业务 PR 检查结果。AI 输出有误由人工判定，修正知识规则后随 PR 更新重跑。
+
+## 额度与信任范围
+
+写权限检查包含 GitHub 团队/组织继承的有效权限，不是个人名单。模型只收到模型调用凭据，不收到 GitHub token；不读取 PR 讨论评论，不允许命令执行、编辑、网络工具或 MCP。PR 中的代码、规则和文本都只是待审数据。
+
+每次最多 24 个 agent turns，模型进程最多运行 900 秒，审查 job 最多 25 分钟。同一 PR 的新事件会取消旧运行；这些限制不是每日 token/金额硬预算，也不会退回已发生的调用费用。密钥应优先使用公司批准的 CI 专用身份，并在服务端设置预算、频率与告警。账号级每日总限额可能影响该账号的其他产品，不能当作本仓库独享额度；工作流本身不签发专用身份或管理服务端预算。
+
+## 验证
+
+```bash
+python3 -I -m unittest discover -s .github/scripts -p test_ai_review.py -v
+```
+
+该测试不需要模型凭据，覆盖作者/触发者权限、模型配置、通用标题与旧评论迁移、diff 定位、返回结构、链接与提及转义、路径穿越/符号链接、export-ignore/export-subst、特殊文件名、过期结果和评论更新；同时验证模型进程不继承 GitHub 凭据、runner 命令文件和外部工具授权，以及超过 1 MB 的 CLI JSON 在立即退出后仍完整读取。工作流的 `pull_request` 校验 job 不接收模型 Secret；业务代码应另按知识库列出的现有测试执行。
+
+参考：[GitHub Actions 安全指南](https://docs.github.com/en/actions/reference/security/secure-use)、[pull_request_target 默认分支语义](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target)。

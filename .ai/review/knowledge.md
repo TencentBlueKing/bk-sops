@@ -43,7 +43,7 @@ get_task_status 先检查 project/task 归属和 IAM，再按任务 engine_ver �
 
 本分支实际资源文件是 `gcloud/apigw/management/commands/data/api-resources.yml`，定义文件是 `gcloud/apigw/management/commands/data/api-definition.yml`，由 `gcloud/apigw/management/commands/sync_saas_apigw.py` 使用。路由存在、资源注册、网关权限、文档和发布结果是不同证据。检查 method/path/operationId 唯一性、参数及返回 schema、认证/资源权限与真实 view 一致；不要把内部路由存在当成外部网关已发布。
 
-本次核验没有根 `apigw/` 目录，不应强制使用其他分支的 MCP additions/supplement YAML。文档归档存在 `gcloud/apigw/docs/apigw-docs.tgz`，应以本分支 definition 的 resource_docs 配置确定实际消费产物；不要凭相似文件名新增另一份归档或运行真实网关同步。
+本次核验没有根 `apigw/` 目录，不应强制使用其他分支的 MCP additions/supplement YAML。本分支由 `config/default.py` 的 `BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE` 配置消费 `gcloud/apigw/docs/apigw-docs.tar.gz`，`gcloud/apigw/management/commands/data/api-definition.yml` 的 resource_docs 引用该配置。以实际消费路径核对文档更新；两种相似后缀的文件同时存在不代表都应生成或更新，不强制改用其他分支路径。
 
 ## 测试与证据边界
 
@@ -51,4 +51,12 @@ get_task_status 先检查 project/task 归属和 IAM，再按任务 engine_ver �
 - 任务/模板入口：`gcloud/tests/taskflow3/`、`gcloud/tests/tasktmpl3/`、`gcloud/tests/template_base/`；插件/变量入口：`pipeline_plugins/tests/`，包括 `pipeline_plugins/tests/variables/collections/test_text_value_select.py`。按实际 diff 选择子包，不把测试名称当作断言覆盖证据。
 - `.github/workflows/unittest.yml` 是该分支现有测试环境说明；使用 SQLite、测试环境变量和 IAM skip，部分依赖/下游被替代。可在独立测试环境用 `python manage.py test gcloud.tests.apigw.views.test_create_task gcloud.tests.apigw.views.test_get_task_status` 做聚焦验证；完整命令遵循现有 CI。
 - 不在有用户改动的 checkout 中照搬 CI 的删除目录或写 local_settings 操作。CI/本地通过都不等于目标 MySQL、真实 IAM/网关、部署完整 SHA、STAG 或业务验收。
-- 本次接入仅验证工作流 YAML、run shell 语法、知识路径与 diff 格式，没有运行应用单测、前端构建或发布。后续 MR 必须报告实际结果，不能沿用知识快照的检查结论。
+- `.github/scripts/test_ai_review.py` 验证审查 runner 的安全与输出边界，不替代本分支应用单测、前端构建或发布验证。后续 MR 必须报告实际运行结果，不能沿用知识快照的检查结论。
+
+## API 文档、资源与更新细则
+
+- 本分支资源版本为 `openapi: 3.0.1`；按 OpenAPI 3 的 parameters、POST requestBody 及 responses核对请求/返回 schema，不因其他分支使用不同版本就要求迁移整个资源文件。definition 中模板表达式按模板格式处理，不能将合法模板误报为裸 YAML 语法错误。
+- 中英文接口文档分别位于 `docs/zh_hans/apidoc/` 和 `docs/en/apidoc/`，应包含功能说明、参数表、请求示例、返回示例和字段说明，并与实际路由、校验器、返回值逐项核对。
+- 归档消费路径是 `gcloud/apigw/docs/apigw-docs.tar.gz`；接口文档正文布局为 `zh/*.md` 与 `en/*.md`，中文不是 zh_hans。区分已有归档元数据与本次新增变动，不把历史产物差异自动当作当前 PR 缺陷。公共只读审查 runner 不打包文档或同步真实网关。
+- 项目/业务/scope、receiver_group 等组名或 ID、路径参数及下游查询语义需一致；JSON 解析和 int 等转换的错误边界应受控，在查询前验证类型与结构，不能仅凭出现转换函数就报错。
+- 更新副作用按实际 model.save 覆写、signal receiver、update_fields 条件、通知/审计/队列调用追踪；Django save(update_fields=...) 并不普遍绕过 pre_save/post_save。权限资源一致性、命名语义和副作用回归用例按 diff 选择，审查模型不执行测试。
