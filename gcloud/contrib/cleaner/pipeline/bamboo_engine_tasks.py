@@ -82,7 +82,7 @@ def get_clean_pipeline_instance_data(instance_ids: List[str]) -> Dict[str, Query
     node_ids = list(node_id_set)
     logger.info(f"[get_clean_pipeline_instance_data] fetching node_ids number: {len(node_ids)}, e.x.:{node_ids[:3]}...")
     callback_data = CallbackData.objects.filter(node_id__in=node_ids)  # CallbackData 的 node_id 字段没有索引，需要遍历不分块
-    log_entry = LogEntry.objects.filter(node_id__in=node_ids)
+    log_entry = LogEntry.objects.filter(node_id__in=node_ids)  # LogEntry 的 node_id 字段没有索引，需要遍历不分块
     chunk_size = settings.CLEAN_EXPIRED_V2_TASK_NODE_BATCH_NUM
     retry_node_list = chunk_data(node_ids, chunk_size, lambda x: AutoRetryNodeStrategy.objects.filter(node_id__in=x))
     timeout_node_list = chunk_data(node_ids, chunk_size, lambda x: TimeoutNodeConfig.objects.filter(node_id__in=x))
