@@ -11,11 +11,21 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+from django.conf import settings
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from pipeline.contrib.external_plugins.models import source_cls_factory as base_source_cls_factory
 
 source_cls_factory = {}
+DEFAULT_TENANT_ID = "default"
+
+
+def resolve_tenant_id(tenant_id=None):
+    if tenant_id:
+        return tenant_id
+    if settings.ENABLE_MULTI_TENANT_MODE:
+        raise ValueError("tenant_id is required")
+    return DEFAULT_TENANT_ID
 
 
 class PackageSourceManager(models.Manager):
@@ -63,13 +73,15 @@ class PackageSourceManager(models.Manager):
         base_source = base_source_cls.objects.create_source(name=name, packages=packages, from_config=False, **kwargs)
         return base_source
 
-    def delete_base_source(self, package_source_id, source_type):
+    def delete_base_source(self, package_source_id, source_type, tenant_id=None):
+        tenant_id = resolve_tenant_id(tenant_id)
         base_source_cls = base_source_cls_factory[source_type]
-        package_source = self.get(id=package_source_id)
+        package_source = self.get(id=package_source_id, tenant_id=tenant_id)
         base_source_cls.objects.filter(id=package_source.base_source_id).delete()
 
-    def update_base_source(self, package_source_id, source_type, packages, **kwargs):
-        package_source = self.get(id=package_source_id)
+    def update_base_source(self, package_source_id, source_type, packages, tenant_id=None, **kwargs):
+        tenant_id = resolve_tenant_id(tenant_id)
+        package_source = self.get(id=package_source_id, tenant_id=tenant_id)
         package_source.update_base_source(source_type=source_type, packages=packages, **kwargs)
 
 

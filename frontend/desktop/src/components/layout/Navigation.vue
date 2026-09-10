@@ -127,7 +127,11 @@
                 const commonRouteList = this.commonRouteList || COMMON_ROUTE_LIST
                 if (this.view_mode === 'appmaker') {
                     return APPMAKER_ROUTE_LIST
-                } else if (this.hasAdminPerm) {
+                } else {
+                    // Keep the administrator entry visible. Users without
+                    // admin_view are routed to the IAM V4 permission page by
+                    // the admin view itself, so hiding the entry would make
+                    // that application path unreachable.
                     const adminRouteList = tools.deepClone(ADMIN_ROUTE_LIST)
                     const firstRouteGroup = adminRouteList[0][0]
 
@@ -149,7 +153,6 @@
 
                     return commonRouteList.concat(adminRouteList)
                 }
-                return commonRouteList
             },
             subTitle () {
                 if (this.currentNav === 'appMakerList') {

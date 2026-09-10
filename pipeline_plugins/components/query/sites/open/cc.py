@@ -17,14 +17,14 @@ import traceback
 from django.http import JsonResponse
 from django.urls import path, re_path
 from django.utils.translation import gettext_lazy as _
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
 from gcloud.core.utils import get_user_business_list
 from gcloud.exceptions import APIError, ApiRequestError
+from gcloud.iam_auth.constants import HTTP_AUTH_FORBIDDEN_CODE
+from gcloud.iam_auth.exceptions import RawAuthFailedException
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_request

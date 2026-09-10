@@ -17,8 +17,6 @@ import logging
 from django.db import models
 from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.conf import settings
 from gcloud.constants import AE, TASK_CATEGORY
@@ -26,6 +24,8 @@ from gcloud.core.api_adapter import create_maker_app, del_maker_app, edit_maker_
 from gcloud.core.models import Project
 from gcloud.core.utils import convert_readable_username
 from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils import managermixins
 from gcloud.utils.dates import time_now_str

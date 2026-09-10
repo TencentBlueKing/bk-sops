@@ -16,10 +16,9 @@ import six
 from bk_audit.contrib.bk_audit.client import bk_audit_client
 from bk_audit.log.models import AuditContext
 from django.conf import settings
-from iam.auth.models import BaseObject
 
 from gcloud.contrib.audit.instances import build_instance
-from iam import Action
+from gcloud.iam_auth.models import Action, BaseObject
 
 logger = logging.getLogger("root")
 

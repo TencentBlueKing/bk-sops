@@ -32,7 +32,18 @@ const permission = {
             const { actions, resources, system } = this.$store.state.permissionMeta
             const bksops = system.find(item => item.id === 'bk_sops')
             const { id: systemId, name: systemName } = bksops
-            const actionsData = this.assembleActionsData(reqPermission, curPermission, resourceData, actions, resources, systemId, systemName)
+            const pairedActions = {
+                common_flow_create_task: 'project_common_create_task',
+                common_flow_create_periodic_task: 'project_common_create_periodic'
+            }
+            const requiredPermissions = [...reqPermission]
+            reqPermission.forEach((actionId) => {
+                const pairedAction = pairedActions[actionId]
+                if (pairedAction && Array.isArray(resourceData.project) && !requiredPermissions.includes(pairedAction)) {
+                    requiredPermissions.push(pairedAction)
+                }
+            })
+            const actionsData = this.assembleActionsData(requiredPermissions, curPermission, resourceData, actions, resources, systemId, systemName)
 
             const data = {
                 system_id: systemId,
@@ -64,6 +75,12 @@ const permission = {
                     const relateResources = []
                     permActionData.relate_resources.forEach((reItem) => {
                         const resourceMap = resources.find(item => item.id === reItem)
+                        const instanceData = resourceData[resourceMap.id]
+                        // IAM V4 may omit instances and let the user select the
+                        // resource scope on the permission application page.
+                        if (!Array.isArray(instanceData) || instanceData.length === 0) {
+                            return
+                        }
                         const instances = this.assembleInstances(resources, resourceMap, resourceData)
                         relateResources.push({
                             system_id: systemId,

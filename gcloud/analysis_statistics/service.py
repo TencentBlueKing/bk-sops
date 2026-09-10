@@ -853,13 +853,13 @@ def _calculate_effective_time_by_dfs(
     }
 
 
-def effective_time_for_task(scope, task_id, bk_biz_id, debug_mode=False):
+def effective_time_for_task(scope, task_id, bk_biz_id, tenant_id, debug_mode=False):
     """
     统计任务的有效执行时间（排除人工节点及其等待时间，以及失败后等待时间）
     """
     # 获取项目对象，支持通过 bk_biz_id 查询
     try:
-        project = get_project_with(obj_id=bk_biz_id, scope=scope)
+        project = get_project_with(obj_id=bk_biz_id, scope=scope, tenant_id=tenant_id)
     except Project.DoesNotExist:
         return {
             "result": False,

@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from iam import Action, Request, Subject
-
 from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.models import Action, Request, Subject
+from gcloud.iam_auth.scope_resolver import ScopeResolver
 
 logger = logging.getLogger("root")
 CACHE_PREFIX = __name__.replace(".", "_")
@@ -28,7 +28,15 @@ def is_user_functor(request):
     username = request.user.username
     if not username:
         return False
-    return is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION, request.user.tenant_id)
+    try:
+        return bool(
+            ScopeResolver()
+            .authorized_scope(username, request.user.tenant_id, IAMMeta.FUNCTION_TASK_VIEW_ACTION)
+            .ids(IAMMeta.PROJECT_RESOURCE)
+        )
+    except Exception:
+        logger.exception("function task authorized scope request failed")
+        return False
 
 
 def is_user_auditor(request):
@@ -41,7 +49,7 @@ def is_user_auditor(request):
     return is_user_role(username, IAMMeta.AUDIT_VIEW_ACTION, request.user.tenant_id)
 
 
-def is_user_role(username, role_action, tenant_id=""):
+def is_user_role(username, role_action, tenant_id):
 
     subject = Subject("user", username)
     action = Action(role_action)

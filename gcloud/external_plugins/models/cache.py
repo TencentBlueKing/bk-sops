@@ -15,7 +15,7 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from gcloud.external_plugins import CACHE_TEMP_PATH, exceptions
-from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
+from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager, resolve_tenant_id
 from gcloud.external_plugins.protocol.writers import writer_cls_factory
 
 CACHE = "cache"
@@ -23,11 +23,12 @@ CACHE = "cache"
 
 class CachePackageSourceManager(PackageSourceManager):
     @transaction.atomic()
-    def add_cache_source(self, name, source_type, packages, desc="", tenant_id="", **kwargs):
+    def add_cache_source(self, name, source_type, packages, desc="", tenant_id=None, **kwargs):
+        tenant_id = resolve_tenant_id(tenant_id)
         if source_type not in writer_cls_factory:
             raise exceptions.CacheSourceTypeError("Source type[%s] does not support as cache source" % source_type)
 
-        if self.all().count() > 0:
+        if self.filter(tenant_id=tenant_id).exists():
             raise exceptions.MultipleCacheSourceError("Can not add multiple cache source")
 
         base_source = super(CachePackageSourceManager, self).add_base_source(
@@ -35,13 +36,15 @@ class CachePackageSourceManager(PackageSourceManager):
         )
         return self.create(type=source_type, base_source_id=base_source.id, desc=desc, tenant_id=tenant_id)
 
-    def get_base_source(self):
-        count = self.all().count()
+    def get_base_source(self, tenant_id=None):
+        tenant_id = resolve_tenant_id(tenant_id)
+        queryset = self.filter(tenant_id=tenant_id)
+        count = queryset.count()
         if count > 1:
             raise exceptions.MultipleCacheSourceError("Can not add multiple cache source")
         if count == 0:
             return None
-        return self.all().first().base_source
+        return queryset.first().base_source
 
 
 class CachePackageSource(PackageSource):

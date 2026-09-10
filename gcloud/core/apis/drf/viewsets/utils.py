@@ -14,8 +14,6 @@ import logging
 
 from django.conf import settings
 from django.http import Http404
-from iam import Action, MultiActionRequest, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.response import Response
@@ -24,6 +22,8 @@ from rest_framework.viewsets import GenericViewSet
 from gcloud import err_code
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.models import Action, MultiActionRequest, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 
 iam_logger = logging.getLogger("iam")
 logger = logging.getLogger("root")
@@ -167,17 +167,16 @@ class MultiTenantMixin:
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        if settings.ENABLE_MULTI_TENANT_MODE:
-            tenant_id = self.request.user.tenant_id
-            if self.model_multi_tenant_filter:
-                queryset = queryset.filter(tenant_id=tenant_id)
-            elif self.project_multi_tenant_filter:
-                queryset = queryset.filter(project__tenant_id=tenant_id)
-            elif self.project_id_multi_tenant_filter:
-                project_ids = Project.objects.filter(tenant_id=tenant_id).values_list("id", flat=True)
-                queryset = queryset.filter(project_id__in=project_ids)
-            elif self.taskflow_multi_tenant_filter:
-                queryset = queryset.filter(task__project__tenant_id=tenant_id)
+        tenant_id = self.request.user.tenant_id
+        if self.model_multi_tenant_filter:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        elif self.project_multi_tenant_filter:
+            queryset = queryset.filter(project__tenant_id=tenant_id)
+        elif self.project_id_multi_tenant_filter:
+            project_ids = Project.objects.filter(tenant_id=tenant_id).values_list("id", flat=True)
+            queryset = queryset.filter(project_id__in=project_ids)
+        elif self.taskflow_multi_tenant_filter:
+            queryset = queryset.filter(task__project__tenant_id=tenant_id)
         return queryset
 
     def get_object(self):

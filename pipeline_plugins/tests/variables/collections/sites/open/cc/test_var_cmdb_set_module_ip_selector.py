@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 from unittest.mock import call
 
+from django.conf import settings
 from django.test import TestCase
 from mock import MagicMock, patch
 
@@ -31,6 +32,9 @@ FIND_MODULE_WITH_RELATION = "{}.find_module_with_relation".format(CMDB_API_FUNC_
 GET_SERVICE_TEMPLATE_LIST = "{}.get_service_template_list".format(CMDB_API_FUNC_PREFIX)
 GET_SET_LIST = "{}.get_set_list".format(CMDB_API_FUNC_PREFIX)
 GET_MODULE_LIST = "{}.get_module_list".format(CMDB_API_FUNC_PREFIX)
+
+HOST_FIELDS = ["bk_host_innerip", "bk_host_innerip_v6"] if settings.ENABLE_IPV6 else ["bk_host_innerip"]
+CUSTOM_HOST_FIELDS = ["bk_host_id"] if settings.ENABLE_IPV6 else ["bk_host_innerip"]
 
 
 class MockClient(object):
@@ -432,7 +436,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -442,7 +446,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -484,7 +488,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -494,7 +498,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -536,7 +540,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -546,7 +550,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -612,7 +616,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -622,7 +626,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -679,7 +683,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -689,7 +693,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -751,7 +755,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -761,7 +765,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -827,7 +831,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -837,7 +841,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -976,7 +980,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -986,7 +990,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1139,7 +1143,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1149,7 +1153,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1243,7 +1247,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [61],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 1},
                             },
                             path_params={"bk_biz_id": 1},
@@ -1253,7 +1257,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [61],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 500},
                             },
                             path_params={"bk_biz_id": 1},
@@ -1340,7 +1344,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [62, 3],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 1},
                             },
                             path_params={"bk_biz_id": 1},
@@ -1350,7 +1354,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [62, 3],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 500},
                             },
                             path_params={"bk_biz_id": 1},
@@ -1401,7 +1405,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [3],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 1},
                             },
                             path_params={"bk_biz_id": 1},
@@ -1411,7 +1415,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [3],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 500},
                             },
                             path_params={"bk_biz_id": 1},
@@ -1484,7 +1488,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1494,7 +1498,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1545,7 +1549,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1555,7 +1559,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[3],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1619,7 +1623,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3, 4, 5, 6],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"start": 0, "limit": 1},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1629,7 +1633,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             dict(
                                 bk_biz_id=1,
                                 bk_module_ids=[61, 3, 4, 5, 6],
-                                fields=["bk_host_innerip"],
+                                fields=HOST_FIELDS,
                                 page={"limit": 500, "start": 0},
                             ),
                             path_params={"bk_biz_id": 1},
@@ -1750,7 +1754,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [61, 62, 3, 4, 5, 6],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 1},
                             },
                             path_params={"bk_biz_id": 1},
@@ -1760,7 +1764,7 @@ class VarCmdbSetModuleIpSelectorTestCase(TestCase):
                             {
                                 "bk_biz_id": 1,
                                 "bk_module_ids": [61, 62, 3, 4, 5, 6],
-                                "fields": ["bk_host_innerip"],
+                                "fields": CUSTOM_HOST_FIELDS,
                                 "page": {"start": 0, "limit": 500},
                             },
                             path_params={"bk_biz_id": 1},

@@ -38,7 +38,7 @@ def get_task_effective_time(request, task_id, bk_biz_id):
     # 检查是否启用调试模式
     debug_mode = request.GET.get("debug", "0") == "1"
     try:
-        return effective_time_for_task(scope, task_id, bk_biz_id, debug_mode)
+        return effective_time_for_task(scope, task_id, bk_biz_id, request.user.tenant_id, debug_mode)
     except Exception as e:
         return {
             "result": False,

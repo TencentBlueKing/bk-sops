@@ -31,6 +31,13 @@ from gcloud.utils.timezone import get_user_timezone
 logger = logging.getLogger("root")
 
 
+def _cmdb_create_business_url():
+    host = settings.BK_CC_HOST or ""
+    if not host:
+        return ""
+    return host.rstrip("/") + "/#/resource/business?create=true"
+
+
 def get_cur_pos_from_url(request):
     """
     @summary: 返回公共变量给前端导航
@@ -76,10 +83,8 @@ def mysetting(request):
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问
         "BK_PAAS_HOST": settings.BK_PAAS_HOST,
         "BK_CC_HOST": settings.BK_CC_HOST,
+        "BK_CC_CREATE_BUSINESS_URL": _cmdb_create_business_url(),
         "BK_JOB_HOST": settings.BK_JOB_HOST,
-        "BK_IAM_SAAS_HOST": settings.BK_IAM_SAAS_HOST,
-        "BK_IAM_APPLY_URL": settings.BK_IAM_SAAS_HOST.strip("/") + "/apply-join-user-group",
-        "BK_IAM_APP_CODE": settings.BK_IAM_APP_CODE,
         "BK_USER_MANAGE_HOST": settings.BK_USER_MANAGE_HOST,
         "BKPAAS_USER_URL": settings.BKPAAS_USER_URL,
         "BK_PAAS_ESB_HOST": settings.BK_PAAS_ESB_API_HOST,

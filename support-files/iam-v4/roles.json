@@ -1,0 +1,497 @@
+[
+  {
+    "id": "biz_operator",
+    "name": "业务运维",
+    "description": "项目运维和公共流程使用",
+    "actions": [
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_fast_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_common_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_common_create_periodic",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_mini_app",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_periodic_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_clocked_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_operate",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_clone",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "common_flow_view",
+        "resource_type_id": "common_flow"
+      },
+      {
+        "id": "common_flow_create_task",
+        "resource_type_id": "common_flow"
+      },
+      {
+        "id": "common_flow_create_periodic_task",
+        "resource_type_id": "common_flow"
+      }
+    ]
+  },
+  {
+    "id": "biz_flow_executor",
+    "name": "业务流程执行者",
+    "description": "指定流程执行",
+    "actions": [
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_view",
+        "resource_type_id": "flow"
+      },
+      {
+        "id": "flow_create_task",
+        "resource_type_id": "flow"
+      }
+    ]
+  },
+  {
+    "id": "mini_app_user",
+    "name": "轻应用用户",
+    "description": "指定轻应用使用",
+    "actions": [
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_view",
+        "resource_type_id": "flow"
+      },
+      {
+        "id": "mini_app_view",
+        "resource_type_id": "mini_app"
+      },
+      {
+        "id": "mini_app_create_task",
+        "resource_type_id": "mini_app"
+      }
+    ]
+  },
+  {
+    "id": "biz_viewer",
+    "name": "业务只读",
+    "description": "项目资源只读",
+    "actions": [
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_view",
+        "resource_type_id": "project"
+      }
+    ]
+  },
+  {
+    "id": "common_flow_developer",
+    "name": "公共流程开发者",
+    "description": "公共流程创建和编辑",
+    "actions": [
+      {
+        "id": "common_flow_create",
+        "resource_type_id": ""
+      },
+      {
+        "id": "common_flow_view",
+        "resource_type_id": "common_flow"
+      },
+      {
+        "id": "common_flow_edit",
+        "resource_type_id": "common_flow"
+      }
+    ]
+  },
+  {
+    "id": "biz_function_executor",
+    "name": "业务职能化执行者",
+    "description": "职能化任务查看认领和操作",
+    "actions": [
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "function_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_view",
+        "resource_type_id": "task"
+      },
+      {
+        "id": "task_claim",
+        "resource_type_id": "task"
+      },
+      {
+        "id": "task_operate",
+        "resource_type_id": "task"
+      }
+    ]
+  },
+  {
+    "id": "platform_admin",
+    "name": "平台管理员",
+    "description": "全部权限",
+    "actions": [
+      {
+        "id": "project_create",
+        "resource_type_id": ""
+      },
+      {
+        "id": "common_flow_create",
+        "resource_type_id": ""
+      },
+      {
+        "id": "admin_view",
+        "resource_type_id": ""
+      },
+      {
+        "id": "admin_edit",
+        "resource_type_id": ""
+      },
+      {
+        "id": "audit_view",
+        "resource_type_id": ""
+      },
+      {
+        "id": "function_view",
+        "resource_type_id": ""
+      },
+      {
+        "id": "statistics_view",
+        "resource_type_id": ""
+      },
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_fast_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_common_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "project_common_create_periodic",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "function_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_mini_app",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_periodic_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_create_clocked_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_operate",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_claim",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_clone",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_create_task",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_edit",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_delete",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "common_flow_view",
+        "resource_type_id": "common_flow"
+      },
+      {
+        "id": "common_flow_edit",
+        "resource_type_id": "common_flow"
+      },
+      {
+        "id": "common_flow_delete",
+        "resource_type_id": "common_flow"
+      },
+      {
+        "id": "common_flow_create_task",
+        "resource_type_id": "common_flow"
+      },
+      {
+        "id": "common_flow_create_periodic_task",
+        "resource_type_id": "common_flow"
+      }
+    ]
+  },
+  {
+    "id": "vendor_flow_executor",
+    "name": "外部流程执行者",
+    "description": "受限的指定流程执行",
+    "actions": [
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_view",
+        "resource_type_id": "flow"
+      },
+      {
+        "id": "flow_create_task",
+        "resource_type_id": "flow"
+      }
+    ]
+  },
+  {
+    "id": "platform_auditor",
+    "name": "平台审计员",
+    "description": "只读审计权限",
+    "actions": [
+      {
+        "id": "audit_view",
+        "resource_type_id": ""
+      },
+      {
+        "id": "function_view",
+        "resource_type_id": ""
+      },
+      {
+        "id": "statistics_view",
+        "resource_type_id": ""
+      },
+      {
+        "id": "project_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "function_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "flow_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "mini_app_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "periodic_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "clocked_task_view",
+        "resource_type_id": "project"
+      },
+      {
+        "id": "common_flow_view",
+        "resource_type_id": "common_flow"
+      }
+    ]
+  }
+]

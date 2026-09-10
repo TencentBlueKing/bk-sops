@@ -11,21 +11,23 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
-
-from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.scope_resolver import ScopeResolver
 
 
 class FunctionViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         if request.is_trust:
+            request._function_project_ids = None
+            request._function_task_ids = None
             return
 
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
-        subject = Subject("user", request.user.username)
-        action = Action(IAMMeta.FUNCTION_VIEW_ACTION)
-        resources = []
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
+        resolver = ScopeResolver()
+        request._function_project_ids = resolver.authorized_scope(
+            request.user.username, tenant_id, IAMMeta.FUNCTION_TASK_VIEW_ACTION
+        ).ids(IAMMeta.PROJECT_RESOURCE)
+        request._function_task_ids = resolver.authorized_scope(
+            request.user.username, tenant_id, IAMMeta.TASK_VIEW_ACTION
+        ).ids(IAMMeta.TASK_RESOURCE)

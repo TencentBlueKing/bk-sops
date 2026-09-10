@@ -12,23 +12,29 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
-from iam import Action, Request, Subject
-from iam.exceptions import AuthFailedException, MultiAuthFailedException
 
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.creator import get_flow_creator_ids, is_flow_creator
+from gcloud.iam_auth.exceptions import AuthFailedException, MultiAuthFailedException
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.models import Action, Request, Subject
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import read_template_data_file
 from gcloud.utils.strings import string_to_boolean
-
-iam = get_iam_client()
 
 
 class TaskTemplateViewInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         template_id = request.GET.get("template_id")
         tenant_id = request.user.tenant_id
+        if is_flow_creator(
+            request.user.username,
+            tenant_id,
+            template_id,
+            project_id=request.GET.get("project_id"),
+        ):
+            return
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
         resources = res_factory.resources_for_flow(template_id, tenant_id)
@@ -59,10 +65,16 @@ class BatchFormInterceptor(ViewInterceptor):
         tenant_id = request.user.tenant_id
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
-        resources_list = res_factory.resources_list_for_flows([template["id"] for template in template_list], tenant_id)
-        iam = get_iam_client(tenant_id)
+        template_ids = [template["id"] for template in template_list]
+        creator_ids = get_flow_creator_ids(
+            request.user.username, tenant_id, template_ids, project_id=data.get("project_id")
+        )
+        template_ids = [template_id for template_id in template_ids if str(template_id) not in creator_ids]
+        resources_list = res_factory.resources_list_for_flows(template_ids, tenant_id)
         if not resources_list:
             return
+
+        iam = get_iam_client(tenant_id)
 
         resources_map = {}
         for resources in resources_list:
@@ -89,13 +101,18 @@ class ExportInterceptor(ViewInterceptor):
         data = request.data
         template_id_list = data["template_id_list"]
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
+        creator_ids = get_flow_creator_ids(
+            request.user.username, tenant_id, template_id_list, project_id=data.get("project_id")
+        )
+        template_id_list = [template_id for template_id in template_id_list if str(template_id) not in creator_ids]
         resources_list = res_factory.resources_list_for_flows(template_id_list, tenant_id)
 
         if not resources_list:
             return
+
+        iam = get_iam_client(tenant_id)
 
         resources_map = {}
         for resources in resources_list:
@@ -181,12 +198,14 @@ class AgentGenerateProcessInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         data = json.loads(request.body)
         project_id = data.get("project_id")
+        tenant_id = request.user.tenant_id
 
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_CREATE_ACTION)
-        resources = res_factory.resources_for_project(project_id)
+        resources = res_factory.resources_for_project(project_id, tenant_id)
         iam_request = Request(IAMMeta.SYSTEM_ID, subject, action, resources, {})
 
+        iam = get_iam_client(tenant_id)
         if not iam.is_allowed(iam_request):
             raise AuthFailedException(IAMMeta.SYSTEM_ID, subject, action, resources)
 
@@ -238,8 +257,15 @@ class ConstantPreviewInterceptor(ViewInterceptor):
 class AgentBeautifyTemplateLayoutInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
         template_id = request.GET.get("template_id")
+        if is_flow_creator(
+            request.user.username,
+            tenant_id,
+            template_id,
+            project_id=request.GET.get("project_id"),
+        ):
+            return
+        iam = get_iam_client(tenant_id)
         subject = Subject("user", request.user.username)
         action = Action(IAMMeta.FLOW_VIEW_ACTION)
 

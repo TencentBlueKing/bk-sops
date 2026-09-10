@@ -12,11 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 import json
 
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
-
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.request_resources import load_resource_for_request
 
 
 class NotifyTemplateInterceptor(ViewInterceptor):
@@ -30,26 +28,22 @@ class NotifyTemplateInterceptor(ViewInterceptor):
             args: 位置参数
             kwargs: 关键字参数
         """
-        # 如果是信任请求，跳过权限验证
-        if request.is_trust:
-            return
-
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
         params = json.loads(request.body)
 
         template_source = params.get("common", False)
         template_id = kwargs["template_id"]
-        subject = Subject("user", request.user.username)
         # 根据模板来源设置不同的权限动作
         if not template_source:
             # 项目模板需要流程编辑权限
-            action = Action(IAMMeta.FLOW_EDIT_ACTION)
-            resources = res_factory.resources_for_flow(template_id, tenant_id)
+            action_id = IAMMeta.FLOW_EDIT_ACTION
+            resource = load_resource_for_request(request, IAMMeta.FLOW_RESOURCE, template_id)
         else:
             # 公共模板需要公共流程编辑权限
-            action = Action(IAMMeta.COMMON_FLOW_EDIT_ACTION)
-            resources = res_factory.resources_for_common_flow(template_id, tenant_id)
+            action_id = IAMMeta.COMMON_FLOW_EDIT_ACTION
+            resource = load_resource_for_request(request, IAMMeta.COMMON_FLOW_RESOURCE, template_id)
 
-        # 验证权限
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
+        # trust only skips the user policy after tenant and ownership checks.
+        if request.is_trust:
+            return
+        PermissionService().require(request.user.username, tenant_id, PermissionCheck(action_id, resource))

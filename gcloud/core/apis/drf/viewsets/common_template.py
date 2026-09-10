@@ -18,7 +18,6 @@ import ujson as json
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, Q
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Request, Resource, Subject
 from pipeline.models import TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
@@ -46,6 +45,8 @@ from gcloud.core.apis.drf.serilaziers.common_template import (
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action
+from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user_and_project
 from gcloud.taskflow3.models import TaskConfig
 from gcloud.template_base.domains.template_manager import TemplateManager
 
@@ -197,32 +198,18 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         project_id = request.query_params.get("project_id")
         if not project_id:
             return []
-        iam = get_iam_client(request.user.tenant_id)
-        system = IAMMeta.SYSTEM_ID
-
-        allowed_template_ids = []
-        for template_id in common_template_ids:
-            resource = [
-                Resource(system, IAMMeta.COMMON_FLOW_RESOURCE, str(template_id), {}),
-                Resource(system, IAMMeta.PROJECT_RESOURCE, str(project_id), {}),
-            ]
-            try:
-                is_allow = iam.is_allowed(
-                    Request(
-                        system=system,
-                        subject=Subject("user", request.user.username),
-                        action=common_flow_action,
-                        resources=resource,
-                        environment=None,
-                    )
-                )
-            except Exception as e:
-                logger.exception(f"[iam_is_allowed]: {e}")
-                is_allow = False
-            if is_allow:
-                allowed_template_ids.append(template_id)
-
-        return allowed_template_ids
+        allowed_actions = get_common_flow_allowed_actions_for_user_and_project(
+            request.user.username,
+            [common_flow_action.id],
+            common_template_ids,
+            project_id,
+            request.user.tenant_id,
+        )
+        return [
+            template_id
+            for template_id in common_template_ids
+            if allowed_actions.get(str(template_id), {}).get(common_flow_action.id, False)
+        ]
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

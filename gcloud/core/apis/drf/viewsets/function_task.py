@@ -15,18 +15,17 @@ from rest_framework import permissions
 
 from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.function.models import FunctionTask
-from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.function_task import FunctionTaskSerializer
 from gcloud.core.apis.drf.viewsets import GcloudListViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
+from gcloud.iam_auth.scope_resolver import ScopeResolver
 
 
-class FunctionTaskPermission(IamPermission):
-    actions = {
-        "list": IamPermissionInfo(IAMMeta.FUNCTION_VIEW_ACTION),
-    }
+class FunctionTaskPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user.tenant_id)
 
 
 class FunctionTaskViewSet(GcloudListViewSet):
@@ -60,5 +59,20 @@ class FunctionTaskViewSet(GcloudListViewSet):
         )
 
     def list(self, request, *args, **kwargs):
-        bk_audit_add_event(username=request.user.username, action_id=IAMMeta.FUNCTION_VIEW_ACTION)
+        bk_audit_add_event(username=request.user.username, action_id=IAMMeta.FUNCTION_TASK_VIEW_ACTION)
         return super(FunctionTaskViewSet, self).list(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = super().get_queryset().filter(task__project__tenant_id=self.request.user.tenant_id)
+        resolver = ScopeResolver()
+        project_ids = resolver.authorized_scope(
+            self.request.user.username,
+            self.request.user.tenant_id,
+            IAMMeta.FUNCTION_TASK_VIEW_ACTION,
+        ).ids(IAMMeta.PROJECT_RESOURCE)
+        task_ids = resolver.authorized_scope(
+            self.request.user.username,
+            self.request.user.tenant_id,
+            IAMMeta.TASK_VIEW_ACTION,
+        ).ids(IAMMeta.TASK_RESOURCE)
+        return queryset.filter(task__project_id__in=project_ids, task_id__in=task_ids)

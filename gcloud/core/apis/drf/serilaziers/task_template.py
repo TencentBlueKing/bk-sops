@@ -74,8 +74,9 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     enable_webhook = serializers.BooleanField(help_text="是否启用webhook", required=False)
 
     def validate_project(self, value):
+        tenant_id = getattr(getattr(self.context.get("request"), "user", None), "tenant_id", "")
         try:
-            return Project.objects.get(id=value)
+            return Project.objects.get(id=value, tenant_id=tenant_id, is_disable=False)
         except Project.DoesNotExist:
             raise serializers.ValidationError(_("project不存在"))
 

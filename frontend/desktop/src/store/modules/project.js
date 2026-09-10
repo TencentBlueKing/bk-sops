@@ -104,8 +104,13 @@ const project = {
                 desc
             }).then(response => response.data)
         },
-        loadProjectDetail ({ commit }, id) {
-            return axios.get(`api/v3/project/${id}/`).then(response => response.data.data)
+        loadProjectDetail ({ commit }, payload) {
+            const isObjectPayload = typeof payload === 'object'
+            const id = isObjectPayload ? payload.id : payload
+            const params = isObjectPayload && payload.reexecuteTaskId
+                ? { reexecute_task_id: payload.reexecuteTaskId }
+                : {}
+            return axios.get(`api/v3/project/${id}/`, { params }).then(response => response.data.data)
         },
         // 更新项目详情
         updateProject ({ commit }, data) {

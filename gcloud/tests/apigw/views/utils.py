@@ -17,6 +17,9 @@ from types import SimpleNamespace
 from django.conf import settings
 from django.test import Client, TestCase
 
+from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.models import Resource
+from gcloud.iam_auth.topology import project_path
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -59,6 +62,40 @@ def mock_check_white_apps(request):
     return True
 
 
+def mock_tenant_local_resource(request, resource_type, resource_id):
+    """Represent a resource already resolved inside the request tenant.
+
+    Legacy APIGW business tests mock their domain managers instead of creating
+    IAM-backed database objects. Dedicated IAM V4 tests exercise the real
+    tenant loader; these tests only need a valid resource to reach the business
+    behavior under test.
+    """
+
+    attributes = {"name": "test-resource"}
+    project = getattr(request, "project", None)
+    if resource_type not in {IAMMeta.PROJECT_RESOURCE, IAMMeta.COMMON_FLOW_RESOURCE} and project is not None:
+        attributes["_bk_iam_path_"] = project_path(project.id)
+    return Resource(IAMMeta.SYSTEM_ID, resource_type, str(resource_id), attributes)
+
+
+RESOURCE_LOADER_MODULES = (
+    "task_operate",
+    "task_edit",
+    "claim_functionalization_task",
+    "fast_create_task",
+    "get_periodic_task_info",
+    "flow_view",
+    "get_template_info",
+    "create_task",
+    "modify_template_notify",
+    "create_periodic_task",
+    "periodic_task_edit",
+    "template_edit",
+    "task_view",
+    "common_flow_view",
+)
+
+
 class MockApiGatewayJWTPayloadMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -93,12 +130,23 @@ class APITest(TestCase, metaclass=abc.ABCMeta):
         self.white_list_patcher.start()
         self.project_filter_patcher.start()
         self.inject_user.start()
+        self.resource_loader_patchers = [
+            patch(
+                "gcloud.iam_auth.view_interceptors.apigw.{}.load_resource_for_request".format(module),
+                mock_tenant_local_resource,
+            )
+            for module in RESOURCE_LOADER_MODULES
+        ]
+        for patcher in self.resource_loader_patchers:
+            patcher.start()
 
         settings.BK_APIGW_REQUIRE_EXEMPT = True
 
         self.client = Client()
 
     def tearDown(self):
+        for patcher in self.resource_loader_patchers:
+            patcher.stop()
         self.white_list_patcher.stop()
         self.project_filter_patcher.stop()
         self.inject_user.stop()

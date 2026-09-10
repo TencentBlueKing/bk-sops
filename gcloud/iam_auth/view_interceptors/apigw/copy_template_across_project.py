@@ -13,12 +13,11 @@ specific language governing permissions and limitations under the License.
 import json
 import logging
 
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
-
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.tasktmpl3.models import TaskTemplate
 
 

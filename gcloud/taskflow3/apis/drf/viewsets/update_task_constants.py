@@ -11,8 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -22,6 +20,8 @@ from gcloud.contrib.operate_record.constants import OperateSource, OperateType
 from gcloud.contrib.operate_record.models import TaskOperateRecord
 from gcloud.contrib.operate_record.utils import extract_extra_info
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.taskflow3.domains.task_constants import TaskConstantsHandler
 from gcloud.taskflow3.models import TaskFlowInstance
 

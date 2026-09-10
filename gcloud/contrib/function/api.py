@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.http import Http404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,8 +15,7 @@ from gcloud.contrib.function.serializers import (
     FunctionTaskClaimantTransferRequestSerializer,
     FunctionTaskClaimantTransferResponse,
 )
-from gcloud.core.api_adapter.user_role import is_user_role
-from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService, res_factory
 
 logger = logging.getLogger("root")
 
@@ -27,36 +29,39 @@ class FunctionTaskClaimantTransferView(APIView):
     )
     @action(methods=["POST"], detail=False)
     def post(self, request):
-        # 获取用户名鉴权是否拥有职能化权限
         username = request.user.username
-        if not is_user_role(username, IAMMeta.FUNCTION_VIEW_ACTION, request.user.tenant_id):
-            message = _("没有查看职能化任务权限")
-            logger.error(message)
-            return Response({"result": False, "message": message})
 
         # 获取请求参数并校验
         serializer = FunctionTaskClaimantTransferRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         # 查询传进来的id职能化任务是否有效
-        serializer_data = serializer.data
-        function_task_query = FunctionTask.objects.filter(id=serializer_data["id"]).values("claimant")
-        if not function_task_query.count():
-            message = _("任务转交失败: 当前转交的任务已不存在, 请检查任务是否存在")
-            logger.error(message)
-            return Response({"result": False, "message": message})
-
-        # 查询当前任务是否有认领人判断是否已认领,并且请求的用户是否是认领人
-        claimant = function_task_query.first().get("claimant")
-        if not claimant:
-            message = _("任务转交失败: 未查询到任务认领人, 请检查任务后重试")
-            logger.error(message)
-            return Response({"result": False, "message": message})
-        elif claimant != username:
-            message = _(f"任务转交失败: 仅[{claimant}]才可转交任务, 请检查是否已认领该任务")
-            logger.error(message)
-            return Response({"result": False, "message": message})
-
-        # 修改并返回结果
-        FunctionTask.objects.filter(id=serializer_data["id"]).update(claimant=serializer_data["claimant"])
+        serializer_data = serializer.validated_data
+        with transaction.atomic():
+            function_task = (
+                FunctionTask.objects.select_for_update()
+                .select_related("task__project")
+                .filter(id=serializer_data["id"], task__project__tenant_id=request.user.tenant_id)
+                .first()
+            )
+            if function_task is None:
+                raise Http404
+            PermissionService().require(
+                username,
+                request.user.tenant_id,
+                PermissionCheck(
+                    IAMMeta.TASK_CLAIM_ACTION,
+                    res_factory.resources_for_task_obj(function_task.task)[0],
+                ),
+            )
+            if function_task.claimant != username:
+                raise ValidationError("only current claimant can transfer task")
+            if (
+                not get_user_model()
+                .objects.filter(username=serializer_data["claimant"], tenant_id=request.user.tenant_id)
+                .exists()
+            ):
+                raise ValidationError("target claimant does not belong to tenant")
+            function_task.claimant = serializer_data["claimant"]
+            function_task.save(update_fields=["claimant"])
         return Response({"result": True, "data": None})

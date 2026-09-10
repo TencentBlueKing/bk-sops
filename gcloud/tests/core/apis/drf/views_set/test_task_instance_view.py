@@ -27,9 +27,84 @@ from django_test_toolkit.testcases import ToolkitApiTestCase
 from pipeline.eri.models import State
 from pipeline.models import PipelineInstance, PipelineTemplate, Snapshot
 
-from gcloud.core.apis.drf.viewsets.taskflow import TaskFLowStatusFilterHandler, TaskFlowInstanceViewSet
+from gcloud.core.apis.drf.permission import IamPermission
+from gcloud.core.apis.drf.viewsets.base import GcloudCommonMixin
+from gcloud.core.apis.drf.viewsets.taskflow import (
+    TaskFlowInstancePermission,
+    TaskFlowInstanceViewSet,
+    TaskFLowStatusFilterHandler,
+)
 from gcloud.core.models import Project, ProjectConfig
+from gcloud.iam_auth import IAMMeta
 from gcloud.taskflow3.models import TaskFlowInstance
+
+
+class TestTaskCreatorPermission(SimpleTestCase):
+    def test_creator_object_permission_does_not_depend_on_remote_grant(self):
+        request = SimpleNamespace(user=SimpleNamespace(username="creator"))
+        task = SimpleNamespace(creator="creator")
+
+        with patch.object(IamPermission, "has_object_permission") as parent_check:
+            self.assertTrue(TaskFlowInstancePermission().has_object_permission(request, SimpleNamespace(), task))
+        parent_check.assert_not_called()
+
+    def test_non_creator_object_permission_uses_iam(self):
+        request = SimpleNamespace(user=SimpleNamespace(username="other"))
+        task = SimpleNamespace(creator="creator")
+
+        with patch.object(IamPermission, "has_object_permission", return_value=False) as parent_check:
+            self.assertFalse(TaskFlowInstancePermission().has_object_permission(request, SimpleNamespace(), task))
+        parent_check.assert_called_once()
+
+    def test_creator_gets_all_task_actions_in_list_response(self):
+        request = SimpleNamespace(user=SimpleNamespace(username="creator", tenant_id="system"))
+        task = SimpleNamespace(id=1, creator="creator")
+        data = [{"id": 1, "auth_actions": []}]
+        actions = [IAMMeta.TASK_VIEW_ACTION, IAMMeta.TASK_OPERATE_ACTION]
+
+        with patch.object(GcloudCommonMixin, "injection_auth_actions", return_value=data):
+            with patch.object(
+                TaskFlowInstanceViewSet, "iam_resource_helper", return_value=SimpleNamespace(actions=actions)
+            ):
+                result = TaskFlowInstanceViewSet().injection_auth_actions(request, data, [task])
+
+        self.assertEqual(result[0]["auth_actions"], actions)
+
+
+class TestTaskTemplateRelatedPermission(SimpleTestCase):
+    def test_common_flow_permission_uses_project_filter_parameter(self):
+        request = SimpleNamespace(
+            user=SimpleNamespace(username="tester", tenant_id="system"),
+            query_params={"project__id": "42"},
+        )
+        data = [{"template_id": "7", "template_source": "common", "auth_actions": []}]
+        common_actions = {
+            "7": {
+                IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION: True,
+                IAMMeta.PROJECT_COMMON_CREATE_TASK_ACTION: True,
+                IAMMeta.PROJECT_VIEW_ACTION: True,
+            }
+        }
+
+        with patch("gcloud.core.apis.drf.viewsets.taskflow.get_flow_allowed_actions_for_user", return_value={}), patch(
+            "gcloud.core.apis.drf.viewsets.taskflow.get_common_flow_allowed_actions_for_user_and_project",
+            return_value=common_actions,
+        ) as common_permission, patch(
+            "gcloud.core.apis.drf.viewsets.taskflow.TaskTemplate.objects.filter"
+        ) as task_template_filter, patch(
+            "gcloud.core.apis.drf.viewsets.taskflow.CommonTemplate.objects.filter"
+        ) as common_template_filter:
+            task_template_filter.return_value.values.return_value = []
+            common_template_filter.return_value.values.return_value = [
+                {"id": 7, "pipeline_template__name": "common flow", "is_deleted": False}
+            ]
+
+            TaskFlowInstanceViewSet._inject_template_related_info(request, data)
+
+        self.assertEqual(common_permission.call_args.args[3], "42")
+        self.assertIn(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION, data[0]["auth_actions"])
+        self.assertIn(IAMMeta.PROJECT_COMMON_CREATE_TASK_ACTION, data[0]["auth_actions"])
+        self.assertIn(IAMMeta.PROJECT_VIEW_ACTION, data[0]["auth_actions"])
 
 
 class TestTaskInstanceView(
@@ -42,6 +117,27 @@ class TestTaskInstanceView(
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):
         super(TestTaskInstanceView, self).setUp()
+        self.iam_instances_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.utils.IAMMixin.iam_get_instances_auth_actions", return_value=None
+        )
+        self.flow_actions_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.taskflow.get_flow_allowed_actions_for_user", return_value={}
+        )
+        self.common_flow_actions_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.taskflow.get_common_flow_allowed_actions_for_user_and_project",
+            return_value={},
+        )
+        self.iam_permission_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.taskflow.TaskFlowInstancePermission.has_permission", return_value=True
+        )
+        self.iam_instances_patcher.start()
+        self.flow_actions_patcher.start()
+        self.common_flow_actions_patcher.start()
+        self.iam_permission_patcher.start()
+        self.addCleanup(self.iam_instances_patcher.stop)
+        self.addCleanup(self.flow_actions_patcher.stop)
+        self.addCleanup(self.common_flow_actions_patcher.stop)
+        self.addCleanup(self.iam_permission_patcher.stop)
         self.node_id = "node_id"
         self.root_id = "root_id"
         self.test_snapshot = Snapshot.objects.create_snapshot({})

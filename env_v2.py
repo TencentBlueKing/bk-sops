@@ -74,20 +74,13 @@ BK_NODEMGR_DEFAULT_PROXY_INFO = os.getenv("BK_NODEMGR_DEFAULT_PROXY_INFO", "")
 # ESB HOST
 BKAPP_SOPS_PAAS_ESB_HOST = os.getenv("BKAPP_SOPS_PAAS_ESB_HOST", BK_PAAS_INNER_HOST)
 
-# IAM 相关配置
-BKAPP_SOPS_IAM_APP_CODE = os.getenv("BKAPP_SOPS_IAM_APP_CODE", APP_CODE)
-BKAPP_SOPS_IAM_APP_SECRET_KEY = os.getenv("BKAPP_SOPS_IAM_APP_SECRET_KEY", SECRET_KEY)
-BKAPP_BK_IAM_SYSTEM_ID = os.getenv("BKAPP_BK_IAM_SYSTEM_ID", APP_CODE)
-BKAPP_BK_IAM_SYSTEM_NAME = os.getenv("BKAPP_BK_IAM_SYSTEM_NAME", "标准运维")
-BK_IAM_V3_APP_CODE = os.getenv("BK_IAM_V3_APP_CODE", "bk_iam")
-BK_IAM_SKIP = os.getenv("BK_IAM_SKIP") or os.getenv("BKAPP_IAM_SKIP")
-# 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
-BK_IAM_INNER_HOST = os.getenv("BK_IAM_V3_INNER_HOST", os.getenv("BK_IAM_HOST", ""))
-BK_IAM_SAAS_HOST = os.getenv("BK_IAM_V3_SAAS_HOST", "{}/o/{}".format(BK_PAAS_HOST, BK_IAM_V3_APP_CODE))
-# 线上环境IAM配置
-BK_IAM_RESOURCE_API_HOST = os.getenv("BKAPP_IAM_RESOURCE_API_HOST", "{}{}".format(BK_PAAS_INNER_HOST, SITE_URL))
-# 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
-BK_IAM_API_PREFIX = os.getenv("BKAPP_BK_IAM_API_PREFIX", SITE_URL + "apigw")
+# 既有发布开关：仅控制 migration 是否调用外部 IAM V4 注册接口。
+BK_IAM_SKIP = str(os.getenv("BK_IAM_SKIP") or os.getenv("BKAPP_IAM_SKIP") or "").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 # 跨域相关配置
 BKAPP_CORS_ALLOW = os.getenv("BKAPP_CORS_ALLOW", None)

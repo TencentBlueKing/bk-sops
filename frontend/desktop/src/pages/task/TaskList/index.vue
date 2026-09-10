@@ -122,7 +122,7 @@
                                             v-cursor
                                             class="text-permission-disable task-operation-btn"
                                             data-test-id="taskList_table_reexecuteBtn"
-                                            @click="onTaskPermissonCheck([props.row.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'], props.row)">
+                                            @click="onTaskPermissonCheck(getCreateTaskPermissions(props.row), props.row)">
                                             {{$t('再次执行')}}
                                         </a>
                                         <a
@@ -771,8 +771,12 @@
             },
             hasCreateTaskPerm (task) {
                 const authActions = [...task.auth_actions, ...this.authActions]
-                const reqPerm = task.template_source === 'project' ? 'flow_create_task' : 'common_flow_create_task'
-                return this.hasPermission([reqPerm], authActions)
+                return this.hasPermission(this.getCreateTaskPermissions(task), authActions)
+            },
+            getCreateTaskPermissions (task) {
+                return task.template_source === 'project'
+                    ? ['flow_create_task']
+                    : ['common_flow_create_task', 'project_common_create_task']
             },
             getCreateTaskUrl (task) {
                 const { id, template_id, template_source } = task

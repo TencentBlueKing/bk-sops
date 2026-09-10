@@ -11,12 +11,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Request, Subject
-from iam.exceptions import AuthFailedException, MultiAuthFailedException
-
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.exceptions import AuthFailedException, MultiAuthFailedException
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.models import Action, Request, Subject
 from gcloud.template_base.utils import read_template_data_file
 from gcloud.utils.strings import string_to_boolean
 

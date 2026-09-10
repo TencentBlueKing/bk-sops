@@ -117,6 +117,11 @@ axios.interceptors.response.use(
                 break
             case 499:
                 const permissions = response.data.permission
+                if (!permissions || !Array.isArray(permissions.actions) || permissions.actions.length === 0) {
+                    const requestId = response.data.request_id || response.data.trace_id || '--'
+                    bus.$emit('showErrorModal', 500, `Invalid permission response (trace-id: ${requestId})`)
+                    break
+                }
                 let isViewApply = false
                 let viewType = 'other'
                 if (permissions.actions.find(item => item.id === 'project_view')) {
