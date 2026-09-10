@@ -2,6 +2,8 @@
 
 Use `bamboo-pipeline==3.24.18`, which pins `bamboo-engine==2.6.7`. Do not override the engine dependency separately.
 
+These are the currently released dependency versions. The explicit infrastructure-failure behavior described below requires a future engine release containing `RenderInfrastructureError`, a pipeline release pinning that engine, and deployment alongside this bk-sops `SystemObject` source fix. The versions above do not yet include that behavior. This change updates neither dependency versions nor default settings; packaging and publication are separate steps.
+
 For the initial rollout, set:
 
 ```bash
@@ -46,5 +48,11 @@ Boolean values accept `0/1` or `false/true`. Invalid boolean values or backend n
 Whitelist enforcement and subprocess rendering are independent switches. Before enabling `enforce`, review expressions and class aliases: `datetime.datetime.now()` requires the `datetime.datetime` import entry; `datetime.date.today()` requires `datetime.date`. Restoring module names alone does not authorize every nested call.
 
 Before setting `BKAPP_MAKO_RENDER_BACKEND=subprocess`, retain the default fallback/network/resource options and validate namespace permissions, Celery process behavior and real application contexts inside the target Linux container. Failure to establish the required network namespace prevents rendering; enabling in-process fallback does not bypass that failure. Passing in-process regression tests does not establish subprocess deployment readiness.
+
+With the coordinated release, worker startup failures, admission or transport timeouts, worker exits, protocol errors and required network-isolation failures raise `RenderInfrastructureError` and explicitly fail the node. They no longer pass an unrendered expression onward as a successful result, and never trigger host rendering even when `FALLBACK_INPROCESS=1`.
+
+The `SystemObject` fix preserves the pickle path `engine_pickle_obj.context.SystemObject`, its attribute dictionary and its string representation. Previously persisted pickles load after the fix and use the engine's existing structural adapter for worker transport, without unpickling the original application class inside the worker. Subclasses with inherited property behavior remain unsupported for portable transport.
+
+Compatibility staging still supports explicitly setting `BKAPP_SOPS_MAKO_WHITELIST_MODE=warn`, `BKAPP_MAKO_RENDER_BACKEND=subprocess`, `BKAPP_MAKO_RENDER_FALLBACK_INPROCESS=1` and `BKAPP_MAKO_RENDER_NO_NETWORK=0`. Only unsupported context/spec values may fall back to host rendering, and a network namespace is not required in this configuration. This does not establish network-isolation readiness or change the defaults in the table above.
 
 [简体中文](../../zh_hans/deploy/mako_render.md)
