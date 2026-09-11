@@ -4,7 +4,7 @@
 
 ## master 专属约束
 
-本分支 Python 3.6.12、Django 3.2.25、Celery 4.4 和 bamboo-pipeline 3.24.18 仍是兼容基线；同时已有 plugin_gateway/MCP 能力。不能以存在新模块就升级应用语法/依赖假设，也不能以旧运行时就认定新模块缺失。
+本分支 Python 3.6.12、Django 3.2.25、Celery 4.4 和 bamboo-pipeline 3.24.19 仍是兼容基线；同时已有 plugin_gateway/MCP 能力。不能以存在新模块就升级应用语法/依赖假设，也不能以旧运行时就认定新模块缺失。
 
 - APIGW 创建追踪 `gcloud/apigw/views/create_task.py`、`task_node_selector.py`、schema/validator、IAM、TaskFlowInstance、审计 on_commit 及返回。核对显式树/模板路径、方案互斥/节点范围、变量配置与转换值、代理执行身份和审计来源；现有多选默认值转换须看当前测试，不复述旧缺陷。
 - MCP 由 `gcloud/apigw/decorators.py` 和 view 装饰器实现；单独核对 API/MCP create_method、exclude/trim/include、普通响应与缓存共享对象。真实资源是 `gcloud/apigw/management/commands/data/api-resources.yml`，不存在根 apigw/MCP additions/supplement 文件。

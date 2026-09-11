@@ -1,8 +1,8 @@
 # Mako package upgrade and deployment settings
 
-Use `bamboo-pipeline==3.24.18`, which pins `bamboo-engine==2.6.7`. Do not override the engine dependency separately.
+Use `bamboo-pipeline==3.24.19`, which pins `bamboo-engine==2.6.8`. Do not override the engine dependency separately.
 
-These are the currently released dependency versions. The explicit infrastructure-failure behavior described below requires a future engine release containing `RenderInfrastructureError`, a pipeline release pinning that engine, and deployment alongside this bk-sops `SystemObject` source fix. The versions above do not yet include that behavior. This change updates neither dependency versions nor default settings; packaging and publication are separate steps.
+These dependencies are available on PyPI and include the explicit infrastructure-failure behavior through `RenderInfrastructureError` described below. Deploy the dependency update together with this bk-sops `SystemObject` source fix to apply both failure handling and system-context transport fixes. Default settings remain unchanged.
 
 For the initial rollout, set:
 
@@ -49,7 +49,7 @@ Whitelist enforcement and subprocess rendering are independent switches. Before 
 
 Before setting `BKAPP_MAKO_RENDER_BACKEND=subprocess`, retain the default fallback/network/resource options and validate namespace permissions, Celery process behavior and real application contexts inside the target Linux container. Failure to establish the required network namespace prevents rendering; enabling in-process fallback does not bypass that failure. Passing in-process regression tests does not establish subprocess deployment readiness.
 
-With the coordinated release, worker startup failures, admission or transport timeouts, worker exits, protocol errors and required network-isolation failures raise `RenderInfrastructureError` and explicitly fail the node. They no longer pass an unrendered expression onward as a successful result, and never trigger host rendering even when `FALLBACK_INPROCESS=1`.
+With these package versions, worker startup failures, admission or transport timeouts, worker exits, protocol errors and required network-isolation failures raise `RenderInfrastructureError` and explicitly fail the node. They no longer pass an unrendered expression onward as a successful result, and never trigger host rendering even when `FALLBACK_INPROCESS=1`.
 
 The `SystemObject` fix preserves the pickle path `engine_pickle_obj.context.SystemObject`, its attribute dictionary and its string representation. Previously persisted pickles load after the fix and use the engine's existing structural adapter for worker transport, without unpickling the original application class inside the worker. Subclasses with inherited property behavior remain unsupported for portable transport.
 

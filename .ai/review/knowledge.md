@@ -3,7 +3,7 @@
 ## 分支基线
 
 - 核验日期：2026-09-09；目标 `master`；base SHA `8c62c86cca084a7938d5449a428eaafbbb71a81f`。仓库默认分支当前是 `release_humming_bird`；这里的 master 名称不代表 GitHub 工作流执行入口。
-- `runtime.txt` 为 `python-3.6.12`；`requirements.txt` 锁定 `Django==3.2.25`、`bamboo-pipeline==3.24.18`、`celery==4.4.0`、`blueapps[opentelemetry,bkcrypto]==4.14.0`。不能按 humming_bird 的 Python 3.11/Django 4 或旧 LTS 的更早引擎版本审查。
+- `runtime.txt` 为 `python-3.6.12`；`requirements.txt` 锁定 `Django==3.2.25`、`bamboo-pipeline==3.24.19`、`celery==4.4.0`、`blueapps[opentelemetry,bkcrypto]==4.14.0`。不能按 humming_bird 的 Python 3.11/Django 4 或旧 LTS 的更早引擎版本审查。
 - 本分支仍无 Project.tenant_id 和多租户 IAM client/resource 构造；新增隔离需求应按实际需求检查，不能把 dev_multi_tenant 的字段/能力当成本分支已存在。
 
 ## 当前 API、MCP 与插件网关
