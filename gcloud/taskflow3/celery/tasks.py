@@ -410,7 +410,13 @@ def async_node_callback_retry(
 
 @task
 def ai_analysis_notify(
-    bk_biz_id: str, task_id: str, executor: str, receivers: str, msg_type: str, ai_analysis_notify_types: dict
+    bk_biz_id: str,
+    task_id: str,
+    executor: str,
+    receivers: str,
+    msg_type: str,
+    ai_analysis_notify_types: dict,
+    username: str,
 ):
     """
     AI分析通知任务 个人通知
@@ -423,7 +429,7 @@ def ai_analysis_notify(
             f"[ai_analysis_notify] start processing, bk_biz_id: {bk_biz_id}, task_id: {task_id}, msg_type: {msg_type}"
         )
 
-        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
+        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type, username)
 
         if msg_type == ATOM_FAILED and task_error_analysis and task_summary:
 
@@ -472,7 +478,7 @@ def ai_analysis_notify(
 
 
 @task
-def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str):
+def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str, username: str):
     """
     AI分析通知任务 群聊通知
     """
@@ -491,7 +497,7 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
             )
             return
 
-        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
+        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type, username)
 
         # 消息发送
         if msg_type == ATOM_FAILED:
@@ -532,14 +538,14 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
         )
 
 
-def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple:
+def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str, username: str) -> tuple:
     """
     AI分析报告
     """
 
     task_summary = None
     task_error_analysis = None
-    bk_sops_agent_client = BKSopsAgentClient(env.BK_SOPS_AGENT_HOST, AgentRequestType.PLUGIN)
+    bk_sops_agent_client = BKSopsAgentClient(env.BK_SOPS_AGENT_HOST, AgentRequestType.USER, username)
 
     if msg_type == ATOM_FAILED:
         task_summary = bk_sops_agent_client.summarize_task_execution(bk_biz_id, task_id)
