@@ -24,10 +24,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Subject
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework.decorators import api_view
 
 import env
@@ -41,7 +37,11 @@ from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig, Project
 from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.constants import HTTP_AUTH_FORBIDDEN_CODE
+from gcloud.iam_auth.exceptions import RawAuthFailedException
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.iam_auth.view_interceptors.project import ProjectViewInterceptor
 from gcloud.iam_auth.view_interceptors.taskflow import (
     BatchStatusViewInterceptor,
@@ -144,7 +144,12 @@ def batch_status(request, project_id):
     """用于批量获取独立子流程状态"""
     body = json.loads(request.body)
     task_ids = body.get("task_ids") or []
-    tasks = TaskFlowInstance.objects.filter(id__in=task_ids, project_id=project_id)
+    tasks = TaskFlowInstance.objects.filter(
+        id__in=task_ids,
+        project_id=project_id,
+        project__tenant_id=request.user.tenant_id,
+        is_deleted=False,
+    )
     total_result = {"result": True, "data": {}, "code": err_code.SUCCESS.code, "message": ""}
     for task in set(tasks):
         dispatcher = TaskCommandDispatcher(

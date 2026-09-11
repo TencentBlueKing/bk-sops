@@ -217,8 +217,9 @@ class CreatePeriodicTaskSerializer(CronFieldSerializer, serializers.ModelSeriali
         return {"template_scheme_ids": json.dumps(data)}
 
     def validate_project(self, value):
+        tenant_id = getattr(getattr(self.context.get("request"), "user", None), "tenant_id", "")
         try:
-            project = Project.objects.get(id=value)
+            project = Project.objects.get(id=value, tenant_id=tenant_id, is_disable=False)
             periodic_task_limit = env.PERIODIC_TASK_PROJECT_MAX_NUMBER
             project_config = ProjectConfig.objects.filter(project_id=project.id).only("max_periodic_task_num").first()
             if project_config and project_config.max_periodic_task_num > 0:

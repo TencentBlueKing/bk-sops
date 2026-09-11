@@ -109,6 +109,40 @@ class ApplyWebhookConfigsAPITest(APITest):
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
     @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
     @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Subscription.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Scope.objects.filter")
+    def test_disable_webhook_deletes_config_instead_of_updating_missing_field(
+        self, mock_scope_filter, mock_subscription_filter, mock_webhook_filter, mock_serializer
+    ):
+        mock_serializer_instance = MagicMock()
+        mock_serializer_instance.is_valid.return_value = True
+        mock_serializer_instance.validated_data = {
+            "enable_webhook": False,
+            "template_ids": TEST_TEMPLATE_IDS,
+        }
+        mock_serializer.return_value = mock_serializer_instance
+
+        with mock.patch(
+            "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter"
+        ) as mock_task_filter:
+            mock_task_filter.return_value.values_list.return_value = TEST_TEMPLATE_IDS
+            response = self.client.post(
+                path=self.url().format(project_id=TEST_PROJECT_ID),
+                data=json.dumps({"enable_webhook": False, "template_ids": TEST_TEMPLATE_IDS}),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+            )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], data)
+        mock_webhook_filter.return_value.delete.assert_called_once_with()
+        mock_subscription_filter.return_value.delete.assert_called_once_with()
+        mock_scope_filter.return_value.delete.assert_called_once_with()
+        self.assertFalse(mock_webhook_filter.return_value.update.called)
+
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.filter")
     @mock.patch("gcloud.apigw.views.apply_webhook_configs.Scope.objects.bulk_create")
     def test_apply_webhook_configs__database_error(self, mock_scope_bulk_create, mock_webhook_filter, mock_serializer):
         """测试数据库操作异常的情况"""

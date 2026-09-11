@@ -18,10 +18,7 @@ from urllib.parse import urlencode
 
 from django.urls import reverse
 from django_test_toolkit.mixins.account import SuperUserMixin
-from django_test_toolkit.mixins.blueking import (
-    LoginExemptMixin,
-    StandardResponseAssertionMixin,
-)
+from django_test_toolkit.mixins.blueking import LoginExemptMixin, StandardResponseAssertionMixin
 from django_test_toolkit.mixins.drf import DrfPermissionExemptMixin
 from django_test_toolkit.testcases import ToolkitApiTestCase
 from pipeline.component_framework.models import ComponentModel
@@ -58,7 +55,8 @@ class ComponentModelTestCase(
             url = f"{url}?{urlencode(query_params)}"
 
         # sqlite3 不支持 CONVERT(SUBSTRING_INDEX(name, '-', -1) USING gbk) 的语法，需要 mock queryset 去除
-        with patch(f"{self.VIEWSET_PATH}.queryset", ComponentModel.objects.all()):
+        component_ids = [component.id for component in self.components]
+        with patch(f"{self.VIEWSET_PATH}.queryset", ComponentModel.objects.filter(id__in=component_ids)):
             response = self.client.get(url)
 
         self.assertStandardSuccessResponse(response)

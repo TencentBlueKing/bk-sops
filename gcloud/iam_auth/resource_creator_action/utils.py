@@ -10,12 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import logging
-
-from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
-from gcloud.iam_auth import IAMMeta, get_iam_client
-
-logger = logging.getLogger("root")
+from gcloud.iam_auth import IAMMeta
 
 
 def resource_creator_action_params(instance, resource_type, with_ancestors=False):
@@ -73,70 +68,12 @@ def resource_creator_action_attribute_params(resource_type, creator, attributes)
 
 
 def register_grant_resource_creator_actions(instance, resource_type, with_ancestors=False):
-    tenant_id = get_current_tenant_id()
-    iam = get_iam_client(tenant_id)
-    try:
-        application = resource_creator_action_params(instance, resource_type, with_ancestors)
-
-        ok, message = iam.grant_resource_creator_actions(application)
-        if not ok:
-            logging.error(
-                "[{resource_type}({resource_id}) created grant] {api} failed".format(
-                    resource_type=resource_type, resource_id=instance.id, api="grant_resource_creator_actions"
-                )
-            )
-    except Exception:
-        logging.exception(
-            "[{resource_type}({resource_id}) created grant] {api} failed".format(
-                resource_type=resource_type, resource_id=instance.id, api="grant_resource_creator_actions"
-            )
-        )
+    raise RuntimeError("creator auto-grant is disabled for IAM V4")
 
 
 def register_batch_grant_resource_creator_actions(instance: list, response_type, creator, with_ancestors=False):
-    tenant_id = get_current_tenant_id()
-    iam = get_iam_client(tenant_id)
-    try:
-        application = batch_resource_creator_action_params(instance, response_type, creator, with_ancestors)
-
-        ok, message = iam.grant_batch_resource_creator_actions(application)
-        if not ok:
-            logging.error(
-                "[{resource_type}({resource_id}) batch created grant] {api} failed".format(
-                    resource_type=response_type,
-                    resource_id=[ins.id for ins in instance],
-                    api="grant_batch_resource_creator_actions",
-                )
-            )
-    except Exception:
-        logging.exception(
-            "[{resource_type}({resource_id}) batch created grant] {api} failed".format(
-                resource_type=response_type,
-                resource_id=[ins.id for ins in instance],
-                api="grant_batch_resource_creator_actions",
-            )
-        )
+    raise RuntimeError("creator auto-grant is disabled for IAM V4")
 
 
 def register_grant_resource_creator_action_attributes(resource_type, creator, tenant_id, attributes):
-    iam = get_iam_client(tenant_id)
-    try:
-        application = resource_creator_action_attribute_params(resource_type, creator, attributes)
-
-        ok, message = iam.grant_resource_creator_action_attributes(application)
-        logging.info("ok: %s" % ok)
-        logging.info("message: %s" % message)
-        logging.info(f"application:{application}")
-        logging.info(f"tenant_id:{tenant_id}")
-        if not ok:
-            logging.error(
-                "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(
-                    resource_type=resource_type, creator=creator, api="grant_resource_creator_action_attributes"
-                )
-            )
-    except Exception:
-        logging.error(
-            "[{resource_type} resource attributes of {creator} created grant] {api} failed".format(
-                resource_type=resource_type, creator=creator, api="grant_resource_creator_action_attributes"
-            )
-        )
+    raise RuntimeError("creator auto-grant is disabled for IAM V4")

@@ -103,6 +103,7 @@ GET_JOB_INSTANCE_URL = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_execute_job_plan.base_service.get_job_instance_url"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+UTILS_GET_BK_USERNAME_BY_TENANT = "pipeline_plugins.components.utils.cc.get_bk_username_by_tenant"
 
 # 添加 CC client mock 路径，用于 IPv6 支持
 CC_GET_CLIENT_BY_USERNAME = "pipeline_plugins.components.collections.sites.open.cc.base.get_client_by_username"
@@ -429,6 +430,7 @@ EXECUTE_JOB_PLAN_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_SUCCESS_CASE_CLIENT),
+        Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -504,6 +506,7 @@ EXECUTE_JOB_PLAN_NOT_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_NOT_SUCCESS_CLIENT),
+        Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -578,6 +581,7 @@ EXECUTE_JOB_PLAN_CALL_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_FAIL_CLIENT),
+        Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
     ],
 )
 # 回调不合法
@@ -645,6 +649,7 @@ INVALID_CALLBACK_DATA_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=INVALID_CALLBACK_DATA_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_CALLBACK_DATA_CLIENT),
+        Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -734,6 +739,7 @@ GET_GLOBAL_VAR_FAIL_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=GET_GLOBAL_VAR_CALL_FAIL_CLIENT),
+        Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],
@@ -849,6 +855,7 @@ EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE = ComponentTestCase(
         Patcher(target=GET_CLIENT_BY_USER, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
         Patcher(target=GET_CLIENT_BY_USERNAME, return_value=EXECUTE_JOB_PLAN_BIZ_SET_SUCCESS_CASE_CLIENT),
         Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
+        Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
         Patcher(target=GET_NODE_CALLBACK_URL, return_value="callback_url"),
         Patcher(target=GET_JOB_INSTANCE_URL, return_value="instance_url_token"),
     ],

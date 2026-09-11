@@ -29,6 +29,12 @@ from pipeline.celery.queues import ScalableQueues
 import env
 from gcloud.exceptions import ApiRequestError
 
+# 测试数据库迁移和请求中间件不得访问真实外部服务。
+IS_RUNNING_TESTS = sys.argv[1:2] == ["test"]
+
+# 生产和预发布配置会分别覆盖为 prod 和 stage。
+BK_APIGW_STAGE_NAME = "dev"
+
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
 # INSTALLED_APPS = (
@@ -109,8 +115,7 @@ INSTALLED_APPS += (
     "corsheaders",
     "rest_framework",
     "django_filters",
-    "iam",
-    "iam.contrib.iam_migration",
+    "bk_resource",
     "bksops_iam_migrations",
     "drf_yasg",
     "plugin_service",
@@ -159,7 +164,7 @@ MIDDLEWARE += (
     "gcloud.core.middlewares.TimezoneMiddleware",
     "gcloud.core.middlewares.TenantMiddleware",
     "gcloud.core.middlewares.ObjectDoesNotExistExceptionMiddleware",
-    "iam.contrib.django.middlewares.AuthFailedExceptionMiddleware",
+    "gcloud.iam_auth.middleware.IAMPermissionDeniedMiddleware",
     "pipeline_plugins.middlewares.PluginApiRequestHandleMiddleware",
     "apigw_manager.apigw.authentication.ApiGatewayJWTGenericMiddleware",  # JWT 认证
     "apigw_manager.apigw.authentication.ApiGatewayJWTAppMiddleware",  # JWT 透传的应用信息
@@ -167,20 +172,29 @@ MIDDLEWARE += (
     "gcloud.utils.middleware.ApiGatewayJWTUserMiddleware",
 )
 
-# AUTHENTICATION_BACKENDS += ("apigw_manager.apigw.authentication.UserModelBackend",)
-AUTHENTICATION_BACKENDS += ("gcloud.utils.middleware.CustomUserModelBackend",)
+# blueapps 4.16rc6 sends the legacy default tenant for a global application,
+# which makes bk-login reject valid multi-tenant tokens in this deployment.
+AUTHENTICATION_BACKENDS = tuple(
+    backend for backend in AUTHENTICATION_BACKENDS if backend != "blueapps.account.backends.UserBackend"
+) + (
+    "gcloud.utils.token_backend.TenantAwareTokenBackend",
+    "gcloud.utils.middleware.CustomUserModelBackend",
+)
 
 ENABLE_IPV6 = env.ENABLE_IPV6
 # paasv3 和 开启了ipv6 才会尝试加载 BK_API_URL_TMPL 这个变量
 ENABLE_GSE_V2 = env.ENABLE_GSE_V2
+
+# IAM V4 统一复用框架已经解析完成的应用身份。APP_CODE/SECRET_KEY 在
+# PaaS V2 community 和 PaaS V3 中都存在，不额外要求平台注入变量。
+BK_APP_CODE = APP_CODE
+BK_APP_SECRET = SECRET_KEY
 
 if env.IS_PAAS_V3 or ENABLE_IPV6 or ENABLE_GSE_V2:
     BK_API_URL_TMPL = env.BK_APIGW_URL_TMPL
 
 if env.IS_PAAS_V3:
     BK_APIGW_NAME = "bk-sops"
-    BK_APP_CODE = os.getenv("BKPAAS_APP_ID")
-    BK_APP_SECRET = os.getenv("BKPAAS_APP_SECRET")
     BK_APIGW_MANAGER_MAINTAINERS = env.BK_APIGW_MANAGER_MAINTAINERS
 
     api_host = urlparse(env.BKAPP_APIGW_API_HOST)
@@ -390,21 +404,22 @@ DEFAULT_BK_API_VER = "v2"
 # ESB 域名配置
 BK_PAAS_ESB_HOST = env.BKAPP_SOPS_PAAS_ESB_HOST
 
-# IAM权限中心配置
-BK_IAM_SYSTEM_ID = env.BKAPP_BK_IAM_SYSTEM_ID
-BK_IAM_SYSTEM_NAME = env.BKAPP_BK_IAM_SYSTEM_NAME
-BK_IAM_APP_CODE = env.BK_IAM_V3_APP_CODE
-BK_IAM_SKIP = env.BK_IAM_SKIP
-# 兼容 open_paas 版本低于 2.10.7，此时只能从环境变量 BK_IAM_HOST 中获取权限中心后台 host
-BK_IAM_INNER_HOST = env.BK_IAM_INNER_HOST
-# 权限中心 SaaS host
-BK_IAM_SAAS_HOST = env.BK_IAM_SAAS_HOST
-# 权限中心 SDK 无权限时不返回 499 的请求路径前缀配置
-BK_IAM_API_PREFIX = env.BK_IAM_API_PREFIX
-# 权限中心 migrations 存储 app
-BK_IAM_MIGRATION_APP_NAME = "bksops_iam_migrations"
+# IAM V4 仅复用平台已有配置，不要求额外注入 IAM V4 环境变量。
+BK_IAM_SYSTEM_ID = BK_APP_CODE
+BK_IAM_SYSTEM_NAME = "标准运维"
+BKIAM_APIGW_NAME = "bkiam"
+BK_IAM_V4_API_URL = ""
+BK_IAM_RESOURCE_API_HOST = env.BK_SOPS_HOST
+IAM_V4_BATCH_AUTH_CHUNK_SIZE = 20
+IAM_V4_TENANT_HEADER = "X-Bk-Tenant-Id"
+IAM_V4_REQUEST_TIMEOUT = 10
+IAM_V4_CALLBACK_TOKEN_CACHE_SECONDS = 300
+IAM_V4_MODEL_REGISTRATION_TENANT_ID = os.getenv("BKPAAS_APP_TENANT_ID") or "system"
+IAM_V4_SYSTEM_MANAGERS = ()
 
-AUTH_LEGACY_RESOURCES = ["project", "common_flow", "flow", "mini_app", "periodic_task", "task"]
+# 既有发布开关：仅控制 migration 是否调用外部 IAM V4 注册接口。
+# Django test 创建临时数据库时也会执行 migration，此时不得写入真实 IAM。
+BK_IAM_SKIP = env.BK_IAM_SKIP or IS_RUNNING_TESTS
 
 # 用户管理配置
 BK_USER_MANAGE_HOST = env.BK_USER_MANAGE_HOST

@@ -10,13 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-from iam import Action, Subject
-from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response_for_resources_list
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import permissions
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionService, get_iam_client, res_factory
+from gcloud.iam_auth.creator import is_flow_creator
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.models import DefaultTemplateScheme
 
@@ -45,15 +45,13 @@ class TemplatePermissionMixin:
     def check_batch_delete_permission(self, request, view):
         template_ids = request.data.get("template_ids") or []
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
         action = self.iam_mapping_config[self.template_type]["delete_action"]
         resources_list = self.iam_mapping_config[self.template_type]["resources_list_func"](template_ids, tenant_id)
-        allow_or_raise_immediate_response_for_resources_list(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=action,
-            resources_list=resources_list,
+        PermissionService().require_resources(
+            request.user.username,
+            tenant_id,
+            action.id,
+            [resources[0] for resources in resources_list],
         )
 
 
@@ -97,12 +95,18 @@ class SchemeEditPermission(permissions.BasePermission):
     def scheme_allow_or_raise_auth_failed(request, template_id=None, action="view"):
         data = request.query_params or request.data
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
         if template_id is None:
             template_id = data.get("template_id")
 
         # 项目流程方案的权限控制
         if "project_id" in data or data.get("template_type") != "common":
+            if is_flow_creator(
+                request.user.username,
+                tenant_id,
+                template_id,
+                project_id=data.get("project_id"),
+            ):
+                return True
             # 默认进行是否有流程查看或编辑权限校验
             scheme_action = IAMMeta.FLOW_VIEW_ACTION if action == "view" else IAMMeta.FLOW_EDIT_ACTION
             scheme_resources = res_factory.resources_for_flow(template_id, tenant_id)
@@ -113,6 +117,7 @@ class SchemeEditPermission(permissions.BasePermission):
             scheme_action = IAMMeta.COMMON_FLOW_VIEW_ACTION if action == "view" else IAMMeta.COMMON_FLOW_EDIT_ACTION
             scheme_resources = res_factory.resources_for_common_flow(template_id, tenant_id)
 
+        iam = get_iam_client(tenant_id)
         allow_or_raise_auth_failed(
             iam=iam,
             system=IAMMeta.SYSTEM_ID,

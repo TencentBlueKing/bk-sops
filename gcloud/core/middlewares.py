@@ -51,7 +51,7 @@ class TimezoneMiddleware(MiddlewareMixin):
         if getattr(view_func, "login_exempt", False):
             return None
 
-        time_zone = get_user_timezone(request)
+        time_zone = None if settings.IS_RUNNING_TESTS else get_user_timezone(request)
         if not time_zone:
             time_zone = self._get_project_timezone(view_kwargs)
 

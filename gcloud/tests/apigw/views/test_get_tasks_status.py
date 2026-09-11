@@ -13,9 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
+from gcloud import err_code
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud import err_code
 from gcloud.utils.dates import format_datetime
 
 from .utils import APITest
@@ -36,7 +36,10 @@ class GetTasksStatusAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -50,7 +53,7 @@ class GetTasksStatusAPITest(APITest):
             with patch(TASKFLOW_OBJECTS_FILTER, MagicMock(return_value=[task])):
                 response = self.client.post(
                     path=self.url().format(project_id=TEST_PROJECT_ID),
-                    data=json.dumps({"task_id_list": [1, 2, 3], "include_children_status": True}),
+                    data=json.dumps({"task_id_list": [task.id], "include_children_status": True}),
                     content_type="application/json",
                 )
 
@@ -80,7 +83,10 @@ class GetTasksStatusAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -93,7 +99,7 @@ class GetTasksStatusAPITest(APITest):
             with patch(TASKFLOW_OBJECTS_FILTER, MagicMock(return_value=[task])):
                 response = self.client.post(
                     path=self.url().format(project_id=TEST_PROJECT_ID),
-                    data=json.dumps({"task_id_list": [1, 2, 3]}),
+                    data=json.dumps({"task_id_list": [task.id]}),
                     content_type="application/json",
                 )
 
@@ -123,7 +129,10 @@ class GetTasksStatusAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )
@@ -147,7 +156,10 @@ class GetTasksStatusAPITest(APITest):
         PROJECT_GET,
         MagicMock(
             return_value=MockProject(
-                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
             )
         ),
     )

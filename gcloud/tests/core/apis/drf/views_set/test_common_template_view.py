@@ -34,6 +34,25 @@ class TestCommonTemplateView(
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):
         super(TestCommonTemplateView, self).setUp()
+        self.iam_instances_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.utils.IAMMixin.iam_get_instances_auth_actions", return_value=None
+        )
+        self.iam_instance_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.utils.IAMMixin.iam_get_instance_auth_actions", return_value=None
+        )
+        self.iam_permission_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.common_template.CommonTemplatePermission.check_permission",
+            return_value=True,
+        )
+        self.timezone_patcher = patch("gcloud.core.middlewares.get_user_timezone", return_value=None)
+        self.iam_instances_patcher.start()
+        self.iam_instance_patcher.start()
+        self.iam_permission_patcher.start()
+        self.timezone_patcher.start()
+        self.addCleanup(self.iam_instances_patcher.stop)
+        self.addCleanup(self.iam_instance_patcher.stop)
+        self.addCleanup(self.iam_permission_patcher.stop)
+        self.addCleanup(self.timezone_patcher.stop)
         # 使用最小合法 pipeline_tree（包含 activities/gateways），避免保存流程模板时
         # set_has_subprocess_bit / count_pipeline_tree_nodes 读取对应字段抛 KeyError
         self.test_snapshot = Snapshot.objects.create_snapshot({"activities": {}, "gateways": {}})

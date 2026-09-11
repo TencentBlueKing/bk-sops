@@ -23,6 +23,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
+from gcloud.conf import settings
 from pipeline_plugins.components.collections.sites.open.job import JobPushLocalFilesComponent
 from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import (
     MockCMDBClientIPv6,
@@ -190,7 +191,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         schedule_assertion=None,
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=PUSH_FAIL_MANAGER.push_files_to_ips,
                 calls=[
@@ -289,7 +290,7 @@ def CALLBACK_INVALID_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=CALLBACK_INVALID_MANAGER.push_files_to_ips,
                 calls=[
@@ -382,7 +383,7 @@ def CALLBACK_STRUCT_ERR_CASE():
             schedule_finished=False,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=CALLBACK_STRUCT_ERR_MANAGER.push_files_to_ips,
                 calls=[
@@ -474,7 +475,7 @@ def CALLBACK_FAIL_CASE():
             schedule_finished=False,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=CALLBACK_FAIL_MANAGER.push_files_to_ips,
                 calls=[
@@ -558,7 +559,7 @@ def SUCCESS_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=SUCCESS_MANAGER.push_files_to_ips,
                 calls=[

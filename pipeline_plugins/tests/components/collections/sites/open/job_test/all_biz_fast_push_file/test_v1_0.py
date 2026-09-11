@@ -166,6 +166,7 @@ JOB_HANDLE_API_ERROR = (
     "pipeline_plugins.components.collections.sites.open.job.all_biz_fast_push_file.base_service.job_handle_api_error"
 )
 UTILS_GET_CLIENT_BY_USER = "pipeline_plugins.components.utils.cc.get_client_by_username"
+UTILS_GET_BK_USERNAME_BY_TENANT = "pipeline_plugins.components.utils.cc.get_bk_username_by_tenant"
 
 INPUT = {
     "all_biz_cc_id": "321456",
@@ -688,6 +689,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
             ),
             Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
             Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT),
+            Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_REQUEST_FAILURE_CLIENT),
             Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="job.com/api_execute/"),
@@ -886,6 +888,7 @@ def BIZ_SET_PUSH_FILE_TO_IPS_FAIL_CASE():
             ),
             Patcher(target=GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT),
             Patcher(target=UTILS_GET_CLIENT_BY_USER, return_value=INVALID_IP_CLIENT_BIZ_SET),
+            Patcher(target=UTILS_GET_BK_USERNAME_BY_TENANT, return_value="bk_admin"),
             Patcher(target=BASE_GET_CLIENT_BY_USER, return_value=FAST_PUSH_FILE_BIZ_SET_REQUEST_FAILURE_CLIENT),
             Patcher(target=JOB_HANDLE_API_ERROR, return_value="failed"),
             Patcher(target=GET_JOB_INSTANCE_URL, return_value="job.com/api_execute/"),

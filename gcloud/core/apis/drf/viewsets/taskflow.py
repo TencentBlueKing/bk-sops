@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 import re
 import typing
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 
 from bamboo_engine import states
@@ -65,7 +66,7 @@ from gcloud.core.apis.drf.serilaziers import (
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.models import EngineConfig, ProjectConfig
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
 from gcloud.iam_auth.utils import (
     get_common_flow_allowed_actions_for_user_and_project,
@@ -283,6 +284,12 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         ),
     }
 
+    def has_object_permission(self, request, view, obj):
+        """Keep the V3 creator semantics without calling the removed V3 grant SDK."""
+        if request.user.username == obj.creator:
+            return True
+        return super().has_object_permission(request, view, obj)
+
     def has_permission(self, request, view):
         if view.action == "create":
             create_method = request.data.get("create_method")
@@ -290,7 +297,9 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
             if create_method == TaskCreateMethod.APP_MAKER.value:
                 app_maker_id = request.data["create_info"]
                 try:
-                    app_maker = AppMaker.objects.get(id=app_maker_id)
+                    app_maker = AppMaker.objects.get(
+                        id=app_maker_id, project__tenant_id=request.user.tenant_id, is_deleted=False
+                    )
                 except AppMaker.DoesNotExist:
                     return False
                 self.iam_auth_check(
@@ -303,22 +312,44 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
             else:
                 template_source = request.data.get("template_source", "project")
                 template_id = int(request.data.get("template", -1))
-                model_cls = TaskTemplate if template_source == "project" else CommonTemplate
-                try:
-                    template = model_cls.objects.get(id=template_id)
-                except model_cls.DoesNotExist:
-                    return False
                 if template_source == "project":
+                    try:
+                        template = TaskTemplate.objects.get(
+                            id=template_id,
+                            project_id=request.data.get("project"),
+                            project__tenant_id=request.user.tenant_id,
+                            is_deleted=False,
+                        )
+                    except TaskTemplate.DoesNotExist:
+                        return False
+                    if template.pipeline_template.creator == request.user.username:
+                        return True
                     iam_action = IAMMeta.FLOW_CREATE_TASK_ACTION
                     resources = res_factory.resources_for_flow_obj(template)
+                    self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 else:
-                    iam_action = IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION
-                    resources = res_factory.resources_for_common_flow_obj(template)
-                    if request.data.get("project"):
-                        resources.extend(
-                            res_factory.resources_for_project(request.data["project"], request.user.tenant_id)
+                    try:
+                        template = CommonTemplate.objects.get(
+                            id=template_id, tenant_id=request.user.tenant_id, is_deleted=False
                         )
-                self.iam_auth_check(request=request, action=iam_action, resources=resources)
+                    except CommonTemplate.DoesNotExist:
+                        return False
+                    project_resources = res_factory.resources_for_project(
+                        request.data.get("project"), request.user.tenant_id
+                    )
+                    if not project_resources:
+                        return False
+                    PermissionService().require_all(
+                        request.user.username,
+                        request.user.tenant_id,
+                        [
+                            PermissionCheck(
+                                IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION,
+                                res_factory.resources_for_common_flow_obj(template)[0],
+                            ),
+                            PermissionCheck(IAMMeta.PROJECT_COMMON_CREATE_TASK_ACTION, project_resources[0]),
+                        ],
+                    )
                 return True
         elif view.action in ["list", "list_children_taskflow", "root_task_info", "task_count"]:
             user_type_validator = IamUserTypeBasedValidator()
@@ -341,6 +372,20 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         return ViewSetResourceHelper(
             iam=iam_client, resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS
         )
+
+    def injection_auth_actions(self, request, serializer_data, queryset_data):
+        """Expose creator permissions in task responses after the V3 grant chain was removed."""
+        auth_result = super().injection_auth_actions(request, serializer_data, queryset_data)
+        all_actions = self.iam_resource_helper(request.user.tenant_id).actions
+        is_collection = isinstance(queryset_data, Iterable)
+        instances = queryset_data if is_collection else [queryset_data]
+        data_list = serializer_data if is_collection else [serializer_data]
+
+        for data, instance in zip(data_list, instances):
+            if request.user.username == instance.creator:
+                data["auth_actions"] = list(all_actions)
+
+        return auth_result
 
     def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -441,7 +486,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     def _inject_template_related_info(request, data, project_id=None):
         # 详情接口的项目作用域来自对象本身，列表接口才从 query 参数取；
         # 公共流程鉴权依赖该作用域拼 IAM 资源路径，缺失会导致权限判定全部落空
-        project_id = project_id or request.query_params.get("project_id")
+        project_id = project_id or request.query_params.get("project__id") or request.query_params.get("project_id")
         tenant_id = request.user.tenant_id
         # 注入template_info（name、deleted
         # 项目流程

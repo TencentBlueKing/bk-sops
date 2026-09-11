@@ -22,6 +22,8 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.serializers import IncludeTaskSerializer
 from gcloud.apigw.utils import api_hash_key
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService, res_factory
+from gcloud.iam_auth.exceptions import IAMPermissionDenied, IAMResourceNotFound
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
@@ -66,8 +68,25 @@ def get_tasks_status(request, project_id):
     include_children_status = serializer.validated_data["include_children_status"]
 
     tasks = TaskFlowInstance.objects.filter(
-        id__in=task_ids, project__id=request.project.id, project__tenant_id=tenant_id
+        id__in=task_ids, project__id=request.project.id, project__tenant_id=tenant_id, is_deleted=False
     )
+    requested_ids = {str(task_id) for task_id in task_ids}
+    resolved_ids = {str(task.id) for task in tasks}
+    if requested_ids != resolved_ids:
+        missing_id = next(iter(requested_ids - resolved_ids), "unknown")
+        raise IAMResourceNotFound(IAMMeta.TASK_RESOURCE, missing_id)
+    if not request.is_trust:
+        resources = [res_factory.resources_for_task_obj(task)[0] for task in tasks]
+        decisions = PermissionService().allowed_resources(
+            request.user.username, tenant_id, IAMMeta.TASK_VIEW_ACTION, resources
+        )
+        missing = [
+            PermissionCheck(IAMMeta.TASK_VIEW_ACTION, resource)
+            for resource in resources
+            if not decisions[str(resource.id)]
+        ]
+        if missing:
+            raise IAMPermissionDenied(missing)
 
     data = []
     for task in tasks:

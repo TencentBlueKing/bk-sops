@@ -14,11 +14,11 @@ specific language governing permissions and limitations under the License.
 from functools import wraps
 
 from django.http import HttpResponseForbidden
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 
 
 def check_db_object_exists(model, iam_action=None):

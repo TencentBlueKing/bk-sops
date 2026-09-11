@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from iam import Action, Request, Subject
-from iam.exceptions import MultiAuthFailedException
 from rest_framework import permissions
 
 from gcloud.constants import COMMON, PROJECT
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.creator import get_flow_creator_ids, is_flow_creator
+from gcloud.iam_auth.exceptions import MultiAuthFailedException
+from gcloud.iam_auth.models import Action, Request, Subject
 
 
 class TemplateFormWithSchemesPermissions(IAMMixin, permissions.BasePermission):
@@ -14,6 +15,13 @@ class TemplateFormWithSchemesPermissions(IAMMixin, permissions.BasePermission):
         template_source = request.data["template_source"]
         tenant_id = request.user.tenant_id
         if template_source == PROJECT:
+            if is_flow_creator(
+                request.user.username,
+                tenant_id,
+                template_id,
+                project_id=request.data.get("project_id"),
+            ):
+                return True
             action = IAMMeta.FLOW_VIEW_ACTION
             resources = res_factory.resources_for_flow(template_id, tenant_id)
         else:
@@ -29,9 +37,15 @@ class BatchTemplateFormWithSchemesPermissions(IAMMixin, permissions.BasePermissi
     def is_allowed_batch_view_flow(self, request, template_source, flows):
         subject = Subject("user", request.user.username)
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
         if template_source == PROJECT:
             action = Action(IAMMeta.FLOW_VIEW_ACTION)
+            creator_ids = get_flow_creator_ids(
+                request.user.username,
+                tenant_id,
+                flows,
+                project_id=request.data.get("project_id"),
+            )
+            flows = [flow_id for flow_id in flows if str(flow_id) not in creator_ids]
             resources_list = res_factory.resources_list_for_flows(flows, tenant_id)
         else:
             action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
@@ -40,6 +54,7 @@ class BatchTemplateFormWithSchemesPermissions(IAMMixin, permissions.BasePermissi
         if not resources_list:
             return True
 
+        iam = get_iam_client(tenant_id)
         resources_map = {}
         for resources in resources_list:
             resources_map[resources[0].id] = resources

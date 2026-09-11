@@ -37,9 +37,9 @@
         </div>
         <panel-nodata v-else>
             <span>{{ $t('项目，项目集的权限请前往') }}</span>
-            <span class="link-text" @click="jumpToOther('bk_iam')">{{ $t('权限中心') }}</span>
+            <span class="link-text" @click="applyForPermission(['project_view'])">{{ $t('权限中心') }}</span>
             <span>{{ $t('进行申请；如需新建项目，项目集请前往') }}</span>
-            <span class="link-text" @click="jumpToOther('bk_cmdb')">{{ $t('配置平台') }}</span>
+            <span class="link-text" @click="jumpToCmdbCreate">{{ $t('配置平台') }}</span>
         </panel-nodata>
         <span
             v-if="viewIndex > 0"
@@ -58,6 +58,7 @@
     import { mapActions, mapMutations } from 'vuex'
     import toolsUtils from '@/utils/tools.js'
     import openOtherApp from '@/utils/openOtherApp.js'
+    import permission from '@/mixins/permission.js'
 
     export default {
         name: 'CommonlyUsed',
@@ -70,6 +71,7 @@
                 return res ? res[0] : ''
             }
         },
+        mixins: [permission],
         data () {
             return {
                 commonlyUsedloading: false,
@@ -116,13 +118,8 @@
                 return document.body.clientWidth > 1920 ? 6 : 4
             },
             // 这里统一直接用后端提供的 host 跳转
-            jumpToOther (name) {
-                const code = name === 'bk_iam' ? window.BK_IAM_APP_CODE : name
-                const HOST_MAP = {
-                    'bk_iam': window.BK_IAM_APPLY_URL,
-                    'bk_cmdb': window.BK_CC_HOST
-                }
-                openOtherApp(code, HOST_MAP[name])
+            jumpToCmdbCreate () {
+                openOtherApp('bk_cmdb', window.BK_CC_CREATE_BUSINESS_URL)
             },
             onSwitchBusiness (id) {
                 window.reportInfo({

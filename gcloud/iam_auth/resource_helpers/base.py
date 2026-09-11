@@ -11,10 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Resource, Subject
-from iam.contrib.tastypie.resource import IAMResourceHelper
-
 from gcloud.iam_auth.conf import SYSTEM_ID
+from gcloud.iam_auth.models import Resource, Subject
 
 
 class SimpleSubjectEnvHelperMixin(object):
@@ -29,6 +27,15 @@ class SimpleSubjectEnvHelperMixin(object):
 
     def get_environment_for_alter_detail(self, request, data):
         return {}
+
+
+class IAMResourceHelper:
+    """Small local compatibility helper; it performs no IAM I/O."""
+
+    def __init__(self, iam, system, actions):
+        self.iam = iam
+        self.system = system
+        self.actions = actions
 
 
 class SimpleResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):

@@ -12,14 +12,14 @@ specific language governing permissions and limitations under the License.
 """
 from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.taskflow3.domains.node_log import NodeLogDataSourceFactory
 from gcloud.utils.handlers import handle_plain_log
 

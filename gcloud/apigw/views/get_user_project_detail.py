@@ -14,7 +14,6 @@ from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from cachetools import TTLCache, cached
 from django.views.decorators.http import require_GET
-from iam import Resource
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
@@ -26,6 +25,7 @@ from gcloud.core.models import ProjectConfig, StaffGroupSet
 from gcloud.core.utils import get_user_business_detail as get_business_detail
 from gcloud.iam_auth.conf import PROJECT_ACTIONS, IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.models import Resource
 from gcloud.iam_auth.utils import get_resources_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 
@@ -56,19 +56,28 @@ def get_user_project_detail(request, project_id):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
-    project_allowed_actions = get_resources_allowed_actions_for_user(
-        username=request.user.username,
-        system_id=IAMMeta.SYSTEM_ID,
-        actions=PROJECT_ACTIONS,
-        resources_list=[
-            [
-                Resource(
-                    IAMMeta.SYSTEM_ID, IAMMeta.PROJECT_RESOURCE, str(request.project.id), {"name": request.project.name}
-                )
-            ]
-        ],
-        tenant_id=request.user.tenant_id,
-    )
+    if request.is_trust:
+        auth_actions = PROJECT_ACTIONS
+    else:
+        project_allowed_actions = get_resources_allowed_actions_for_user(
+            username=request.user.username,
+            system_id=IAMMeta.SYSTEM_ID,
+            actions=PROJECT_ACTIONS,
+            resources_list=[
+                [
+                    Resource(
+                        IAMMeta.SYSTEM_ID,
+                        IAMMeta.PROJECT_RESOURCE,
+                        str(request.project.id),
+                        {"name": request.project.name},
+                    )
+                ]
+            ],
+            tenant_id=request.user.tenant_id,
+        )
+        auth_actions = [
+            action for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items() if allowed
+        ]
     data = {
         "project_id": request.project.id,
         "project_name": request.project.name,
@@ -79,9 +88,7 @@ def get_user_project_detail(request, project_id):
         "bk_biz_maintainer": biz_detail["bk_biz_maintainer"],
         "bk_biz_tester": biz_detail["bk_biz_tester"],
         "bk_biz_productor": biz_detail["bk_biz_productor"],
-        "auth_actions": [
-            action for action, allowed in project_allowed_actions.get(str(request.project.id), {}).items() if allowed
-        ],
+        "auth_actions": auth_actions,
     }
     if include_executor_proxy:
         data.update(

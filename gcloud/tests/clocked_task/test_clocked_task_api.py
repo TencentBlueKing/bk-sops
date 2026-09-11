@@ -13,7 +13,7 @@ specific language governing permissions and limitations under the License.
 
 import datetime
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytz
 from django.conf import settings
@@ -64,11 +64,24 @@ class ClockedTaskTestCase(
             "gcloud.clocked_task.viewset.get_flow_allowed_actions_for_user",
             return_value={},
         )
+        creator_template = MagicMock()
+        creator_template.pipeline_template.creator = self.MOCK_SUPERUSER_NAME
+        self.template_patcher = patch("gcloud.clocked_task.permissions.TaskTemplate.objects.filter")
+        self.iam_permission_patcher = patch(
+            "gcloud.clocked_task.permissions.ClockedTaskPermissions.iam_auth_check", return_value=None
+        )
+        self.timezone_patcher = patch("gcloud.core.middlewares.get_user_timezone", return_value=None)
         self.iam_instances_patcher.start()
         self.iam_instance_patcher.start()
         self.flow_actions_patcher.start()
+        self.template_patcher.start().return_value.first.return_value = creator_template
+        self.iam_permission_patcher.start()
+        self.timezone_patcher.start()
 
     def tearDown(self):
+        self.timezone_patcher.stop()
+        self.iam_permission_patcher.stop()
+        self.template_patcher.stop()
         self.flow_actions_patcher.stop()
         self.iam_instance_patcher.stop()
         self.iam_instances_patcher.stop()
@@ -125,8 +138,7 @@ class ClockedTaskTestCase(
         url = reverse("clocked_task-list")
         response = self.client.post(url, data=data, content_type="application/json")
         self.assertStandardSuccessResponse(response)
-        new_task = ClockedTask.objects.filter(id=self.INITIAL_CLOCKED_TASK_NUMBER + 1).first()
-        self.assertNotEqual(new_task, None)
+        self.assertEqual(ClockedTask.objects.count(), self.INITIAL_CLOCKED_TASK_NUMBER + 1)
 
     @patch("django.conf.settings.ENABLE_MULTI_TENANT_MODE", False)
     def test_create_clocked_task_with_multiple_appoint_method(self):
@@ -162,7 +174,7 @@ class ClockedTaskTestCase(
 
     @patch("django.conf.settings.ENABLE_MULTI_TENANT_MODE", False)
     def test_update_clocked_task(self):
-        task_id = 1
+        task_id = self.clocked_tasks[0].id
         data = json.dumps({"template_name": "test_template"})
         url = reverse("clocked_task-detail", args=[task_id])
         response = self.client.patch(url, data=data, content_type="application/json")

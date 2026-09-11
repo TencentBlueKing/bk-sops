@@ -14,10 +14,9 @@ specific language governing permissions and limitations under the License.
 from types import SimpleNamespace
 from unittest import TestCase, mock
 
-from iam.exceptions import AuthFailedException
-
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.exceptions import AuthFailedException
 from gcloud.iam_auth.view_interceptors.project import ProjectFlowCreateInterceptor, ProjectViewInterceptor
 
 ALLOW_OR_RAISE_PATH = "gcloud.iam_auth.view_interceptors.project.allow_or_raise_auth_failed"

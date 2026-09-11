@@ -19,6 +19,10 @@ from gcloud.taskflow3.apis.drf.viewsets.preview_task_tree import PreviewTaskTree
     "gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.allow_or_raise_auth_failed",
     mock.MagicMock(return_value=None),
 )
+@mock.patch(
+    "gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.is_flow_creator",
+    mock.MagicMock(return_value=False),
+)
 class PreviewTaskTreeWithSchemesLastExecutionTest(TestCase):
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.preview_template_tree_with_schemes")
     @mock.patch("gcloud.taskflow3.apis.drf.viewsets.preview_task_tree.TaskFlowInstance.objects.filter")

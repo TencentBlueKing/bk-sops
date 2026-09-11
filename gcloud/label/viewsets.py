@@ -13,8 +13,6 @@ specific language governing permissions and limitations under the License.
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -22,6 +20,8 @@ from rest_framework.viewsets import ModelViewSet
 from gcloud.core.apis.drf.exceptions import ValidationException
 from gcloud.core.apis.drf.viewsets import ApiMixin, permissions
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.label.serilaziers import NewLabelSerializer
 from gcloud.openapi.schema import AnnotationAutoSchema

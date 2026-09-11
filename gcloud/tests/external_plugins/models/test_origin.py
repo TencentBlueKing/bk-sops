@@ -11,7 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from pipeline.contrib.external_plugins.models import FILE_SYSTEM, GIT, S3, FileSystemSource, GitRepoSource, S3Source
 
 from gcloud.external_plugins import exceptions
@@ -20,6 +20,7 @@ from gcloud.tests.external_plugins.mock import *  # noqa
 from gcloud.tests.external_plugins.mock_settings import *  # noqa
 
 
+@override_settings(ENABLE_MULTI_TENANT_MODE=False)
 class TestGitRepoOriginalSource(TestCase):
     def setUp(self):
         self.ORIGINAL_SOURCE_NAME = "ORIGINAL_GIT_SOURCE"
@@ -54,6 +55,17 @@ class TestGitRepoOriginalSource(TestCase):
 
     def test_add_original_source__cls(self):
         self.assertIsInstance(self.original_source, GitRepoOriginalSource)
+
+    @override_settings(ENABLE_MULTI_TENANT_MODE=True)
+    def test_add_original_source_requires_tenant_id_in_multi_tenant_mode(self):
+        with self.assertRaisesRegex(ValueError, "tenant_id is required"):
+            GitRepoOriginalSource.objects.add_original_source(
+                name=self.ORIGINAL_SOURCE_NAME,
+                source_type=self.SOURCE_TYPE,
+                packages=self.SOURCE_PACKAGES,
+                original_kwargs=self.ORIGINAL_KWARGS,
+                **self.SOURCE_KWARGS
+            )
 
     def test_base_source(self):
         base_source = GitRepoSource.objects.get(id=self.original_source.base_source_id)
@@ -100,6 +112,7 @@ class TestGitRepoOriginalSource(TestCase):
         self.assertEqual(self.original_source.repo_address, self.UPDATED_ORIGINAL_KWARGS["repo_address"])
 
 
+@override_settings(ENABLE_MULTI_TENANT_MODE=False)
 class TestS3OriginalSource(TestCase):
     def setUp(self):
         self.ORIGINAL_SOURCE_NAME = "ORIGINAL_S3_SOURCE"
@@ -183,6 +196,7 @@ class TestS3OriginalSource(TestCase):
         self.assertEqual(self.original_source.base_source.packages, self.UPDATED_SOURCE_PACKAGES)
 
 
+@override_settings(ENABLE_MULTI_TENANT_MODE=False)
 class TestFileSystemOriginalSource(TestCase):
     def setUp(self):
         self.ORIGINAL_SOURCE_NAME = "ORIGINAL_FS_SOURCE"

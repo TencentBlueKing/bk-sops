@@ -11,21 +11,18 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import logging
-
 import ujson as json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, MultiActionRequest, Request, Resource, Subject
-from iam.exceptions import AuthAPIError, AuthInvalidRequest
 from rest_framework.decorators import api_view
 
-from gcloud.iam_auth import IAMMeta, conf, get_iam_api_client, get_iam_client
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService, conf
+from gcloud.iam_auth.apply_service import ApplyService, checks_from_permission_payload, checks_from_simple_payload
+from gcloud.iam_auth.exceptions import IAMResourceNotFound, IAMV4ProtocolError
+from gcloud.iam_auth.scope_resolver import ScopeResolver
 from gcloud.openapi.schema import AnnotationAutoSchema
 from gcloud.shortcuts.http import standard_response
-
-logger = logging.getLogger("root")
 
 
 def meta_info(request):
@@ -39,16 +36,12 @@ def meta_info(request):
 def apply_perms_url(request):
     application = json.loads(request.body)
     tenant_id = request.user.tenant_id
-    iam = get_iam_client(tenant_id)
-
     try:
-        result, message, url = iam.get_apply_url(application)
-    except AuthInvalidRequest as e:
-        result = False
-        message = str(e)
-        url = None
-
-    return standard_response(result, message, {"url": url})
+        checks = checks_from_permission_payload(application, tenant_id)
+        url = ApplyService().generate_url(tenant_id, checks)
+    except (KeyError, TypeError, ValueError, IAMResourceNotFound, IAMV4ProtocolError) as error:
+        return standard_response(False, str(error), {"url": None})
+    return standard_response(True, "success", {"url": url})
 
 
 @csrf_exempt
@@ -57,21 +50,15 @@ def is_allow(request):
 
     data = json.loads(request.body)
 
-    action_id = data["action"]
-    resources = data.get("resources", [])
-
-    subject = Subject("user", request.user.username)
-    action = Action(action_id)
-    resource = [Resource(r["system"], r["type"], str(r["id"]), r["attributes"]) for r in resources]
     tenant_id = request.user.tenant_id
-    iam = get_iam_client(tenant_id)
-
     try:
-        is_allow = iam.is_allowed(Request(conf.SYSTEM_ID, subject, action, resource, None))
-    except (AuthInvalidRequest, AuthAPIError) as e:
-        return standard_response(False, str(e))
+        checks = checks_from_simple_payload(data["action"], data.get("resources", []), tenant_id)
+        service = PermissionService()
+        is_allowed = all(service.is_allowed(request.user.username, tenant_id, check) for check in checks)
+    except (KeyError, TypeError, ValueError, IAMResourceNotFound, IAMV4ProtocolError) as error:
+        return standard_response(False, str(error))
 
-    return standard_response(True, "success", {"is_allow": is_allow})
+    return standard_response(True, "success", {"is_allow": is_allowed})
 
 
 @swagger_auto_schema(methods=["GET"], auto_schema=AnnotationAutoSchema)
@@ -90,44 +77,27 @@ def is_allow_common_flow_management(request):
     }
     """
 
-    subject = Subject("user", request.user.username)
-    tenant_id = request.user.tenant_id
-    iam = get_iam_client(tenant_id)
-
-    # 先检查是否拥有公共流程创建权限
     try:
-        is_allow = iam.is_allowed(Request(conf.SYSTEM_ID, subject, Action(IAMMeta.COMMON_FLOW_CREATE_ACTION), [], None))
-    except (AuthInvalidRequest, AuthAPIError) as e:
-        logger.exception("COMMON_FLOW_CREATE_ACTION is_allow check raise error")
-        return standard_response(False, str(e))
+        is_allowed = _has_common_flow_management_permission(request.user.username, request.user.tenant_id)
+    except IAMV4ProtocolError as error:
+        return standard_response(False, str(error))
+    return standard_response(True, "success", {"is_allow": is_allowed})
 
-    # 拥有公共流程创建权限，不需要再进行后续判断
-    if is_allow:
-        logger.info("%s has COMMON_FLOW_CREATE_ACTION permission" % request.user.username)
-        return standard_response(True, "success", {"is_allow": is_allow})
 
-    iam_api = get_iam_api_client(tenant_id)
-
-    try:
-        ok, message, data = iam_api.policy_query_by_actions(
-            MultiActionRequest(
-                conf.SYSTEM_ID, subject, [Action("common_flow_edit"), Action("common_flow_delete")], [], None
-            ).to_dict()
+def _has_common_flow_management_permission(username, tenant_id):
+    service = PermissionService()
+    if service.is_allowed(
+        username,
+        tenant_id,
+        PermissionCheck(IAMMeta.COMMON_FLOW_CREATE_ACTION),
+    ):
+        return True
+    resolver = ScopeResolver()
+    return any(
+        resolver.authorized_scope(username, tenant_id, action_id).ids(IAMMeta.COMMON_FLOW_RESOURCE)
+        for action_id in (
+            IAMMeta.COMMON_FLOW_VIEW_ACTION,
+            IAMMeta.COMMON_FLOW_EDIT_ACTION,
+            IAMMeta.COMMON_FLOW_DELETE_ACTION,
         )
-    except (AuthInvalidRequest, AuthAPIError) as e:
-        logger.exception("policy query raise error")
-        return standard_response(False, str(e))
-
-    if not ok:
-        return standard_response(False, "iam policy query failed: %s" % message)
-
-    is_allow = False
-    logger.info("common flow edit and delete policy for %s is : %s" % (request.user.username, data))
-
-    # 任意一个操作有策略则放行
-    for action_policy in data:
-        if action_policy.get("condition", {}):
-            is_allow = True
-            break
-
-    return standard_response(True, "success", {"is_allow": is_allow})
+    )

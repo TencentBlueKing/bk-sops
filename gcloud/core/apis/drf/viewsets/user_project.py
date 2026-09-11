@@ -74,7 +74,7 @@ class UserProjectSetViewSet(GcloudListViewSet):
         user_project_ids = list(get_user_projects(request.user.username, tenant_id).values_list("id", flat=True))
         user_fav_project_ids = list(Collection.objects.get_user_favorite_projects(request.user.username))
         self.list_queryset = (
-            Project.objects.filter(id__in=user_project_ids)
+            Project.objects.filter(id__in=user_project_ids, tenant_id=tenant_id, is_disable=False)
             .annotate(is_fav=ExpressionWrapper(Q(id__in=user_fav_project_ids), output_field=BooleanField()))
             .order_by("-is_fav", "id")
         )

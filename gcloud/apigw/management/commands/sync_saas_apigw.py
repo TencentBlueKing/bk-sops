@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 import os
-import traceback
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
@@ -49,10 +48,3 @@ class Command(BaseCommand):
 
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
-
-        print("[bk-sops]call fetch_esb_public_key")
-        try:
-            call_command("fetch_esb_public_key")
-        except Exception:
-            print("[bk-sops]this env has not bk-sops esb api,skip fetch_esb_public_key ")
-            traceback.print_exc()

@@ -21,7 +21,7 @@ from pipeline.contrib.external_plugins.models import FILE_SYSTEM, GIT, S3
 from pipeline.contrib.external_plugins.models.fields import JSONTextField
 
 from gcloud.external_plugins import CACHE_TEMP_PATH, exceptions
-from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
+from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager, resolve_tenant_id
 from gcloud.external_plugins.models.cache import CachePackageSource
 from gcloud.external_plugins.protocol.readers import reader_cls_factory, validate_git_branch, validate_git_repo_address
 
@@ -36,13 +36,14 @@ def original_source(cls):
 
 class OriginalPackageSourceManager(PackageSourceManager):
     @transaction.atomic()
-    def add_original_source(self, name, source_type, packages, original_kwargs=None, tenant_id="", **base_kwargs):
+    def add_original_source(self, name, source_type, packages, original_kwargs=None, tenant_id=None, **base_kwargs):
+        tenant_id = resolve_tenant_id(tenant_id)
         full_kwargs = {"type": source_type, "name": name, "packages": packages, "tenant_id": tenant_id}
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
         # 未开启缓存机制，需要创建 base source
-        if not CachePackageSource.objects.get_base_source():
+        if not CachePackageSource.objects.get_base_source(tenant_id):
             base_source = super(OriginalPackageSourceManager, self).add_base_source(
                 name, source_type, packages, tenant_id=tenant_id, **base_kwargs
             )
@@ -51,17 +52,18 @@ class OriginalPackageSourceManager(PackageSourceManager):
         return original_source_cls.objects.create(**full_kwargs)
 
     def update_original_source(self, package_source_id, packages, original_kwargs=None, tenant_id=None, **base_kwargs):
+        tenant_id = resolve_tenant_id(tenant_id)
         full_kwargs = {"packages": packages}
-        if tenant_id is not None:
-            full_kwargs["tenant_id"] = tenant_id
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
         # use filter instead of get,because it will be updated later
-        package_objs = self.filter(id=package_source_id)
-        package_obj = package_objs[0]
+        package_objs = self.filter(id=package_source_id, tenant_id=tenant_id)
+        package_obj = package_objs.first()
+        if package_obj is None:
+            raise self.model.DoesNotExist
         # 未开启缓存机制，需要更新 base source
-        if not CachePackageSource.objects.get_base_source():
+        if not CachePackageSource.objects.get_base_source(tenant_id):
             # 新增时也未开启缓存，直接更新 base source
             if package_obj.base_source_id:
                 super(OriginalPackageSourceManager, self).update_base_source(
@@ -74,7 +76,7 @@ class OriginalPackageSourceManager(PackageSourceManager):
                 )
                 full_kwargs["base_source_id"] = base_source.id
         else:
-            super(OriginalPackageSourceManager, self).delete_base_source(package_source_id, package_obj.type)
+            super(OriginalPackageSourceManager, self).delete_base_source(package_source_id, package_obj.type, tenant_id)
             full_kwargs["base_source_id"] = None
         package_objs.update(**full_kwargs)
 

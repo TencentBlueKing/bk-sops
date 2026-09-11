@@ -15,9 +15,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
-from iam.exceptions import AuthFailedException
 
 from gcloud.contrib.analysis.views import get_biz_useage
+from gcloud.iam_auth.exceptions import AuthFailedException
 
 IAM_IS_ALLOWED = "gcloud.iam_auth.view_interceptors.statistics.iam.is_allowed"
 

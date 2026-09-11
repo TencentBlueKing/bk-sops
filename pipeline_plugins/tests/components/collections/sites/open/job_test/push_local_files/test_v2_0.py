@@ -122,7 +122,7 @@ def get_expected_call_assertions_for_push_files(
         calls.append(Call(**call_kwargs))
 
     return [
-        CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+        CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
         CallAssertion(func=manager_mock.push_files_to_ips, calls=calls),
     ]
 
@@ -361,7 +361,7 @@ def SCHEDULE_FAILURE_CASE():
     # 生成环境感知的 call assertion
     target_server = get_expected_target_server_for_push_files(1)
     execute_call_assertion = [
-        CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+        CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
         CallAssertion(
             func=SCHEDULE_FAILURE_MANAGER.push_files_to_ips,
             calls=[
@@ -509,7 +509,7 @@ def SUCCESS_MULTI_CASE():
     # 生成环境感知的 call assertion
     target_server = get_expected_target_server_for_push_files(1)
     execute_call_assertion = [
-        CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+        CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
         CallAssertion(
             func=SUCCESS_MANAGER.push_files_to_ips,
             calls=[

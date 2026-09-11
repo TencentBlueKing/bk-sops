@@ -27,7 +27,6 @@ from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from webhook.api import verify_webhook_endpoint
-from webhook.models import Webhook
 
 from gcloud import err_code
 from gcloud.contrib.audit.utils import bk_audit_add_event
@@ -99,6 +98,12 @@ class TaskTemplatePermission(IamPermission):
             IAMMeta.FLOW_CREATE_ACTION, res_factory.resources_for_project, id_field="project_id"
         ),
     }
+
+    def has_object_permission(self, request, view, obj):
+        """Keep the V3 creator semantics without calling the removed V3 grant SDK."""
+        if request.user.username == obj.pipeline_template.creator:
+            return True
+        return super().has_object_permission(request, view, obj)
 
 
 class TaskTemplateFilter(PropertyFilterSet):
@@ -342,10 +347,12 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
             serializer.validated_data["pipeline_template"] = template.pipeline_template
             template_labels = serializer.validated_data.pop("template_labels")
 
-            if enable_webhook is not None:
-                Webhook.objects.filter(scope_type="template", scope_code=str(serializer.instance.id)).update(
-                    enable_webhook=enable_webhook
-                )
+            if enable_webhook is False:
+                clear_result = clear_scope_webhooks([str(serializer.instance.id)])
+                if not clear_result["result"]:
+                    message = clear_result["message"]
+                    logger.error(message)
+                    raise ValidationException(message)
 
             if enable_webhook is True and webhook_configs:
                 apply_result = apply_webhook_configs(webhook_configs, str(serializer.instance.id))

@@ -41,7 +41,6 @@ def get_functionalization_task_list(request):
         "project_id": "task__project_id",
         "create_time_lte": "create_time__lte",
         "create_time_gte": "create_time__gte",
-        "task__project__tenant_id": request.user.tenant_id,
         "creator": "creator__icontains",
         "claimant": "claimant__icontains",
     }
@@ -69,6 +68,10 @@ def get_functionalization_task_list(request):
             # 完成：已完成
             filter_kwargs["task__pipeline_instance__is_finished"] = True
 
+    filter_kwargs["task__project__tenant_id"] = request.user.tenant_id
+    if request._function_project_ids is not None:
+        filter_kwargs["task__project_id__in"] = request._function_project_ids
+        filter_kwargs["task_id__in"] = request._function_task_ids
     function_tasks = FunctionTask.objects.select_related("task").filter(**filter_kwargs)
     try:
         function_tasks, count = paginate_list_data(request, function_tasks)

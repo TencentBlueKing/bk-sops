@@ -45,8 +45,7 @@ from gcloud.core.apis.drf.serilaziers.periodic_task import (
     PeriodicTaskReadOnlySerializer,
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudModelViewSet
-from gcloud.core.models import Project
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService, get_iam_client, res_factory
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.periodictask.models import PeriodicTask
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -85,13 +84,32 @@ class PeriodicTaskPermission(IamPermission):
             template_source = request.data.get("template_source", PROJECT)
             template_id = request.data.get("template_id")
             if template_source == PROJECT:
+                template = TaskTemplate.objects.filter(
+                    id=template_id,
+                    project_id=request.data.get("project"),
+                    project__tenant_id=tenant_id,
+                    is_deleted=False,
+                ).first()
+                if template is None:
+                    return False
+                if template.pipeline_template.creator == request.user.username:
+                    return True
                 iam_action = IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION
-                resources = res_factory.resources_for_flow(template_id, tenant_id)
+                resources = res_factory.resources_for_flow_obj(template)
             else:
-                iam_action = IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION
-                resources = res_factory.resources_for_common_flow(template_id, tenant_id)
-                if request.data.get("project"):
-                    resources.extend(res_factory.resources_for_project(request.data["project"], request.user.tenant_id))
+                common_resources = res_factory.resources_for_common_flow(template_id, tenant_id)
+                project_resources = res_factory.resources_for_project(request.data.get("project"), tenant_id)
+                if not common_resources or not project_resources:
+                    return False
+                PermissionService().require_all(
+                    request.user.username,
+                    tenant_id,
+                    [
+                        PermissionCheck(IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION, common_resources[0]),
+                        PermissionCheck(IAMMeta.PROJECT_COMMON_CREATE_PERIODIC_ACTION, project_resources[0]),
+                    ],
+                )
+                return True
             self.iam_auth_check(request=request, action=iam_action, resources=resources)
             return True
         return super().has_permission(request, view)
@@ -338,8 +356,7 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
 
         with transaction.atomic():
             if "cron" in serializer.validated_data:
-                project = Project.objects.filter(id=serializer.validated_data["project"]).first()
-                timezone = serializer.validated_data["cron"].get("timezone") or project.time_zone
+                timezone = serializer.validated_data["cron"].get("timezone") or instance.project.time_zone
                 instance.modify_cron(serializer.validated_data["cron"], timezone)
             if "constants" in serializer.validated_data:
                 instance.modify_constants(serializer.validated_data["constants"])

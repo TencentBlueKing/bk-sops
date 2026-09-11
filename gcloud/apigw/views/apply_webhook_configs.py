@@ -65,7 +65,10 @@ def apply_webhook_configs(request, project_id):
     # 关闭webhook：关闭指定模板的所有webhook开关
     if enable_webhook is False:
         scope_codes = [str(template_id) for template_id in template_ids]
-        WebhookModel.objects.filter(scope_type="template", scope_code__in=scope_codes).update(enable_webhook=False)
+        with transaction.atomic():
+            WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_codes).delete()
+            Subscription.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_codes).delete()
+            Scope.objects.filter(type=WebhookScopeType.TEMPLATE.value, code__in=scope_codes).delete()
         return {"result": True, "message": "success", "code": err_code.SUCCESS.code}
 
     events = webhook_configs.pop("events")
@@ -108,7 +111,6 @@ def apply_webhook_configs(request, project_id):
                         "name": webhook_name,
                         "scope_type": WebhookScopeType.TEMPLATE.value,
                         "scope_code": template_id,
-                        "enable_webhook": True,
                     }
                 )
                 webhook = Webhook(**webhook_config)
@@ -137,7 +139,7 @@ def apply_webhook_configs(request, project_id):
                 WebhookModel.objects.bulk_create(webhooks_to_create)
             if webhooks_to_update:
                 WebhookModel.objects.bulk_update(
-                    webhooks_to_update, fields=["code", "name", "endpoint", "extra_info", "enable_webhook"]
+                    webhooks_to_update, fields=["code", "name", "method", "endpoint", "extra_info"]
                 )
             Subscription.objects.bulk_create(subscriptions_to_create)
 

@@ -35,15 +35,16 @@ def get_webhook_configs(scope_code):
     get webhook retry policy of scope
     """
     try:
-        webhooks = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code=scope_code)
-        result = {}
-        for webhook in webhooks:
-            result = {
-                "method": webhook.method,
-                "endpoint": webhook.endpoint,
-                "extra_info": process_sensitive_info(webhook.extra_info, is_decrypt=True),
-                "enable_webhook": webhook.enable_webhook,
-            }
+        webhook = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code=scope_code).first()
+        if webhook is None:
+            return {}
+        result = {
+            "method": webhook.method,
+            "endpoint": webhook.endpoint,
+            "extra_info": process_sensitive_info(webhook.extra_info, is_decrypt=True),
+            # webhook 组件没有独立启停字段；配置存在即表示启用。
+            "enable_webhook": True,
+        }
     except Exception as e:
         logger.exception(f"get_scope_webhooks error: {e}")
         return {"result": False, "message": f"Failed to get webhook configs: {e}", "data": {}, "code": "500"}
