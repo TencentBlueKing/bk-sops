@@ -109,7 +109,10 @@ class BKSopsAgentClient:
             if not result.get("result"):
                 logger.error(f"请求标准运维智能体API失败: {result.get('message', '未知错误')}")
                 return None
-            return result.get("data", {})
+            if not isinstance(result, str):
+                return result["data"]["choices"][0]["delta"]["content"]
+            else:
+                return result
         except (ValueError, AttributeError) as e:
             logger.error(f"解析响应失败: {e}")
             return None
