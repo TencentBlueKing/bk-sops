@@ -1,6 +1,8 @@
 # Mako 依赖升级与部署配置
 
-对应 `bamboo-pipeline==3.24.18`，其包依赖已固定 `bamboo-engine==2.6.7`，无需另外覆盖 engine 版本。
+对应 `bamboo-pipeline==3.24.19`，其包依赖已固定 `bamboo-engine==2.6.8`，无需另外覆盖 engine 版本。
+
+以上依赖已发布到 PyPI，并包含下述通过 `RenderInfrastructureError` 显式报告基础设施故障的行为。部署时需同时更新应用依赖和本次 bk-sops `SystemObject` 源码修复，以完整接入故障处理和系统上下文传输修复。默认配置保持不变。
 
 ## 首次发布
 
@@ -45,5 +47,11 @@ BKAPP_MAKO_RENDER_BACKEND=inprocess
 白名单与子进程隔离是两个独立开关，可分别回归。切换 `enforce` 前需检查业务表达式及导入别名：例如 `datetime.datetime.now()` 需要在导入表中补 `datetime.datetime`，`datetime.date.today()` 需要补 `datetime.date`；恢复模块名本身不代表所有多级调用都会放行。
 
 切换 `BKAPP_MAKO_RENDER_BACKEND=subprocess` 时，建议保持 `FALLBACK_INPROCESS=0`、`OS_HARDEN=1`、`NO_NETWORK=1`（均指上表完整变量名），先在目标 Linux 容器验证网络命名空间权限、Celery 进程模型和真实业务 context。无网络隔离建立失败时会拒绝渲染；开启进程内回退也不会绕过这种失败。不能把进程内路径回归通过等同于子进程隔离验收。
+
+使用上述配套版本时，worker 启动、排队或通信超时、进程退出、协议异常及必需的网络隔离建立失败会通过 `RenderInfrastructureError` 显式使节点失败，不再把未渲染的表达式作为成功结果继续执行；即使 `FALLBACK_INPROCESS=1`，这些基础设施故障也不会回退到宿主渲染。
+
+本次 `SystemObject` 修复保留 `engine_pickle_obj.context.SystemObject` 的 pickle 路径、属性字典及字符串表现。旧版本持久化的 pickle 可在修复后加载，并经引擎现有结构适配器传输给 worker，无需在 worker 中反序列化原应用类。继承属性行为的子类仍不属于可传输的普通属性对象。
+
+兼容灰度仍支持显式配置 `BKAPP_SOPS_MAKO_WHITELIST_MODE=warn`、`BKAPP_MAKO_RENDER_BACKEND=subprocess`、`BKAPP_MAKO_RENDER_FALLBACK_INPROCESS=1`、`BKAPP_MAKO_RENDER_NO_NETWORK=0`。此时仅不支持的 context/spec 可走宿主回退，且不要求网络命名空间；这不等于无网络隔离验收，也不改变上表默认值。
 
 [English](../../en/deploy/mako_render.md)

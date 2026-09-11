@@ -14,6 +14,16 @@ specific language governing permissions and limitations under the License.
 from bamboo_engine.utils.object import Representable
 
 
-class SystemObject(Representable):
+class SystemObject(object):
+    # A direct attribute bag is accepted by the engine's strict portable adapter.
+    # Reuse the display methods without inheriting behavior that it cannot transport.
+    __str__ = Representable.__str__
+    __repr__ = Representable.__repr__
+
     def __init__(self, attrs: dict):
         self.__dict__ = attrs
+
+    def __getstate__(self):
+        # Default pickling caches __slotnames__ on the class in Python 3.6,
+        # which would make this attribute bag fail the structural adapter later.
+        return self.__dict__
