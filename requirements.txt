@@ -22,10 +22,10 @@ pyinstrument==5.0.0
 djangorestframework==3.15.2
 django-filter==2.4.0
 prometheus-client==0.20.0
-# 流程卡住治理 M1：诊断检测能力对应 4.x 线的 bamboo-pipeline 4.0.4。
+# 流程卡住治理 M1：诊断检测能力对应 4.x 线的 bamboo-pipeline 4.0.5（依赖 bamboo-engine 3.0.6）。
 # 升级后 pipeline.contrib.diagnostics 条件注册生效；
 # SCAN/EVENT/ALERT/APPLY 默认全关，需按运维 checklist 显式开启。
-bamboo-pipeline==4.0.4
+bamboo-pipeline==4.0.5
 drf-yasg==1.21.8
 typing-extensions==4.12.2
 pyyaml==6.0.2
