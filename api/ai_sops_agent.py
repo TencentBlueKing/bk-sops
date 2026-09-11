@@ -115,7 +115,7 @@ class BKSopsAgentClient:
             return None
 
     def summarize_task_execution(self, bk_biz_id, task_id):
-        user_input = f"使用bk-sops-summarize-task，帮我总结一下我的任务执行情况 ，业务ID是{bk_biz_id}，任务ID是 {task_id}"
+        user_input = f"帮我总结一下我的任务执行情况 ，业务ID是{bk_biz_id}，任务ID是 {task_id}"
         agent_output = self.call_agent_apigw(user_input=user_input)
         output = agent_output.get("outputs", {}).get("output", {})
         if not output:
@@ -124,7 +124,7 @@ class BKSopsAgentClient:
         return output
 
     def analyze_task_error(self, bk_biz_id, task_id):
-        user_input = f"我的标准运维任务执行失败了，业务ID是{bk_biz_id}，任务ID是{task_id}, 使用bk-sops-analyze-task-error帮我看看是什么问题"
+        user_input = f"我的标准运维任务执行失败了，业务ID是{bk_biz_id}，任务ID是{task_id}, 帮我看看是什么问题"
         agent_output = self.call_agent_apigw(user_input=user_input)
         output = agent_output.get("outputs", {}).get("output", {})
         if not output:
