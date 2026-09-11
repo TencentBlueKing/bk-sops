@@ -17,9 +17,10 @@ from gcloud.core.apis.drf.viewsets.resource_config import ResourceConfigViewSet
 from gcloud.core.apis.drf.viewsets.staff_group import StaffGroupSetViewSet
 from gcloud.core.models import Project, ResourceConfig, StaffGroupSet
 from gcloud.external_plugins.models import CachePackageSource
-from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionService, res_factory
 from gcloud.iam_auth.exceptions import IAMPermissionDenied, IAMResourceNotFound
 from gcloud.iam_auth.resource_api_v4.providers.project import ProjectResourceProvider
+from gcloud.iam_auth.scope_resolver import ScopeResolver
 from gcloud.iam_auth.types import AuthorizedScope
 from gcloud.iam_auth.view_interceptors.taskflow import BatchStatusViewInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -135,6 +136,47 @@ class TenantBoundaryDatabaseTest(TestCase):
             side_effect=lambda username, tenant_id, action_id: scopes[action_id],
         ):
             self.assertFalse(view.get_queryset().exists())
+
+    def test_authorized_scope_keeps_project_descendants_as_tenant_scoped_subquery(self):
+        task_t1 = TaskFlowInstance.objects.create(project=self.project_t1, current_flow="execute_task")
+        TaskFlowInstance.objects.create(project=self.project_t2, current_flow="execute_task")
+        client = mock.Mock()
+        client.list_authorized_resources.return_value = [
+            {"type": IAMMeta.PROJECT_RESOURCE, "ids": [str(self.project_t1.id)]}
+        ]
+
+        scope = ScopeResolver(client).authorized_scope("alice", "t1", IAMMeta.TASK_VIEW_ACTION)
+
+        self.assertEqual(
+            list(scope.queryset(IAMMeta.TASK_RESOURCE).values_list("id", flat=True)),
+            [task_t1.id],
+        )
+
+    def test_resource_action_matrix_uses_one_local_query_for_all_actions(self):
+        project_t1_b = Project.objects.create(
+            name="tenant-one-b",
+            creator="alice",
+            bk_biz_id=91003,
+            tenant_id="t1",
+        )
+        resources = [
+            res_factory.resources_for_project_obj(self.project_t1)[0],
+            res_factory.resources_for_project_obj(project_t1_b)[0],
+        ]
+        client = mock.Mock()
+        client.direct_auth_by_resources.side_effect = lambda tenant_id, subject, action_id, items: {
+            str(item.id): True for item in items
+        }
+
+        with self.assertNumQueries(1):
+            result = PermissionService(client).allowed_resource_actions(
+                "bob",
+                "t1",
+                [IAMMeta.PROJECT_VIEW_ACTION, IAMMeta.PROJECT_EDIT_ACTION],
+                resources,
+            )
+
+        self.assertTrue(all(all(actions.values()) for actions in result.values()))
 
     def test_f09_batch_status_checks_real_tenant_tasks_and_rejects_denied_or_cross_tenant(self):
         task_t1 = TaskFlowInstance.objects.create(project=self.project_t1, current_flow="execute_task")

@@ -415,7 +415,7 @@ IAM_V4_TENANT_HEADER = "X-Bk-Tenant-Id"
 IAM_V4_REQUEST_TIMEOUT = 10
 IAM_V4_CALLBACK_TOKEN_CACHE_SECONDS = 300
 IAM_V4_MODEL_REGISTRATION_TENANT_ID = os.getenv("BKPAAS_APP_TENANT_ID") or "system"
-IAM_V4_SYSTEM_MANAGERS = ()
+IAM_V4_SYSTEM_MANAGERS = tuple(item.strip() for item in env.BK_APIGW_MANAGER_MAINTAINERS if item.strip())
 
 # 既有发布开关：仅控制 migration 是否调用外部 IAM V4 注册接口。
 # Django test 创建临时数据库时也会执行 migration，此时不得写入真实 IAM。

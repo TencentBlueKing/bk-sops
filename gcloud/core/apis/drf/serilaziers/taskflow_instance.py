@@ -184,7 +184,7 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
             app_maker_id = self.initial_data["create_info"]
             tenant_id = getattr(getattr(self.context.get("request"), "user", None), "tenant_id", "")
             try:
-                AppMaker.objects.get(id=app_maker_id, project__tenant_id=tenant_id, is_deleted=False)
+                self._app_maker = AppMaker.objects.get(id=app_maker_id, project__tenant_id=tenant_id, is_deleted=False)
             except AppMaker.DoesNotExist:
                 raise serializers.ValidationError(f"id={app_maker_id}的轻应用不存在")
         return value
@@ -199,6 +199,14 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
 
     def validate(self, attrs):
         template_source = attrs.get("template_source")
+        if attrs.get("create_method") == TaskCreateMethod.APP_MAKER.value:
+            app_maker = self._app_maker
+            if (
+                template_source != "project"
+                or attrs.get("project").id != app_maker.project_id
+                or attrs.get("template").id != app_maker.task_template_id
+            ):
+                raise serializers.ValidationError("轻应用关联的项目或流程不匹配")
         if template_source == "common":
             template = attrs.get("template")
             project_id = attrs.get("project").id

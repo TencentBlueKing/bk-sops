@@ -25,9 +25,15 @@ class FunctionViewInterceptor(ViewInterceptor):
 
         tenant_id = request.user.tenant_id
         resolver = ScopeResolver()
-        request._function_project_ids = resolver.authorized_scope(
-            request.user.username, tenant_id, IAMMeta.FUNCTION_TASK_VIEW_ACTION
-        ).ids(IAMMeta.PROJECT_RESOURCE)
-        request._function_task_ids = resolver.authorized_scope(
-            request.user.username, tenant_id, IAMMeta.TASK_VIEW_ACTION
-        ).ids(IAMMeta.TASK_RESOURCE)
+        project_scope = resolver.authorized_scope(request.user.username, tenant_id, IAMMeta.FUNCTION_TASK_VIEW_ACTION)
+        task_scope = resolver.authorized_scope(request.user.username, tenant_id, IAMMeta.TASK_VIEW_ACTION)
+        project_queryset = project_scope.queryset(IAMMeta.PROJECT_RESOURCE)
+        task_queryset = task_scope.queryset(IAMMeta.TASK_RESOURCE)
+        request._function_project_ids = (
+            project_queryset.values("id")
+            if project_queryset is not None
+            else project_scope.ids(IAMMeta.PROJECT_RESOURCE)
+        )
+        request._function_task_ids = (
+            task_queryset.values("id") if task_queryset is not None else task_scope.ids(IAMMeta.TASK_RESOURCE)
+        )

@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from rest_framework import permissions
+from rest_framework.exceptions import PermissionDenied
 
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth import IAMMeta, PermissionService, get_iam_client, res_factory
@@ -29,11 +30,15 @@ class TemplatePermissionMixin:
     iam_mapping_config = {
         "project": {
             "delete_action": Action(IAMMeta.FLOW_DELETE_ACTION),
-            "resources_list_func": res_factory.resources_list_for_flows,
+            "model": TaskTemplate,
+            "tenant_filter": "project__tenant_id",
+            "resource_func": res_factory.resources_for_flow_obj,
         },
         "common": {
             "delete_action": Action(IAMMeta.COMMON_FLOW_DELETE_ACTION),
-            "resources_list_func": res_factory.resources_list_for_common_flows,
+            "model": CommonTemplate,
+            "tenant_filter": "tenant_id",
+            "resource_func": res_factory.resources_for_common_flow_obj,
         },
     }
 
@@ -43,16 +48,27 @@ class TemplatePermissionMixin:
         return True
 
     def check_batch_delete_permission(self, request, view):
-        template_ids = request.data.get("template_ids") or []
+        serializer = view.template_ids_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        template_ids = serializer.validated_data["template_ids"]
         tenant_id = request.user.tenant_id
-        action = self.iam_mapping_config[self.template_type]["delete_action"]
-        resources_list = self.iam_mapping_config[self.template_type]["resources_list_func"](template_ids, tenant_id)
+        config = self.iam_mapping_config[self.template_type]
+        templates = list(
+            config["model"]
+            .objects.select_related("pipeline_template")
+            .filter(id__in=template_ids, is_deleted=False, **{config["tenant_filter"]: tenant_id})
+        )
+        if len(templates) != len(template_ids):
+            # Do not expose whether an ID belongs to another tenant or does not exist.
+            raise PermissionDenied("template does not exist in current tenant")
+        resources = [config["resource_func"](template)[0] for template in templates]
         PermissionService().require_resources(
             request.user.username,
             tenant_id,
-            action.id,
-            [resources[0] for resources in resources_list],
+            config["delete_action"].id,
+            resources,
         )
+        request._authorized_batch_delete_template_ids = template_ids
 
 
 class ProjectTemplatePermission(TemplatePermissionMixin, permissions.BasePermission):

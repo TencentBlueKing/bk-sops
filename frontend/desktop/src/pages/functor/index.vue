@@ -15,7 +15,7 @@
     </div>
 </template>
 <script>
-    import { mapActions, mapState } from 'vuex'
+    import { mapState } from 'vuex'
     import bus from '@/utils/bus.js'
 
     export default {
@@ -35,30 +35,20 @@
             this.queryViewPerm()
         },
         methods: {
-            ...mapActions([
-                'queryUserPermission'
-            ]),
             // 查询用户是否有职能化中心查看权限
-            async queryViewPerm () {
-                try {
-                    const res = await this.queryUserPermission({
-                        action: 'function_view'
-                    })
-                    if (res.data.is_allow) {
-                        this.permissionLoading = false
-                        this.hasViewPerm = true
-                    } else {
-                        this.showPermissionApplyPage()
-                    }
-                } catch (e) {
-                    console.log(e)
+            queryViewPerm () {
+                if (window.IS_FUNCTOR === 1) {
+                    this.permissionLoading = false
+                    this.hasViewPerm = true
+                } else {
+                    this.showPermissionApplyPage()
                 }
             },
             /**
              * 切换到权限申请页
              */
             showPermissionApplyPage () {
-                const action = 'function_view'
+                const action = 'function_task_view'
                 const bksops = this.permissionMeta.system.find(item => item.id === 'bk_sops')
                 const name = this.permissionMeta.actions.find(item => item.id === action).name
                 const { id: systemId, name: systemName } = bksops

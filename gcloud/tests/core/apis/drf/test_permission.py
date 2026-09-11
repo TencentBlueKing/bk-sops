@@ -207,8 +207,8 @@ class AppmakerPermissionTestCase(SimpleTestCase):
         mini_app_scope = AuthorizedScope({IAMMeta.MINI_APP_RESOURCE: {"21"}})
         flow_scope = AuthorizedScope({IAMMeta.FLOW_RESOURCE: {"31"}})
         scope_resolver.return_value.authorized_scope.side_effect = [mini_app_scope, flow_scope]
-        appmaker_filter.return_value.exists.return_value = True
-        task_template_filter.return_value.exists.return_value = False
+        appmaker_filter.return_value.filter.return_value.exists.return_value = True
+        task_template_filter.return_value.filter.return_value.exists.return_value = False
         request = SimpleNamespace(
             user=SimpleNamespace(username="alice", tenant_id="tenant-a"),
             query_params={"project__id": "10"},
@@ -217,12 +217,10 @@ class AppmakerPermissionTestCase(SimpleTestCase):
         response = AppmakerListViewSet().capabilities(request)
 
         self.assertEqual(response.data, {"can_view": True, "can_create": False})
-        appmaker_filter.assert_called_once_with(
-            id__in={"21"}, project_id="10", project__tenant_id="tenant-a", is_deleted=False
-        )
-        task_template_filter.assert_called_once_with(
-            id__in={"31"}, project_id="10", project__tenant_id="tenant-a", is_deleted=False
-        )
+        appmaker_filter.assert_called_once_with(project_id="10", project__tenant_id="tenant-a", is_deleted=False)
+        appmaker_filter.return_value.filter.assert_called_once_with(id__in={"21"})
+        task_template_filter.assert_called_once_with(project_id="10", project__tenant_id="tenant-a", is_deleted=False)
+        task_template_filter.return_value.filter.assert_called_once_with(id__in={"31"})
 
     @patch("gcloud.core.apis.drf.viewsets.appmaker.TaskTemplate.objects.filter")
     @patch("gcloud.core.apis.drf.viewsets.appmaker.AppMaker.objects.filter")

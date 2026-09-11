@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 import logging
 import re
 import typing
-from collections.abc import Iterable
 from datetime import datetime, timedelta
 
 from bamboo_engine import states
@@ -284,12 +283,6 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
         ),
     }
 
-    def has_object_permission(self, request, view, obj):
-        """Keep the V3 creator semantics without calling the removed V3 grant SDK."""
-        if request.user.username == obj.creator:
-            return True
-        return super().has_object_permission(request, view, obj)
-
     def has_permission(self, request, view):
         if view.action == "create":
             create_method = request.data.get("create_method")
@@ -301,6 +294,12 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                         id=app_maker_id, project__tenant_id=request.user.tenant_id, is_deleted=False
                     )
                 except AppMaker.DoesNotExist:
+                    return False
+                if (
+                    request.data.get("template_source", "project") != "project"
+                    or str(request.data.get("project")) != str(app_maker.project_id)
+                    or str(request.data.get("template")) != str(app_maker.task_template_id)
+                ):
                     return False
                 self.iam_auth_check(
                     request=request,
@@ -372,20 +371,6 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         return ViewSetResourceHelper(
             iam=iam_client, resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS
         )
-
-    def injection_auth_actions(self, request, serializer_data, queryset_data):
-        """Expose creator permissions in task responses after the V3 grant chain was removed."""
-        auth_result = super().injection_auth_actions(request, serializer_data, queryset_data)
-        all_actions = self.iam_resource_helper(request.user.tenant_id).actions
-        is_collection = isinstance(queryset_data, Iterable)
-        instances = queryset_data if is_collection else [queryset_data]
-        data_list = serializer_data if is_collection else [serializer_data]
-
-        for data, instance in zip(data_list, instances):
-            if request.user.username == instance.creator:
-                data["auth_actions"] = list(all_actions)
-
-        return auth_result
 
     def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())

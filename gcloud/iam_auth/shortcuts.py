@@ -62,12 +62,9 @@ class IAMV4PermissionAdapter:
     def batch_resource_multi_actions_allowed(self, request, resources_list):
         username, tenant_id = self._identity(request.subject)
         resources = [_single_resource(item) for item in resources_list]
-        result = {str(resource.id): {} for resource in resources}
-        for action in request.actions:
-            decisions = self.service.allowed_resources(username, tenant_id, action.id, resources)
-            for resource_id, allowed in decisions.items():
-                result[resource_id][action.id] = allowed
-        return result
+        return self.service.allowed_resource_actions(
+            username, tenant_id, [action.id for action in request.actions], resources
+        )
 
     def resource_multi_actions_allowed(self, request):
         username, tenant_id = self._identity(request.subject)
@@ -86,7 +83,9 @@ class IAMV4PermissionAdapter:
         orm_field = key_mapping.get("{}.id".format(resource_type))
         if not orm_field:
             raise IAMV4ProtocolError("authorized scope key mapping is missing")
-        ids = ScopeResolver().authorized_scope(username, tenant_id, request.action.id).ids(resource_type)
+        scope = ScopeResolver().authorized_scope(username, tenant_id, request.action.id)
+        queryset = scope.queryset(resource_type)
+        ids = queryset.values("id") if queryset is not None else scope.ids(resource_type)
         return Q(**{"{}__in".format(orm_field): ids})
 
     def get_apply_url(self, application):

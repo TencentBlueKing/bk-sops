@@ -36,6 +36,7 @@ if not settings.configured:
 from bk_resource.exceptions import APIRequestError
 from requests import HTTPError
 
+from gcloud.core.api_adapter.user_role import is_user_functor
 from gcloud.iam_auth import api as iam_api
 from gcloud.iam_auth.api_v4.resources import DirectAuthResource
 from gcloud.iam_auth.api_v4.serializers import DirectAuthRequestSerializer
@@ -337,6 +338,14 @@ class ClientAndResourceTest(unittest.TestCase):
 
 
 class ServiceAndApplyTest(unittest.TestCase):
+    @mock.patch("gcloud.core.api_adapter.user_role.ScopeResolver")
+    def test_functor_entry_uses_project_scoped_function_task_action(self, resolver_cls):
+        resolver_cls.return_value.authorized_scope.return_value = AuthorizedScope({"project": {"2"}})
+        request = SimpleNamespace(user=SimpleNamespace(username="alice", tenant_id="t1"))
+
+        self.assertTrue(is_user_functor(request))
+        resolver_cls.return_value.authorized_scope.assert_called_once_with("alice", "t1", "function_task_view")
+
     @mock.patch("gcloud.iam_auth.api.ScopeResolver")
     @mock.patch("gcloud.iam_auth.api.PermissionService")
     def test_common_flow_view_scope_allows_management_page(self, service_cls, resolver_cls):
@@ -436,7 +445,7 @@ class ServiceAndApplyTest(unittest.TestCase):
                 "t1",
             )
 
-    @mock.patch("gcloud.iam_auth.service.resource_exists", return_value=True)
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_require_all_covers_all_four_dual_permission_outcomes(self, unused):
         for common_action, project_action in (
             ("common_flow_create_task", "project_common_create_task"),
@@ -462,7 +471,7 @@ class ServiceAndApplyTest(unittest.TestCase):
                             PermissionService(client).require_all("alice", "t1", checks)
                         self.assertEqual(list(context.exception.missing_permissions), expected_missing)
 
-    @mock.patch("gcloud.iam_auth.service.resource_exists", return_value=True)
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_require_all_aggregates_both_missing_permissions(self, unused):
         client = mock.Mock()
         client.direct_auth.return_value = False
@@ -474,14 +483,17 @@ class ServiceAndApplyTest(unittest.TestCase):
             PermissionService(client).require_all("alice", "t1", checks)
         self.assertEqual(context.exception.missing_permissions, tuple(checks))
 
-    @mock.patch("gcloud.iam_auth.service.resource_exists", return_value=False)
+    @mock.patch(
+        "gcloud.iam_auth.service.validate_local_resources",
+        side_effect=IAMResourceNotFound("flow", "1"),
+    )
     def test_cross_tenant_or_missing_resource_stops_before_iam(self, unused):
         client = mock.Mock()
         with self.assertRaises(Exception):
             PermissionService(client).is_allowed("alice", "t1", PermissionCheck("flow_view", resource()))
         client.direct_auth.assert_not_called()
 
-    @mock.patch("gcloud.iam_auth.service.resource_exists", return_value=True)
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_creator_permission_skips_remote_direct_auth(self, unused):
         client = mock.Mock()
 
@@ -491,7 +503,7 @@ class ServiceAndApplyTest(unittest.TestCase):
 
         client.direct_auth.assert_not_called()
 
-    @mock.patch("gcloud.iam_auth.service.resource_exists", return_value=True)
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_creator_permission_only_applies_to_v3_configured_action(self, unused):
         client = mock.Mock()
         client.direct_auth.return_value = False
@@ -506,7 +518,7 @@ class ServiceAndApplyTest(unittest.TestCase):
 
         client.direct_auth.assert_called_once()
 
-    @mock.patch("gcloud.iam_auth.service.resource_exists", return_value=True)
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_batch_permission_merges_creator_and_remote_results(self, unused):
         creator_flow = creator_resource("flow", "1")
         other_flow = creator_resource("flow", "2", username="bob")
@@ -518,7 +530,7 @@ class ServiceAndApplyTest(unittest.TestCase):
         self.assertEqual(decisions, {"1": True, "2": False})
         client.direct_auth_by_resources.assert_called_once_with("t1", mock.ANY, "flow_view", [other_flow])
 
-    @mock.patch("gcloud.iam_auth.service.resource_exists", return_value=True)
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_action_permission_only_sends_non_creator_actions_to_gateway(self, unused):
         common_flow = creator_resource("common_flow")
         client = mock.Mock()
@@ -540,6 +552,28 @@ class ServiceAndApplyTest(unittest.TestCase):
             },
         )
         client.direct_auth_by_actions.assert_called_once_with("t1", mock.ANY, ["common_flow_create_task"], common_flow)
+
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
+    def test_resource_action_matrix_validates_local_resources_once(self, validate_resources):
+        resources = [resource("flow", "1"), resource("flow", "2")]
+        client = mock.Mock()
+        client.direct_auth_by_resources.side_effect = [
+            {"1": True, "2": False},
+            {"1": False, "2": True},
+        ]
+
+        decisions = PermissionService(client).allowed_resource_actions(
+            "alice", "t1", ["flow_view", "flow_edit"], resources
+        )
+
+        self.assertEqual(
+            decisions,
+            {
+                "1": {"flow_view": True, "flow_edit": False},
+                "2": {"flow_view": False, "flow_edit": True},
+            },
+        )
+        validate_resources.assert_called_once_with(resources, "t1")
 
     @mock.patch("gcloud.iam_auth.apply_service.validate_local_resource")
     def test_apply_service_deduplicates_and_uses_server_resource_path(self, unused):
@@ -587,27 +621,36 @@ class ServiceAndApplyTest(unittest.TestCase):
             [{"action_id": "project_view"}],
         )
 
-    @mock.patch("gcloud.iam_auth.scope_resolver.list_creator_local_ids", return_value={"12"})
-    @mock.patch("gcloud.iam_auth.scope_resolver.descendant_ids", return_value={"10", "11"})
-    @mock.patch("gcloud.iam_auth.scope_resolver.intersect_local_ids", return_value={"2"})
-    def test_project_scope_expands_to_tenant_local_task_ids(self, unused_intersect, descendant_ids, list_creator_ids):
+    @mock.patch("gcloud.iam_auth.scope_resolver.creator_local_queryset")
+    @mock.patch("gcloud.iam_auth.scope_resolver.local_resource_queryset")
+    def test_project_scope_is_built_lazily_without_materializing_descendant_ids(self, local_queryset, creator_queryset):
+        project_queryset = mock.MagicMock(name="project_queryset")
+        task_queryset = mock.MagicMock(name="task_queryset")
+        local_queryset.side_effect = lambda resource_type, tenant_id: {
+            "project": project_queryset,
+            "task": task_queryset,
+        }[resource_type]
+        creator_queryset.return_value = mock.MagicMock(name="creator_queryset")
         client = mock.Mock()
         client.list_authorized_resources.return_value = [{"type": "project", "ids": ["2"]}]
-        scope = ScopeResolver(client).authorized_scope("alice", "t1", "task_view")
-        self.assertEqual(scope.ids("project"), {"2"})
-        self.assertEqual(scope.ids("task"), {"10", "11", "12"})
-        descendant_ids.assert_called_once_with("task", "t1", {"2"})
-        list_creator_ids.assert_called_once_with("task", "alice", "t1")
 
-    @mock.patch("gcloud.iam_auth.scope_resolver.list_creator_local_ids")
-    def test_scope_does_not_add_creator_resources_for_unconfigured_action(self, list_creator_ids):
+        scope = ScopeResolver(client).authorized_scope("alice", "t1", "task_view")
+
+        self.assertIsNotNone(scope.queryset("project"))
+        self.assertIsNotNone(scope.queryset("task"))
+        project_queryset.values_list.assert_not_called()
+        task_queryset.values_list.assert_not_called()
+        creator_queryset.assert_called_once_with("task", "alice", "t1")
+
+    @mock.patch("gcloud.iam_auth.scope_resolver.creator_local_queryset")
+    def test_scope_does_not_add_creator_resources_for_unconfigured_action(self, creator_queryset):
         client = mock.Mock()
         client.list_authorized_resources.return_value = []
 
         scope = ScopeResolver(client).authorized_scope("alice", "t1", "common_flow_create_task")
 
         self.assertTrue(scope.is_empty)
-        list_creator_ids.assert_not_called()
+        creator_queryset.assert_not_called()
 
     @mock.patch("gcloud.iam_auth.request_resources._load_resources")
     def test_trust_resource_loader_rejects_route_project_mismatch(self, load_resources):
@@ -664,15 +707,23 @@ class CallbackSecurityTest(unittest.TestCase):
         self.assertTrue(get_token.call_args.kwargs["force_refresh"])
 
     @override_settings(IAM_V4_MODEL_REGISTRATION_TENANT_ID="system")
-    @mock.patch("gcloud.iam_auth.resource_api_v4.auth.get_cached_callback_token", return_value="token")
-    def test_callback_without_tenant_header_uses_system_registration_tenant(self, get_token):
-        self.assertEqual(callback_auth.authenticate_callback(self.request(tenant=None)), "system")
-        get_token.assert_called_once_with("system")
-
-    @override_settings(IAM_V4_MODEL_REGISTRATION_TENANT_ID="")
-    def test_callback_rejects_request_when_no_tenant_can_be_resolved(self):
+    def test_callback_rejects_request_without_tenant_header(self):
         with self.assertRaises(callback_auth.CallbackTenantMissing):
             callback_auth.authenticate_callback(self.request(tenant=None))
+
+    @mock.patch("gcloud.iam_auth.resource_api_v4.auth.get_cached_callback_token")
+    def test_callback_endpoint_returns_400_before_token_lookup_when_tenant_is_missing(self, get_token):
+        request = self.request(tenant=None)
+        request.method = "POST"
+        request.body = b"{}"
+        request.META["HTTP_X_REQUEST_ID"] = "req-tenant"
+
+        response = resource_callback(request)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response["X-Request-Id"], "req-tenant")
+        self.assertEqual(json.loads(response.content)["error"]["code"], "TENANT_REQUIRED")
+        get_token.assert_not_called()
 
     def test_callback_rejects_non_post_and_preserves_request_id(self):
         request = SimpleNamespace(method="GET", META={"HTTP_X_REQUEST_ID": "req-method"})

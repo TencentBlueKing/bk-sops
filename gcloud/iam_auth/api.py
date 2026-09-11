@@ -94,7 +94,7 @@ def _has_common_flow_management_permission(username, tenant_id):
         return True
     resolver = ScopeResolver()
     return any(
-        resolver.authorized_scope(username, tenant_id, action_id).ids(IAMMeta.COMMON_FLOW_RESOURCE)
+        resolver.authorized_scope(username, tenant_id, action_id).exists(IAMMeta.COMMON_FLOW_RESOURCE)
         for action_id in (
             IAMMeta.COMMON_FLOW_VIEW_ACTION,
             IAMMeta.COMMON_FLOW_EDIT_ACTION,

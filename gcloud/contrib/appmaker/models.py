@@ -35,6 +35,10 @@ logger = logging.getLogger("root")
 
 
 class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
+    @staticmethod
+    def build_app_link(link_prefix, app_id, project_id, template_id):
+        return f"{link_prefix.rstrip('/')}/" f"{app_id}/newtask/{project_id}/selectnode/?template_id={template_id}"
+
     def save_app_maker(self, project_id, tenant_id, app_params, fake=False):
         """
         @summary:
@@ -53,9 +57,14 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         template_id = app_params["template_id"]
         app_params["name"] = standardize_name(app_params["name"], 20)
         app_params["desc"] = standardize_name(app_params.get("desc", ""), 30)
-        proj = Project.objects.get(id=project_id)
+        proj = Project.objects.get(id=project_id, tenant_id=tenant_id)
         try:
-            task_template = TaskTemplate.objects.get(pk=template_id, project_id=project_id, is_deleted=False)
+            task_template = TaskTemplate.objects.get(
+                pk=template_id,
+                project_id=project_id,
+                project__tenant_id=tenant_id,
+                is_deleted=False,
+            )
         except TaskTemplate.DoesNotExist:
             message = _("轻应用编辑失败: 轻应用关联的流程已不存在, 请检查配置 | save_app_maker")
             logger.error(message)
@@ -91,9 +100,7 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
             # update app link
             app_id = app_maker_obj.id
-            app_link = "{appmaker_prefix}{app_id}/newtask/{project_id}/selectnode/?template_id={template_id}".format(
-                appmaker_prefix=app_params["link_prefix"], app_id=app_id, project_id=project_id, template_id=template_id
-            )
+            app_link = self.build_app_link(app_params["link_prefix"], app_id, project_id, template_id)
             app_maker_obj.link = app_link
 
             if fake:
@@ -125,7 +132,11 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
         else:
             try:
                 app_maker_obj = AppMaker.objects.get(
-                    id=app_id, project_id=project_id, task_template__id=template_id, is_deleted=False
+                    id=app_id,
+                    project_id=project_id,
+                    project__tenant_id=tenant_id,
+                    task_template__id=template_id,
+                    is_deleted=False,
                 )
             except AppMaker.DoesNotExist:
                 message = _("轻应用保存失败: 当前编辑的轻应用已不存在, 请检查配置 | save_app_maker")
@@ -142,12 +153,8 @@ class AppMakerManager(models.Manager, managermixins.ClassificationCountMixin):
 
             app_code = app_maker_obj.code
             creator = app_maker_obj.creator
-            # app_params["link_prefix"]: current_host.com/appmaker, link_prefix: current_host.com/
-            link_prefix = app_params["link_prefix"][: app_params["link_prefix"].rfind("appmaker")]
-            # app_maker_obj.link: old_host.com/appmaker/xxx, link_suffix: appmaker/xxx
-            link_suffix = app_maker_obj.link[app_maker_obj.link.rfind("appmaker") :]
-            # 只保留app_maker_obj.link的后缀，使用环境当前域名作为前缀
-            app_link = f"{link_prefix}{link_suffix}"
+            # 总是使用当前访问地址和当前关联对象重建跳转链接，避免保留旧域名或旧流程 ID。
+            app_link = self.build_app_link(app_params["link_prefix"], app_maker_obj.id, project_id, template_id)
             app_maker_obj.link = app_link
 
             if not fake:

@@ -83,15 +83,17 @@ def load_models():
         roles = json.load(file)
     callback_host = getattr(settings, "BK_IAM_RESOURCE_API_HOST", "").rstrip("/")
     managers = list(getattr(settings, "IAM_V4_SYSTEM_MANAGERS", ()))
+    system = {
+        "id": settings.BK_IAM_SYSTEM_ID,
+        "name": settings.BK_IAM_SYSTEM_NAME,
+        "description": "",
+        "clients": [settings.APP_CODE],
+        "callback_url": "{}/iam/resource/api/v4/".format(callback_host) if callback_host else "",
+    }
+    if managers:
+        system["managers"] = managers
     model = {
-        "system": {
-            "id": settings.BK_IAM_SYSTEM_ID,
-            "name": settings.BK_IAM_SYSTEM_NAME,
-            "description": "",
-            "managers": managers,
-            "clients": [settings.APP_CODE],
-            "callback_url": "{}/iam/resource/api/v4/".format(callback_host) if callback_host else "",
-        },
+        "system": system,
         "resource_types": [
             {
                 "id": item["id"],

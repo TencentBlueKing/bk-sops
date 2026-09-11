@@ -22,7 +22,7 @@ from gcloud.iam_auth.conf import ACTION_RESOURCE_TYPES
 from gcloud.iam_auth.exceptions import IAMV4ProtocolError, IAMV4Unavailable
 from gcloud.iam_auth.management.commands import register_iam_v4_model as model_command
 from gcloud.iam_auth.management.commands import register_iam_v4_roles as role_command
-from gcloud.iam_auth.model_registration import register_base_model, validate_created_ids
+from gcloud.iam_auth.model_registration import _sync_system, register_base_model, validate_created_ids
 from gcloud.iam_auth.model_validation import load_models, validate_models
 
 
@@ -52,6 +52,11 @@ class BaseModelRegistrationContractTest(SimpleTestCase):
         self.assertEqual(system["id"], settings.BK_IAM_SYSTEM_ID)
         self.assertIn(settings.APP_CODE, system["clients"])
         self.assertEqual(system["callback_url"], "https://sops.example.test/base/iam/resource/api/v4/")
+
+    @override_settings(IAM_V4_SYSTEM_MANAGERS=())
+    def test_empty_manager_configuration_is_omitted_from_model(self):
+        model, _ = load_models()
+        self.assertNotIn("managers", model["system"])
 
     def test_resource_ancestors_and_action_bindings_are_exact(self):
         resources = {item["id"]: item for item in self.model["resource_types"]}
@@ -131,6 +136,25 @@ class BaseModelRegistrationContractTest(SimpleTestCase):
         self.assertEqual(result["system_status"], "unchanged")
         self.assertEqual(api_request.call_count, 4)
         self.assertTrue(all(call.args[0].method == "GET" for call in api_request.call_args_list))
+
+    @mock.patch("gcloud.iam_auth.model_registration._api_request")
+    def test_empty_manager_configuration_does_not_clear_remote_managers(self, api_request):
+        desired = dict(self.model["system"])
+        desired.pop("managers", None)
+        current = dict(desired, managers=["remote-admin"])
+        api_request.return_value = current
+
+        self.assertEqual(_sync_system("tenant-a", desired), "unchanged")
+        api_request.assert_called_once()
+
+    @mock.patch("gcloud.iam_auth.model_registration._api_request", return_value=None)
+    def test_system_creation_requires_non_empty_managers(self, api_request):
+        desired = dict(self.model["system"])
+        desired.pop("managers", None)
+
+        with self.assertRaisesRegex(IAMV4ProtocolError, "system managers are required"):
+            _sync_system("tenant-a", desired)
+        api_request.assert_called_once()
 
     @mock.patch("gcloud.iam_auth.model_registration._api_request")
     def test_registration_creates_only_missing_roles_and_updates_role_metadata(self, api_request):

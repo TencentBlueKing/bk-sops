@@ -51,8 +51,8 @@ def list_all_local_ids(resource_type, tenant_id):
     return {str(item) for item in local_resource_queryset(resource_type, tenant_id).values_list("id", flat=True)}
 
 
-def list_creator_local_ids(resource_type, username, tenant_id):
-    """Return tenant-local IDs whose owner field matches the current user."""
+def creator_local_queryset(resource_type, username, tenant_id):
+    """Return a lazy tenant-local queryset whose owner matches the user."""
     creator_fields = {
         "flow": "pipeline_template__creator",
         "task": "pipeline_instance__creator",
@@ -63,12 +63,14 @@ def list_creator_local_ids(resource_type, username, tenant_id):
     }
     creator_field = creator_fields.get(resource_type)
     if creator_field is None:
-        return set()
+        return local_resource_queryset(resource_type, tenant_id).none()
+    return local_resource_queryset(resource_type, tenant_id).filter(**{creator_field: username})
+
+
+def list_creator_local_ids(resource_type, username, tenant_id):
+    """Compatibility helper for callers that explicitly require materialized IDs."""
     return {
-        str(item)
-        for item in local_resource_queryset(resource_type, tenant_id)
-        .filter(**{creator_field: username})
-        .values_list("id", flat=True)
+        str(item) for item in creator_local_queryset(resource_type, username, tenant_id).values_list("id", flat=True)
     }
 
 

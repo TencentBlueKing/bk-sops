@@ -24,6 +24,24 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.apigw.views.utils import logger
 
+ALLOWED_PLUGIN_QUERY_MODULE_PREFIXES = (
+    "pipeline_plugins.base.query.",
+    "pipeline_plugins.components.query.",
+    "pipeline_plugins.variables.query.",
+)
+
+
+def _is_allowed_plugin_query(parsed, method, view_func):
+    return (
+        not parsed.scheme
+        and not parsed.netloc
+        and not parsed.fragment
+        and parsed.path.startswith("/pipeline/")
+        and ".." not in parsed.path.split("/")
+        and method.upper() in {"GET", "POST"}
+        and getattr(view_func, "__module__", "").startswith(ALLOWED_PLUGIN_QUERY_MODULE_PREFIXES)
+    )
+
 
 @login_exempt
 @csrf_exempt
@@ -67,6 +85,13 @@ def dispatch_plugin_query(request):
     try:
         parsed = urlsplit(url)
 
+        if parsed.scheme or parsed.netloc or parsed.fragment or ".." in parsed.path.split("/"):
+            return {
+                "result": False,
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+                "message": "dispatch_plugin_query: target route is not allowed.",
+            }
+
         if method.lower() == "get":
             fake_request = RequestFactory().get(url, content_type="application/json")
         elif method.lower() == "post":
@@ -84,6 +109,12 @@ def dispatch_plugin_query(request):
         # resolve view_func
         match = resolve(parsed.path, urlconf=None)
         view_func, kwargs = match.func, match.kwargs
+        if not _is_allowed_plugin_query(parsed, method, view_func):
+            return {
+                "result": False,
+                "code": err_code.REQUEST_FORBIDDEN_INVALID.code,
+                "message": "dispatch_plugin_query: target route is not allowed.",
+            }
 
         # call view_func
         return view_func(fake_request, **kwargs)

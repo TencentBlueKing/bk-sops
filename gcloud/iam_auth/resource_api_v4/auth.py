@@ -19,10 +19,7 @@ class CallbackTenantMissing(Exception):
 def require_callback_tenant(request):
     header_name = settings.IAM_V4_TENANT_HEADER
     meta_name = "HTTP_{}".format(header_name.upper().replace("-", "_"))
-    # IAM V4 guarantees Authorization and X-Request-Id for callbacks, but the
-    # protocol does not require a tenant header. Prefer an explicitly
-    # forwarded tenant and otherwise use the System registration tenant.
-    tenant_id = request.META.get(meta_name, "") or getattr(settings, "IAM_V4_MODEL_REGISTRATION_TENANT_ID", "")
+    tenant_id = request.META.get(meta_name, "")
     if not tenant_id:
         raise CallbackTenantMissing("tenant header is required")
     return tenant_id

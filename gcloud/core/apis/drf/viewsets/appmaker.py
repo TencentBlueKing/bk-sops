@@ -56,16 +56,15 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
         queryset = super().get_queryset()
         if getattr(self, "action", None) != "list":
             return queryset
-        mini_app_ids = (
-            ScopeResolver()
-            .authorized_scope(
-                self.request.user.username,
-                self.request.user.tenant_id,
-                IAMMeta.MINI_APP_VIEW_ACTION,
-            )
-            .ids(IAMMeta.MINI_APP_RESOURCE)
+        mini_app_scope = ScopeResolver().authorized_scope(
+            self.request.user.username,
+            self.request.user.tenant_id,
+            IAMMeta.MINI_APP_VIEW_ACTION,
         )
-        return queryset.filter(id__in=mini_app_ids)
+        authorized_queryset = mini_app_scope.queryset(IAMMeta.MINI_APP_RESOURCE)
+        if authorized_queryset is None:
+            return queryset.filter(id__in=mini_app_scope.ids(IAMMeta.MINI_APP_RESOURCE))
+        return queryset.filter(id__in=authorized_queryset.values("id"))
 
     @action(methods=["GET"], detail=False, url_path="capabilities")
     def capabilities(self, request, *args, **kwargs):
@@ -82,25 +81,31 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
             IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
         )
         project_id = str(project_id)
-        can_view = (
-            project_id in mini_app_scope.ids(IAMMeta.PROJECT_RESOURCE)
-            or AppMaker.objects.filter(
-                id__in=mini_app_scope.ids(IAMMeta.MINI_APP_RESOURCE),
+        can_view = mini_app_scope.contains(IAMMeta.PROJECT_RESOURCE, project_id) or self._scope_has_resource(
+            mini_app_scope,
+            IAMMeta.MINI_APP_RESOURCE,
+            AppMaker.objects.filter(
                 project_id=project_id,
                 project__tenant_id=request.user.tenant_id,
                 is_deleted=False,
-            ).exists()
+            ),
         )
-        can_create = (
-            project_id in flow_scope.ids(IAMMeta.PROJECT_RESOURCE)
-            or TaskTemplate.objects.filter(
-                id__in=flow_scope.ids(IAMMeta.FLOW_RESOURCE),
+        can_create = flow_scope.contains(IAMMeta.PROJECT_RESOURCE, project_id) or self._scope_has_resource(
+            flow_scope,
+            IAMMeta.FLOW_RESOURCE,
+            TaskTemplate.objects.filter(
                 project_id=project_id,
                 project__tenant_id=request.user.tenant_id,
                 is_deleted=False,
-            ).exists()
+            ),
         )
         return Response({"can_view": can_view, "can_create": can_create})
+
+    @staticmethod
+    def _scope_has_resource(scope, resource_type, queryset):
+        authorized_queryset = scope.queryset(resource_type)
+        ids = authorized_queryset.values("id") if authorized_queryset is not None else scope.ids(resource_type)
+        return queryset.filter(id__in=ids).exists()
 
     @staticmethod
     def iam_resource_helper(tenant_id):

@@ -44,6 +44,7 @@ class DispatchPluginQueryTrustGateTest(APITest):
     @patch("gcloud.apigw.decorators.check_white_apps", MagicMock(return_value=True))
     def test_trusted_app_passes_gate(self):
         fake_view = MagicMock(return_value={"result": True, "data": "ok", "code": err_code.SUCCESS.code})
+        fake_view.__module__ = "pipeline_plugins.components.query.sites.open.job"
         fake_match = MagicMock(func=fake_view, kwargs={})
         with patch("gcloud.apigw.views.plugin_proxy.resolve", MagicMock(return_value=fake_match)):
             response = self.client.post(
@@ -54,3 +55,34 @@ class DispatchPluginQueryTrustGateTest(APITest):
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
         fake_view.assert_called_once()
+
+    @patch("gcloud.apigw.decorators.check_white_apps", MagicMock(return_value=True))
+    def test_trusted_app_cannot_proxy_an_arbitrary_internal_view(self):
+        fake_view = MagicMock(return_value={"result": True})
+        fake_view.__module__ = "gcloud.core.views"
+        fake_match = MagicMock(func=fake_view, kwargs={})
+        with patch("gcloud.apigw.views.plugin_proxy.resolve", MagicMock(return_value=fake_match)):
+            response = self.client.post(
+                path=self.url(),
+                data=json.dumps({"url": "/pipeline/forged/", "method": "GET"}),
+                content_type="application/json",
+            )
+
+        data = json.loads(response.content)
+        self.assertFalse(data["result"])
+        self.assertEqual(data["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+        fake_view.assert_not_called()
+
+    @patch("gcloud.apigw.decorators.check_white_apps", MagicMock(return_value=True))
+    def test_trusted_app_cannot_proxy_absolute_or_traversal_urls(self):
+        for url in ("https://example.test/pipeline/query/", "/pipeline/../admin/"):
+            with self.subTest(url=url), patch("gcloud.apigw.views.plugin_proxy.resolve") as resolve:
+                response = self.client.post(
+                    path=self.url(),
+                    data=json.dumps({"url": url, "method": "GET"}),
+                    content_type="application/json",
+                )
+                data = json.loads(response.content)
+                self.assertFalse(data["result"])
+                self.assertEqual(data["code"], err_code.REQUEST_FORBIDDEN_INVALID.code)
+                resolve.assert_not_called()

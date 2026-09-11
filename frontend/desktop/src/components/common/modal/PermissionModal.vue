@@ -75,6 +75,11 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
+    import {
+        normalizeIamApplyUrlError,
+        normalizeIamApplyUrlResponse,
+        openIamApplyUrl
+    } from '@/utils/iamApplyUrl.js'
     export default {
         name: 'permissionModal',
         props: {},
@@ -108,18 +113,15 @@
                 try {
                     this.loading = true
                     const res = await this.getIamUrl(this.permissionData)
-                    if (res.result && /^https?:\/\//.test(res.data && res.data.url)) {
-                        this.url = res.data.url
-                    } else {
+                    const result = normalizeIamApplyUrlResponse(res, this.$t('获取权限申请链接失败'))
+                    this.url = result.url
+                    if (result.error) {
                         this.hasAbnormalReturn = true
-                        this.errorMessage = (res.message || this.$t('获取权限申请链接失败'))
-                            + (res.request_id ? ` (trace-id: ${res.request_id})` : '')
+                        this.errorMessage = result.error
                     }
                 } catch (e) {
                     this.hasAbnormalReturn = true
-                    const traceId = e && e.data && (e.data.request_id || e.data.trace_id)
-                    this.errorMessage = this.$t('获取权限申请链接失败')
-                        + (traceId ? ` (trace-id: ${traceId})` : '')
+                    this.errorMessage = normalizeIamApplyUrlError(e, this.$t('获取权限申请链接失败'))
                 } finally {
                     this.loading = false
                 }
@@ -161,9 +163,8 @@
 
                 if (this.hasClicked) {
                     window.location.reload()
-                } else if (/^https?:\/\//.test(this.url)) {
+                } else if (openIamApplyUrl(this.url)) {
                     this.hasClicked = true
-                    window.open(this.url, '_blank', 'noopener')
                 } else {
                     this.hasAbnormalReturn = true
                     this.errorMessage = this.$t('权限申请链接无效，请联系管理员')

@@ -30,6 +30,20 @@ from gcloud.iam_auth.view_interceptors.apigw.create_clocked_task import CreateCl
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.decorators import request_validate
 
+CLOCKED_TASK_MUTABLE_FIELDS = {"task_name", "plan_start_time", "task_parameters", "timezone"}
+
+
+def build_clocked_task_params(template, project, request_params):
+    params = {
+        "template_id": template.id,
+        "project_id": project.id,
+        "template_name": template.name,
+        "template_source": PROJECT,
+        "task_parameters": {"constants": {}, "template_schemes_id": []},
+    }
+    params.update({key: value for key, value in request_params.items() if key in CLOCKED_TASK_MUTABLE_FIELDS})
+    return params
+
 
 @login_exempt
 @csrf_exempt
@@ -69,14 +83,7 @@ def create_clocked_task(request, template_id, project_id):
         return result
 
     try:
-        params = {
-            "template_id": template_id,
-            "project_id": project.id,
-            "template_name": template.name,
-            "template_source": PROJECT,
-            "task_parameters": {"constants": {}, "template_schemes_id": []},
-        }
-        params.update(request_params)
+        params = build_clocked_task_params(template, project, request_params)
 
         serializer = ClockedTaskSerializer(data=params)
         serializer.is_valid(raise_exception=True)

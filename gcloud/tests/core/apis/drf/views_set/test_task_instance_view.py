@@ -40,13 +40,14 @@ from gcloud.taskflow3.models import TaskFlowInstance
 
 
 class TestTaskCreatorPermission(SimpleTestCase):
-    def test_creator_object_permission_does_not_depend_on_remote_grant(self):
+    def test_creator_object_permission_is_delegated_to_central_service(self):
         request = SimpleNamespace(user=SimpleNamespace(username="creator"))
         task = SimpleNamespace(creator="creator")
+        view = SimpleNamespace()
 
-        with patch.object(IamPermission, "has_object_permission") as parent_check:
-            self.assertTrue(TaskFlowInstancePermission().has_object_permission(request, SimpleNamespace(), task))
-        parent_check.assert_not_called()
+        with patch.object(IamPermission, "has_object_permission", return_value=True) as parent_check:
+            self.assertTrue(TaskFlowInstancePermission().has_object_permission(request, view, task))
+        parent_check.assert_called_once_with(request, view, task)
 
     def test_non_creator_object_permission_uses_iam(self):
         request = SimpleNamespace(user=SimpleNamespace(username="other"))
@@ -56,19 +57,16 @@ class TestTaskCreatorPermission(SimpleTestCase):
             self.assertFalse(TaskFlowInstancePermission().has_object_permission(request, SimpleNamespace(), task))
         parent_check.assert_called_once()
 
-    def test_creator_gets_all_task_actions_in_list_response(self):
+    def test_task_action_injection_is_delegated_to_central_service(self):
         request = SimpleNamespace(user=SimpleNamespace(username="creator", tenant_id="system"))
         task = SimpleNamespace(id=1, creator="creator")
-        data = [{"id": 1, "auth_actions": []}]
-        actions = [IAMMeta.TASK_VIEW_ACTION, IAMMeta.TASK_OPERATE_ACTION]
+        data = [{"id": 1, "auth_actions": [IAMMeta.TASK_VIEW_ACTION]}]
 
-        with patch.object(GcloudCommonMixin, "injection_auth_actions", return_value=data):
-            with patch.object(
-                TaskFlowInstanceViewSet, "iam_resource_helper", return_value=SimpleNamespace(actions=actions)
-            ):
-                result = TaskFlowInstanceViewSet().injection_auth_actions(request, data, [task])
+        with patch.object(GcloudCommonMixin, "injection_auth_actions", return_value=data) as parent_injection:
+            result = TaskFlowInstanceViewSet().injection_auth_actions(request, data, [task])
 
-        self.assertEqual(result[0]["auth_actions"], actions)
+        self.assertEqual(result, data)
+        parent_injection.assert_called_once_with(request, data, [task])
 
 
 class TestTaskTemplateRelatedPermission(SimpleTestCase):

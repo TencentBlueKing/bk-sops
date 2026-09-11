@@ -65,14 +65,22 @@ class FunctionTaskViewSet(GcloudListViewSet):
     def get_queryset(self):
         queryset = super().get_queryset().filter(task__project__tenant_id=self.request.user.tenant_id)
         resolver = ScopeResolver()
-        project_ids = resolver.authorized_scope(
+        project_scope = resolver.authorized_scope(
             self.request.user.username,
             self.request.user.tenant_id,
             IAMMeta.FUNCTION_TASK_VIEW_ACTION,
-        ).ids(IAMMeta.PROJECT_RESOURCE)
-        task_ids = resolver.authorized_scope(
+        )
+        task_scope = resolver.authorized_scope(
             self.request.user.username,
             self.request.user.tenant_id,
             IAMMeta.TASK_VIEW_ACTION,
-        ).ids(IAMMeta.TASK_RESOURCE)
+        )
+        project_queryset = project_scope.queryset(IAMMeta.PROJECT_RESOURCE)
+        task_queryset = task_scope.queryset(IAMMeta.TASK_RESOURCE)
+        project_ids = (
+            project_queryset.values("id")
+            if project_queryset is not None
+            else project_scope.ids(IAMMeta.PROJECT_RESOURCE)
+        )
+        task_ids = task_queryset.values("id") if task_queryset is not None else task_scope.ids(IAMMeta.TASK_RESOURCE)
         return queryset.filter(task__project_id__in=project_ids, task_id__in=task_ids)

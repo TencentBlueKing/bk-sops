@@ -29,10 +29,10 @@ def is_user_functor(request):
     if not username:
         return False
     try:
-        return bool(
+        return (
             ScopeResolver()
             .authorized_scope(username, request.user.tenant_id, IAMMeta.FUNCTION_TASK_VIEW_ACTION)
-            .ids(IAMMeta.PROJECT_RESOURCE)
+            .exists(IAMMeta.PROJECT_RESOURCE)
         )
     except Exception:
         logger.exception("function task authorized scope request failed")

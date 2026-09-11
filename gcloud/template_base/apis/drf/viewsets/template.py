@@ -36,16 +36,13 @@ class TemplateViewSet(ApiMixin, viewsets.GenericViewSet):
     @action(methods=["post"], detail=False)
     def batch_delete(self, request, *args, **kwargs):
         """批量删除流程"""
-        data = request.data
-        body_serializer = self.template_ids_serializer(data=data)
-        body_serializer.is_valid(raise_exception=True)
-        template_ids = body_serializer.validated_data.get("template_ids")
+        template_ids = request._authorized_batch_delete_template_ids
         clear_result = clear_scope_webhooks(template_ids)
         if not clear_result["result"]:
             raise APIException(f'[batch_delete] clear_webhooks False: {clear_result["message"]}')
 
         manager = TemplateManager(template_model_cls=self.tmpl_model)
-        result = manager.batch_delete(template_ids)
+        result = manager.batch_delete(template_ids, request.user.tenant_id)
         if not result["result"]:
             raise APIException(f'[batch_delete] result False: {result["message"]}')
         return Response(result["data"])

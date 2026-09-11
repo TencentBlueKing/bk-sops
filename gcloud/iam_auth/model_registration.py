@@ -50,6 +50,8 @@ def _sync_system(tenant_id, desired):
         allow_not_found=True,
     )
     if current is None:
+        if not desired.get("managers"):
+            raise IAMV4ProtocolError("system managers are required when creating an IAM system")
         payload = dict(desired)
         payload["tenant_id"] = tenant_id
         data = _api_request(CreateSystemResource(), payload)
@@ -58,8 +60,10 @@ def _sync_system(tenant_id, desired):
         return "created"
     if not isinstance(current, dict) or current.get("id") != desired["id"]:
         raise IAMV4ProtocolError("system retrieve API returned an invalid response")
-    fields = ("name", "description", "managers", "clients", "callback_url")
+    fields = ("name", "description", "clients", "callback_url")
     changes = {key: desired[key] for key in fields if current.get(key) != desired[key]}
+    if "managers" in desired and current.get("managers") != desired["managers"]:
+        changes["managers"] = desired["managers"]
     if changes:
         changes.update({"tenant_id": tenant_id, "system_id": desired["id"]})
         _api_request(UpdateSystemResource(), changes)
