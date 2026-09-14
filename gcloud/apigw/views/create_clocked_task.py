@@ -25,6 +25,8 @@ from gcloud.apigw.views.utils import logger
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.serializer import ClockedTaskSerializer
 from gcloud.constants import PROJECT
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw.create_clocked_task import CreateClockedTaskInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -90,6 +92,12 @@ def create_clocked_task(request, template_id, project_id):
         return result
 
     task = ClockedTask.objects.create_task(**validated_data, creator=request.user.username)
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.FLOW_CREATE_CLOCKED_TASK_ACTION,
+        resource_id=IAMMeta.CLOCKED_TASK_RESOURCE,
+        instance=task,
+    )
     response_serializer = ClockedTaskSerializer(instance=task)
     response_data = response_serializer.data
     response_data.pop("clocked_task_id")

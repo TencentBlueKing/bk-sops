@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import json
+
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
@@ -18,19 +19,15 @@ from django.views.decorators.http import require_POST
 from pipeline.exceptions import SubprocessExpiredError
 
 from gcloud import err_code
-from gcloud.apigw.decorators import (
-    mark_request_whether_is_trust,
-    project_inject,
-    return_json_response,
-)
-
+from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.apigw.validators.copy_template_across_project import CopyTemplateAcrossProjectValidator
 from gcloud.apigw.views.utils import logger
+from gcloud.contrib.audit.operations import audit_imported_templates
 from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import CopyTemplateInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import format_import_result_to_response_data
 from gcloud.utils.decorators import request_validate
-from gcloud.iam_auth.view_interceptors.apigw import CopyTemplateInterceptor
-from gcloud.apigw.validators.copy_template_across_project import CopyTemplateAcrossProjectValidator
 
 TEMPLATE_COPY_MAX_NUMBER = 10
 
@@ -85,4 +82,5 @@ def copy_template_across_project(request, project_id):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
+    audit_imported_templates(request.user.username, TaskTemplate, import_result)
     return format_import_result_to_response_data(import_result)

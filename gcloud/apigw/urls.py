@@ -27,6 +27,7 @@ from gcloud.apigw.views.get_common_template_info import get_common_template_info
 from gcloud.apigw.views.get_common_template_list import get_common_template_list
 from gcloud.apigw.views.get_functionalization_task_list import get_functionalization_task_list
 from gcloud.apigw.views.get_mini_app_list import get_mini_app_list
+from gcloud.apigw.views.get_node_execution_record import get_node_execution_record
 from gcloud.apigw.views.get_node_job_executed_log import get_node_job_executed_log
 from gcloud.apigw.views.get_node_job_executed_log_for_inner import get_node_job_executed_log_for_inner
 from gcloud.apigw.views.get_periodic_task_info import get_periodic_task_info
@@ -208,4 +209,5 @@ urlpatterns = [
         r"^modify_template_executor_proxy/(?P<template_id>\d+)/(?P<project_id>\d+)/$", modify_template_executor_proxy
     ),
     re_path(r"^modify_project_executor_proxy/(?P<project_id>\d+)/$", modify_project_executor_proxy),
+    re_path(r"^get_node_execution_record/(?P<template_id>\d+)/(?P<project_id>\d+)/$", get_node_execution_record),
 ]

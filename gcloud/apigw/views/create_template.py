@@ -22,7 +22,7 @@ from django.views.decorators.http import require_POST
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.iam_auth import IAMMeta
@@ -200,7 +200,7 @@ def create_template(request, project_id):
     )
 
     # 5. 审计上报
-    bk_audit_add_event(
+    bk_audit_add_event_on_commit(
         username=creator,
         action_id=IAMMeta.FLOW_CREATE_ACTION,
         resource_id=IAMMeta.FLOW_RESOURCE,

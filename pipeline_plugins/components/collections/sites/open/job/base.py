@@ -61,6 +61,15 @@ __group_name__ = _("作业平台(JOB)")
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
+def _get_job_client(data, parent_data):
+    client = data.get_one_of_outputs("client")
+    if client is None or not hasattr(client, "api"):
+        executor = parent_data.get_one_of_inputs("executor")
+        client = get_client_by_username(executor, stage=settings.BK_APIGW_STAGE_NAME)
+        data.outputs.client = client
+    return client
+
+
 def get_sops_var_dict_from_log_text(log_text, service_logger):
     """
     在日志文本中提取全局变量
@@ -504,6 +513,8 @@ class JobService(BasePluginService):
                 )
 
             if self.reload_outputs:
+                client = _get_job_client(data, parent_data)
+
                 # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
@@ -554,7 +565,7 @@ class JobService(BasePluginService):
                 return True if job_success else False
             get_job_sops_var_dict_return = get_job_sops_var_dict(
                 tenant_id,
-                client,
+                _get_job_client(data, parent_data),
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -764,6 +775,8 @@ class Jobv3Service(BasePluginService):
                 )
 
             if self.reload_outputs:
+                client = _get_job_client(data, parent_data)
+
                 # 判断是否对IP进行Tag分组
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
                 tagged_ip_dict = {}
@@ -814,7 +827,7 @@ class Jobv3Service(BasePluginService):
 
             get_jobv3_sops_var_dict_return = get_job_sops_var_dict(
                 tenant_id,
-                client,
+                _get_job_client(data, parent_data),
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),

@@ -114,6 +114,7 @@ class PluginGatewayRunner:
             "executor": operator,
             "project_id": run_context.get("project_id"),
             "bk_biz_id": run_context.get("bk_biz_id"),
+            "biz_cc_id": run_context.get("bk_biz_id"),
             "task_id": run_context.get("task_id"),
             "task_name": run_context.get("task_name"),
             "task_start_time": None,

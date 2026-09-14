@@ -121,7 +121,7 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
                 operate_record if operate_record is not None else MagicMock(),
             ),
             mock.patch(
-                "{}.bk_audit_add_event".format(view_module),
+                "{}.bk_audit_add_event_on_commit".format(view_module),
                 audit if audit is not None else MagicMock(),
             ),
         ]
@@ -327,7 +327,7 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
             - update_pipeline 被调用（editor 即当前请求用户，推动 pipeline_template.editor/edit_time 的更新）
             - post_template_save_commit.send 被正确参数触发（sender=TaskTemplate）
             - operate_record_signal.send 被调用
-            - bk_audit_add_event 被调用（FLOW_EDIT_ACTION / FLOW_RESOURCE）
+            - bk_audit_add_event_on_commit 被调用（FLOW_EDIT_ACTION / FLOW_RESOURCE）
             - instance.save 被调用
         """
         proj = self._build_project()

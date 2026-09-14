@@ -34,10 +34,13 @@ from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT, TaskCreateMethod
+from gcloud.contrib.audit.mappings import get_task_create_action
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_event_kwargs
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
 from gcloud.core.trace import CallFrom, trace_view
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
@@ -148,13 +151,41 @@ def create_task(request, template_id, project_id):
     if create_with_tree:
         try:
             pipeline_tree = params["pipeline_tree"]
-            for key, value in params["constants"].items():
-                if key in pipeline_tree["constants"]:
-                    constant = pipeline_tree["constants"][key]
-                    if constant.get("is_meta", False) and "meta" not in constant:
-                        meta = copy.deepcopy(constant)
-                        constant["meta"] = meta
-                    constant["value"] = value
+            params_constants = params["constants"]
+            for key, constant in pipeline_tree["constants"].items():
+                if not constant.get("is_meta", False):
+                    if key in params_constants:
+                        constant["value"] = params_constants[key]
+                    continue
+                # 补全 meta
+                if "meta" not in constant:
+                    constant["meta"] = copy.deepcopy(constant)
+                # 调用方传了参：以传入值为准
+                if key in params_constants:
+                    constant["value"] = params_constants[key]
+                else:
+                    # 未传参：回退到默认值；constant["value"] 可能是下拉框元数据 dict，也可能是字符串/列表等已合法值
+                    if isinstance(constant.get("value"), dict):
+                        if set(constant["value"].keys()) == {
+                            "value",
+                            "text",
+                            "text_not_selected",
+                            "value_not_selected",
+                        }:
+                            constant["value"] = constant["value"]["value"]
+                            continue
+                        default_val = constant["value"].get("default")
+                        if default_val is None:
+                            default_val = constant["value"].get("default_text", "")
+
+                        if (
+                            constant.get("custom_type") == "text_value_select"
+                            and constant["value"].get("type") == "1"
+                            and isinstance(default_val, str)
+                        ):
+                            default_val = [item.strip() for item in default_val.split(",") if item.strip()]
+
+                        constant["value"] = default_val
             standardize_pipeline_node_name(pipeline_tree)
             validate_web_pipeline_tree(pipeline_tree)
         except Exception as e:
@@ -242,6 +273,11 @@ def create_task(request, template_id, project_id):
         root_pipeline_id=task.pipeline_instance.instance_id,
         pipeline_tree=task.pipeline_instance.execution_data,
     )
+    action_id = get_task_create_action(template_source, create_method)
+    if action_id:
+        bk_audit_add_event_on_commit(
+            action_id=action_id, resource_id=IAMMeta.TASK_RESOURCE, instance=task, **get_audit_event_kwargs(request)
+        )
     result_data = {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree}
     if task.flow_type == "common_func":
         result_data["function_task_claim_url"] = task.get_function_task_claim_url()
