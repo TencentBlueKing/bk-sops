@@ -44,7 +44,7 @@ prometheus-client==0.9.0
 # 并行网关下分支失败停车时父进程永远收不齐 ACK，但那取决于子进程而非引擎推不动
 # （现网 task 138970299 挂 56 天即此形态）。子进程真卡了仍由专属判据接住。
 # 3.24.18（依赖 bamboo-engine==2.6.7）：包含 PR#284 Mako 加固与 PR#285 可选子进程渲染。
-# format 仅在 enforce 下拒绝；默认仍进程内渲染，部署配置见 docs/zh_hans/deploy/mako_render.md。
+# format 仅在 enforce 下拒绝；标准运维默认子进程渲染，部署配置见 docs/zh_hans/deploy/mako_render.md。
 # 3.24.19（依赖 bamboo-engine==2.6.8）：子进程渲染基础设施故障显式失败，配套 SystemObject 传输修复。
 bamboo-pipeline==3.24.19
 drf-yasg==1.20.0

@@ -50,17 +50,60 @@ class MakoDeploymentSettingsTestCase(TestCase):
         self.assertTrue(hasattr(mako_safety, "FRAME_INTROSPECTION_ATTRS"))
         self.assertTrue(hasattr(render_backend, "SubprocessPoolRenderBackend"))
 
-    def test_defaults_are_inprocess_with_strict_isolation_if_enabled(self):
-        scope = load_mako_settings()
-        settings = scope["BambooSettings"]
-        self.assertEqual(settings.MAKO_RENDER_BACKEND, "inprocess")
-        self.assertEqual(settings.MAKO_TEMPLATE_NAME_WHITELIST_MODE, "enforce")
-        self.assertEqual(settings.MAKO_SANDBOX_IMPORT_MODULES, {})
-        self.assertFalse(settings.MAKO_RENDER_FALLBACK_INPROCESS)
-        self.assertTrue(settings.MAKO_RENDER_NO_NETWORK)
-        self.assertTrue(settings.MAKO_RENDER_OS_HARDEN)
-        for name, value in vars(settings).items():
-            self.assertEqual(scope[name], value, name)
+    def test_defaults_use_subprocess_with_strict_isolation_in_both_paas_versions(self):
+        for version in (2, 3):
+            with self.subTest(version=version):
+                scope = load_mako_settings(env_version=version)
+                settings = scope["BambooSettings"]
+                self.assertEqual(settings.MAKO_RENDER_BACKEND, "subprocess")
+                self.assertEqual(settings.MAKO_TEMPLATE_NAME_WHITELIST_MODE, "enforce")
+                self.assertEqual(settings.MAKO_SANDBOX_IMPORT_MODULES, {})
+                self.assertFalse(settings.MAKO_RENDER_FALLBACK_INPROCESS)
+                self.assertTrue(settings.MAKO_RENDER_NO_NETWORK)
+                self.assertTrue(settings.MAKO_RENDER_OS_HARDEN)
+                for name, value in vars(settings).items():
+                    self.assertEqual(scope[name], value, name)
+                with mock.patch.multiple(BambooSettings, create=True, **vars(settings)):
+                    backend = render_backend._build_default_backend()
+                    try:
+                        self.assertIsInstance(backend, render_backend.SubprocessPoolRenderBackend)
+                        self.assertFalse(backend.fallback_inprocess)
+                        self.assertTrue(backend._harden_opts["no_network"])
+                        self.assertTrue(backend._harden_opts["enabled"])
+                    finally:
+                        backend.close()
+
+    def test_explicit_inprocess_override_in_both_paas_versions(self):
+        for version in (2, 3):
+            with self.subTest(version=version):
+                scope = load_mako_settings({"BKAPP_MAKO_RENDER_BACKEND": "inprocess"}, env_version=version)
+                self.assertEqual(scope["MAKO_RENDER_BACKEND"], "inprocess")
+                with mock.patch.multiple(BambooSettings, create=True, **vars(scope["BambooSettings"])):
+                    backend = render_backend._build_default_backend()
+                    self.assertIsInstance(backend, render_backend.InProcessRenderBackend)
+
+    def test_default_backend_renders_in_real_worker_without_host_fallback(self):
+        from pipeline.core.data.expression import ConstantTemplate
+
+        for version in (2, 3):
+            with self.subTest(version=version):
+                # Portable test hosts do not require Linux namespace privileges.
+                # The backend variable stays unset; strict defaults are tested above.
+                scope = load_mako_settings(
+                    {"BKAPP_MAKO_RENDER_NO_NETWORK": "0", "BKAPP_MAKO_RENDER_OS_HARDEN": "0"}, env_version=version
+                )
+                with mock.patch.multiple(BambooSettings, create=True, **vars(scope["BambooSettings"])):
+                    backend = render_backend._build_default_backend()
+                    try:
+                        with mock.patch.object(render_backend, "_BACKEND", backend), mock.patch.object(
+                            render_backend.InProcessRenderBackend, "render", side_effect=AssertionError("host fallback")
+                        ):
+                            self.assertEqual(Template("value=${number + 1}").render({"number": 1}), "value=2")
+                            self.assertEqual(
+                                ConstantTemplate.resolve_string("value=${number + 1}", {"number": 1}), "value=2"
+                            )
+                    finally:
+                        backend.close()
 
     def test_backend_switch_and_typed_pool_options_reach_engine(self):
         scope = load_mako_settings(
@@ -160,6 +203,15 @@ class MakoDeploymentSettingsTestCase(TestCase):
     def test_format_and_compatibility_imports_in_both_engines(self):
         from pipeline.core.data import expression, sandbox_builder
 
+        # Exercise the real worker while keeping Linux namespace privileges out
+        # of expression-policy tests. Restore any backend owned by other tests.
+        backend = render_backend.SubprocessPoolRenderBackend(
+            pool_size=1, no_network=False, os_harden=False, fallback_inprocess=False
+        )
+        self.addCleanup(backend.close)
+        backend_patch = mock.patch.object(render_backend, "_BACKEND", backend)
+        backend_patch.start()
+        self.addCleanup(backend_patch.stop)
         for mode in ("warn", "off", "enforce"):
             scope = load_mako_settings(
                 {"BKAPP_SOPS_MAKO_IMPORT_MODULES": COMPAT_IMPORTS, "BKAPP_SOPS_MAKO_WHITELIST_MODE": mode}

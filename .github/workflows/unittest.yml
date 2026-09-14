@@ -61,6 +61,9 @@ jobs:
         export BK_IAM_HOST="BK_IAM_HOST"
         export BK_API_URL_TMPL="BK_API_URL_TMPL"
         export BK_NODEMGR_ENABLE="1"
+        # Unit tests exercise subprocess rendering without host namespace privileges.
+        # Deployment-setting tests separately assert the strict NO_NETWORK=1 default.
+        export BKAPP_MAKO_RENDER_NO_NETWORK="0"
         # add local_settings.py
         echo '# -*- coding: utf-8 -*-
         DATABASES = {
