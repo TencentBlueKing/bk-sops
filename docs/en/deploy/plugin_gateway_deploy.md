@@ -76,7 +76,23 @@ python manage.py celery worker -l info -Q open_plugin_polling
 python manage.py celery worker -l info -Q open_plugin_callback
 ```
 
-`sweep_expired_plugin_gateway_runs` is triggered by beat every 60 seconds. Confirm the beat schedule is deployed with the code.
+`sweep_expired_plugin_gateway_runs` is disabled by default. Environments using open plugins must explicitly set
+`BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=1` in every Beat process connected to that environment's database and RabbitMQ.
+After restarting Beat, timeout sweeping runs every 60 seconds.
+
+For environments that do not use open plugins or deploy their consumers, set
+`BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=0` in every Beat process connected to that environment's database and RabbitMQ,
+then restart Beat to stop publishing timeout sweeps. When unset, the flag defaults to `0`.
+
+With the configured `django_celery_beat.schedulers.DatabaseScheduler`, Beat synchronizes this flag to the
+`PeriodicTask` record named `sweep_expired_plugin_gateway_runs` at startup. Existing records are disabled as well;
+no record deletion or migration is needed. After restarting, verify that the record has `enabled=False` and
+no new sweep messages are published. Other periodic tasks continue running.
+
+This flag only controls timeout sweeping. It does not disable plugin execution, business polling, or callbacks,
+and does not remove queued messages. Keep sweeping enabled when using open plugins, especially executions
+waiting for callbacks that depend on the sweep for timeout handling. To resume, set the flag to `1` in all
+relevant Beat processes and restart them; the existing record will be enabled again.
 
 ## 3. Initialize Source Configuration
 
