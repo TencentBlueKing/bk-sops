@@ -20,7 +20,11 @@ BKAPP_MAKO_RENDER_FALLBACK_INPROCESS=1
 
 Merge any existing application imports into the table. Apply the settings to Web, task-executing Workers and any other modules that render expressions, then restart those processes; deployment variables are scoped per module. This preset retains unconditional security checks and allows unsupported-context fallback, but never falls back on infrastructure failures such as startup errors or timeouts. `NO_NETWORK=0` does not require network namespace isolation. This deployment example does not change the defaults listed below.
 
-For the initial rollout, set:
+## Default behavior and explicit rollback
+
+When `BKAPP_MAKO_RENDER_BACKEND` is unset, both PaaS V2 and V3 default to `subprocess`. The defaults remain `NO_NETWORK=1`, `OS_HARDEN=1` and `FALLBACK_INPROCESS=0`; the target Linux container must support network namespace creation, otherwise rendering explicitly fails.
+
+To keep in-process rendering for compatibility testing, explicitly set `inprocess`:
 
 ```bash
 BKAPP_SOPS_MAKO_IMPORT_MODULES=datetime,re,hashlib,random,time,os.path,config.mock.mock_json:json
@@ -32,7 +36,7 @@ The import setting is a comma-separated replacement table, using `path` or `path
 
 Both engine versions filter dangerous paths before importing them, including file-access modules `io` / `_io` and network modules such as `http` and `urllib`, to avoid import side effects. Missing modules fail configuration loading. The legacy resolver only skips class paths confirmed to exist but unsupported by that resolver.
 
-`warn` logs whitelist violations without enforcing them; `off` also disables these warnings. `.format()` is blocked only in `enforce`. Custom filters, `.format_map()` and dangerous attributes remain subject to unconditional checks. `inprocess` preserves in-process rendering; subprocess options are inactive with this backend.
+`warn` logs whitelist violations without enforcing them; `off` also disables these warnings. `.format()` is blocked only in `enforce`. Custom filters, `.format_map()` and dangerous attributes remain subject to unconditional checks. Explicit `inprocess` switches back to in-process rendering; subprocess options are inactive with this backend.
 
 Whitelist mode is trimmed and lowercased, then validated against `off`, `warn` and `enforce`. Empty or misspelled values fail configuration loading instead of silently disabling checks. When unset, the default remains `enforce`.
 
@@ -46,7 +50,7 @@ Each environment variable below maps to the engine setting obtained by removing 
 
 | Environment variable | Default | Meaning |
 | --- | --- | --- |
-| `BKAPP_MAKO_RENDER_BACKEND` | `inprocess` | Set `subprocess` to enable the worker backend |
+| `BKAPP_MAKO_RENDER_BACKEND` | `subprocess` | Use the worker backend by default; explicitly set `inprocess` for host rendering |
 | `BKAPP_MAKO_RENDER_POOL_SIZE` | `4` | Pool capacity per host process, not per deployment |
 | `BKAPP_MAKO_RENDER_MAX_USES` | `500` | Maximum requests per worker |
 | `BKAPP_MAKO_RENDER_TIMEOUT` | `30` | Total request budget including queuing, startup and transport, in seconds |
@@ -57,13 +61,13 @@ Each environment variable below maps to the engine setting obtained by removing 
 | `BKAPP_MAKO_RENDER_RLIMIT_AS_MB` | `1024` | Worker address-space limit, MB |
 | `BKAPP_MAKO_RENDER_ENV_SCRUB_EXTRA` | empty | Additional environment-name fragments to scrub, comma-separated |
 
-Boolean values accept `0/1` or `false/true`. Invalid boolean values or backend names fail configuration loading. Use positive numeric values. Only the initial three variables need explicit configuration for the first rollout. Retain the code defaults for shield words and the `_system` / `_loop` extra whitelist.
+Boolean values accept `0/1` or `false/true`. Invalid boolean values or backend names fail configuration loading. Use positive numeric values. The in-process compatibility example explicitly selects that backend; default subprocess deployments must verify the isolation settings and container permissions. Retain the code defaults for shield words and the `_system` / `_loop` extra whitelist.
 
 ## Subsequent rollout
 
 Whitelist enforcement and subprocess rendering are independent switches. Before enabling `enforce`, review expressions and class aliases: `datetime.datetime.now()` requires the `datetime.datetime` import entry; `datetime.date.today()` requires `datetime.date`. Restoring module names alone does not authorize every nested call.
 
-Before setting `BKAPP_MAKO_RENDER_BACKEND=subprocess`, retain the default fallback/network/resource options and validate namespace permissions, Celery process behavior and real application contexts inside the target Linux container. Failure to establish the required network namespace prevents rendering; enabling in-process fallback does not bypass that failure. Passing in-process regression tests does not establish subprocess deployment readiness.
+When using the default `subprocess` backend or switching back from `inprocess`, retain the default fallback/network/resource options and validate namespace permissions, Celery process behavior and real application contexts inside the target Linux container. Failure to establish the required network namespace prevents rendering; enabling in-process fallback does not bypass that failure. Passing in-process regression tests does not establish subprocess deployment readiness.
 
 With these package versions, worker startup failures, admission or transport timeouts, worker exits, protocol errors and required network-isolation failures raise `RenderInfrastructureError` and explicitly fail the node. They no longer pass an unrendered expression onward as a successful result, and never trigger host rendering even when `FALLBACK_INPROCESS=1`.
 

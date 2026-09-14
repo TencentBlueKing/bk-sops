@@ -35,6 +35,8 @@ from bamboo_engine.template import sandbox as _engine_sandbox
 from bamboo_engine.utils import mako_safety as _engine_mako_safety
 from django.test import TestCase, override_settings
 
+from engine_pickle_obj.context import SystemObject
+
 # 生成器帧反射 RCE 的加固落在引擎侧（bamboo-pipeline 3.24.17 / bamboo-engine 2.6.6+）。
 # bk-sops 钉住不变量：下面这条通用链路必须被拦死。部署配置测试额外断言所需能力已安装，
 # 避免依赖被意外降级后，仅因跳过用例就报告安全回归通过。
@@ -330,7 +332,7 @@ class MakoAlwaysOnHardeningTestCase(TestCase):
         BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = "off"
         cases = [
             ("${name.upper()}", {"name": "hello"}, "HELLO"),
-            ("${obj._module[0]['ip']}", {"obj": type("B", (), {"_module": [{"ip": "1.1.1.1"}]})()}, "1.1.1.1"),
+            ("${obj._module[0]['ip']}", {"obj": SystemObject({"_module": [{"ip": "1.1.1.1"}]})}, "1.1.1.1"),
             ("${[x * 2 for x in items]}", {"items": [1, 2]}, "[2, 4]"),
         ]
         for tpl, ctx, expected in cases:
