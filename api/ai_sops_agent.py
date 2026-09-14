@@ -115,30 +115,27 @@ class BKSopsAgentClient:
             return None
 
     def summarize_task_execution(self, bk_biz_id, task_id):
-        user_input = f"使用summarize_task_execution这个工具，帮我总结一下我的任务执行情况 ，业务ID是{bk_biz_id}，任务ID是 {task_id}"
+        user_input = f"帮我总结一下我的任务执行情况 ，业务ID是{bk_biz_id}，任务ID是 {task_id}"
         agent_output = self.call_agent_apigw(user_input=user_input)
-        output = agent_output.get("outputs", {}).get("output", {})
+        output = agent_output.get("choices", [{}])[0].get("delta", {}).get("content", "")
         if not output:
             # 返回为None时，不发送通知
             return None
         return output
 
     def analyze_task_error(self, bk_biz_id, task_id):
-        user_input = f"我的标准运维任务执行失败了，业务ID是{bk_biz_id}，任务ID是{task_id}, 使用analyze_task_error这个工具帮我看看是什么问题"
+        user_input = f"我的标准运维任务执行失败了，业务ID是{bk_biz_id}，任务ID是{task_id}, 帮我看看是什么问题"
         agent_output = self.call_agent_apigw(user_input=user_input)
-        output = agent_output.get("outputs", {}).get("output", {})
+        output = agent_output.get("choices", [{}])[0].get("delta", {}).get("content", "")
         if not output:
             # 返回为None时，不发送通知
             return None
         return output
 
     def beautify_sops_template_layout(self, bk_biz_id, template_id, canvas_width):
-        user_input = (
-            f"使用beautify_sops_template_layout这个工具，帮我优化一下我的标准运维模板布局，业务ID是{bk_biz_id}"
-            f"，模板ID是{template_id}, 画布宽度为{canvas_width}"
-        )
+        user_input = f"帮我优化一下我的标准运维模板布局，业务ID是{bk_biz_id}，模板ID是{template_id}, 画布宽度为{canvas_width}"
         agent_output = self.call_agent_apigw(user_input=user_input)
-        output = agent_output.get("outputs", {}).get("output", {})
+        output = agent_output.get("choices", [{}])[0].get("delta", {}).get("content", "")
         if not output:
             return None
         return output

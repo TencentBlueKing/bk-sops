@@ -11,9 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import json
-import mock
 import contextlib
+import json
+
+import mock
 from mock import MagicMock
 
 from gcloud import err_code
@@ -120,7 +121,7 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
                 operate_record if operate_record is not None else MagicMock(),
             ),
             mock.patch(
-                "{}.bk_audit_add_event".format(view_module),
+                "{}.bk_audit_add_event_on_commit".format(view_module),
                 audit if audit is not None else MagicMock(),
             ),
         ]
@@ -213,11 +214,13 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
                 audit=mock_audit,
             ):
                 stack.enter_context(patcher)
-            response = self._post({
-                "notify_type": notify_type,
-                "notify_receivers": notify_receivers,
-                "common": False,
-            })
+            response = self._post(
+                {
+                    "notify_type": notify_type,
+                    "notify_receivers": notify_receivers,
+                    "common": False,
+                }
+            )
 
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
@@ -256,17 +259,18 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
             stack.enter_context(mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=template)))
             for patcher in self._common_patches():
                 stack.enter_context(patcher)
-            response = self._post({
-                "notify_type": notify_type,
-                "notify_receivers": notify_receivers,
-                "common": False,
-            })
+            response = self._post(
+                {
+                    "notify_type": notify_type,
+                    "notify_receivers": notify_receivers,
+                    "common": False,
+                }
+            )
 
         data = json.loads(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(data["result"], msg=data)
-        self.assertEqual(data["data"]["notify_receivers"]["receiver_group"],
-                         ["Maintainers", 100, 101])
+        self.assertEqual(data["data"]["notify_receivers"]["receiver_group"], ["Maintainers", 100, 101])
 
     # # -------------------- 3. notify_type / notify_receivers 顶层类型错误受控失败 --------------------
     def test_modify_template_notify__notify_type_top_level_type_error_controlled_fail(self):
@@ -280,11 +284,13 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
         proj = self._build_project()
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
-            response = self._post({
-                "notify_type": "invalid_string",  # 类型错误
-                "notify_receivers": {},
-                "common": False,
-            })
+            response = self._post(
+                {
+                    "notify_type": "invalid_string",  # 类型错误
+                    "notify_receivers": {},
+                    "common": False,
+                }
+            )
 
         # 不得是 5xx
         self.assertLess(response.status_code, 500)
@@ -300,11 +306,13 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
         proj = self._build_project()
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
-            response = self._post({
-                "notify_type": {},
-                "notify_receivers": "invalid_string",  # 类型错误
-                "common": False,
-            })
+            response = self._post(
+                {
+                    "notify_type": {},
+                    "notify_receivers": "invalid_string",  # 类型错误
+                    "common": False,
+                }
+            )
 
         self.assertLess(response.status_code, 500)
         data = json.loads(response.content)
@@ -319,7 +327,7 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
             - update_pipeline 被调用（editor 即当前请求用户，推动 pipeline_template.editor/edit_time 的更新）
             - post_template_save_commit.send 被正确参数触发（sender=TaskTemplate）
             - operate_record_signal.send 被调用
-            - bk_audit_add_event 被调用（FLOW_EDIT_ACTION / FLOW_RESOURCE）
+            - bk_audit_add_event_on_commit 被调用（FLOW_EDIT_ACTION / FLOW_RESOURCE）
             - instance.save 被调用
         """
         proj = self._build_project()
@@ -343,11 +351,13 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
                 update_pipeline=mock_update_pipeline,
             ):
                 stack.enter_context(patcher)
-            response = self._post({
-                "notify_type": notify_type,
-                "notify_receivers": notify_receivers,
-                "common": False,
-            })
+            response = self._post(
+                {
+                    "notify_type": notify_type,
+                    "notify_receivers": notify_receivers,
+                    "common": False,
+                }
+            )
 
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
@@ -426,11 +436,13 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
                 audit=mock_audit,
             ):
                 stack.enter_context(patcher)
-            response = self._post({
-                "notify_type": notify_type,
-                "notify_receivers": notify_receivers,
-                "common": True,
-            })
+            response = self._post(
+                {
+                    "notify_type": notify_type,
+                    "notify_receivers": notify_receivers,
+                    "common": True,
+                }
+            )
 
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)

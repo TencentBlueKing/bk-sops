@@ -44,6 +44,31 @@ class PluginGatewayContextResolveTestCase(TestCase):
         self.assertEqual(resolved["scope_value"], "2")
         self.assertEqual(resolved["task_id"], "task-001")
 
+    def test_bkcc_scope_resolves_project(self):
+        context = {"scope_type": "bkcc", "scope_value": "2"}
+
+        resolved = PluginGatewayContextService.resolve_run_context(self.source_config, context)
+
+        self.assertEqual(resolved["project_id"], self.project.id)
+        self.assertEqual(resolved["bk_biz_id"], 2)
+
+    @override_settings(PLUGIN_GATEWAY_BIZ_SCOPE_TYPES=("business",))
+    def test_configured_biz_scope_type_resolves_project(self):
+        context = {"scope_type": "business", "scope_value": "2"}
+
+        resolved = PluginGatewayContextService.resolve_run_context(self.source_config, context)
+
+        self.assertEqual(resolved["project_id"], self.project.id)
+        self.assertEqual(resolved["bk_biz_id"], 2)
+
+    @override_settings(PLUGIN_GATEWAY_BIZ_SCOPE_TYPES=("business",))
+    def test_configured_biz_scope_types_replace_defaults(self):
+        with self.assertRaises(PluginGatewayContextResolveError):
+            PluginGatewayContextService.resolve_run_context(
+                self.source_config,
+                {"scope_type": "biz", "scope_value": "2"},
+            )
+
     def test_mapping_table_resolves_non_biz_scope(self):
         context = {"scope_type": "space", "scope_value": "88", "operator": "lisi"}
 

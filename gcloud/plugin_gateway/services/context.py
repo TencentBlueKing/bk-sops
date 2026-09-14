@@ -97,7 +97,7 @@ class PluginGatewayContextService:
 
     @staticmethod
     def _resolve_project_id(source_config, scope_type, scope_value):
-        if scope_type in ("biz", "cmdb_biz") and scope_value:
+        if scope_type in settings.PLUGIN_GATEWAY_BIZ_SCOPE_TYPES and scope_value:
             from gcloud.core.models import Project
 
             try:

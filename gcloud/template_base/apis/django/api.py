@@ -29,6 +29,7 @@ from rest_framework.request import Request
 
 from gcloud import err_code
 from gcloud.conf import settings
+from gcloud.contrib.audit.operations import audit_imported_templates
 from gcloud.core.models import Project
 from gcloud.exceptions import FlowExportError
 from gcloud.iam_auth.intercept import iam_intercept
@@ -189,6 +190,7 @@ def base_import_templates(request: Request, template_model_cls: object, import_k
             }
         )
 
+    audit_imported_templates(request.user.username, template_model_cls, import_result)
     return JsonResponse(format_import_result_to_response_data(import_result))
 
 

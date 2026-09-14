@@ -13,7 +13,7 @@
     "@blueking/ai-blueking": "^2.1.4",
     "@blueking/bk-trace-core": "0.0.5",
     "@blueking/bkcharts": "^2.0.11-alpha.5",
-    "@blueking/bkui-form": "0.0.43",
+    "@blueking/bkui-form": "^0.0.51",
     "@blueking/bkui-library": "^0.0.0-beta.6",
     "@blueking/crypto-js-sdk": "0.0.5",
     "@blueking/login-modal": "^1.0.1",

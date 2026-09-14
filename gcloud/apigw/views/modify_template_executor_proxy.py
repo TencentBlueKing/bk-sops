@@ -23,7 +23,7 @@ from rest_framework import serializers
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.iam_auth import IAMMeta
@@ -32,7 +32,6 @@ from gcloud.iam_auth.view_interceptors.apigw import TemplateEditInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
-
 
 manager = TemplateManager(template_model_cls=TaskTemplate)
 
@@ -43,9 +42,7 @@ class ExecutorProxySerializer(serializers.Serializer):
     走完整的 required/type 校验，避免手动 params.get 绕过
     """
 
-    executor_proxy = serializers.CharField(
-        help_text="执行代理人", required=True, allow_blank=True, allow_null=False
-    )
+    executor_proxy = serializers.CharField(help_text="执行代理人", required=True, allow_blank=True, allow_null=False)
 
     def validate_executor_proxy(self, value):
         user = getattr(self.context.get("request"), "user", None)
@@ -93,6 +90,7 @@ def modify_template_executor_proxy(request, template_id, project_id):
         }
 
     editor = request.user.username
+    origin_data = get_audit_snapshot(IAMMeta.FLOW_RESOURCE, template)
 
     # 走模板正常更新链路：
     with transaction.atomic():
@@ -100,7 +98,8 @@ def modify_template_executor_proxy(request, template_id, project_id):
         template.save(update_fields=["executor_proxy"])
 
         update_result = manager.update_pipeline(
-            pipeline_template=template.pipeline_template, editor=editor,
+            pipeline_template=template.pipeline_template,
+            editor=editor,
         )
         if not update_result["result"]:
             return {
@@ -128,11 +127,12 @@ def modify_template_executor_proxy(request, template_id, project_id):
     )
 
     # 审计上报
-    bk_audit_add_event(
+    bk_audit_add_event_on_commit(
         username=editor,
         action_id=IAMMeta.FLOW_EDIT_ACTION,
         resource_id=IAMMeta.FLOW_RESOURCE,
         instance=template,
+        origin_data=origin_data,
     )
 
     return {

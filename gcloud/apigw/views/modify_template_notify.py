@@ -22,17 +22,17 @@ from rest_framework import serializers
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.common_template.models import CommonTemplate
+from gcloud.conf import settings
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
+from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
 from gcloud.core.models import StaffGroupSet
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw.modify_template_notify import NotifyTemplateInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.conf import settings
 from gcloud.tasktmpl3.signals import post_template_save_commit
-from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
-from gcloud.contrib.operate_record.signal import operate_record_signal
-from gcloud.iam_auth import IAMMeta
-from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.template_base.domains.template_manager import TemplateManager
 
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -46,6 +46,7 @@ class TemplateNotifyUpdateSerializer(serializers.Serializer):
     专门用于更新模板通知设置的序列化器
     只处理notify_type和notify_receivers字段，避免pipeline_tree校验
     """
+
     notify_type = serializers.CharField(required=True, allow_blank=False)
     notify_receivers = serializers.CharField(required=True, allow_blank=False)
 
@@ -55,14 +56,14 @@ class TemplateNotifyUpdateSerializer(serializers.Serializer):
             return value
 
         # 获取支持的通知类型
-        request = self.context.get('request')
+        request = self.context.get("request")
         if not request:
             return value
 
         client = get_client_by_user(request.user.username)
         result = client.cmsi.get_msg_type()
         if result.get("result"):
-            supported_notify_types = [item['type'] for item in result['data']]
+            supported_notify_types = [item["type"] for item in result["data"]]
         else:
             raise serializers.ValidationError("获取通知类型失败")
 
@@ -84,7 +85,7 @@ class TemplateNotifyUpdateSerializer(serializers.Serializer):
 
         notify_data = json.loads(value)
 
-        request = self.context.get('request')
+        request = self.context.get("request")
         if not request:
             return value
 
@@ -121,11 +122,11 @@ class TemplateNotifyUpdateSerializer(serializers.Serializer):
         queryset = StaffGroupSet.objects.filter(is_deleted=False, project_id=request.project.id)
         serializer = StaffGroupSetSerializer(queryset, many=True)
         # 统一转换为字符串类型，兼容客户端传入整型 ID 或字符串 ID 的情况
-        supported_groups = [str(item['id']) for item in serializer.data]
+        supported_groups = [str(item["id"]) for item in serializer.data]
         supported_groups.extend(DEFAULT_NOTIFY_GROUPS)
 
         # 将客户端传入的 receiver_group 元素也统一转换为字符串再做子集判断
-        receiver_group = [str(group) for group in notify_data.get('receiver_group', [])]
+        receiver_group = [str(group) for group in notify_data.get("receiver_group", [])]
         if not set(receiver_group).issubset(set(supported_groups)):
             raise serializers.ValidationError(f"receiver_group必须包含在支持的用户组中: {supported_groups}")
         return value
@@ -135,25 +136,19 @@ class TemplateNotifyUpdateSerializer(serializers.Serializer):
         更新模板的通知设置
         """
         # 更新notify_type字段
-        if 'notify_type' in validated_data:
-            instance.notify_type = validated_data['notify_type']
+        if "notify_type" in validated_data:
+            instance.notify_type = validated_data["notify_type"]
 
         # 更新notify_receivers字段
-        if 'notify_receivers' in validated_data:
-            instance.notify_receivers = validated_data['notify_receivers']
+        if "notify_receivers" in validated_data:
+            instance.notify_receivers = validated_data["notify_receivers"]
 
-        request = self.context.get('request')
+        request = self.context.get("request")
         editor = request.user.username
         if self.context.get("common", False):
-            result = common_manager.update_pipeline(
-                pipeline_template=instance.pipeline_template,
-                editor=editor
-            )
+            result = common_manager.update_pipeline(pipeline_template=instance.pipeline_template, editor=editor)
         else:
-            result = task_manager.update_pipeline(
-                pipeline_template=instance.pipeline_template,
-                editor=editor
-            )
+            result = task_manager.update_pipeline(pipeline_template=instance.pipeline_template, editor=editor)
         if not result["result"]:
             message = result["message"]
             raise serializers.ValidationError(message)
@@ -196,7 +191,7 @@ def modify_template_notify(request, template_id, project_id):
         return {
             "result": False,
             "message": "Invalid notify_type, expected a dictionary",
-            "code": err_code.REQUEST_PARAM_INVALID.code
+            "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 
     # 顶层类型校验 - notify_receivers必须是字典
@@ -204,7 +199,7 @@ def modify_template_notify(request, template_id, project_id):
         return {
             "result": False,
             "message": "Invalid notify_receivers, expected a dictionary",
-            "code": err_code.REQUEST_PARAM_INVALID.code
+            "code": err_code.REQUEST_PARAM_INVALID.code,
         }
 
     # 详细的字段校验将在序列化器中完成
@@ -227,31 +222,27 @@ def modify_template_notify(request, template_id, project_id):
         return {
             "result": False,
             "message": "(%s) template not found" % template_id,
-            "code": err_code.CONTENT_NOT_EXIST.code
+            "code": err_code.CONTENT_NOT_EXIST.code,
         }
 
     # 使用专门的通知更新序列化器
-    update_data = {
-        "notify_type": json.dumps(param_notify_type),
-        "notify_receivers": json.dumps(param_notify_receivers)
-    }
+    update_data = {"notify_type": json.dumps(param_notify_type), "notify_receivers": json.dumps(param_notify_receivers)}
 
     # 使用TemplateNotifyUpdateSerializer进行部分更新
     serializer = TemplateNotifyUpdateSerializer(
-        template,
-        data=update_data,
-        partial=True,
-        context={"request": request, "common": is_common}
+        template, data=update_data, partial=True, context={"request": request, "common": is_common}
     )
     if not serializer.is_valid():
         return {
             "result": False,
             "message": "Invalid update data",
             "code": err_code.REQUEST_PARAM_INVALID.code,
-            "errors": serializer.errors
+            "errors": serializer.errors,
         }
 
     # 保存更新
+    resource_id = IAMMeta.COMMON_FLOW_RESOURCE if is_common else IAMMeta.FLOW_RESOURCE
+    origin_data = get_audit_snapshot(resource_id, template)
     serializer.save()
 
     # 发送信号和记录操作流水
@@ -266,11 +257,12 @@ def modify_template_notify(request, template_id, project_id):
             operate_source=OperateSource.api.name,
             instance_id=template.id,
         )
-        bk_audit_add_event(
+        bk_audit_add_event_on_commit(
             username=request.user.username,
             action_id=IAMMeta.COMMON_FLOW_EDIT_ACTION,
             resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
             instance=template,
+            origin_data=origin_data,
         )
     else:
         post_template_save_commit.send(
@@ -288,18 +280,19 @@ def modify_template_notify(request, template_id, project_id):
             instance_id=template.id,
             project_id=template.project.id,
         )
-        bk_audit_add_event(
+        bk_audit_add_event_on_commit(
             username=request.user.username,
             action_id=IAMMeta.FLOW_EDIT_ACTION,
             resource_id=IAMMeta.FLOW_RESOURCE,
             instance=template,
+            origin_data=origin_data,
         )
     return {
         "result": True,
         "data": {
             "notify_type": param_notify_type,
             "notify_receivers": param_notify_receivers,
-            "template_id": int(template_id)
+            "template_id": int(template_id),
         },
-        "code": err_code.SUCCESS.code
+        "code": err_code.SUCCESS.code,
     }

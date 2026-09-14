@@ -24,8 +24,11 @@ from gcloud.apigw.validators import FastCreateTaskValidator
 from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import ONETIME, TASK_CATEGORY, TASK_NAME_MAX_LENGTH, TaskCreateMethod
+from gcloud.contrib.audit.mappings import get_task_create_action
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FastCreateTaskInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -102,6 +105,12 @@ def fast_create_task(request, project_id):
         taskflow_kwargs["flow_type"] = "common"
         taskflow_kwargs["current_flow"] = "execute_task"
     task = TaskFlowInstance.objects.create(**taskflow_kwargs)
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=get_task_create_action(ONETIME),
+        resource_id=IAMMeta.TASK_RESOURCE,
+        instance=task,
+    )
     return {
         "result": True,
         "data": {"task_id": task.id, "task_url": task.url, "pipeline_tree": task.pipeline_tree},

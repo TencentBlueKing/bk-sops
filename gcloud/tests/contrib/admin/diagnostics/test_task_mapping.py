@@ -15,6 +15,7 @@ def _fake_task(root_id, task_id, name, proj_id, proj_name, executor, template_id
     task.pipeline_instance.name = name
     task.pipeline_instance.executor = executor
     task.pipeline_instance.create_time = datetime(2026, 7, 23, 10, 0, 0)
+    task.pipeline_instance.start_time = datetime(2026, 7, 23, 10, 5, 0)
     task.project.id = proj_id
     task.project.name = proj_name
     return task
@@ -42,6 +43,8 @@ class ResolveTaskSummariesTest(TestCase):
         self.assertEqual(summary["project_name"], "业务X")
         self.assertEqual(summary["executor"], "neo")
         self.assertEqual(summary["template_id"], "55")
+        self.assertEqual(summary["create_time"], "2026-07-23 10:00:00")
+        self.assertEqual(summary["start_time"], "2026-07-23 10:05:00")
         self.assertEqual(summary["task_url"], "https://sops.example.com/taskflow/execute/7/?instance_id=101")
 
     def test_empty_input_returns_empty(self):

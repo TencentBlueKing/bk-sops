@@ -127,6 +127,39 @@ def format_web_data_to_pipeline(web_pipeline: dict, is_subprocess: bool = False)
     return pipeline_tree
 
 
+def format_web_data_to_pipeline_for_node(web_pipeline: dict, node_id: str, subprocess_stack: list = None) -> dict:
+    """Format only the pipeline branch needed to preview one node.
+
+    The returned pipeline contains the target activity and the subprocess
+    activities on its path. It is intentionally incomplete and must only be
+    used by node input preview code, which reads pipeline data and activities.
+    """
+    subprocess_stack = subprocess_stack or []
+
+    def extract_node_path(pipeline: dict, stack: list) -> dict:
+        activity_id = stack[0] if stack else node_id
+        activity = pipeline["activities"][activity_id]
+        # The canonical formatter deep-copies this extracted tree before it
+        # mutates anything, so references here are safe and avoid a second copy.
+        extracted = {key: value for key, value in pipeline.items() if key not in {"activities", "gateways", "flows"}}
+        extracted.update({"activities": {}, "gateways": {}, "flows": {}})
+
+        extracted_activity = {key: value for key, value in activity.items() if key != "pipeline"}
+        if stack:
+            extracted_activity["pipeline"] = extract_node_path(activity["pipeline"], stack[1:])
+        elif activity["type"] == "SubProcess":
+            child_pipeline = activity["pipeline"]
+            extracted_activity["pipeline"] = {
+                key: value for key, value in child_pipeline.items() if key not in {"activities", "gateways", "flows"}
+            }
+            extracted_activity["pipeline"].update({"activities": {}, "gateways": {}, "flows": {}})
+
+        extracted["activities"][activity_id] = extracted_activity
+        return extracted
+
+    return format_web_data_to_pipeline(extract_node_path(web_pipeline, subprocess_stack))
+
+
 def get_pre_render_mako_keys(constants: dict) -> set:
     """
     获取需要预渲染的变量的 keys

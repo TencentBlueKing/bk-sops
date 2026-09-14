@@ -12,17 +12,20 @@ specific language governing permissions and limitations under the License.
 """
 
 import logging
+
 import ujson as json
+from apigw_manager.apigw.decorators import apigw_require
+from blueapps.account.decorators import login_exempt
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from blueapps.account.decorators import login_exempt
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
-from gcloud.core.models import EnvironmentVariables, Business, Project
-from apigw_manager.apigw.decorators import apigw_require
 from gcloud.conf import settings
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
+from gcloud.core.models import Business, EnvironmentVariables, Project
+from gcloud.iam_auth import IAMMeta
 
 logger = logging.getLogger("root")
 get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
@@ -99,6 +102,13 @@ def register_project(request):
         message = "[api register_project] Error exists when create object: {}".format(e)
         logger.exception(message)
         return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PROJECT_EDIT_ACTION,
+        resource_id=IAMMeta.PROJECT_RESOURCE,
+        instance=project,
+    )
 
     return JsonResponse(
         {

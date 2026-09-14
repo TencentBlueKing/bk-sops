@@ -75,6 +75,16 @@ BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 # 配置后将覆盖 ver_settings 中的默认 CALLBACK_KEY；未配置则沿用代码内置默认值（仅建议用于本地开发）
 BKAPP_CALLBACK_KEY = os.getenv("BKAPP_CALLBACK_KEY", "")
 
+# 插件网关按业务 ID 自动解析项目的 scope_type 列表
+BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES = tuple(
+    scope_type.strip()
+    for scope_type in os.getenv(
+        "BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES",
+        "biz,cmdb_biz,bkcc",
+    ).split(",")
+    if scope_type.strip()
+)
+
 # 网关管理员
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
 
@@ -129,7 +139,9 @@ ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM = int(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK
 # 流程卡住治理（诊断检测打底 M1）
 # 诊断能力随 bamboo-pipeline>=4.0.4 提供；下列开关默认全关，需按运维 checklist 显式开启。
 # SCAN 默认关的原因：Layer0 分组查询（WHERE dead=0 GROUP BY root_pipeline_id）在大 eri_process
-# 表上开销不可忽略；且长等待节点（人工确认 / 长作业）心跳同样停摆，会被判为停滞产生噪音病历。
+# 表上开销不可忽略。长等待节点（人工确认 / 长作业）心跳停摆产生噪音的问题已在 3.24.15/3.24.16 收敛：
+# 判据会识别等待外部回调、人工暂停、失败等人工、并行网关等失败分支这类设计内停车，不再判为卡住。
+# 开 SCAN 前务必先到 3.24.16——3.24.15 只改了专属判据，兜底 stalled_no_progress 仍会报出同一批流程。
 # EVENT 与 SCAN 是两个独立开关：仅关 SCAN 不足以关热点路径事件写，务必同时关 EVENT。
 _DIAG_TRUE = ("1", "true", "yes", "on")
 DIAGNOSTICS_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SCAN_ENABLED", "0").lower() in _DIAG_TRUE
@@ -138,8 +150,17 @@ DIAGNOSTICS_ALERT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_ALERT_ENABLED", "0").lo
 DIAGNOSTICS_APPLY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_APPLY_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_STALL_THRESHOLD_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_STALL_THRESHOLD_SECONDS", 3600))
 DIAGNOSTICS_SCAN_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SCAN_BATCH", 200))
+# Layer0 取样池的静默上界：心跳停在数百天前的历史遗留 root 会长期占满 batch，
+# 让新出现的停滞永远排不进候选池（实测队头静默 1771 天）。0 表示不设上界。
+DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS", 7 * 24 * 3600))
 DIAGNOSTICS_SECOND_CONFIRM_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SECOND_CONFIRM_SECONDS", 3))
 DIAGNOSTICS_SUPPLEMENT_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH", 200))
+# 补充检测的治理窗口：下界挡短命任务正常收尾的误判，上界挡跑了几百天、已无法治理的历史僵尸任务。
+DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS", 3600))
+DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS = int(
+    os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS", 7 * 24 * 3600)
+)
+DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH", 500))
 DIAGNOSTICS_SCAN_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_SCAN_CRON", "*/10 * * * *").split())
 DIAGNOSTICS_CLEANUP_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_CLEANUP_CRON", "30 3 * * *").split())
 
@@ -222,6 +243,9 @@ MESSAGE_HELPER_URL = os.getenv("BKAPP_MESSAGE_HELPER_URL", "")
 # bk_audit
 BK_AUDIT_ENDPOINT = os.getenv("BK_AUDIT_ENDPOINT", None)
 BK_AUDIT_DATA_TOKEN = os.getenv("BK_AUDIT_DATA_TOKEN", None)
+BK_AUDIT_DELEGATED_OPERATOR_APPS = {
+    app_code.strip() for app_code in os.getenv("BK_AUDIT_DELEGATED_OPERATOR_APPS", "").split(",") if app_code.strip()
+}
 
 # bk_chat通知渠道
 ENABLE_BK_CHAT_CHANNEL = False if os.getenv("BKAPP_ENABLE_BK_CHAT_CHANNEL") is None else True
