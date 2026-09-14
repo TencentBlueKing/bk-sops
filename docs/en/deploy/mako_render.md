@@ -6,7 +6,7 @@ These dependencies are available on PyPI and include the explicit infrastructure
 
 ## Default behavior and explicit rollback
 
-When `BKAPP_MAKO_RENDER_BACKEND` is unset, both PaaS V2 and V3 default to `subprocess`. The defaults remain `NO_NETWORK=1`, `OS_HARDEN=1` and `FALLBACK_INPROCESS=0`; the target Linux container must support network namespace creation, otherwise rendering explicitly fails.
+When `BKAPP_MAKO_RENDER_BACKEND` is unset, both PaaS V2 and V3 default to `subprocess`. The defaults are `NO_NETWORK=0`, `OS_HARDEN=1` and `FALLBACK_INPROCESS=0`, allowing ordinary PaaS containers to render without network namespace privileges. Worker networking is not isolated by default; explicitly setting `BKAPP_MAKO_RENDER_NO_NETWORK=1` requires network namespace creation.
 
 To keep in-process rendering for compatibility testing, explicitly set `inprocess`:
 
@@ -40,7 +40,7 @@ Each environment variable below maps to the engine setting obtained by removing 
 | `BKAPP_MAKO_RENDER_TIMEOUT` | `30` | Total request budget including queuing, startup and transport, in seconds |
 | `BKAPP_MAKO_RENDER_FALLBACK_INPROCESS` | `0` | Allow host fallback for unsupported context/spec only |
 | `BKAPP_MAKO_RENDER_OS_HARDEN` | `1` | Linux core, CPU and address-space restrictions |
-| `BKAPP_MAKO_RENDER_NO_NETWORK` | `1` | Require a Linux network namespace |
+| `BKAPP_MAKO_RENDER_NO_NETWORK` | `0` | Explicitly set to `1` to require a Linux network namespace |
 | `BKAPP_MAKO_RENDER_RLIMIT_CPU` | `30` | Cumulative worker CPU seconds |
 | `BKAPP_MAKO_RENDER_RLIMIT_AS_MB` | `1024` | Worker address-space limit, MB |
 | `BKAPP_MAKO_RENDER_ENV_SCRUB_EXTRA` | empty | Additional environment-name fragments to scrub, comma-separated |
@@ -51,7 +51,7 @@ Boolean values accept `0/1` or `false/true`. Invalid boolean values or backend n
 
 Whitelist enforcement and subprocess rendering are independent switches. Before enabling `enforce`, review expressions and class aliases: `datetime.datetime.now()` requires the `datetime.datetime` import entry; `datetime.date.today()` requires `datetime.date`. Restoring module names alone does not authorize every nested call.
 
-When using the default `subprocess` backend or switching back from `inprocess`, retain the default fallback/network/resource options and validate namespace permissions, Celery process behavior and real application contexts inside the target Linux container. Failure to establish the required network namespace prevents rendering; enabling in-process fallback does not bypass that failure. Passing in-process regression tests does not establish subprocess deployment readiness.
+When using the default `subprocess` backend or switching back from `inprocess`, validate Celery process behavior and real application contexts inside the target Linux container. The defaults `FALLBACK_INPROCESS=0`, `OS_HARDEN=1` and `NO_NETWORK=0` do not require network namespace privileges. To enable network isolation, first verify support in the target environment, then explicitly set `NO_NETWORK=1`. Failure to establish that required namespace prevents rendering; enabling in-process fallback does not bypass that failure. Passing in-process regression tests does not establish subprocess deployment readiness.
 
 With these package versions, worker startup failures, admission or transport timeouts, worker exits, protocol errors and required network-isolation failures raise `RenderInfrastructureError` and explicitly fail the node. They no longer pass an unrendered expression onward as a successful result, and never trigger host rendering even when `FALLBACK_INPROCESS=1`.
 

@@ -6,7 +6,7 @@
 
 ## 默认行为与显式回退
 
-未配置 `BKAPP_MAKO_RENDER_BACKEND` 时，V2/V3 均默认使用 `subprocess`。此时默认 `NO_NETWORK=1`、`OS_HARDEN=1`、`FALLBACK_INPROCESS=0`，目标 Linux 容器需能建立网络命名空间，否则渲染会显式失败。
+未配置 `BKAPP_MAKO_RENDER_BACKEND` 时，V2/V3 均默认使用 `subprocess`。此时默认 `NO_NETWORK=0`、`OS_HARDEN=1`、`FALLBACK_INPROCESS=0`，适用于不支持创建网络命名空间的普通 PaaS 容器。默认不隔离子进程网络；显式设置 `BKAPP_MAKO_RENDER_NO_NETWORK=1` 才要求建立网络命名空间。
 
 若需要先沿用进程内渲染进行兼容回归，必须显式设置下面的 `inprocess`。导入表恢复原有模块；现网其他业务模块需合并到同一个值中。
 
@@ -37,7 +37,7 @@ BKAPP_MAKO_RENDER_BACKEND=inprocess
 | `BKAPP_MAKO_RENDER_TIMEOUT` | `30` | `MAKO_RENDER_TIMEOUT`；单次请求含排队、启动和通信的总预算，秒 |
 | `BKAPP_MAKO_RENDER_FALLBACK_INPROCESS` | `0` | `MAKO_RENDER_FALLBACK_INPROCESS`；是否允许不支持的 context/spec 在宿主回退 |
 | `BKAPP_MAKO_RENDER_OS_HARDEN` | `1` | `MAKO_RENDER_OS_HARDEN`；Linux core/CPU/地址空间限制 |
-| `BKAPP_MAKO_RENDER_NO_NETWORK` | `1` | `MAKO_RENDER_NO_NETWORK`；强制 Linux network namespace |
+| `BKAPP_MAKO_RENDER_NO_NETWORK` | `0` | `MAKO_RENDER_NO_NETWORK`；显式设为 `1` 时强制 Linux network namespace |
 | `BKAPP_MAKO_RENDER_RLIMIT_CPU` | `30` | `MAKO_RENDER_RLIMIT_CPU`；worker 累计 CPU 秒数 |
 | `BKAPP_MAKO_RENDER_RLIMIT_AS_MB` | `1024` | `MAKO_RENDER_RLIMIT_AS_MB`；worker 地址空间上限，MB |
 | `BKAPP_MAKO_RENDER_ENV_SCRUB_EXTRA` | 空 | `MAKO_RENDER_ENV_SCRUB_EXTRA`；额外清理的环境变量名片段，逗号分隔 |
@@ -48,7 +48,7 @@ BKAPP_MAKO_RENDER_BACKEND=inprocess
 
 白名单与子进程隔离是两个独立开关，可分别回归。切换 `enforce` 前需检查业务表达式及导入别名：例如 `datetime.datetime.now()` 需要在导入表中补 `datetime.datetime`，`datetime.date.today()` 需要补 `datetime.date`；恢复模块名本身不代表所有多级调用都会放行。
 
-使用默认 `subprocess` 或从 `inprocess` 切回时，建议保持 `FALLBACK_INPROCESS=0`、`OS_HARDEN=1`、`NO_NETWORK=1`（均指上表完整变量名），先在目标 Linux 容器验证网络命名空间权限、Celery 进程模型和真实业务 context。无网络隔离建立失败时会拒绝渲染；开启进程内回退也不会绕过这种失败。不能把进程内路径回归通过等同于子进程隔离验收。
+使用默认 `subprocess` 或从 `inprocess` 切回时，先在目标 Linux 容器验证 Celery 进程模型和真实业务 context。默认 `FALLBACK_INPROCESS=0`、`OS_HARDEN=1`、`NO_NETWORK=0`（均指上表完整变量名），不要求网络命名空间权限。如需禁网隔离，应先确认目标环境支持，再显式设置 `NO_NETWORK=1`；此时隔离建立失败会拒绝渲染，开启进程内回退也不会绕过这种失败。不能把进程内路径回归通过等同于子进程隔离验收。
 
 使用上述配套版本时，worker 启动、排队或通信超时、进程退出、协议异常及必需的网络隔离建立失败会通过 `RenderInfrastructureError` 显式使节点失败，不再把未渲染的表达式作为成功结果继续执行；即使 `FALLBACK_INPROCESS=1`，这些基础设施故障也不会回退到宿主渲染。
 

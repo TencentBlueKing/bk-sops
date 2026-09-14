@@ -50,7 +50,7 @@ class MakoDeploymentSettingsTestCase(TestCase):
         self.assertTrue(hasattr(mako_safety, "FRAME_INTROSPECTION_ATTRS"))
         self.assertTrue(hasattr(render_backend, "SubprocessPoolRenderBackend"))
 
-    def test_defaults_use_subprocess_with_strict_isolation_in_both_paas_versions(self):
+    def test_defaults_use_subprocess_without_network_namespace_in_both_paas_versions(self):
         for version in (2, 3):
             with self.subTest(version=version):
                 scope = load_mako_settings(env_version=version)
@@ -59,7 +59,7 @@ class MakoDeploymentSettingsTestCase(TestCase):
                 self.assertEqual(settings.MAKO_TEMPLATE_NAME_WHITELIST_MODE, "enforce")
                 self.assertEqual(settings.MAKO_SANDBOX_IMPORT_MODULES, {})
                 self.assertFalse(settings.MAKO_RENDER_FALLBACK_INPROCESS)
-                self.assertTrue(settings.MAKO_RENDER_NO_NETWORK)
+                self.assertFalse(settings.MAKO_RENDER_NO_NETWORK)
                 self.assertTrue(settings.MAKO_RENDER_OS_HARDEN)
                 for name, value in vars(settings).items():
                     self.assertEqual(scope[name], value, name)
@@ -68,8 +68,24 @@ class MakoDeploymentSettingsTestCase(TestCase):
                     try:
                         self.assertIsInstance(backend, render_backend.SubprocessPoolRenderBackend)
                         self.assertFalse(backend.fallback_inprocess)
+                        self.assertFalse(backend._harden_opts["no_network"])
+                        self.assertTrue(backend._harden_opts["enabled"])
+                    finally:
+                        backend.close()
+
+    def test_explicit_network_isolation_reaches_worker_options_in_both_paas_versions(self):
+        for version in (2, 3):
+            with self.subTest(version=version):
+                scope = load_mako_settings({"BKAPP_MAKO_RENDER_NO_NETWORK": "1"}, env_version=version)
+                self.assertTrue(scope["MAKO_RENDER_NO_NETWORK"])
+                self.assertTrue(scope["BambooSettings"].MAKO_RENDER_NO_NETWORK)
+                with mock.patch.multiple(BambooSettings, create=True, **vars(scope["BambooSettings"])):
+                    backend = render_backend._build_default_backend()
+                    try:
+                        self.assertIsInstance(backend, render_backend.SubprocessPoolRenderBackend)
                         self.assertTrue(backend._harden_opts["no_network"])
                         self.assertTrue(backend._harden_opts["enabled"])
+                        self.assertFalse(backend.fallback_inprocess)
                     finally:
                         backend.close()
 
@@ -87,11 +103,8 @@ class MakoDeploymentSettingsTestCase(TestCase):
 
         for version in (2, 3):
             with self.subTest(version=version):
-                # Portable test hosts do not require Linux namespace privileges.
-                # The backend variable stays unset; strict defaults are tested above.
-                scope = load_mako_settings(
-                    {"BKAPP_MAKO_RENDER_NO_NETWORK": "0", "BKAPP_MAKO_RENDER_OS_HARDEN": "0"}, env_version=version
-                )
+                # Exercise deployment defaults with every Mako environment variable unset.
+                scope = load_mako_settings(env_version=version)
                 with mock.patch.multiple(BambooSettings, create=True, **vars(scope["BambooSettings"])):
                     backend = render_backend._build_default_backend()
                     try:
