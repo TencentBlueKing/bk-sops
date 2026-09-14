@@ -106,6 +106,9 @@ BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL") or os.getenv("BKAPP_BK_API_URL_
 # 是否允许 celery worker 发送监控事件
 CELERY_SEND_EVENTS = bool(os.getenv("CELERY_SEND_EVENTS", False))
 
+# 插件网关超时扫描默认关闭；使用开放插件的环境需显式设为 1
+ENABLE_PLUGIN_GATEWAY_SWEEP = int(os.getenv("BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP", 0)) == 1
+
 # requests请求重试次数
 REQUEST_RETRY_NUMBER = int(os.getenv("BKAPP_REQUEST_RETRY_NUMBER", 3))
 

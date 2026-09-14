@@ -706,18 +706,17 @@ CELERY_QUEUES.extend(
 )
 
 CELERYBEAT_SCHEDULE = locals().get("CELERYBEAT_SCHEDULE", {})
-# 插件网关关闭时不注册超时清扫周期任务：open_plugin_* 队列在未部署 worker 的环境无人消费，
-# 每分钟一条的投递会在 broker 上无限堆积。
-if PLUGIN_GATEWAY_ENABLE:
-    CELERYBEAT_SCHEDULE.update(
-        {
-            "sweep_expired_plugin_gateway_runs": {
-                "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
-                "schedule": 60.0,
-                "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
-            }
+CELERYBEAT_SCHEDULE.update(
+    {
+        "sweep_expired_plugin_gateway_runs": {
+            "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
+            "schedule": 60.0,
+            "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+            # 保留条目，让 DatabaseScheduler 同步停用数据库中已有的周期任务。
+            "enabled": PLUGIN_GATEWAY_ENABLE and env.ENABLE_PLUGIN_GATEWAY_SWEEP,
         }
-    )
+    }
+)
 
 CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 
