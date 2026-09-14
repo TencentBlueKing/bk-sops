@@ -621,7 +621,7 @@ BambooSettings.MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = MAKO_TEMPLATE_NAME_EXTRA_WHI
 
 
 # bamboo-engine 不会自动读取环境变量或 Django settings，需在首次渲染前显式绑定。
-# PaaS V2/V3 共用此入口；首发保持 inprocess，具体灰度配置见部署文档 mako_render.md。
+# PaaS V2/V3 共用此入口；默认使用 subprocess；显式配置 inprocess 可切回进程内，详见部署文档 mako_render.md。
 def _mako_render_bool(name, default):
     value = os.getenv(name, default).strip().lower()
     if value not in {"0", "1", "false", "true"}:
@@ -629,7 +629,7 @@ def _mako_render_bool(name, default):
     return value in {"1", "true"}
 
 
-MAKO_RENDER_BACKEND = os.getenv("BKAPP_MAKO_RENDER_BACKEND", "inprocess").strip().lower()
+MAKO_RENDER_BACKEND = os.getenv("BKAPP_MAKO_RENDER_BACKEND", "subprocess").strip().lower()
 if MAKO_RENDER_BACKEND not in {"inprocess", "subprocess"}:
     raise ValueError("BKAPP_MAKO_RENDER_BACKEND must be inprocess or subprocess")
 MAKO_RENDER_POOL_SIZE = int(os.getenv("BKAPP_MAKO_RENDER_POOL_SIZE", "4"))
