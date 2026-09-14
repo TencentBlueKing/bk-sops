@@ -696,6 +696,8 @@ CELERYBEAT_SCHEDULE.update(
             "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
             "schedule": 60.0,
             "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+            # 保留条目，让 DatabaseScheduler 同步停用数据库中已有的周期任务。
+            "enabled": env.ENABLE_PLUGIN_GATEWAY_SWEEP,
         }
     }
 )
