@@ -223,6 +223,7 @@ def _clean_task_batch(pipeline_instance_ids, task_ids):
     delete_order = [
         # 1. 节点相关的详细数据（最底层）
         "callback_data",
+        "log_entry",
         "schedules_list",
         "execution_history_list",
         "execution_data_list",
