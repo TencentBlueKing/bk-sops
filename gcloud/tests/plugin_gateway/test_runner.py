@@ -18,6 +18,7 @@ from django.test import TestCase
 from gcloud.conf import settings
 from gcloud.plugin_gateway.models import PluginGatewayRun
 from gcloud.plugin_gateway.services.runner import PluginGatewayRunner
+from packages.bkapi.jobv3_cloud.client import Client as JobClient
 from pipeline_plugins.components.collections.sites.open.job.base import JobService, Jobv3Service
 
 
@@ -306,27 +307,37 @@ class PluginGatewayRunnerScheduleTestCase(TestCase):
     @patch("pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username")
     @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
     def test_job_callback_rebuilds_serialized_client(self, mock_lib, mock_get_client):
-        client = MagicMock()
-        client.api.get_job_instance_global_var_value.return_value = {
-            "result": True,
-            "data": {"step_instance_var_list": []},
-        }
+        client = JobClient(stage="dev", endpoint="https://job.example.com")
+        client.api.get_job_instance_global_var_value = MagicMock(
+            return_value={"result": True, "data": {"step_instance_var_list": []}}
+        )
         mock_get_client.return_value = client
 
         for plugin_id, component in (
             ("builtin__job_callback", _JobCallbackComponent),
             ("builtin__jobv3_callback", _Jobv3CallbackComponent),
         ):
-            with self.subTest(plugin_id=plugin_id):
-                mock_lib.get_component_class.return_value = component
-                result = PluginGatewayRunner.run_schedule(
-                    self._job_callback_run(plugin_id),
-                    {"operator": "test-operator", "project_id": 10, "bk_biz_id": 100605, "tenant_id": "system"},
-                    callback_data={"job_instance_id": 10000, "status": 3},
-                )
+            run = self._job_callback_run(plugin_id)
+            for cached_client in (None, "<serialized-esb-client>"):
+                with self.subTest(plugin_id=plugin_id, cached_client=cached_client):
+                    mock_lib.get_component_class.return_value = component
+                    if cached_client is None:
+                        run.runtime_outputs.pop("client", None)
+                    else:
+                        run.runtime_outputs["client"] = cached_client
+                    result = PluginGatewayRunner.run_schedule(
+                        run,
+                        {"operator": "test-operator", "project_id": 10, "bk_biz_id": 100605, "tenant_id": "system"},
+                        callback_data={"job_instance_id": 10000, "status": 3},
+                    )
 
-                self.assertTrue(result["ok"], result["error_message"])
-                self.assertTrue(result["finished"])
+                    self.assertTrue(result["ok"], result["error_message"])
+                    self.assertTrue(result["finished"])
+                    self.assertEqual(result["outputs"].get("client"), cached_client)
+                    self.assertEqual(
+                        client.api.get_job_instance_global_var_value.call_args.kwargs["headers"],
+                        {"X-Bk-Tenant-Id": "system"},
+                    )
 
-        self.assertEqual(mock_get_client.call_count, 2)
+        self.assertEqual(mock_get_client.call_count, 4)
         mock_get_client.assert_called_with("test-operator", stage=settings.BK_APIGW_STAGE_NAME)
