@@ -15,6 +15,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
+from gcloud.conf import settings
 from gcloud.plugin_gateway.models import PluginGatewayRun
 from gcloud.plugin_gateway.services.runner import PluginGatewayRunner
 from pipeline_plugins.components.collections.sites.open.job.base import JobService, Jobv3Service
@@ -302,11 +303,11 @@ class PluginGatewayRunnerScheduleTestCase(TestCase):
         self.assertTrue(result["outputs"]["polled"])
         self.assertEqual(result["outputs"]["trace_id_from_runtime"], "trace-001")
 
-    @patch("pipeline_plugins.components.collections.sites.open.job.base.get_client_by_user")
+    @patch("pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username")
     @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
     def test_job_callback_rebuilds_serialized_client(self, mock_lib, mock_get_client):
         client = MagicMock()
-        client.jobv3.get_job_instance_global_var_value.return_value = {
+        client.api.get_job_instance_global_var_value.return_value = {
             "result": True,
             "data": {"step_instance_var_list": []},
         }
@@ -320,7 +321,7 @@ class PluginGatewayRunnerScheduleTestCase(TestCase):
                 mock_lib.get_component_class.return_value = component
                 result = PluginGatewayRunner.run_schedule(
                     self._job_callback_run(plugin_id),
-                    {"operator": "test-operator", "project_id": 10, "bk_biz_id": 100605},
+                    {"operator": "test-operator", "project_id": 10, "bk_biz_id": 100605, "tenant_id": "system"},
                     callback_data={"job_instance_id": 10000, "status": 3},
                 )
 
@@ -328,4 +329,4 @@ class PluginGatewayRunnerScheduleTestCase(TestCase):
                 self.assertTrue(result["finished"])
 
         self.assertEqual(mock_get_client.call_count, 2)
-        mock_get_client.assert_called_with("test-operator")
+        mock_get_client.assert_called_with("test-operator", stage=settings.BK_APIGW_STAGE_NAME)

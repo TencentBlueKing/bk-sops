@@ -51,6 +51,7 @@ class PluginGatewayContextService:
         resolved = {
             "project_id": project.id,
             "bk_biz_id": project.bk_biz_id,
+            "tenant_id": project.tenant_id,
             "operator": context.get("operator") or "",
             "scope_type": scope_type,
             "scope_value": scope_value,

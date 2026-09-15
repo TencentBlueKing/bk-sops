@@ -39,6 +39,7 @@ class PluginGatewayContextResolveTestCase(TestCase):
 
         self.assertEqual(resolved["project_id"], self.project.id)
         self.assertEqual(resolved["bk_biz_id"], 2)
+        self.assertEqual(resolved["tenant_id"], self.project.tenant_id)
         self.assertEqual(resolved["operator"], "zhangsan")
         self.assertEqual(resolved["scope_type"], "biz")
         self.assertEqual(resolved["scope_value"], "2")
