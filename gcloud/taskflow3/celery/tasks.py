@@ -545,7 +545,7 @@ def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str, username
 
     task_summary = None
     task_error_analysis = None
-    bk_sops_agent_client = BKSopsAgentClient(env.BK_SOPS_AGENT_HOST, AgentRequestType.USER, username)
+    bk_sops_agent_client = BKSopsAgentClient(env.AI_SOPS_AGENT_URL, AgentRequestType.USER, username)
 
     if msg_type == ATOM_FAILED:
         task_summary = bk_sops_agent_client.summarize_task_execution(bk_biz_id, task_id)
