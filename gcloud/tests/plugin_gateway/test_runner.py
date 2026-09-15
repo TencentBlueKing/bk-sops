@@ -11,12 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
+from gcloud.conf import settings
 from gcloud.plugin_gateway.models import PluginGatewayRun
 from gcloud.plugin_gateway.services.runner import PluginGatewayRunner
+from packages.bkapi.jobv3_cloud.client import Client as JobClient
+from pipeline_plugins.components.collections.sites.open.job.base import JobService, Jobv3Service
 
 
 class _RuntimeService:
@@ -70,6 +73,24 @@ class _RuntimeAwareComponent:
     bound_service = _RuntimeAwareService
 
 
+class _LegacyBizContextService(_RuntimeService):
+    interval = None
+
+    def execute(self, data, parent_data):
+        biz_cc_id = data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id)
+        data.set_outputs("biz_cc_id", biz_cc_id)
+        return True
+
+    def need_schedule(self):
+        return False
+
+
+class _LegacyBizContextComponent:
+    code = "legacy_biz_context"
+    version = "legacy"
+    bound_service = _LegacyBizContextService
+
+
 class _ThirdPartyShellService(_RuntimeService):
     interval = None
 
@@ -119,6 +140,26 @@ class _PollComponent:
     bound_service = _PollService
 
 
+class _JobCallbackService(JobService):
+    need_get_sops_var = False
+
+
+class _JobCallbackComponent:
+    code = "job_callback"
+    version = "legacy"
+    bound_service = _JobCallbackService
+
+
+class _Jobv3CallbackService(Jobv3Service):
+    need_get_sops_var = False
+
+
+class _Jobv3CallbackComponent:
+    code = "jobv3_callback"
+    version = "legacy"
+    bound_service = _Jobv3CallbackService
+
+
 class PluginGatewayRunnerExecuteTestCase(TestCase):
     def _run(self, **overrides):
         defaults = {
@@ -166,6 +207,21 @@ class PluginGatewayRunnerExecuteTestCase(TestCase):
         self.assertEqual(result["outputs"]["runtime_root_pipeline_id"], "a" * 32)
 
     @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
+    def test_execute_injects_legacy_biz_cc_id_context(self, mock_lib):
+        mock_lib.get_component_class.return_value = _LegacyBizContextComponent
+
+        result = PluginGatewayRunner.run_execute(
+            self._run(
+                plugin_id="builtin__legacy_biz_context",
+                trigger_payload={"inputs": {"biz_cc_id": 100605}},
+            ),
+            {"operator": "zhangsan", "project_id": 10, "bk_biz_id": 100605},
+        )
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["outputs"]["biz_cc_id"], 100605)
+
+    @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
     def test_execute_exception_maps_failed(self, mock_lib):
         class _Boom(_SyncService):
             def execute(self, data, parent_data):
@@ -204,6 +260,21 @@ class PluginGatewayRunnerExecuteTestCase(TestCase):
 
 
 class PluginGatewayRunnerScheduleTestCase(TestCase):
+    def _job_callback_run(self, plugin_id):
+        return PluginGatewayRun.objects.create(
+            source_key="bkflow",
+            plugin_id=plugin_id,
+            plugin_version="legacy",
+            client_request_id=plugin_id,
+            open_plugin_run_id="c" * 31 + ("2" if "jobv3" in plugin_id else "1"),
+            callback_url="https://bkflow.example.com/callback",
+            callback_token="token",
+            run_status=PluginGatewayRun.Status.RUNNING,
+            caller_app_code="bkflow-app",
+            trigger_payload={"inputs": {"biz_cc_id": 100605}},
+            runtime_outputs={"client": "<serialized-esb-client>", "job_inst_url": "https://job.example.com/1"},
+        )
+
     @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
     def test_schedule_finishes_with_runtime_outputs(self, mock_lib):
         mock_lib.get_component_class.return_value = _PollComponent
@@ -232,3 +303,41 @@ class PluginGatewayRunnerScheduleTestCase(TestCase):
         self.assertEqual(result["mode"], "poll")
         self.assertTrue(result["outputs"]["polled"])
         self.assertEqual(result["outputs"]["trace_id_from_runtime"], "trace-001")
+
+    @patch("pipeline_plugins.components.collections.sites.open.job.base.get_client_by_username")
+    @patch("gcloud.plugin_gateway.services.runner.ComponentLibrary")
+    def test_job_callback_rebuilds_serialized_client(self, mock_lib, mock_get_client):
+        client = JobClient(stage="dev", endpoint="https://job.example.com")
+        client.api.get_job_instance_global_var_value = MagicMock(
+            return_value={"result": True, "data": {"step_instance_var_list": []}}
+        )
+        mock_get_client.return_value = client
+
+        for plugin_id, component in (
+            ("builtin__job_callback", _JobCallbackComponent),
+            ("builtin__jobv3_callback", _Jobv3CallbackComponent),
+        ):
+            run = self._job_callback_run(plugin_id)
+            for cached_client in (None, "<serialized-esb-client>"):
+                with self.subTest(plugin_id=plugin_id, cached_client=cached_client):
+                    mock_lib.get_component_class.return_value = component
+                    if cached_client is None:
+                        run.runtime_outputs.pop("client", None)
+                    else:
+                        run.runtime_outputs["client"] = cached_client
+                    result = PluginGatewayRunner.run_schedule(
+                        run,
+                        {"operator": "test-operator", "project_id": 10, "bk_biz_id": 100605, "tenant_id": "system"},
+                        callback_data={"job_instance_id": 10000, "status": 3},
+                    )
+
+                    self.assertTrue(result["ok"], result["error_message"])
+                    self.assertTrue(result["finished"])
+                    self.assertEqual(result["outputs"].get("client"), cached_client)
+                    self.assertEqual(
+                        client.api.get_job_instance_global_var_value.call_args.kwargs["headers"],
+                        {"X-Bk-Tenant-Id": "system"},
+                    )
+
+        self.assertEqual(mock_get_client.call_count, 4)
+        mock_get_client.assert_called_with("test-operator", stage=settings.BK_APIGW_STAGE_NAME)

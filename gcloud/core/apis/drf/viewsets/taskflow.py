@@ -33,9 +33,10 @@ from rest_framework.response import Response
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, ONETIME, PROJECT, TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
+from gcloud.constants import TASK_NAME_MAX_LENGTH, TaskCreateMethod, TaskExtraStatus
 from gcloud.contrib.appmaker.models import AppMaker
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.mappings import get_task_create_action
+from gcloud.contrib.audit.utils import bk_audit_add_event, bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
@@ -342,6 +343,16 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             iam=iam_client, resource_func=res_factory.resources_for_task_obj, actions=TASK_ACTIONS
         )
 
+    # 允许进入未执行任务两阶段查询的全部请求参数，出现任何其他参数都回退到原查询
+    TWO_PHASE_UNSTARTED_TASK_LIST_PARAMS = {
+        "without_count",
+        "project__id",
+        "pipeline_instance__is_started",
+        "is_child_taskflow",
+        "limit",
+        "offset",
+    }
+
     def _get_queryset(self, request):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -413,7 +424,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             self.paginator.offset = self.paginator.get_offset(request)
             self.paginator.count = -1
             self.paginator.request = request
-            if self._should_ignore_primary_index_for_task_list(request):
+            if self._should_use_two_phase_unstarted_task_list(request):
+                page = TaskFlowInstance.objects.fetch_unstarted_task_list_page_two_phase(
+                    queryset=queryset, limit=self.paginator.limit, offset=self.paginator.offset
+                )
+            elif self._should_ignore_primary_index_for_task_list(request):
                 page = TaskFlowInstance.objects.fetch_task_list_page_ignore_primary_index(
                     queryset=queryset, limit=self.paginator.limit, offset=self.paginator.offset
                 )
@@ -574,22 +589,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             project_id=serializer.instance.project.id,
             extra_info=extra_info,
         )
-        action_id_mappings = {
-            PROJECT: IAMMeta.FLOW_CREATE_TASK_ACTION,
-            COMMON: IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION,
-            ONETIME: IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
-        }
-        if serializer.validated_data.get("create_method") == "app_maker":
-            bk_audit_add_event(
+        action_id = get_task_create_action(
+            serializer.validated_data.get("template_source"), serializer.validated_data.get("create_method")
+        )
+        if action_id:
+            bk_audit_add_event_on_commit(
                 username=creator,
-                action_id=IAMMeta.MINI_APP_CREATE_TASK_ACTION,
-                resource_id=IAMMeta.TASK_RESOURCE,
-                instance=serializer.instance,
-            )
-        elif serializer.validated_data.get("template_source") in action_id_mappings:
-            bk_audit_add_event(
-                username=creator,
-                action_id=action_id_mappings[serializer.validated_data["template_source"]],
+                action_id=action_id,
                 resource_id=IAMMeta.TASK_RESOURCE,
                 instance=serializer.instance,
             )
@@ -601,6 +607,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                 message = _("任务删除失败: 仅允许删除[未执行]任务, 请检查任务状态")
                 logger.error(message)
                 return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, instance)
         self.perform_destroy(instance)
         # 记录操作流水
         operate_record_signal.send(
@@ -611,11 +618,13 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             instance_id=instance.id,
             project_id=instance.project.id,
         )
-        bk_audit_add_event(
+        bk_audit_add_event_on_commit(
             username=request.user.username,
             action_id=IAMMeta.TASK_DELETE_ACTION,
             resource_id=IAMMeta.TASK_RESOURCE,
             instance=instance,
+            origin_data=origin_data,
+            data={"id": instance.id, "is_deleted": True},
         )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -653,6 +662,29 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             query_params.get("project__id")
             and query_params.get("pipeline_instance__name__icontains")
             and not query_params.get("order_by")
+        )
+
+    @staticmethod
+    def _is_false_query_param(value):
+        return value is False or str(value).lower() in {"false", "0"}
+
+    @classmethod
+    def _should_use_two_phase_unstarted_task_list(cls, request):
+        """
+        仅优化按项目查询未执行根任务且保持默认 ID 倒序的任务列表。
+
+        采用参数白名单而非排除法：带上任意附加筛选条件后，MySQL 往往存在比两阶段查询更优的执行计划
+        （例如按创建时间区间筛选时可从流水线实例侧驱动），此时继续走原查询。
+        """
+        query_params = request.query_params
+        if set(query_params) - cls.TWO_PHASE_UNSTARTED_TASK_LIST_PARAMS:
+            return False
+
+        return bool(
+            "without_count" in query_params
+            and query_params.get("project__id")
+            and cls._is_false_query_param(query_params.get("pipeline_instance__is_started"))
+            and cls._is_false_query_param(query_params.get("is_child_taskflow"))
         )
 
     @swagger_auto_schema(
@@ -872,9 +904,17 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
                     "the number of corresponding function task should be 1. ",
                 }
             )
+        origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, task)
         with transaction.atomic():
             task.flow_type = "common"
             task.current_flow = "execute_task"
             task.save(update_fields=["flow_type", "current_flow"])
             FunctionTask.objects.filter(task_id=task.id).delete()
+            bk_audit_add_event_on_commit(
+                username=request.user.username,
+                action_id=IAMMeta.TASK_EDIT_ACTION,
+                resource_id=IAMMeta.TASK_RESOURCE,
+                instance=task,
+                origin_data=origin_data,
+            )
         return Response({"result": True, "message": "convert to common task success", "data": None})

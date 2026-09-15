@@ -19,6 +19,7 @@ from django.conf import settings
 from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 
+import env
 from gcloud.plugin_gateway.exceptions import PluginGatewayDisabledError
 from gcloud.plugin_gateway.models import PluginGatewayRun, PluginGatewaySourceConfig
 from gcloud.plugin_gateway.services.execution import PluginGatewayExecutionService
@@ -140,9 +141,10 @@ class PluginGatewayDisabledTestCase(TestCase):
 
 
 class PluginGatewayBeatScheduleTestCase(TestCase):
-    def test_sweep_beat_schedule_registration_follows_switch(self):
-        """关闭时不注册周期任务，避免 beat 持续向无消费者的队列投递消息。"""
+    def test_sweep_beat_schedule_preserves_entry_and_requires_both_switches(self):
+        """保留条目以同步停用旧记录，两个开关都开启时才允许周期投递。"""
 
-        registered = "sweep_expired_plugin_gateway_runs" in settings.CELERYBEAT_SCHEDULE
+        self.assertIn("sweep_expired_plugin_gateway_runs", settings.CELERYBEAT_SCHEDULE)
+        entry = settings.CELERYBEAT_SCHEDULE["sweep_expired_plugin_gateway_runs"]
 
-        self.assertEqual(registered, settings.PLUGIN_GATEWAY_ENABLE)
+        self.assertEqual(entry["enabled"], settings.PLUGIN_GATEWAY_ENABLE and env.ENABLE_PLUGIN_GATEWAY_SWEEP)

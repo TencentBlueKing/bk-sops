@@ -90,7 +90,20 @@ python manage.py celery worker -l info -Q open_plugin_polling
 python manage.py celery worker -l info -Q open_plugin_callback
 ```
 
-`sweep_expired_plugin_gateway_runs` 在开关开启时由 beat 每 60 秒触发，建议确认 beat 配置已随代码发布生效。开关关闭时该周期任务不会注册。
+`sweep_expired_plugin_gateway_runs` 默认关闭。使用开放插件的环境需在所有连接该环境数据库和 RabbitMQ 的
+Beat 进程中显式设置 `BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=1`，同时保持 `BKAPP_PLUGIN_GATEWAY_ENABLE=1`，
+重启后由 Beat 每 60 秒触发超时扫描。关闭插件网关总开关也会停用该调度，并同步已有记录。
+
+未使用开放插件、未部署对应消费者的环境，在所有连接该环境数据库和 RabbitMQ 的 Beat 进程中设置
+`BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=0`，并重启 Beat，停止投递超时扫描任务。未配置时默认值为 `0`。
+
+当前使用 `django_celery_beat.schedulers.DatabaseScheduler`，Beat 启动时会将该开关同步到
+`PeriodicTask` 中名为 `sweep_expired_plugin_gateway_runs` 的记录，已有记录也会被停用，无需删除记录或执行迁移。
+重启后应确认该记录的 `enabled=False`，且不再新增此类扫描消息；其他周期任务继续运行。
+
+该开关只控制超时扫描，不关闭插件执行、业务轮询或回调，也不清理已入队消息。
+使用开放插件的环境需要保留扫描，特别是等待回调的执行依赖它进行超时兜底。
+恢复使用时，将所有相关 Beat 进程的开关设为 `1` 并重启，原记录会重新启用。
 
 ## 3. 初始化来源配置
 
@@ -142,7 +155,17 @@ PluginGatewaySourceConfig.objects.update_or_create(
 - `callback_domain_allow_list` 只应配置受信任平台域名
 - 内置插件 ID 采用 `builtin__<component_code>`，第三方插件兼容裸 `code`
 
-### 3.1 原生表单凭证 CORS
+### 3.1 业务 Scope 类型
+
+插件网关会将以下环境变量配置的 `scope_type` 按 CMDB 业务 ID 自动解析为标准运维项目：
+
+```text
+BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES=biz,cmdb_biz,bkcc
+```
+
+默认值为 `biz,cmdb_biz,bkcc`。配置值使用英文逗号分隔，会替换默认列表；未包含的 `scope_type` 继续使用来源配置中的 `scope_project_map` 和 `default_project_id` 兜底。
+
+### 3.2 原生表单凭证 CORS
 
 原生动态表单跨域访问默认关闭。仅在 Stage 已确认 BKFlow Origin 和登记接口后，显式配置：
 

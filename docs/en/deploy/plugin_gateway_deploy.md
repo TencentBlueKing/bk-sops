@@ -90,7 +90,24 @@ python manage.py celery worker -l info -Q open_plugin_polling
 python manage.py celery worker -l info -Q open_plugin_callback
 ```
 
-When the switch is on, `sweep_expired_plugin_gateway_runs` is triggered by beat every 60 seconds. Confirm the beat schedule is deployed with the code. The periodic task is not registered while the switch is off.
+`sweep_expired_plugin_gateway_runs` is disabled by default. Environments using open plugins must explicitly set
+`BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=1` in every Beat process connected to that environment's database and RabbitMQ.
+With `BKAPP_PLUGIN_GATEWAY_ENABLE=1` as well, timeout sweeping runs every 60 seconds after restarting Beat.
+Disabling the plugin gateway also disables this schedule and synchronizes existing records.
+
+For environments that do not use open plugins or deploy their consumers, set
+`BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=0` in every Beat process connected to that environment's database and RabbitMQ,
+then restart Beat to stop publishing timeout sweeps. When unset, the flag defaults to `0`.
+
+With the configured `django_celery_beat.schedulers.DatabaseScheduler`, Beat synchronizes this flag to the
+`PeriodicTask` record named `sweep_expired_plugin_gateway_runs` at startup. Existing records are disabled as well;
+no record deletion or migration is needed. After restarting, verify that the record has `enabled=False` and
+no new sweep messages are published. Other periodic tasks continue running.
+
+This flag only controls timeout sweeping. It does not disable plugin execution, business polling, or callbacks,
+and does not remove queued messages. Keep sweeping enabled when using open plugins, especially executions
+waiting for callbacks that depend on the sweep for timeout handling. To resume, set the flag to `1` in all
+relevant Beat processes and restart them; the existing record will be enabled again.
 
 ## 3. Initialize Source Configuration
 
@@ -131,7 +148,17 @@ Important rules:
 - `do_not_open_list` blocks list, detail, and execute consistently
 - `execution_timeout_seconds` controls the timeout sweep for a single run
 
-### 3.1 Credentialed CORS for Native Forms
+### 3.1 Business Scope Types
+
+The plugin gateway automatically treats the `scope_type` values configured by the following environment variable as CMDB business IDs and resolves them to bk-sops projects:
+
+```text
+BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES=biz,cmdb_biz,bkcc
+```
+
+The default is `biz,cmdb_biz,bkcc`. The comma-separated value replaces the default list. Scope types outside the configured list continue through the source-level `scope_project_map` and `default_project_id` fallbacks.
+
+### 3.2 Credentialed CORS for Native Forms
 
 Native dynamic-form cross-origin access is disabled by default. Enable it in Stage only after confirming the BKFlow origin and registered helper routes:
 

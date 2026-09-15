@@ -23,7 +23,7 @@ from rest_framework import serializers
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.iam_auth import IAMMeta
@@ -92,6 +92,7 @@ def modify_template_executor_proxy(request, template_id, project_id):
         }
 
     editor = request.user.username
+    origin_data = get_audit_snapshot(IAMMeta.FLOW_RESOURCE, template)
 
     # 走模板正常更新链路：
     with transaction.atomic():
@@ -128,11 +129,12 @@ def modify_template_executor_proxy(request, template_id, project_id):
     )
 
     # 审计上报
-    bk_audit_add_event(
+    bk_audit_add_event_on_commit(
         username=editor,
         action_id=IAMMeta.FLOW_EDIT_ACTION,
         resource_id=IAMMeta.FLOW_RESOURCE,
         instance=template,
+        origin_data=origin_data,
     )
 
     return {

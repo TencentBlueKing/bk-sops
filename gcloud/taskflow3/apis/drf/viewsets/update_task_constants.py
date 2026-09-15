@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from iam import Action, Subject
 from iam.shortcuts import allow_or_raise_auth_failed
@@ -18,6 +19,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType
 from gcloud.contrib.operate_record.models import TaskOperateRecord
 from gcloud.contrib.operate_record.utils import extract_extra_info
@@ -81,7 +83,13 @@ class UpdateTaskConstantsView(APIView):
         except serializers.ValidationError as e:
             return Response({"result": False, "message": e.detail, "data": ""})
 
-        task = TaskFlowInstance.objects.filter(id=task_id).only("project_id", "engine_ver", "pipeline_instance").first()
+        task_query = TaskFlowInstance.objects.filter(id=task_id)
+        task = (
+            task_query.select_related("pipeline_instance").first()
+            if settings.ENABLE_BK_AUDIT
+            else task_query.only("project_id", "engine_ver", "pipeline_instance").first()
+        )
+        origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, task)
         set_result = task.set_task_constants(serializer.data["constants"], serializer.data["meta_constants"])
 
         if set_result["result"]:
@@ -95,6 +103,13 @@ class UpdateTaskConstantsView(APIView):
                 instance_id=task_id,
                 project_id=task.project_id,
                 extra_info=extra_info,
+            )
+            bk_audit_add_event_on_commit(
+                username=request.user.username,
+                action_id=IAMMeta.TASK_EDIT_ACTION,
+                resource_id=IAMMeta.TASK_RESOURCE,
+                instance=task,
+                origin_data=origin_data,
             )
 
         return Response(set_result)

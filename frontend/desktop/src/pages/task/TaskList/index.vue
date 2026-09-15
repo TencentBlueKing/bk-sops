@@ -27,7 +27,7 @@
                         <search-select
                             ref="searchSelect"
                             id="taskList"
-                            :placeholder="$t('ID/任务名/创建人/执行人/状态/执行方式/执行代理人')"
+                            :placeholder="$t('ID/任务名/流程ID/创建人/执行人/状态/执行方式/执行代理人')"
                             v-model="searchSelectValue"
                             :search-list="searchList"
                             @change="handleSearchValueChange">
@@ -225,6 +225,10 @@
             isDefaultOption: true
         },
         {
+            id: 'template_id',
+            name: i18n.t('流程ID')
+        },
+        {
             id: 'creator',
             name: i18n.t('创建人'),
             isUser: true
@@ -344,6 +348,7 @@
                 statusSync = '',
                 taskName = '',
                 task_id = '',
+                template_id = '',
                 create_method = '',
                 recorded_executor_proxy = ''
             } = this.$route.query
@@ -370,7 +375,7 @@
                                 acc.push({ ...cur, values })
                             }
                         } else {
-                            values = [values_text]
+                            values = [String(values_text)]
                             acc.push({ ...cur, values })
                         }
                     } else if (cur.children.length) {
@@ -385,7 +390,6 @@
                 firstLoading: true,
                 listLoading: false,
                 countLoading: false,
-                templateId: this.$route.query.template_id,
                 searchStr: '',
                 executeStatus: {}, // 任务执行状态
                 totalPage: 1,
@@ -404,6 +408,7 @@
                     statusSync,
                     taskName,
                     task_id,
+                    template_id,
                     create_method,
                     recorded_executor_proxy
                 },
@@ -534,7 +539,7 @@
                 }
             },
             getQuery () {
-                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, template_id, create_method, recorded_executor_proxy } = this.requestData
                 let pipeline_instance__is_started
                 let pipeline_instance__is_finished
                 let pipeline_instance__is_revoked
@@ -568,7 +573,7 @@
                 const data = {
                     limit: this.pagination.limit,
                     offset: (this.pagination.current - 1) * this.pagination.limit,
-                    template_id: this.templateId || undefined,
+                    template_id: template_id || undefined,
                     pipeline_instance__creator__contains: creator || undefined,
                     pipeline_instance__executor__contains: executor || undefined,
                     pipeline_instance__name__icontains: taskName || undefined,
@@ -1005,7 +1010,7 @@
             },
             updateUrl () {
                 const { current, limit } = this.pagination
-                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, create_method, recorded_executor_proxy } = this.requestData
+                const { start_time, create_time, finish_time, creator, executor, statusSync, taskName, task_id, template_id, create_method, recorded_executor_proxy } = this.requestData
                 const filterObj = {
                     limit,
                     creator,
@@ -1017,6 +1022,7 @@
                     finish_time: finish_time && finish_time.every(item => item) ? finish_time.join(',') : '',
                     taskName,
                     task_id,
+                    template_id,
                     create_method,
                     recorded_executor_proxy
                 }
@@ -1099,7 +1105,6 @@
                 }
                 // 搜索时，清空 createInfo、templateId、templateSource 筛选条件
                 this.createInfo = ''
-                this.templateId = ''
                 this.templateSource = ''
                 this.updateUrl()
                 this.getTaskList()

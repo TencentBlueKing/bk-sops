@@ -20,6 +20,8 @@ from django.views.decorators.http import require_POST
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_periodic_task_audit_snapshot
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import PeriodicTaskEditInterceptor
 from gcloud.periodictask.models import PeriodicTask
@@ -53,9 +55,19 @@ def modify_cron_for_periodic_task(request, task_id, project_id):
             "code": err_code.CONTENT_NOT_EXIST.code,
         }
 
+    origin_data = get_periodic_task_audit_snapshot(task)
     try:
         task.modify_cron(cron, tz)
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
+
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PERIODIC_TASK_EDIT_ACTION,
+        resource_id=IAMMeta.PERIODIC_TASK_RESOURCE,
+        instance=task,
+        origin_data=origin_data,
+        data=get_periodic_task_audit_snapshot(task),
+    )
 
     return {"result": True, "data": {"cron": task.cron}, "code": err_code.SUCCESS.code}

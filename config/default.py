@@ -208,6 +208,7 @@ PLUGIN_GATEWAY_FORM_CORS_ALLOW = str(env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW or
 PLUGIN_GATEWAY_FORM_CORS_ALLOWED_ORIGINS = {
     origin.strip().rstrip("/") for origin in env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST.split(",") if origin.strip()
 }
+PLUGIN_GATEWAY_BIZ_SCOPE_TYPES = env.BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES
 
 if env.BKAPP_CORS_ALLOW:
     CORS_ORIGIN_WHITELIST = env.BKAPP_CORS_WHITELIST.split(",")
@@ -705,18 +706,17 @@ CELERY_QUEUES.extend(
 )
 
 CELERYBEAT_SCHEDULE = locals().get("CELERYBEAT_SCHEDULE", {})
-# 插件网关关闭时不注册超时清扫周期任务：open_plugin_* 队列在未部署 worker 的环境无人消费，
-# 每分钟一条的投递会在 broker 上无限堆积。
-if PLUGIN_GATEWAY_ENABLE:
-    CELERYBEAT_SCHEDULE.update(
-        {
-            "sweep_expired_plugin_gateway_runs": {
-                "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
-                "schedule": 60.0,
-                "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
-            }
+CELERYBEAT_SCHEDULE.update(
+    {
+        "sweep_expired_plugin_gateway_runs": {
+            "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
+            "schedule": 60.0,
+            "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+            # 保留条目，让 DatabaseScheduler 同步停用数据库中已有的周期任务。
+            "enabled": PLUGIN_GATEWAY_ENABLE and env.ENABLE_PLUGIN_GATEWAY_SWEEP,
         }
-    )
+    }
+)
 
 CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_ADDITIONAL_PRIORITY_ROUTING})
 
@@ -1016,11 +1016,15 @@ PIPELINE_DIAGNOSTICS_ALERT_ENABLED = env.DIAGNOSTICS_ALERT_ENABLED
 PIPELINE_DIAGNOSTICS_APPLY_ENABLED = env.DIAGNOSTICS_APPLY_ENABLED
 PIPELINE_DIAGNOSTICS_STALL_THRESHOLD_SECONDS = env.DIAGNOSTICS_STALL_THRESHOLD_SECONDS
 PIPELINE_DIAGNOSTICS_SCAN_BATCH = env.DIAGNOSTICS_SCAN_BATCH
+PIPELINE_DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS = env.DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS
 PIPELINE_DIAGNOSTICS_SECOND_CONFIRM_SECONDS = env.DIAGNOSTICS_SECOND_CONFIRM_SECONDS
 # bk-sops 侧周期任务调度与补充扫描
 DIAGNOSTICS_SCAN_CRON = env.DIAGNOSTICS_SCAN_CRON
 DIAGNOSTICS_CLEANUP_CRON = env.DIAGNOSTICS_CLEANUP_CRON
 DIAGNOSTICS_SUPPLEMENT_BATCH = env.DIAGNOSTICS_SUPPLEMENT_BATCH
+DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS = env.DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS
+DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS = env.DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS
+DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH = env.DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
@@ -1127,6 +1131,7 @@ MESSAGE_HELPER_URL = env.MESSAGE_HELPER_URL
 
 # bk_audit
 ENABLE_BK_AUDIT = True if env.BK_AUDIT_DATA_TOKEN else False
+BK_AUDIT_DELEGATED_OPERATOR_APPS = env.BK_AUDIT_DELEGATED_OPERATOR_APPS
 BK_AUDIT_SETTINGS = {
     "log_queue_limit": 50000,
     "exporters": ["bk_audit.contrib.opentelemetry.exporters.OTLogExporter"],

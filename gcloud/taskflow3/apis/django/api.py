@@ -35,7 +35,7 @@ from gcloud import err_code
 from gcloud.conf import settings
 from gcloud.constants import PROJECT, TASK_CREATE_METHOD, JobBizScopeType
 from gcloud.contrib.analysis.analyse_items import task_flow_instance
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.utils import bk_audit_add_event, bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig, Project
@@ -341,12 +341,13 @@ def task_action(request, action, project_id):
         return JsonResponse({"result": False, "message": message, "code": err_code.INVALID_OPERATION.code})
 
     ctx = task.task_action(action, username)
-    bk_audit_add_event(
-        username=request.user.username,
-        action_id=IAMMeta.TASK_OPERATE_ACTION,
-        resource_id=IAMMeta.TASK_RESOURCE,
-        instance=task,
-    )
+    if ctx.get("result") is True:
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=IAMMeta.TASK_OPERATE_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
     return JsonResponse(ctx)
 
 
@@ -391,6 +392,13 @@ def nodes_action(request, action, project_id):
     }
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.nodes_action(action, node_id, username, **kwargs)
+    if ctx.get("result") is True:
+        bk_audit_add_event_on_commit(
+            username=username,
+            action_id=IAMMeta.TASK_OPERATE_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
     return JsonResponse(ctx)
 
 
@@ -408,6 +416,13 @@ def spec_nodes_timer_reset(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.spec_nodes_timer_reset(node_id, username, inputs)
+    if ctx.get("result") is True:
+        bk_audit_add_event_on_commit(
+            username=username,
+            action_id=IAMMeta.TASK_OPERATE_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
     return JsonResponse(ctx)
 
 
@@ -462,12 +477,13 @@ def task_func_claim(request, project_id):
 
     task = TaskFlowInstance.objects.get(pk=task_id, project_id=project_id)
     ctx = task.task_claim(request.user.username, constants, name)
-    bk_audit_add_event(
-        username=request.user.username,
-        action_id=IAMMeta.TASK_CLAIM_ACTION,
-        resource_id=IAMMeta.TASK_RESOURCE,
-        instance=task,
-    )
+    if ctx.get("result") is True:
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=IAMMeta.TASK_CLAIM_ACTION,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
     return JsonResponse(ctx)
 
 

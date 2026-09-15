@@ -20,6 +20,8 @@ from django.views.decorators.http import require_POST
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskEditInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -49,10 +51,19 @@ def modify_constants_for_task(request, task_id, project_id):
     if task.is_finished:
         return {"result": False, "message": "task is finished", "code": err_code.REQUEST_PARAM_INVALID.code}
 
+    origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, task)
     constants = params.get("constants", {})
     reset_result = task.set_task_constants(constants)
 
     if reset_result["result"] is False:
         return {"result": False, "message": reset_result["message"], "code": err_code.REQUEST_PARAM_INVALID.code}
+
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.TASK_EDIT_ACTION,
+        resource_id=IAMMeta.TASK_RESOURCE,
+        instance=task,
+        origin_data=origin_data,
+    )
 
     return {"result": True, "data": reset_result["data"], "code": err_code.SUCCESS.code}
