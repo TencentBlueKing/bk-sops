@@ -14,10 +14,10 @@ specific language governing permissions and limitations under the License.
 import datetime
 import json
 import logging
-import requests
 from typing import List
 
 import pytz
+import requests
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.data.var import LazyVariable, RegisterVariableMeta, SpliceVariable
@@ -77,9 +77,7 @@ class Datetime(CommonPlainVariable, SelfExplainVariable):
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [
-            FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")
-        ]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="用户选择的时间，输出格式: 2000-04-19 14:45:16")]
 
 
 class Int(CommonPlainVariable, SelfExplainVariable):
@@ -102,7 +100,6 @@ class Password(LazyVariable, SelfExplainVariable):
     tag = "password.password"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("密码变量"))
-    desc = _("请注意，并非所有插件字段都支持密码变量的使用，请结合具体插件进行使用")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
@@ -120,17 +117,11 @@ class Select(LazyVariable, SelfExplainVariable):
     meta_tag = "select.select_meta"
     form = "%svariables/%s.js" % (settings.STATIC_URL, code)
     schema = StringItemSchema(description=_("下拉框变量"))
-    desc = _(
-        "单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值"
-    )
+    desc = _("单选模式下输出选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串\n该变量默认不支持输入任意值，仅在子流程节点配置填参时支持输入任意值")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
-        return [
-            FieldExplain(
-                key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串"
-            )
-        ]
+        return [FieldExplain(key="${KEY}", type=Type.STRING, description="选中的 value，多选模式下输出选中 value 以 ',' 拼接的字符串")]
 
     def get_value(self):
         # multiple select
@@ -161,17 +152,11 @@ class TextValueSelect(LazyVariable, SelfExplainVariable):
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:
         return [
-            FieldExplain(
-                key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"
-            ),
+            FieldExplain(key="${KEY}", type=Type.DICT, description="用户选择的选项的text与value以及未选中的text与value"),
             FieldExplain(key='${KEY["value"]}', type=Type.STRING, description="用户选中选项的value，多个以,分隔"),
             FieldExplain(key='${KEY["text"]}', type=Type.STRING, description="用户选中选项的text，多个以,分隔"),
-            FieldExplain(
-                key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"
-            ),
-            FieldExplain(
-                key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"
-            ),
+            FieldExplain(key='${KEY["value_not_selected"]}', type=Type.STRING, description="用户未选中选项的value，多个以,分隔"),
+            FieldExplain(key='${KEY["text_not_selected"]}', type=Type.STRING, description="用户未选中选项的text，多个以,分隔"),
         ]
 
     def get_value(self):
@@ -380,10 +365,7 @@ class StaffGroupSelector(LazyVariable, SelfExplainVariable):
     type = "dynamic"
     tag = "staff_group_multi_selector.staff_group_selector"
     form = "%svariables/staff_group_multi_selector.js" % settings.STATIC_URL
-    desc = _(
-        "可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n"
-        "输出格式为选中人员用户名以 ',' 拼接的字符串"
-    )
+    desc = _("可选cc业务固定的四个人员分组(运维人员、产品人员、开发人员、测试人员)和标准运维【项目管理】中配置的人员分组\n" "输出格式为选中人员用户名以 ',' 拼接的字符串")
 
     @classmethod
     def _self_explain(cls, **kwargs) -> List[FieldExplain]:

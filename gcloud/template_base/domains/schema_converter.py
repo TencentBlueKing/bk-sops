@@ -128,9 +128,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            message = _(
-                f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data"
-            )
+            message = _(f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data")
             logger.error(message)
             return {"result": False, "data": yaml_data, "message": message}
         # 检查流程间是否有环引用的情况
@@ -167,11 +165,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     missing_fields -= filled_fields
 
                     if missing_fields:
-                        error.append(
-                            "节点{}所属的节点类型{}需缺少必须字段：{}".format(
-                                node["id"], node["type"], sorted(missing_fields)
-                            )
-                        )
+                        error.append("节点{}所属的节点类型{}需缺少必须字段：{}".format(node["id"], node["type"], sorted(missing_fields)))
                         continue
                 if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                     for condition in node["conditions"].keys():
@@ -310,7 +304,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                             param["value"] = param["key"]
                         param["hook"] = True if source_type == "component_inputs" and "key" in param else False
                         for key in list(param.keys()):
-                            if key not in ["value", "hook"]:
+                            if key not in ["value", "hook", "need_render"]:
                                 param.pop(key)
                 reconverted_tree["activities"][node["id"]] = activity
             elif node["type"] == "SubProcess":
@@ -339,9 +333,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     if template_id not in external_constants_cache:
                         raise ValueError(
                             "SubProcess references template_id '{}' which was not found or does not belong "
-                            "to the current project. Please verify the template_id is correct.".format(
-                                template_id
-                            )
+                            "to the current project. Please verify the template_id is correct.".format(template_id)
                         )
                     constants = external_constants_cache[template_id]
                 constants = copy.deepcopy(constants)

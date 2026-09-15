@@ -127,6 +127,9 @@ def send_task_message(pipeline_id, node_id, msg_type):
                     "receivers": receivers,
                     "msg_type": msg_type,
                     "ai_analysis_notify_types": ai_notify_type,
+                    "username": taskflow.recorded_executor_proxy
+                    if taskflow.recorded_executor_proxy
+                    else taskflow.executor,
                 },
                 queue="ai_notify",
                 routing_key="ai_notify",
@@ -150,6 +153,9 @@ def send_task_message(pipeline_id, node_id, msg_type):
                     "task_id": task_id,
                     "ai_notify_group": ai_notify_group,
                     "msg_type": msg_type,
+                    "username": taskflow.recorded_executor_proxy
+                    if taskflow.recorded_executor_proxy
+                    else taskflow.executor,
                 },
                 queue="ai_notify",
                 routing_key="ai_notify",

@@ -34,9 +34,12 @@ from gcloud.apigw.views.utils import logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
 from gcloud.constants import BUSINESS, COMMON, TaskCreateMethod
+from gcloud.contrib.audit.mappings import get_task_create_action
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.decorators import record_operation
 from gcloud.core.models import EngineConfig
+from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import CreateTaskInterceptor
 from gcloud.taskflow3.celery.tasks import prepare_and_start_task
@@ -195,10 +198,25 @@ def create_and_start_task(request, template_id, project_id):
     arn_creator = AutoRetryNodeStrategyCreator(taskflow_id=task.id, root_pipeline_id=task.pipeline_instance.instance_id)
     arn_creator.batch_create_strategy(task.pipeline_instance.execution_data)
 
+    create_action_id = get_task_create_action(template_source, create_method)
+    if create_action_id:
+        bk_audit_add_event_on_commit(
+            username=request.user.username,
+            action_id=create_action_id,
+            resource_id=IAMMeta.TASK_RESOURCE,
+            instance=task,
+        )
+
     prepare_and_start_task.apply_async(
         kwargs=dict(task_id=task.id, project_id=project.id, username=request.user.username),
         queue=queue,
         routing_key=routing_key,
+    )
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.TASK_OPERATE_ACTION,
+        resource_id=IAMMeta.TASK_RESOURCE,
+        instance=task,
     )
 
     return {

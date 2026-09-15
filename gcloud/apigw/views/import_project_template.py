@@ -15,14 +15,15 @@ from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from iam import Action, Request, Subject
 
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
+from gcloud.contrib.audit.operations import audit_imported_templates
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.template_base.utils import format_import_result_to_response_data, read_encoded_template_data
-from iam import Action, Request, Subject
 
 
 @login_exempt
@@ -86,4 +87,5 @@ def import_project_template(request, project_id):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
+    audit_imported_templates(request.user.username, TaskTemplate, import_result)
     return format_import_result_to_response_data(import_result)

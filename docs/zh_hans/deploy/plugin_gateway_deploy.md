@@ -128,7 +128,17 @@ PluginGatewaySourceConfig.objects.update_or_create(
 - `callback_domain_allow_list` 只应配置受信任平台域名
 - 内置插件 ID 采用 `builtin__<component_code>`，第三方插件兼容裸 `code`
 
-### 3.1 原生表单凭证 CORS
+### 3.1 业务 Scope 类型
+
+插件网关会将以下环境变量配置的 `scope_type` 按 CMDB 业务 ID 自动解析为标准运维项目：
+
+```text
+BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES=biz,cmdb_biz,bkcc
+```
+
+默认值为 `biz,cmdb_biz,bkcc`。配置值使用英文逗号分隔，会替换默认列表；未包含的 `scope_type` 继续使用来源配置中的 `scope_project_map` 和 `default_project_id` 兜底。
+
+### 3.2 原生表单凭证 CORS
 
 原生动态表单跨域访问默认关闭。仅在 Stage 已确认 BKFlow Origin 和登记接口后，显式配置：
 

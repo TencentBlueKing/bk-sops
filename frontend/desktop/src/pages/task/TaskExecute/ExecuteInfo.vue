@@ -945,7 +945,12 @@
                         formItemConfig.name = variable.name
                     }
                     // 自定义输入框变量正则校验添加到插件配置项
-                    if (['input', 'textarea'].includes(variable.custom_type) && variable.validation !== '') {
+                    const effectiveFormType = atomFilter.getEffectiveFormType(variable)
+                    if (['input', 'textarea'].includes(effectiveFormType) && variable.validation !== '') {
+                        // 输入参数原始配置可能未带 validation 字段（如勾选生成的 component_inputs 变量），需先确保其为数组
+                        if (!Array.isArray(formItemConfig.attrs.validation)) {
+                            formItemConfig.attrs.validation = []
+                        }
                         formItemConfig.attrs.validation.push({
                             type: 'regex',
                             args: variable.validation,
@@ -953,13 +958,7 @@
                         })
                     }
                     // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
-                    if (formItemConfig.hasOwnProperty('events')) {
-                        formItemConfig.events.forEach(e => {
-                            if (e.source === tagCode) {
-                                e.source = '${' + e.source + '}'
-                            }
-                        })
-                    }
+                    atomFilter.remapEventsSource(formItemConfig, tagCode, variables, variable)
                     inputs.push(formItemConfig)
                 }))
                 return inputs

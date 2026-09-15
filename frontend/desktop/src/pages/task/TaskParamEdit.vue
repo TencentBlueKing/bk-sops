@@ -250,18 +250,17 @@
                         currentFormConfig.attrs.desc = variable.desc
 
                         // 参数填写时为保证每个表单 tag_code 唯一，原表单 tag_code 会被替换为变量 key，导致事件监听不生效
-                        if (currentFormConfig.hasOwnProperty('events')) {
-                            currentFormConfig.events.forEach(e => {
-                                if (e.source === tagCode) {
-                                    e.source = '${' + e.source + '}'
-                                }
-                            })
-                        }
+                        atomFilter.remapEventsSource(currentFormConfig, tagCode, variableArray, variable)
 
+                        const effectiveFormType = atomFilter.getEffectiveFormType(variable)
                         if (
-                            ['input', 'textarea'].includes(variable.custom_type)
+                            ['input', 'textarea'].includes(effectiveFormType)
                             && variable.validation !== ''
                         ) {
+                            // 输入参数原始配置可能未带 validation 字段（如勾选生成的 component_inputs 变量），需先确保其为数组
+                            if (!Array.isArray(currentFormConfig.attrs.validation)) {
+                                currentFormConfig.attrs.validation = []
+                            }
                             currentFormConfig.attrs.validation.push({
                                 type: 'regex',
                                 args: variable.validation,

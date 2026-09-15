@@ -62,6 +62,14 @@ get_client_by_user = settings.ESB_GET_CLIENT_BY_USER
 job_handle_api_error = partial(handle_api_error, __group_name__)
 
 
+def _get_job_client(data, parent_data):
+    client = data.get_one_of_outputs("client")
+    if not hasattr(client, "jobv3"):
+        client = get_client_by_user(parent_data.get_one_of_inputs("executor"))
+        data.outputs.client = client
+    return client
+
+
 def get_sops_var_dict_from_log_text(log_text, service_logger):
     """
     在日志文本中提取全局变量
@@ -489,7 +497,7 @@ class JobService(BasePluginService):
 
             if self.reload_outputs:
 
-                client = data.outputs.client
+                client = _get_job_client(data, parent_data)
 
                 # 判断是否对IP进行Tag分组, 兼容之前的配置，默认从inputs拿
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
@@ -538,7 +546,7 @@ class JobService(BasePluginService):
                 self.finish_schedule()
                 return True if job_success else False
             get_job_sops_var_dict_return = get_job_sops_var_dict(
-                data.outputs.client,
+                _get_job_client(data, parent_data),
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -569,9 +577,9 @@ class JobService(BasePluginService):
             data.set_outputs(
                 "ex_data",
                 {
-                    "exception_msg": _(
-                        "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-                    ).format(job_inst_url=data.outputs.job_inst_url),
+                    "exception_msg": _("任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
+                        job_inst_url=data.outputs.job_inst_url
+                    ),
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
                 },
@@ -646,17 +654,15 @@ class JobScheduleService(JobService):
                 elif job_status > 3:
                     # 出于性能考虑，不拉取对应主机IP的日志，引导用户跳转JOB平台查看
                     failure_inst_url.append(job_detail_url)
-                    data.outputs.ex_data += (
-                        "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
-                            job_detail_url
-                        )
+                    data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                        job_detail_url
                     )
                 else:
                     running_task_list.append(job_id_str)
             else:
                 failure_inst_url.append(job_detail_url)
-                data.outputs.ex_data += (
-                    "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(job_detail_url)
+                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                    job_detail_url
                 )
                 self.logger.error("请求job_id({}),结果为:{}".format(job_id_str, result.get("message")))
 
@@ -738,7 +744,7 @@ class Jobv3Service(BasePluginService):
                 )
 
             if self.reload_outputs:
-                client = data.outputs.client
+                client = _get_job_client(data, parent_data)
 
                 # 判断是否对IP进行Tag分组
                 is_tagged_ip = data.get_one_of_inputs("is_tagged_ip", False)
@@ -787,7 +793,7 @@ class Jobv3Service(BasePluginService):
                 return True if job_success else False
 
             get_jobv3_sops_var_dict_return = get_job_sops_var_dict(
-                data.outputs.client,
+                _get_job_client(data, parent_data),
                 self.logger,
                 job_instance_id,
                 data.get_one_of_inputs("biz_cc_id", parent_data.inputs.biz_cc_id),
@@ -818,9 +824,9 @@ class Jobv3Service(BasePluginService):
             data.set_outputs(
                 "ex_data",
                 {
-                    "exception_msg": _(
-                        "任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>"
-                    ).format(job_inst_url=data.outputs.job_inst_url),
+                    "exception_msg": _("任务执行失败，<a href='{job_inst_url}' target='_blank'>前往作业平台(JOB)查看详情</a>").format(
+                        job_inst_url=data.outputs.job_inst_url
+                    ),
                     "task_inst_id": job_instance_id,
                     "show_ip_log": True,
                 },
@@ -894,8 +900,8 @@ class Jobv3ScheduleService(Jobv3Service):
                 else:
                     running_task_list.append(job_id_str)
             else:
-                data.outputs.ex_data += (
-                    "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(job_detail_url)
+                data.outputs.ex_data += "任务执行失败，<a href='{}' target='_blank'>前往作业平台(JOB)查看详情</a>\n".format(
+                    job_detail_url
                 )
 
         # 需要继续轮询的任务
@@ -941,9 +947,7 @@ class GetJobHistoryResultMixin(object):
 
         # judge success status
         if job_result["data"]["job_instance"]["status"] not in JOB_SUCCESS:
-            message = _(
-                f"执行历史请求失败: 任务实例[ID: {job_success_id}], 异常信息: {job_result['result']} | get_job_history_result"
-            )
+            message = _(f"执行历史请求失败: 任务实例[ID: {job_success_id}], 异常信息: {job_result['result']} | get_job_history_result")
             self.logger.error(message)
             data.outputs.ex_data = message
             self.logger.info(data.outputs)
