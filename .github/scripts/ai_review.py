@@ -24,6 +24,7 @@ MAX_HISTORY = 40
 MAX_STATE_BYTES = 300_000
 HISTORY_MARKER = "<!-- blueking-ai-review-history:"
 STATUS_LABELS = {"open": "仍存在", "resolved": "已修复（静态代码确认）", "unknown": "无法确认"}
+STATUS_ICONS = {"open": "🔴", "resolved": "✅", "unknown": "❔"}
 SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -405,9 +406,11 @@ def prepare(work):
         permission = api(f"repos/{repo}/collaborators/{urllib.parse.quote(login, safe='')}/permission")
         if permission["permission"] not in {"admin", "maintain", "write"}:
             logging.info("Skipped: PR author or event sender does not have repository write access.")
+            report_output("skip_reason", "permission")
             return
     if not current_pr(repo, number, pr):
         logging.info("Skipped: PR is draft, closed, or changed since this event.")
+        report_output("skip_reason", "stale")
         return
     head = pr["head"]["sha"]
     git("fetch", "--no-tags", "https://github.com/" + repo + ".git", f"refs/pull/{number}/head")
@@ -590,20 +593,31 @@ def build_state(value, metadata):
 def render_followups(value, metadata):
     previous = {item["id"]: item for item in metadata.get("previous", [])}
     lines = []
-    for item in value["followups"]:
+    for item in sorted(
+        value["followups"], key=lambda item: (item["status"] == "resolved", previous[item["id"]]["priority"])
+    ):
         old = previous[item["id"]]
-        lines += [
-            f"**{item['id']} · {STATUS_LABELS[item['status']]} · {safe_text(old['title'])}**",
-            safe_text(item["body"][:300]) + ("…" if len(item["body"]) > 300 else ""),
+        # HTML summaries do not parse Markdown escapes; keep their text literal.
+        heading = (
+            html.escape(old["title"]).replace("@", "＠") if item["status"] == "resolved" else safe_text(old["title"])
+        )
+        title = f"{STATUS_ICONS[item['status']]} {STATUS_LABELS[item['status']]} · {heading}"
+        content = [
+            f"📍 {source_link(old, metadata, historical=True)} · 🏷️ `{item['id']}` · **{old['priority']}**",
+            render_explanation(item["body"]),
         ]
         evidence = item["evidence"]
         if evidence:
-            path = urllib.parse.quote(evidence["path"], safe="/")
-            lines.append(
-                "[当前代码证据]({url})".format(
-                    url=f"https://github.com/{metadata['repo']}/blob/{metadata['head']}/{path}#L{evidence['line']}"
+            content.append(
+                disclosure(
+                    "🧩 当前代码证据",
+                    source_link(evidence, metadata) + "\n\n<pre>" + html.escape(evidence["quote"]) + "</pre>",
                 )
             )
+        else:
+            content.append("❔ 没有足够的当前源码证据，继续保留待确认。")
+        text = "\n\n".join(content)
+        lines.append(disclosure(title, text) if item["status"] == "resolved" else f"#### {title}\n\n{text}")
     return "\n\n".join(lines)
 
 
@@ -677,7 +691,7 @@ def output_schema(anchors, previous=()):
 def run_review(work, executable):
     model = os.environ.get("AI_REVIEW_MODEL", "")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}", model):
-        raise ValueError("Set AI_REVIEW_MODEL to a valid model ID in repository Actions variables")
+        raise ValueError("Set AI_REVIEW_MODEL to a valid model ID in workflow env (or the local environment)")
     key = os.environ.get("CODEBUDDY_API_KEY", "")
     if not key:
         raise ValueError("Missing repository secret CODEBUDDY_API_KEY")
@@ -747,13 +761,33 @@ def run_review(work, executable):
     # JSON even with exit 0. Regular files make Node's output writes synchronous.
     # TemporaryFile is private and removed on close; transcripts are never uploaded.
     with tempfile.TemporaryFile(mode="w+", encoding="utf-8") as stdout, tempfile.TemporaryFile() as stderr:
-        completed = subprocess.run(
-            command, input=prompt, text=True, cwd=work / "source", env=env, stdout=stdout, stderr=stderr, timeout=900
-        )
+        try:
+            completed = subprocess.run(
+                command,
+                input=prompt,
+                text=True,
+                cwd=work / "source",
+                env=env,
+                stdout=stdout,
+                stderr=stderr,
+                timeout=900,
+            )
+        except subprocess.TimeoutExpired:
+            report_output("failure_reason", "timeout")
+            raise ValueError("Model exceeded the 900-second execution limit; no review published") from None
         if completed.returncode != 0:
+            report_output("failure_reason", "client_exit")
             raise ValueError(f"CodeBuddy failed (exit {completed.returncode}); no review published")
         stdout.seek(0)
-        value = parse_result(stdout.read(), metadata["anchors"], metadata, work / "source")
+        raw = stdout.read()
+        if not raw.strip():
+            report_output("failure_reason", "empty_output")
+            raise ValueError("Model returned empty output; no review published")
+        try:
+            value = parse_result(raw, metadata["anchors"], metadata, work / "source")
+        except (ValueError, KeyError, TypeError, AttributeError):
+            report_output("failure_reason", "invalid_output")
+            raise ValueError("Model result failed validation; no review published") from None
     if key in json.dumps(value, ensure_ascii=False):
         raise ValueError("Credential detected in model output; refusing to publish")
     (work / "review.json").write_text(json.dumps(value, ensure_ascii=False))
@@ -766,37 +800,82 @@ def safe_text(value):
     return re.sub(r"([\\`*{}_\[\]()#+.!|>~-])", r"\\\1", value)
 
 
+def report_output(name, value):
+    """Only fixed status codes, never model text, enter runner command files."""
+    if os.environ.get("GITHUB_OUTPUT"):
+        with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+            output.write(f"{name}={value}\n")
+
+
+def disclosure(title, body):
+    return f"<details>\n<summary>{title}</summary>\n\n{body}\n\n</details>"
+
+
+def source_link(item, metadata, historical=False):
+    if historical:
+        sha = item["reported_head"] if item["side"] == "RIGHT" else item["reported_base"]
+    else:
+        sha = metadata["merge_base"] if item.get("side") == "LEFT" else metadata["head"]
+    path = urllib.parse.quote(item["path"], safe="/")
+    url = f"https://github.com/{metadata['repo']}/blob/{sha}/{path}#L{item['line']}"
+    return f"[{safe_text(item['path'])}:{item['line']}]({url})"
+
+
+def render_explanation(body):
+    """Format explicitly labeled paragraphs; never guess or shorten model evidence."""
+    labels = {"影响": "💥 影响", "原因": "🔍 原因", "修复": "🛠️ 修复", "修复建议": "🛠️ 修复"}
+    parts = re.split(r"(?m)^\s*(影响|原因|修复建议|修复)[：:]\s*", body)
+    if len(parts) >= 5 and not parts[0].strip():
+        rows = ["| 项目 | 说明 |", "| :--- | :--- |"]
+        for label, text in zip(parts[1::2], parts[2::2]):
+            rows.append(f"| {labels[label]} | {safe_text(text.strip()).replace(chr(10), '<br>')} |")
+        return "\n".join(rows)
+    return safe_text(body)
+
+
 def render_review(value, metadata):
+    counts = {status: sum(item["status"] == status for item in value["followups"]) for status in STATUS_LABELS}
+    pending = len(value["findings"]) + counts["open"] + counts["unknown"]
     lines = [
         MARKER,
-        f"### AI 代码审查 · `{metadata['head'][:12]}`",
-        "仅辅助人工审查；未执行测试，也不代表已满足合入或发布条件。",
+        "## 🔎 AI 代码审查",
+        f"📌 `{metadata['head'][:12]}` · 🧪 未执行测试",
     ]
+    if pending:
+        lines.append(f"> [!WARNING]\n> **⚠️ 有 {pending} 项问题需要处理或确认**\n>\n> 请优先查看下方待处理问题。")
+    else:
+        lines.append("> [!NOTE]\n> **✅ 本次未发现有充分证据的新增 P1/P2 问题。**\n>\n> 此结论不代表已满足合入或发布条件。")
+    lines.append(
+        "| 🆕 新增 | 🔴 仍存在 | ✅ 已修复 | ❔ 待确认 |\n| :---: | :---: | :---: | :---: |\n"
+        f"| **{len(value['findings'])}** | **{counts['open']}** | **{counts['resolved']}** | **{counts['unknown']}** |"
+    )
     if metadata.get("history_note"):
-        lines += ["**历史复核边界**", safe_text(metadata["history_note"])]
+        lines += ["### ⚠️ 历史复核边界", safe_text(metadata["history_note"])]
     retired = max(0, len(metadata.get("previous", [])) + len(value["findings"]) - MAX_HISTORY)
     if retired:
-        lines.append(
-            f"本轮已逐项复核；已归档 {retired} 个已修复问题，结论保留在本轮复核回复，后续不再自动跟踪这些归档项。"
-        )
-    if value["followups"]:
-        lines += ["### 上轮问题逐项复核", render_followups(value, metadata)]
-    for finding in value["findings"]:
-        sha = metadata["head"] if finding["side"] == "RIGHT" else metadata["merge_base"]
-        quoted_path = urllib.parse.quote(finding["path"], safe="/")
-        link = f"https://github.com/{metadata['repo']}/blob/{sha}/{quoted_path}#L{finding['line']}"
+        lines.append(f"本轮已逐项复核；已归档 {retired} 个已修复问题，结论保留在本轮复核回复，后续不再自动跟踪这些归档项。")
+    if pending:
+        lines.append("### 🚩 待处理问题")
+    for finding in sorted(value["findings"], key=lambda item: item["priority"]):
+        icon = "🔴" if finding["priority"] == "P1" else "🟠"
         lines += [
-            f"\n**[{finding['priority']}] {safe_text(finding['title'])}**",
-            f"问题编号：`{finding_id(finding, metadata)}`",
-            f"[{safe_text(finding['path'])}:{finding['line']}]({link})",
-            safe_text(finding["body"]),
+            f"#### {icon} {finding['priority']} · {safe_text(finding['title'])}",
+            f"📍 {source_link(finding, metadata)} · 🏷️ `{finding_id(finding, metadata)}` · 🆕 新增",
+            render_explanation(finding["body"]),
         ]
-    if not value["findings"]:
-        lines.append("\n本次未发现有充分证据的新增 P1/P2 问题。")
+    unresolved = [item for item in value["followups"] if item["status"] != "resolved"]
+    if unresolved:
+        lines.append(render_followups({**value, "followups": unresolved}, metadata))
+    resolved = [item for item in value["followups"] if item["status"] == "resolved"]
+    if resolved:
+        lines += ["### 🔁 历史复核", render_followups({**value, "followups": resolved}, metadata)]
+    scope = ["仅辅助人工审查；未执行测试，也不代表已满足合入或发布条件。"]
     if value["limitations"]:
-        lines += ["\n**审查边界**", safe_text(value["limitations"])]
+        # Limitations remain visible; an incomplete scope must not look like unconditional success.
+        lines += ["### 📎 审查边界", safe_text(value["limitations"])]
     if metadata["omitted"]:
-        lines.append(f"\n快照过滤了 {len(metadata['omitted'])} 个大文件、链接或工具配置文件；diff 仍包含其修改。")
+        scope.append(f"快照过滤了 {len(metadata['omitted'])} 个大文件、链接或工具配置文件；diff 仍包含其修改。")
+    lines += [disclosure("📋 审查范围与验证说明", "\n\n".join(scope)), "---\n💡 本报告辅助人工审查，结论绑定上述提交。"]
     body = "\n\n".join(lines)
     if len(body) > 58000:
         raise ValueError("Review comment exceeds safe publication length")
@@ -820,13 +899,13 @@ def publish(work):
     # A discussion reply links the existing summary; no arbitrary human thread is modified.
     if value["followups"]:
         marker = f"<!-- blueking-ai-review-followup:{metadata['head']}:{metadata['base']} -->"
-        reply = marker + f"\n\n### AI 代码审查复核 · `{metadata['head'][:12]}`\n\n"
+        reply = marker + f"\n\n## 🔁 AI 代码审查复核\n\n📌 `{metadata['head'][:12]}` · 🧪 未执行测试\n\n"
         if summary:
-            reply += (
-                f"对[上轮审查](https://github.com/{repo}/pull/{number}#issuecomment-{summary['id']})的逐项回复：\n\n"
-            )
+            reply += f"对[上轮审查](https://github.com/{repo}/pull/{number}#issuecomment-{summary['id']})的逐项回复：\n\n"
         reply += render_followups(value, metadata)
         reply += "\n\n以上为静态代码复核，未运行测试；无法确认项继续保留，不自动关闭讨论。"
+        if len(reply) > 58000:
+            raise ValueError("Followup comment exceeds safe publication length")
         previous_reply = next((c for c in comments if c["body"].startswith(marker)), None)
         if previous_reply:
             api(f"repos/{repo}/issues/comments/{previous_reply['id']}", "PATCH", {"body": reply})
