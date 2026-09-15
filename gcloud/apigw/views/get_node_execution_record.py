@@ -20,9 +20,10 @@ from rest_framework.exceptions import ValidationError
 from gcloud import err_code
 from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
-from gcloud.core.apis.drf.serilaziers import NodeExecutionRecordResponseSerializer, NodeExecutionRecordQuerySerializer
+from gcloud.core.apis.drf.serilaziers import NodeExecutionRecordQuerySerializer, NodeExecutionRecordResponseSerializer
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import FlowViewInterceptor
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 @login_exempt
@@ -41,9 +42,23 @@ def get_node_execution_record(request, template_id, project_id):
         params.is_valid(raise_exception=True)
         template_node_id = params.data["template_node_id"]
 
+        # 白名单应用可跳过 IAM，但仍须校验模板的项目和租户归属。
+        if not TaskTemplate.objects.filter(
+            id=template_id, project_id=request.project.id, project__tenant_id=request.user.tenant_id
+        ).exists():
+            return {
+                "result": False,
+                "message": "template does not exist in the current project and tenant",
+                "code": err_code.CONTENT_NOT_EXIST.code,
+            }
+
         execution_data = (
             TaskflowExecutedNodeStatistics.objects.filter(
-                template_node_id=template_node_id, status=True, is_skip=False, trigger_template_id=template_id
+                project_id=request.project.id,
+                template_node_id=template_node_id,
+                status=True,
+                is_skip=False,
+                trigger_template_id=template_id,
             )
             .order_by("-archived_time")
             .values("archived_time", "elapsed_time")

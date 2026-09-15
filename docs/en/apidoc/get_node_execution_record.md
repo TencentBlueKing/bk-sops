@@ -1,6 +1,6 @@
 ### Functional description
 
-Get the recent execution records of a node
+Get recent node execution records within the specified project and the authenticated user's tenant. The template must belong to that project. This scope restriction also applies to allowlisted applications. A template outside the current project or tenant returns `result=false` with the `CONTENT_NOT_EXIST` error code.
 
 #### Interface Parameters
 

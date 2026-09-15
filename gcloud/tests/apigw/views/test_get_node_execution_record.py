@@ -13,8 +13,12 @@ specific language governing permissions and limitations under the License.
 from datetime import datetime
 
 from django.conf import settings
+from django.utils import timezone
 
 from gcloud import err_code
+from gcloud.analysis_statistics.models import TaskflowExecutedNodeStatistics
+from gcloud.core.models import Project
+from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -49,8 +53,87 @@ class _NodeExecutionRecordQuerySet(object):
 
 
 class GetNodeExecutionRecordTest(APITest):
+    def setUp(self):
+        super().setUp()
+        self.project = Project.objects.create(
+            id=int(TEST_PROJECT_ID), name=TEST_PROJECT_NAME, tenant_id="system", creator="tester"
+        )
+        self.template = TaskTemplate.objects.create(id=int(TEST_TEMPLATE_ID), project=self.project)
+
     def url(self):
         return "/apigw/get_node_execution_record/{template_id}/{project_id}/"
+
+    def create_record(self, project, template, **overrides):
+        now = timezone.now()
+        fields = {
+            "project_id": project.id,
+            "trigger_template_id": str(template.id),
+            "task_template_id": str(template.id),
+            "template_node_id": TEST_TEMPLATE_NODE_ID,
+            "node_id": "executed-node",
+            "component_code": "job_execute_task",
+            "instance_id": 1,
+            "task_instance_id": 1,
+            "template_id": "pipeline-template",
+            "started_time": now,
+            "archived_time": now,
+            "instance_create_time": now,
+            "elapsed_time": 10,
+            "status": True,
+            "is_skip": False,
+        }
+        fields.update(overrides)
+        return TaskflowExecutedNodeStatistics.objects.create(**fields)
+
+    def query_records(self, project, template_id):
+        with mock.patch(PROJECT_GET, return_value=project):
+            response = self.client.get(
+                self.url().format(template_id=template_id, project_id=project.id),
+                data={"template_node_id": TEST_TEMPLATE_NODE_ID, "scope": "project"},
+                HTTP_X_BK_TENANT_ID="system",
+            )
+        return json.loads(response.content)
+
+    def test_trusted_app_cannot_query_another_projects_template(self):
+        for tenant_id in ("system", "another-tenant"):
+            with self.subTest(tenant_id=tenant_id):
+                project = Project.objects.create(name=tenant_id, tenant_id=tenant_id, creator="tester")
+                template = TaskTemplate.objects.create(project=project)
+                self.create_record(project, template)
+
+                result = self.query_records(self.project, template.id)
+
+                self.assertFalse(result["result"])
+                self.assertEqual(result["code"], err_code.CONTENT_NOT_EXIST.code)
+
+    def test_trusted_app_cannot_use_another_tenants_project(self):
+        project = Project.objects.create(name="other", tenant_id="another-tenant", creator="tester")
+        template = TaskTemplate.objects.create(project=project)
+        self.create_record(project, template)
+
+        result = self.query_records(project, template.id)
+
+        self.assertFalse(result["result"])
+        self.assertEqual(result["code"], err_code.CONTENT_NOT_EXIST.code)
+
+    def test_missing_template_returns_not_found(self):
+        result = self.query_records(self.project, 99999)
+
+        self.assertFalse(result["result"])
+        self.assertEqual(result["code"], err_code.CONTENT_NOT_EXIST.code)
+
+    def test_records_are_limited_to_current_project_and_successful_nodes(self):
+        self.create_record(self.project, self.template)
+        other_project = Project.objects.create(name="other", tenant_id="another-tenant", creator="tester")
+        self.create_record(other_project, self.template, elapsed_time=99)
+        self.create_record(self.project, self.template, status=False)
+        self.create_record(self.project, self.template, is_skip=True)
+
+        result = self.query_records(self.project, self.template.id)
+
+        self.assertTrue(result["result"])
+        self.assertEqual(result["data"]["total"], 1)
+        self.assertEqual([row["elapsed_time"] for row in result["data"]["execution_time"]], [10])
 
     @mock.patch(
         PROJECT_GET,

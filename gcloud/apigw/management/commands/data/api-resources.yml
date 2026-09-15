@@ -4373,7 +4373,7 @@ paths:
   /get_node_execution_record/{template_id}/{bk_biz_id}/:
     get:
       operationId: get_node_execution_record
-      description: 获取节点最近执行记录
+      description: 获取当前租户及指定项目内节点最近执行记录
       tags:
       - 通用接口
       responses:
@@ -4418,7 +4418,7 @@ paths:
         schema:
           type: string
         required: true
-        description: 流程ID
+        description: 指定项目及当前认证用户所属租户内的流程ID
       - in: path
         name: bk_biz_id
         schema:
