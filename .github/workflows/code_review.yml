@@ -4,13 +4,14 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
   pull_request:
-    paths: ['.github/scripts/ai_review.py', '.github/scripts/test_ai_review.py', '.github/workflows/code_review.yml', '.ai/review/**']
+    paths: ['.github/scripts/ai_review*.py', '.github/scripts/test_ai_review*.py', '.github/workflows/code_review.yml', '.ai/review/**']
 
 permissions:
   contents: read
 
 env:
-  AI_REVIEW_MODEL: ${{ vars.AI_REVIEW_MODEL }}
+  # Keep the selected model reviewable in this workflow; repository variables do not override it.
+  AI_REVIEW_MODEL: deepseek-v4-pro-ioa
 
 concurrency:
   group: ai-review-${{ github.event_name }}-${{ github.event.pull_request.number }}
@@ -26,7 +27,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate review runner without credentials
-        run: python3 -I -m unittest discover -s .github/scripts -p test_ai_review.py -v
+        run: python3 -I .github/scripts/ai_review_report.py
 
   review:
     if: github.event_name == 'pull_request_target' && !github.event.pull_request.draft
@@ -39,6 +40,13 @@ jobs:
       ready: ${{ steps.prepare.outputs.ready }}
       history: ${{ steps.prepare.outputs.history }}
       artifact: ${{ steps.review_artifact.outputs.artifact-id }}
+      installed: ${{ steps.installation.outputs.installed }}
+      skip_reason: ${{ steps.prepare.outputs.skip_reason }}
+      failure_reason: ${{ steps.model_review.outputs.failure_reason }}
+      installation_result: ${{ steps.installation.outcome }}
+      prepare_result: ${{ steps.prepare.outcome }}
+      install_result: ${{ steps.install_cli.outcome }}
+      model_result: ${{ steps.model_review.outcome }}
     steps:
       # Only trusted target-branch tooling and knowledge can execute.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -73,10 +81,12 @@ jobs:
         with:
           node-version: '22'
       - name: Install pinned CodeBuddy CLI outside the PR snapshot
+        id: install_cli
         if: steps.prepare.outputs.ready == 'true'
         working-directory: ${{ runner.temp }}
         run: npm install --global @tencent-ai/codebuddy-code@2.147.0
       - name: Review pull request
+        id: model_review
         if: steps.prepare.outputs.ready == 'true'
         env:
           CODEBUDDY_API_KEY: ${{ secrets.CODEBUDDY_API_KEY }}
@@ -126,3 +136,76 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 -I .github/scripts/ai_review.py publish --work-dir "$RUNNER_TEMP/ai-review"
+
+  report:
+    name: AI Review Status
+    needs: [validate, review, publish]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      # This summary runs without checkout, model credentials or GitHub write access.
+      # Only fixed workflow status codes are passed; never interpolate PR text into code.
+      - name: Explain review and validation status
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+          REVIEW_RESULT: ${{ needs.review.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          INSTALLED: ${{ needs.review.outputs.installed }}
+          READY: ${{ needs.review.outputs.ready }}
+          SKIP_REASON: ${{ needs.review.outputs.skip_reason }}
+          FAILURE_REASON: ${{ needs.review.outputs.failure_reason }}
+          INSTALLATION_RESULT: ${{ needs.review.outputs.installation_result }}
+          PREPARE_RESULT: ${{ needs.review.outputs.prepare_result }}
+          INSTALL_RESULT: ${{ needs.review.outputs.install_result }}
+          MODEL_RESULT: ${{ needs.review.outputs.model_result }}
+        run: |
+          python3 -I - <<'PY'
+          import os
+          e = os.environ
+          labels = {"success": "✅ 完成", "failure": "❌ 失败", "cancelled": "⛔ 已取消", "skipped": "⏭️ 跳过"}
+          lines = ["## 🔎 AI 审查运行状态"]
+          if e["EVENT_NAME"] == "pull_request":
+              lines += ["> [!NOTE]\n> **🧪 本次运行审查工具自测**\n>\n> review / publish 由独立的 pull_request_target 事件执行。"]
+          elif e["REVIEW_RESULT"] == "failure":
+              reasons = {
+                  "timeout": "模型达到 900 秒执行上限。",
+                  "client_exit": "模型客户端以非零状态退出。",
+                  "empty_output": "客户端没有返回最终结果；具体原因需查看失败步骤。",
+                  "invalid_output": "模型结果未通过结构或源码证据校验。",
+              }
+              reason = reasons.get(e["FAILURE_REASON"], "具体原因尚未确认，请查看失败步骤。")
+              stages = [("INSTALLATION_RESULT", "检查目标分支接入"), ("PREPARE_RESULT", "权限检查与输入准备"),
+                        ("INSTALL_RESULT", "安装审查客户端"), ("MODEL_RESULT", "模型审查与结果校验")]
+              stage = next((label for key, label in stages if e[key] == "failure"), "环境准备或结果归档")
+              lines += ["> [!CAUTION]\n> **⛔ 审查未完成，本轮没有有效发布结论**",
+                        "| 项目 | 说明 |\n| :--- | :--- |\n| 📍 阶段 | " + stage + " |\n| 🔍 原因 | " + reason + " |",
+                        "🛠️ 查看失败步骤，处理后重跑；不能把未完成当作零问题。"]
+          elif e["REVIEW_RESULT"] == "cancelled":
+              lines += ["> [!WARNING]\n> **⛔ 本轮审查已取消**\n>\n> 以更新提交对应的完整运行结果为准。"]
+          elif e["PUBLISH_RESULT"] == "success":
+              lines += ["> [!NOTE]\n> **✅ 本轮审查结果已发布**\n>\n> 具体问题和历史复核结果见 PR 评论，不代表业务测试通过。"]
+          elif e["READY"] == "true":
+              lines += ["> [!WARNING]\n> **⛔ 审查结果尚未完成发布**\n>\n> 查看 publish 任务；上一轮评论不代表本轮成功。"]
+          else:
+              reasons = {"permission": "PR 作者或事件发起人没有仓库写权限。", "stale": "PR 已变更、关闭或转为草稿。"}
+              reason = reasons.get(e["SKIP_REASON"], "未进入模型审查阶段，具体原因见准备步骤。")
+              if e["IS_DRAFT"] == "true":
+                  reason = "PR 仍为草稿。"
+              elif e["INSTALLED"] == "false":
+                  reason = "当前目标分支尚未接入审查脚本和知识规则。"
+              lines += ["> [!NOTE]\n> **⏭️ 本轮未执行模型审查**\n>\n> " + reason]
+          lines.append("### 📋 任务分工")
+          table = ["| 任务 | 状态 | 内容 |", "| :--- | :--- | :--- |"]
+          for name, key, purpose in [("validate", "VALIDATE_RESULT", "无模型凭据的工具自测"),
+                                     ("review", "REVIEW_RESULT", "模型审查与结果校验"),
+                                     ("publish", "PUBLISH_RESULT", "发布已校验的结果与复核回复")]:
+              table.append("| " + name + " | " + labels.get(e[key], "❔ 未知") + " | " + purpose + " |")
+          lines.append("\n".join(table))
+          lines += ["---\n💡 本页说明任务是否执行；模型发现的问题见 PR 报告，业务测试见其他检查。"]
+          with open(e["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as output:
+              output.write("\n\n".join(lines) + "\n")
+          PY
