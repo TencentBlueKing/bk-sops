@@ -67,9 +67,8 @@ class BKSopsAgentClient:
     def __init__(self, agent_host, request_type=AgentRequestType.PLUGIN, username=""):
         self.app_code = settings.APP_CODE
         self.app_secret = settings.SECRET_KEY
-        self.agent_host = agent_host or env.BK_SOPS_AGENT_HOST
+        self.agent_host = agent_host or env.AI_SOPS_AGENT_URL
         self.request_path = PATH_CONFIG_MAP.get(request_type.value)
-        self.apigw_environment = env.BKAPP_APIGW_ENVIRONMENT
         self.request_data = AgentRequestData(request_type)
 
         # 基础 headers
@@ -83,7 +82,7 @@ class BKSopsAgentClient:
 
     def _make_request(self, method, params=None, data=None, timeout=None):
         try:
-            url = f"{self.agent_host}/{self.apigw_environment}/{self.request_path}/"
+            url = f"{self.agent_host}/{self.request_path}/"
             response = requests.request(
                 method=method,
                 url=url,
