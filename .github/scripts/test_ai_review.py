@@ -211,7 +211,8 @@ class ReviewTests(unittest.TestCase):
     def test_review_title_is_independent_of_the_model(self):
         metadata = {"head": "a" * 40, "merge_base": "b" * 40, "repo": "owner/repo", "number": 1, "omitted": []}
         body = review.render_review(self.value, metadata)
-        self.assertEqual(body.splitlines()[2], "### AI 代码审查 · `aaaaaaaaaaaa`")
+        self.assertEqual(body.splitlines()[2], "## 🔎 AI 代码审查")
+        self.assertIn("📌 `aaaaaaaaaaaa`", body)
         self.assertTrue(body.startswith("<!-- blueking-ai-review -->"))
 
     @contextmanager
@@ -328,7 +329,7 @@ class ReviewTests(unittest.TestCase):
                     current.assert_not_called()
                     git.assert_not_called()
                     self.assertFalse(work.exists())
-                    self.assertFalse(output.exists())
+                    self.assertEqual(output.read_text(), "skip_reason=permission\n")
 
     def test_prepare_checks_both_current_permissions_before_checking_pr_state(self):
         pr = {"user": {"login": "author"}, "author_association": "NONE"}
@@ -642,11 +643,7 @@ class FollowupTests(unittest.TestCase):
                             {
                                 "id": first_ids[1],
                                 "status": "open" if round_number == 2 else "unknown",
-                                "body": (
-                                    "负数仍增加余额。"
-                                    if round_number == 2
-                                    else "处理已委托外部实现，当前快照不足以确认。"
-                                ),
+                                "body": ("负数仍增加余额。" if round_number == 2 else "处理已委托外部实现，当前快照不足以确认。"),
                                 "evidence": (
                                     {"path": "src/app.py", "line": 4, "quote": "return balance - amount"}
                                     if round_number == 2
@@ -779,9 +776,7 @@ class FollowupTests(unittest.TestCase):
                 }
             ],
             "limitations": "",
-            "followups": [
-                {"id": x["id"], "status": "unknown", "body": "缺少上下文", "evidence": None} for x in previous
-            ],
+            "followups": [{"id": x["id"], "status": "unknown", "body": "缺少上下文", "evidence": None} for x in previous],
         }
         metadata = {**self.meta, "previous": previous, "anchors": {"src/app.py": {"RIGHT": [3], "LEFT": []}}}
         with self.assertRaisesRegex(ValueError, "40"):
