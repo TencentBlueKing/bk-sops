@@ -276,6 +276,6 @@ class ListRoleResource(IAMV4BaseResource):
 class UpdateRoleResource(IAMV4BaseResource):
     name = "IAM V4 update role"
     action = "/api/v1/open/rbac/model/systems/{system_id}/roles/{role_id}/"
-    method = "PATCH"
+    method = "PUT"
     url_keys = ["system_id", "role_id"]
     RequestSerializer = UpdateRoleRequestSerializer

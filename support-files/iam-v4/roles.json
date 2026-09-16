@@ -2,7 +2,7 @@
   {
     "id": "biz_operator",
     "name": "业务运维",
-    "description": "项目运维和公共流程使用",
+    "description": "业务内最高操作权限",
     "actions": [
       {
         "id": "project_view",
@@ -133,7 +133,7 @@
   {
     "id": "biz_flow_executor",
     "name": "业务流程执行者",
-    "description": "指定流程执行",
+    "description": "只能使用指定流程创建任务",
     "actions": [
       {
         "id": "project_view",
@@ -151,8 +151,8 @@
   },
   {
     "id": "mini_app_user",
-    "name": "轻应用用户",
-    "description": "指定轻应用使用",
+    "name": "轻应用使用者",
+    "description": "只能通过轻应用发起任务",
     "actions": [
       {
         "id": "project_view",
@@ -174,8 +174,8 @@
   },
   {
     "id": "biz_viewer",
-    "name": "业务只读",
-    "description": "项目资源只读",
+    "name": "业务查看者",
+    "description": "项目内业务资源只读",
     "actions": [
       {
         "id": "project_view",
@@ -206,7 +206,7 @@
   {
     "id": "common_flow_developer",
     "name": "公共流程开发者",
-    "description": "公共流程创建和编辑",
+    "description": "创建、查看和编辑公共流程，不含删除",
     "actions": [
       {
         "id": "common_flow_create",
@@ -225,7 +225,7 @@
   {
     "id": "biz_function_executor",
     "name": "业务职能化执行者",
-    "description": "职能化任务查看认领和操作",
+    "description": "查看、认领和操作指定项目的职能化任务",
     "actions": [
       {
         "id": "project_view",
@@ -252,7 +252,7 @@
   {
     "id": "platform_admin",
     "name": "平台管理员",
-    "description": "全部权限",
+    "description": "整个平台全量操作权限",
     "actions": [
       {
         "id": "project_create",
@@ -426,8 +426,8 @@
   },
   {
     "id": "vendor_flow_executor",
-    "name": "外部流程执行者",
-    "description": "受限的指定流程执行",
+    "name": "外部开发商执行者",
+    "description": "外部人员最小流程执行权限",
     "actions": [
       {
         "id": "project_view",
@@ -446,7 +446,7 @@
   {
     "id": "platform_auditor",
     "name": "平台审计员",
-    "description": "只读审计权限",
+    "description": "全平台资源和审计数据只读，不含后台敏感管理能力",
     "actions": [
       {
         "id": "audit_view",

@@ -128,6 +128,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
                 IAMMeta.COMMON_FLOW_VIEW_ACTION,
                 IAMMeta.COMMON_FLOW_EDIT_ACTION,
                 IAMMeta.COMMON_FLOW_DELETE_ACTION,
+                IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION,
             ],
         )
 

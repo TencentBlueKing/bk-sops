@@ -22,6 +22,8 @@ from django_test_toolkit.testcases import ToolkitApiTestCase
 from pipeline.models import PipelineTemplate, Snapshot
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.core.apis.drf.viewsets.common_template import CommonTemplateViewSet
+from gcloud.iam_auth import IAMMeta
 
 
 class TestCommonTemplateView(
@@ -79,6 +81,13 @@ class TestCommonTemplateView(
         response = self.client.get(self.template_url, data=query_params)
         self.assertTrue(response.data["result"])
         self.assertIsNotNone(response.data["data"])
+
+    @patch("gcloud.core.apis.drf.viewsets.common_template.get_iam_client")
+    def test_common_template_auth_actions_include_create_task(self, get_iam_client):
+        helper = CommonTemplateViewSet.iam_resource_helper("tenant_id")
+
+        self.assertIn(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION, helper.actions)
+        get_iam_client.assert_called_once_with(tenant_id="tenant_id")
 
     def test_update_common_template(self):
         self.template_url = "/api/v3/common_template/{}/update_specific_fields/".format(self.common_template.id)

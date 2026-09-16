@@ -17,7 +17,7 @@ from gcloud.core.apis.drf.viewsets.resource_config import ResourceConfigViewSet
 from gcloud.core.apis.drf.viewsets.staff_group import StaffGroupSetViewSet
 from gcloud.core.models import Project, ResourceConfig, StaffGroupSet
 from gcloud.external_plugins.models import CachePackageSource
-from gcloud.iam_auth import IAMMeta, PermissionService, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService, res_factory
 from gcloud.iam_auth.exceptions import IAMPermissionDenied, IAMResourceNotFound
 from gcloud.iam_auth.resource_api_v4.providers.project import ProjectResourceProvider
 from gcloud.iam_auth.scope_resolver import ScopeResolver
@@ -151,6 +151,22 @@ class TenantBoundaryDatabaseTest(TestCase):
             list(scope.queryset(IAMMeta.TASK_RESOURCE).values_list("id", flat=True)),
             [task_t1.id],
         )
+
+    def test_project_role_scope_recovers_tenant_local_task_detail_permission(self):
+        task_t1 = TaskFlowInstance.objects.create(project=self.project_t1, current_flow="execute_task")
+        client = mock.Mock()
+        client.direct_auth.return_value = False
+        client.list_authorized_resources.return_value = [
+            {"type": IAMMeta.PROJECT_RESOURCE, "ids": [str(self.project_t1.id)]}
+        ]
+
+        allowed = PermissionService(client).is_allowed(
+            "bob",
+            "t1",
+            PermissionCheck(IAMMeta.TASK_VIEW_ACTION, res_factory.resources_for_task(task_t1.id, "t1")[0]),
+        )
+
+        self.assertTrue(allowed)
 
     def test_resource_action_matrix_uses_one_local_query_for_all_actions(self):
         project_t1_b = Project.objects.create(

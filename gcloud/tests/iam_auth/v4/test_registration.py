@@ -270,6 +270,14 @@ class MigrationAndRegistrationCommandTest(SimpleTestCase):
             migration.forward_func(None, None)
         registrar.assert_called_once_with("tenant-a")
 
+    def test_migration_0019_synchronizes_corrected_role_metadata(self):
+        migration = importlib.import_module("bksops_iam_migrations.migrations.0019_sync_bk_sops_iam_v4_role_metadata")
+        with override_settings(IAM_V4_MODEL_REGISTRATION_TENANT_ID="tenant-a", BK_IAM_SKIP=False), mock.patch.object(
+            migration, "register_roles"
+        ) as registrar:
+            migration.forward_func(None, None)
+        registrar.assert_called_once_with("tenant-a")
+
     @mock.patch.object(model_command, "register_base_model")
     def test_model_dry_run_validates_without_writing_iam(self, registrar):
         model_command.Command().handle(tenant_id="system", dry_run=True)

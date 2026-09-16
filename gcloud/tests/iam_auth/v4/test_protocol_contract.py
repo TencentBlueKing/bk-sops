@@ -73,7 +73,7 @@ class EndpointAndAuthenticationContractTest(SimpleTestCase):
             ),
             ListRoleResource: ("GET", "/api/v1/open/rbac/model/systems/{system_id}/roles/"),
             UpdateRoleResource: (
-                "PATCH",
+                "PUT",
                 "/api/v1/open/rbac/model/systems/{system_id}/roles/{role_id}/",
             ),
             CreateSystemResource: ("POST", "/api/v1/open/rbac/model/systems/"),

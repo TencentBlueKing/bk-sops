@@ -744,6 +744,7 @@ const en = {
     '常用项目': 'Frequently Used',
     '项目，项目集的权限请前往': 'Project and project set permission can be apply at',
     '权限中心': 'IAM',
+    '权限中心地址未配置，请联系管理员': 'The IAM URL is not configured. Contact the administrator.',
     '进行申请；如需新建项目，项目集请前往': '. Create project at',
     '项目id：': 'Project ID: ',
     '时区：': 'Timezone: ',

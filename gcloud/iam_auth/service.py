@@ -74,7 +74,30 @@ class PermissionService:
         if creator_action_allowed(username, check.action_id, check.resource):
             return True
         subject = Subject("user", username)
-        return self.client.direct_auth(tenant_id, subject, check.action_id, check.resource)
+        allowed = self.client.direct_auth(tenant_id, subject, check.action_id, check.resource)
+        if allowed or check.resource is None:
+            return allowed
+        return str(check.resource.id) in self._scope_allowed_resource_ids(
+            username, tenant_id, check.action_id, [check.resource]
+        )
+
+    def _scope_allowed_resource_ids(self, username, tenant_id, action_id, resources):
+        """Resolve ancestor-bound role grants when point authorization misses them."""
+
+        from gcloud.iam_auth.scope_resolver import ScopeResolver
+
+        resources = list(resources)
+        if not resources:
+            return set()
+        resource_type = ACTION_RESOURCE_TYPES[action_id]
+        resource_ids = {str(resource.id) for resource in resources}
+        scope = ScopeResolver(self.client).authorized_scope(username, tenant_id, action_id, include_creator=False)
+        queryset = scope.queryset(resource_type)
+        if queryset is not None:
+            return {
+                str(resource_id) for resource_id in queryset.filter(id__in=resource_ids).values_list("id", flat=True)
+            }
+        return resource_ids & {str(resource_id) for resource_id in scope.ids(resource_type)}
 
     def require(self, username, tenant_id, check):
         if not self.is_allowed(username, tenant_id, check):
@@ -100,6 +123,11 @@ class PermissionService:
             if remote_actions
             else {}
         )
+        for action_id in remote_actions:
+            if not decisions[action_id] and resource is not None:
+                decisions[action_id] = str(resource.id) in self._scope_allowed_resource_ids(
+                    username, tenant_id, action_id, [resource]
+                )
         return {action_id: action_id in creator_actions or decisions[action_id] for action_id in action_ids}
 
     def allowed_resources(self, username, tenant_id, action_id, resources):
@@ -115,6 +143,9 @@ class PermissionService:
             if remote_resources
             else {}
         )
+        denied_resources = [resource for resource in remote_resources if not decisions[str(resource.id)]]
+        for resource_id in self._scope_allowed_resource_ids(username, tenant_id, action_id, denied_resources):
+            decisions[resource_id] = True
         return {
             str(resource.id): str(resource.id) in creator_resource_ids or decisions[str(resource.id)]
             for resource in resources
@@ -141,6 +172,9 @@ class PermissionService:
                 if remote_resources
                 else {}
             )
+            denied_resources = [resource for resource in remote_resources if not decisions[str(resource.id)]]
+            for resource_id in self._scope_allowed_resource_ids(username, tenant_id, action_id, denied_resources):
+                decisions[resource_id] = True
             for resource in resources:
                 resource_id = str(resource.id)
                 result[resource_id][action_id] = resource_id in creator_ids or decisions[resource_id]

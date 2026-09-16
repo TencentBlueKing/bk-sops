@@ -150,7 +150,11 @@
                                 <div class="template-operation" :template-name="props.row.name">
                                     <template>
                                         <a
-                                            class="template-operate-btn"
+                                            v-cursor="{ active: !hasPermission(['common_flow_create_task'], props.row.auth_actions) }"
+                                            :class="{
+                                                'template-operate-btn': hasPermission(['common_flow_create_task'], props.row.auth_actions),
+                                                'text-permission-disable': !hasPermission(['common_flow_create_task'], props.row.auth_actions)
+                                            }"
                                             @click.prevent="handleCreateTaskClick(props.row)">
                                             {{$t('新建任务')}}
                                         </a>
@@ -1338,6 +1342,10 @@
             },
             // 点击创建任务
             handleCreateTaskClick (tpl) {
+                if (!this.hasPermission(['common_flow_create_task'], tpl.auth_actions)) {
+                    this.onTemplatePermissonCheck(['common_flow_create_task'], tpl)
+                    return
+                }
                 this.isSetVisible = false
                 this.selectedTpl = tpl
                 this.isSelectProjectShow = true

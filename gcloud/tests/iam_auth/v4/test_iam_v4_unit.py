@@ -97,6 +97,18 @@ class MetadataAndModelTest(unittest.TestCase):
             counts = validate_models(*load_models())
         self.assertEqual(counts, {"systems": 1, "resources": 7, "actions": 42, "roles": 9})
 
+    def test_role_names_and_descriptions_match_acceptance_document(self):
+        with override_settings(BK_IAM_RESOURCE_API_HOST="https://sops.example.test"):
+            _, roles = load_models()
+        metadata = {role["id"]: (role["name"], role["description"]) for role in roles}
+        self.assertEqual(metadata["mini_app_user"], ("轻应用使用者", "只能通过轻应用发起任务"))
+        self.assertEqual(metadata["biz_viewer"], ("业务查看者", "项目内业务资源只读"))
+        self.assertEqual(metadata["vendor_flow_executor"], ("外部开发商执行者", "外部人员最小流程执行权限"))
+        self.assertEqual(
+            metadata["platform_auditor"],
+            ("平台审计员", "全平台资源和审计数据只读，不含后台敏感管理能力"),
+        )
+
     def test_platform_auditor_has_no_admin_view_or_write_action(self):
         with override_settings(BK_IAM_RESOURCE_API_HOST="https://sops.example.test"):
             _, roles = load_models()
@@ -463,6 +475,7 @@ class ServiceAndApplyTest(unittest.TestCase):
             ):
                 client = mock.Mock()
                 client.direct_auth.side_effect = outcomes
+                client.list_authorized_resources.return_value = []
                 with self.subTest(actions=(common_action, project_action), outcomes=outcomes):
                     if not expected_missing:
                         PermissionService(client).require_all("alice", "t1", checks)
@@ -475,6 +488,7 @@ class ServiceAndApplyTest(unittest.TestCase):
     def test_require_all_aggregates_both_missing_permissions(self, unused):
         client = mock.Mock()
         client.direct_auth.return_value = False
+        client.list_authorized_resources.return_value = []
         checks = [
             PermissionCheck("common_flow_create_task", resource("common_flow")),
             PermissionCheck("project_common_create_task", resource("project")),
@@ -507,6 +521,7 @@ class ServiceAndApplyTest(unittest.TestCase):
     def test_creator_permission_only_applies_to_v3_configured_action(self, unused):
         client = mock.Mock()
         client.direct_auth.return_value = False
+        client.list_authorized_resources.return_value = []
 
         self.assertFalse(
             PermissionService(client).is_allowed(
@@ -524,17 +539,45 @@ class ServiceAndApplyTest(unittest.TestCase):
         other_flow = creator_resource("flow", "2", username="bob")
         client = mock.Mock()
         client.direct_auth_by_resources.return_value = {"2": False}
+        client.list_authorized_resources.return_value = []
 
         decisions = PermissionService(client).allowed_resources("alice", "t1", "flow_view", [creator_flow, other_flow])
 
         self.assertEqual(decisions, {"1": True, "2": False})
         client.direct_auth_by_resources.assert_called_once_with("t1", mock.ANY, "flow_view", [other_flow])
 
+    @mock.patch("gcloud.iam_auth.scope_resolver.ScopeResolver.authorized_scope")
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
+    def test_project_role_scope_recovers_detail_permission_when_direct_auth_misses(self, unused, authorized_scope):
+        client = mock.Mock()
+        client.direct_auth.return_value = False
+        authorized_scope.return_value = AuthorizedScope(values={"flow": {"1"}})
+
+        allowed = PermissionService(client).is_allowed(
+            "alice", "t1", PermissionCheck("flow_view", resource("flow", "1", project_id="2"))
+        )
+
+        self.assertTrue(allowed)
+        authorized_scope.assert_called_once_with("alice", "t1", "flow_view", include_creator=False)
+
+    @mock.patch("gcloud.iam_auth.scope_resolver.ScopeResolver.authorized_scope")
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
+    def test_project_role_scope_recovers_batch_resource_permissions(self, unused, authorized_scope):
+        resources = [resource("flow", "1"), resource("flow", "2")]
+        client = mock.Mock()
+        client.direct_auth_by_resources.return_value = {"1": False, "2": False}
+        authorized_scope.return_value = AuthorizedScope(values={"flow": {"1", "2"}})
+
+        decisions = PermissionService(client).allowed_resources("alice", "t1", "flow_view", resources)
+
+        self.assertEqual(decisions, {"1": True, "2": True})
+
     @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_action_permission_only_sends_non_creator_actions_to_gateway(self, unused):
         common_flow = creator_resource("common_flow")
         client = mock.Mock()
         client.direct_auth_by_actions.return_value = {"common_flow_create_task": False}
+        client.list_authorized_resources.return_value = []
 
         decisions = PermissionService(client).allowed_actions(
             "alice",
@@ -561,6 +604,7 @@ class ServiceAndApplyTest(unittest.TestCase):
             {"1": True, "2": False},
             {"1": False, "2": True},
         ]
+        client.list_authorized_resources.return_value = []
 
         decisions = PermissionService(client).allowed_resource_actions(
             "alice", "t1", ["flow_view", "flow_edit"], resources
@@ -574,6 +618,32 @@ class ServiceAndApplyTest(unittest.TestCase):
             },
         )
         validate_resources.assert_called_once_with(resources, "t1")
+
+    @mock.patch("gcloud.iam_auth.scope_resolver.ScopeResolver.authorized_scope")
+    @mock.patch("gcloud.iam_auth.service.validate_local_resources")
+    def test_project_role_scope_recovers_list_row_action_matrix(self, unused, authorized_scope):
+        resources = [resource("flow", "1"), resource("flow", "2")]
+        client = mock.Mock()
+        client.direct_auth_by_resources.side_effect = [
+            {"1": False, "2": False},
+            {"1": False, "2": False},
+        ]
+        authorized_scope.side_effect = [
+            AuthorizedScope(values={"flow": {"1", "2"}}),
+            AuthorizedScope.empty(),
+        ]
+
+        decisions = PermissionService(client).allowed_resource_actions(
+            "alice", "t1", ["flow_view", "flow_edit"], resources
+        )
+
+        self.assertEqual(
+            decisions,
+            {
+                "1": {"flow_view": True, "flow_edit": False},
+                "2": {"flow_view": True, "flow_edit": False},
+            },
+        )
 
     @mock.patch("gcloud.iam_auth.apply_service.validate_local_resource")
     def test_apply_service_deduplicates_and_uses_server_resource_path(self, unused):

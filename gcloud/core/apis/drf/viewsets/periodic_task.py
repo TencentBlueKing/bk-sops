@@ -407,10 +407,10 @@ class PeriodicTaskViewSet(GcloudModelViewSet):
             COMMON: [inst["template_id"] for inst in instances if inst["template_source"] == COMMON],
         }
         template_view_actions = get_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], tmpl_data[PROJECT]
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], tmpl_data[PROJECT], request.user.tenant_id
         )
         common_template_view_actions = get_common_flow_allowed_actions_for_user(
-            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], tmpl_data[COMMON]
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], tmpl_data[COMMON], request.user.tenant_id
         )
         view_actions = {
             PROJECT: template_view_actions,

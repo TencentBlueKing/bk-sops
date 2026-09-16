@@ -17,7 +17,7 @@ class ScopeResolver:
     def __init__(self, client=None):
         self.client = client or IAMV4Client()
 
-    def authorized_scope(self, username, tenant_id, action_id):
+    def authorized_scope(self, username, tenant_id, action_id, include_creator=True):
         validate_identity(username, tenant_id)
         if action_id not in ACTION_RESOURCE_TYPES:
             raise IAMV4ProtocolError("unknown action id")
@@ -44,7 +44,7 @@ class ScopeResolver:
                 if ids != ["*"]:
                     project_queryset = project_queryset.filter(id__in=ids)
                 clauses.setdefault(target_type, []).append(Q(project_id__in=project_queryset.values("id")))
-        if target_type and has_creator_action(target_type, action_id):
+        if include_creator and target_type and has_creator_action(target_type, action_id):
             creator_queryset = creator_local_queryset(target_type, username, tenant_id)
             clauses.setdefault(target_type, []).append(Q(id__in=creator_queryset.values("id")))
 
