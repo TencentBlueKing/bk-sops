@@ -27,7 +27,7 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.core.management import BaseCommand, CommandError
-from django.db import close_old_connections, reset_queries
+from django.db import close_old_connections, connection, reset_queries
 from django.db.models import Count, Max
 from django.utils import timezone
 from pipeline.models import Snapshot
@@ -752,7 +752,12 @@ class Command(BaseCommand):
             return ""
 
     def _release_idle_memory(self):
-        close_old_connections()
+        # ``close_old_connections()`` closes connections that have reached
+        # their maximum age. Closing the active connection inside an atomic
+        # block (for example, Django ``TestCase`` or a caller-managed
+        # transaction) marks it for rollback and breaks the next batch query.
+        if not connection.in_atomic_block:
+            close_old_connections()
         if settings.DEBUG:
             reset_queries()
         gc.collect()

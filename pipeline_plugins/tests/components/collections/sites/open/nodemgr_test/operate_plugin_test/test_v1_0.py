@@ -9,6 +9,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import importlib
 from unittest.mock import MagicMock
 
 from django.test import TestCase
@@ -31,9 +32,15 @@ if not getattr(env, "BK_NODEMGR_WEB_URL", None):
 else:
     WEB_URL = env.BK_NODEMGR_WEB_URL
 
-from pipeline_plugins.components.collections.sites.open.nodemgr.operate_plugin.v1_0 import (  # noqa: E402
-    NodemgrOperatePluginComponent,
-)
+_original_nodemgr_enable = env.BK_NODEMGR_ENABLE
+env.BK_NODEMGR_ENABLE = True
+try:
+    from pipeline_plugins.components.collections.sites.open.nodemgr.operate_plugin import v1_0 as operate_plugin_v1_0
+
+    operate_plugin_v1_0 = importlib.reload(operate_plugin_v1_0)
+    NodemgrOperatePluginComponent = operate_plugin_v1_0.NodemgrOperatePluginComponent
+finally:
+    env.BK_NODEMGR_ENABLE = _original_nodemgr_enable
 
 
 class NodemgrOperatePluginComponentTest(TestCase, ComponentTestMixin):
@@ -69,9 +76,7 @@ class MockClient:
         self.plugin_workflow_operation_list = MagicMock(return_value=plugin_workflow_operation_list_return)
 
 
-GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.nodemgr.base.BKNodemgrClient"
-)
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodemgr.base.BKNodemgrClient"
 
 
 # ============================================================
