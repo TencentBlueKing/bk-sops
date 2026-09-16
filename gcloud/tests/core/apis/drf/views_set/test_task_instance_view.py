@@ -115,6 +115,10 @@ class TestTaskInstanceView(
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):
         super(TestTaskInstanceView, self).setUp()
+        # 多租户模式下用户租户默认为空串，会导致 project__tenant_id 过滤掉全部测试数据，
+        # 这里显式把测试用户与测试数据统一到 default 租户
+        self.superuser.tenant_id = "default"
+        self.superuser.save(update_fields=["tenant_id"])
         self.iam_instances_patcher = patch(
             "gcloud.core.apis.drf.viewsets.utils.IAMMixin.iam_get_instances_auth_actions", return_value=None
         )
