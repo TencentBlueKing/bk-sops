@@ -24,13 +24,12 @@ from gcloud.core.apis.drf.permission import IamPermission, IamPermissionInfo
 from gcloud.core.apis.drf.viewsets import GcloudListViewSet
 from gcloud.iam_auth import IAMMeta, res_factory
 from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 class TemplateOperateRecordSetPermission(IamPermission):
     actions = {
-        "list": IamPermissionInfo(
-            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project_id"
-        ),
+        "list": IamPermissionInfo(IAMMeta.FLOW_VIEW_ACTION, res_factory.resources_for_flow, id_field="instance_id"),
     }
 
 
@@ -89,6 +88,14 @@ class TemplateOperateRecordSetViewSet(GcloudListViewSet):
         # 获取项目id, -1 为公共流程
         project_id = serializer.validated_data.get("project_id", "-1")
         instance_id = serializer.validated_data["instance_id"]
+        template = TaskTemplate.objects.filter(
+            id=instance_id,
+            project__tenant_id=request.user.tenant_id,
+        ).first()
+        if template is None:
+            raise ObjectDoesNotExistException("Template id: {} does not exist".format(instance_id))
+        if template.project_id != project_id:
+            raise PermissionDenied("Template does not belong to the requested project")
         queryset = self.get_queryset().filter(project_id=project_id, instance_id=instance_id)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
