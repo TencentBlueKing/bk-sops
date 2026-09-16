@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -43,9 +42,9 @@ class NodemgrBaseService(BasePluginService):
     __need_schedule__ = True
     interval = StaticIntervalGenerator(10)  # 10秒轮询一次
 
-    def get_client(self, username=None):
+    def get_client(self, username=None, tenant_id=None):
         """获取 BKNodemgrClient 实例"""
-        return BKNodemgrClient(username=username)
+        return BKNodemgrClient(username=username, tenant_id=tenant_id)
 
     def outputs_format(self):
         return [
@@ -158,8 +157,8 @@ class NodemgrBaseService(BasePluginService):
             self.logger.exception(f"Check workflow result error: {e}")
             return True, False, 0, 0, str(e)
 
-    def get_public_key(self, username=None):
-        client = self.get_client(username=username)
+    def get_public_key(self, username=None, tenant_id=None):
+        client = self.get_client(username=username, tenant_id=tenant_id)
         public_key_result = client.public_key_get()
         public_key = public_key_result.get("data", {}).get("public_key", "")
         if public_key == "":
@@ -167,12 +166,12 @@ class NodemgrBaseService(BasePluginService):
 
         return public_key
 
-    def encrypt_credit(self, username=None, auth_info=None):
+    def encrypt_credit(self, username=None, tenant_id=None, auth_info=None):
         """加密password或key, 传入的auth_info为js内定义的password类型传递的dict"""
         if auth_info is None:
             auth_info = {}
         auth_credit: str = crypto.decrypt(parse_passwd_value(auth_info))
-        public_key = self.get_public_key(username=username)
+        public_key = self.get_public_key(username=username, tenant_id=tenant_id)
         public_key = serialization.load_pem_public_key(public_key.encode())
 
         rsa_label = b"com.example.crypto.rsa.v1"
@@ -195,10 +194,10 @@ class NodemgrBaseService(BasePluginService):
         except ValueError:
             return None
 
-    def list_host_by_ip(self, biz_id, networkarea_ip_dict=None, username=None):
+    def list_host_by_ip(self, biz_id, networkarea_ip_dict=None, username=None, tenant_id=None):
         if networkarea_ip_dict is None:
             networkarea_ip_dict = {}
-        client = self.get_client(username=username)
+        client = self.get_client(username=username, tenant_id=tenant_id)
         result = {}
 
         for networkarea_id, ip_list in networkarea_ip_dict.items():
@@ -221,7 +220,9 @@ class NodemgrBaseService(BasePluginService):
                 networkarea_id=networkarea_id,
                 ipv4_list=ipv4_list,
                 ipv6_list=ipv6_list,
+                limit=123,
             )
+
             if response.get("code") != 0:
                 raise Exception(f"获取host列表失败: {response.get('message', 'Unknown error')}")
 

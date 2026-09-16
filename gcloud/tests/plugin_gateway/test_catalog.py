@@ -621,6 +621,29 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
 
         self.assertEqual([plugin["id"] for plugin in plugins], ["bk_plugin_demo_1", "bk_plugin_demo_2"])
 
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_plugin_meta")
+    @patch("gcloud.plugin_gateway.services.catalog.PluginGatewayCatalogService._get_third_party_plugin_entries")
+    def test_list_third_party_plugins_skips_plugin_when_loading_meta_raises(
+        self, mock_get_plugin_entries, mock_get_plugin_meta
+    ):
+        mock_get_plugin_entries.return_value = [
+            {"code": "broken_plugin", "name": "Broken Plugin"},
+            {"code": "healthy_plugin", "name": "Healthy Plugin"},
+        ]
+
+        def load_meta(plugin_code):
+            if plugin_code == "broken_plugin":
+                raise ValueError("invalid metadata response")
+            return {"description": "remote plugin", "versions": ["1.0.0"]}
+
+        mock_get_plugin_meta.side_effect = load_meta
+
+        with self.assertLogs("root", level="ERROR") as captured_logs:
+            plugins = PluginGatewayCatalogService._list_third_party_plugins()
+
+        self.assertEqual([plugin["id"] for plugin in plugins], ["healthy_plugin"])
+        self.assertIn("broken_plugin", "\n".join(captured_logs.output))
+
     @patch("gcloud.plugin_gateway.services.catalog.PluginServiceApiClient")
     def test_get_third_party_plugin_entries_loads_all_pages(self, mock_client_cls):
         first_page = [

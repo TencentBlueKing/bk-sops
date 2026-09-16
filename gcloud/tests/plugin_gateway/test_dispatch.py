@@ -1,7 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy
 
@@ -32,6 +32,7 @@ class _LazyOutputScheduleComponent:
     bound_service = _LazyOutputScheduleService
 
 
+@override_settings(PLUGIN_GATEWAY_ENABLE=True)
 class PluginGatewayDispatchTaskTestCase(TestCase):
     def setUp(self):
         PluginGatewaySourceConfig.objects.create(

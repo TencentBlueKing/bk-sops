@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 import datetime
 import importlib
+import os
 import sys
 from urllib.parse import urljoin, urlparse
 
@@ -221,6 +222,7 @@ PLUGIN_GATEWAY_FORM_CORS_ALLOW = str(env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_ALLOW or
 PLUGIN_GATEWAY_FORM_CORS_ALLOWED_ORIGINS = {
     origin.strip().rstrip("/") for origin in env.BKAPP_PLUGIN_GATEWAY_FORM_CORS_WHITELIST.split(",") if origin.strip()
 }
+PLUGIN_GATEWAY_BIZ_SCOPE_TYPES = env.BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES
 
 if env.BKAPP_CORS_ALLOW:
     CORS_ORIGIN_WHITELIST = env.BKAPP_CORS_WHITELIST.split(",")
@@ -257,7 +259,7 @@ LOGGING = get_logging_config_dict(locals())
 # mako模板中：<script src="/a.js?v=${ STATIC_VERSION }"></script>
 # 如果静态资源修改了以后，上线前改这个版本号即可
 
-STATIC_VERSION = "3.35.4"
+STATIC_VERSION = "3.35.7"
 DEPLOY_DATETIME = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 APIGW_DOCS_VERSION = STATIC_VERSION + "+" + str(DEPLOY_DATETIME)
 
@@ -503,29 +505,173 @@ MAKO_SANDBOX_SHIELD_WORDS = [
     "__import__",
 ]
 
-# format: module_path: alias
-MAKO_SANDBOX_IMPORT_MODULES = {
-    "datetime": "datetime",
-    "re": "re",
-    "hashlib": "hashlib",
-    "random": "random",
-    "time": "time",
-    "os.path": "os.path",
-    "config.mock.mock_json": "json",
-}
+# 不再预置导入表。环境管理员通过 BKAPP_SOPS_MAKO_IMPORT_MODULES 主动配置，
+# 逗号分隔；``path:alias`` 可把模块挂到不同于路径的根名。
+# 例：datetime,datetime.datetime,re,hashlib,random,time,os.path,json
+# 或：config.mock.mock_json:json
+# 类路径（datetime.datetime）需要引擎提供 resolve_import_object，否则跳过该项。
+# 在解析对象前拒绝危险路径，避免模块导入本身的副作用；新旧引擎均执行此检查。
+_MAKO_IMPORT_DENY_ROOTS = frozenset(
+    {
+        "os",
+        "sys",
+        "subprocess",
+        "importlib",
+        "imp",
+        "runpy",
+        "operator",
+        "inspect",
+        "pickle",
+        "_pickle",
+        "cpickle",
+        "marshal",
+        "shelve",
+        "dill",
+        "ctypes",
+        "cffi",
+        "pty",
+        "platform",
+        "pydoc",
+        "code",
+        "codeop",
+        "builtins",
+        "__builtin__",
+        "gc",
+        "socket",
+        "shutil",
+        "signal",
+        "multiprocessing",
+        "threading",
+        "_thread",
+        "mmap",
+        "fcntl",
+        "resource",
+        "tempfile",
+        "pdb",
+        "bdb",
+        "trace",
+        "timeit",
+        "ast",
+        "compileall",
+        "py_compile",
+        "io",
+        "_io",
+        "http",
+        "urllib",
+        "ftplib",
+        "smtplib",
+        "xmlrpc",
+        "webbrowser",
+        "antigravity",
+    }
+)
+_MAKO_IMPORT_SAFE_SUBMODULES = frozenset({"os.path"})
 
-if env.SOPS_MAKO_IMPORT_MODULES:
-    for module_name in env.SOPS_MAKO_IMPORT_MODULES.split(","):
+try:
+    from bamboo_engine.template.sandbox import resolve_import_object as _resolve_mako_import
+
+    _HAS_RESOLVE_IMPORT_OBJECT = True
+except ImportError:
+    _HAS_RESOLVE_IMPORT_OBJECT = False
+
+    def _resolve_mako_import(mod_path):
+        return importlib.import_module(mod_path)
+
+    def _is_mako_class_path(mod_path):
+        module_path, _, class_name = mod_path.rpartition(".")
+        if not module_path:
+            return False
         try:
-            __import__(module_name)
-        except ImportError as e:
-            err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(module_name, e)
-            print(err)
-            raise ImportError(err)
-        MAKO_SANDBOX_IMPORT_MODULES[module_name] = module_name
+            return isinstance(getattr(importlib.import_module(module_path), class_name), type)
+        except (ImportError, AttributeError):
+            return False
+
+
+MAKO_SANDBOX_IMPORT_MODULES = {}
+for _raw in (getattr(env, "SOPS_MAKO_IMPORT_MODULES", "") or "").split(","):
+    _item = _raw.strip()
+    if not _item:
+        continue
+    if ":" in _item:
+        _mod_path, _alias = [part.strip() for part in _item.split(":", 1)]
+    else:
+        _mod_path = _alias = _item
+    if _mod_path not in _MAKO_IMPORT_SAFE_SUBMODULES and _mod_path.split(".", 1)[0] in _MAKO_IMPORT_DENY_ROOTS:
+        print("refuse dangerous mako import module: {} (alias={})".format(_mod_path, _alias))
+        continue
+    try:
+        _resolve_mako_import(_mod_path)
+    except (ImportError, AttributeError) as e:
+        if not _HAS_RESOLVE_IMPORT_OBJECT and _is_mako_class_path(_mod_path):
+            print(
+                "skip {} in BKAPP_SOPS_MAKO_IMPORT_MODULES: class path needs resolve_import_object ({})".format(
+                    _mod_path, e
+                )
+            )
+            continue
+        err = "{} module in SOPS_MAKO_IMPORT_MODULES import error: {}".format(_mod_path, e)
+        print(err)
+        raise ImportError(err)
+    MAKO_SANDBOX_IMPORT_MODULES[_mod_path] = _alias
+
+# 叠加引擎自身的导入策略；旧引擎没有该函数时，保留上面已过滤的导入表。
+try:
+    from bamboo_engine.template.sandbox import filter_import_modules as _filter_mako_import_modules
+except ImportError:
+
+    def _filter_mako_import_modules(modules):
+        return modules
+
+
+MAKO_SANDBOX_IMPORT_MODULES = _filter_mako_import_modules(MAKO_SANDBOX_IMPORT_MODULES)
+
+# 渲染期注入的系统根名；不要把 ``_module`` / ``caller`` 写进 extra 名单。
+MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = frozenset({"_system", "_loop"})
+MAKO_TEMPLATE_NAME_WHITELIST_MODE = getattr(env, "SOPS_MAKO_WHITELIST_MODE", "enforce").strip().lower()
+if MAKO_TEMPLATE_NAME_WHITELIST_MODE not in {"off", "warn", "enforce"}:
+    raise ValueError("BKAPP_SOPS_MAKO_WHITELIST_MODE must be off, warn or enforce")
 
 BambooSettings.MAKO_SANDBOX_IMPORT_MODULES = MAKO_SANDBOX_IMPORT_MODULES
 BambooSettings.MAKO_SANDBOX_SHIELD_WORDS = MAKO_SANDBOX_SHIELD_WORDS
+BambooSettings.MAKO_TEMPLATE_NAME_WHITELIST_MODE = MAKO_TEMPLATE_NAME_WHITELIST_MODE
+BambooSettings.MAKO_TEMPLATE_NAME_EXTRA_WHITELIST = MAKO_TEMPLATE_NAME_EXTRA_WHITELIST
+
+
+# bamboo-engine 不会自动读取环境变量或 Django settings，需在首次渲染前显式绑定。
+# PaaS V2/V3 共用此入口；默认使用 subprocess；显式配置 inprocess 可切回进程内，详见部署文档 mako_render.md。
+def _mako_render_bool(name, default):
+    value = os.getenv(name, default).strip().lower()
+    if value not in {"0", "1", "false", "true"}:
+        raise ValueError("{} must be 0/1 or false/true".format(name))
+    return value in {"1", "true"}
+
+
+MAKO_RENDER_BACKEND = os.getenv("BKAPP_MAKO_RENDER_BACKEND", "subprocess").strip().lower()
+if MAKO_RENDER_BACKEND not in {"inprocess", "subprocess"}:
+    raise ValueError("BKAPP_MAKO_RENDER_BACKEND must be inprocess or subprocess")
+MAKO_RENDER_POOL_SIZE = int(os.getenv("BKAPP_MAKO_RENDER_POOL_SIZE", "4"))
+MAKO_RENDER_MAX_USES = int(os.getenv("BKAPP_MAKO_RENDER_MAX_USES", "500"))
+MAKO_RENDER_TIMEOUT = float(os.getenv("BKAPP_MAKO_RENDER_TIMEOUT", "30"))
+MAKO_RENDER_FALLBACK_INPROCESS = _mako_render_bool("BKAPP_MAKO_RENDER_FALLBACK_INPROCESS", "0")
+MAKO_RENDER_OS_HARDEN = _mako_render_bool("BKAPP_MAKO_RENDER_OS_HARDEN", "1")
+# Network namespace isolation is opt-in for PaaS containers without namespace privileges.
+MAKO_RENDER_NO_NETWORK = _mako_render_bool("BKAPP_MAKO_RENDER_NO_NETWORK", "0")
+MAKO_RENDER_RLIMIT_CPU = int(os.getenv("BKAPP_MAKO_RENDER_RLIMIT_CPU", "30"))
+MAKO_RENDER_RLIMIT_AS_MB = int(os.getenv("BKAPP_MAKO_RENDER_RLIMIT_AS_MB", "1024"))
+MAKO_RENDER_ENV_SCRUB_EXTRA = [
+    name.strip() for name in os.getenv("BKAPP_MAKO_RENDER_ENV_SCRUB_EXTRA", "").split(",") if name.strip()
+]
+
+BambooSettings.MAKO_RENDER_BACKEND = MAKO_RENDER_BACKEND
+BambooSettings.MAKO_RENDER_POOL_SIZE = MAKO_RENDER_POOL_SIZE
+BambooSettings.MAKO_RENDER_MAX_USES = MAKO_RENDER_MAX_USES
+BambooSettings.MAKO_RENDER_TIMEOUT = MAKO_RENDER_TIMEOUT
+BambooSettings.MAKO_RENDER_FALLBACK_INPROCESS = MAKO_RENDER_FALLBACK_INPROCESS
+BambooSettings.MAKO_RENDER_OS_HARDEN = MAKO_RENDER_OS_HARDEN
+BambooSettings.MAKO_RENDER_NO_NETWORK = MAKO_RENDER_NO_NETWORK
+BambooSettings.MAKO_RENDER_RLIMIT_CPU = MAKO_RENDER_RLIMIT_CPU
+BambooSettings.MAKO_RENDER_RLIMIT_AS_MB = MAKO_RENDER_RLIMIT_AS_MB
+BambooSettings.MAKO_RENDER_ENV_SCRUB_EXTRA = MAKO_RENDER_ENV_SCRUB_EXTRA
 
 ENABLE_EXAMPLE_COMPONENTS = False
 
@@ -540,6 +686,9 @@ ScalableQueues.add(name=API_TASK_QUEUE_NAME)
 # 添加周期任务的celery任务队列
 PERIODIC_TASK_QUEUE_NAME = "periodic_task_queue"
 ScalableQueues.add(name=PERIODIC_TASK_QUEUE_NAME)
+
+# 插件网关总开关，关闭时不向 open_plugin_* 队列投递消息
+PLUGIN_GATEWAY_ENABLE = env.PLUGIN_GATEWAY_ENABLE
 
 # 插件网关独立队列
 OPEN_PLUGIN_DISPATCH_QUEUE_NAME = "open_plugin_dispatch"
@@ -579,6 +728,8 @@ CELERYBEAT_SCHEDULE.update(
             "task": "gcloud.plugin_gateway.tasks.sweep_expired_plugin_gateway_runs",
             "schedule": 60.0,
             "options": {"queue": OPEN_PLUGIN_POLLING_QUEUE_NAME},
+            # 保留条目，让 DatabaseScheduler 同步停用数据库中已有的周期任务。
+            "enabled": PLUGIN_GATEWAY_ENABLE and env.ENABLE_PLUGIN_GATEWAY_SWEEP,
         }
     }
 )
@@ -881,11 +1032,15 @@ PIPELINE_DIAGNOSTICS_ALERT_ENABLED = env.DIAGNOSTICS_ALERT_ENABLED
 PIPELINE_DIAGNOSTICS_APPLY_ENABLED = env.DIAGNOSTICS_APPLY_ENABLED
 PIPELINE_DIAGNOSTICS_STALL_THRESHOLD_SECONDS = env.DIAGNOSTICS_STALL_THRESHOLD_SECONDS
 PIPELINE_DIAGNOSTICS_SCAN_BATCH = env.DIAGNOSTICS_SCAN_BATCH
+PIPELINE_DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS = env.DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS
 PIPELINE_DIAGNOSTICS_SECOND_CONFIRM_SECONDS = env.DIAGNOSTICS_SECOND_CONFIRM_SECONDS
 # bk-sops 侧周期任务调度与补充扫描
 DIAGNOSTICS_SCAN_CRON = env.DIAGNOSTICS_SCAN_CRON
 DIAGNOSTICS_CLEANUP_CRON = env.DIAGNOSTICS_CLEANUP_CRON
 DIAGNOSTICS_SUPPLEMENT_BATCH = env.DIAGNOSTICS_SUPPLEMENT_BATCH
+DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS = env.DIAGNOSTICS_SUPPLEMENT_MIN_RUNNING_SECONDS
+DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS = env.DIAGNOSTICS_SUPPLEMENT_MAX_RUNNING_SECONDS
+DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH = env.DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = env.ENABLE_SWAGGER_UI
@@ -992,6 +1147,7 @@ MESSAGE_HELPER_URL = env.MESSAGE_HELPER_URL
 
 # bk_audit
 ENABLE_BK_AUDIT = True if env.BK_AUDIT_DATA_TOKEN else False
+BK_AUDIT_DELEGATED_OPERATOR_APPS = env.BK_AUDIT_DELEGATED_OPERATOR_APPS
 BK_AUDIT_SETTINGS = {
     "log_queue_limit": 50000,
     "exporters": ["bk_audit.contrib.opentelemetry.exporters.OTLogExporter"],

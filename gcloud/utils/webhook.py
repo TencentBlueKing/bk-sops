@@ -30,26 +30,37 @@ from gcloud.utils.local import thread_local
 logger = logging.getLogger("root")
 
 
-def get_webhook_configs(scope_code):
+NON_SENSITIVE_EXTRA_INFO_FIELDS = ("retry_times", "interval", "timeout")
+
+
+def get_webhook_configs(scope_code, expose_sensitive=True):
     """
     get webhook retry policy of scope
     """
     try:
         webhook = WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code=scope_code).first()
         if webhook is None:
-            return {}
+            return {"result": True, "message": "success", "data": {}}
+
+        extra_info = process_sensitive_info(webhook.extra_info, is_decrypt=True)
+        if not expose_sensitive:
+            extra_info = {
+                field: extra_info.get(field) for field in NON_SENSITIVE_EXTRA_INFO_FIELDS if field in extra_info
+            }
+
         result = {
             "method": webhook.method,
             "endpoint": webhook.endpoint,
-            "extra_info": process_sensitive_info(webhook.extra_info, is_decrypt=True),
-            # webhook 组件没有独立启停字段；配置存在即表示启用。
+            "extra_info": extra_info,
+            # bkflow-django-webhook 2.0.2 has no enable_webhook field;
+            # configuration existence means enabled.
             "enable_webhook": True,
         }
     except Exception as e:
         logger.exception(f"get_scope_webhooks error: {e}")
-        return {"result": False, "message": f"Failed to get webhook configs: {e}", "data": {}, "code": "500"}
+        return {"result": False, "message": f"Failed to get webhook configs: {e}", "data": {}}
 
-    return result
+    return {"result": True, "message": "success", "data": result}
 
 
 def get_webhook_delivery_history_by_delivery_id(delivery_id):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -10,9 +9,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import env
+from unittest.mock import MagicMock
+
 from django.test import TestCase
-from mock import MagicMock
 from pipeline.component_framework.test import (
     Call,
     CallAssertion,
@@ -22,6 +21,8 @@ from pipeline.component_framework.test import (
     Patcher,
     ScheduleAssertion,
 )
+
+import env
 
 # 兜底注入 env 中的 nodemgr 配置, 保证非 PaaS V3 环境下也能加载组件
 WEB_URL = "http://nodemgr.test"
@@ -86,7 +87,7 @@ class NodemgrOperateNodeComponentTest(TestCase, ComponentTestMixin):
         return NodemgrOperateNodeComponent
 
 
-class MockClient(object):
+class MockClient:
     def __init__(
         self,
         networkunit_recommand_return=None,
@@ -209,7 +210,7 @@ INSTALL_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-install-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-install-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-install-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -218,7 +219,7 @@ INSTALL_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-install-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-install-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-install-1",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -299,7 +300,7 @@ INSTALL_AGENT_LIST_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-install-2",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-install-2".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-install-2",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -308,7 +309,7 @@ INSTALL_AGENT_LIST_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-install-2",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-install-2".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-install-2",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -385,7 +386,7 @@ INSTALL_PROXY_BATCH_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-proxy-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-proxy-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-proxy-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -394,7 +395,7 @@ INSTALL_PROXY_BATCH_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-proxy-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-proxy-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-proxy-1",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -884,7 +885,7 @@ UPGRADE_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-upgrade-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-upgrade-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-upgrade-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -893,7 +894,7 @@ UPGRADE_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-upgrade-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-upgrade-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-upgrade-1",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -1159,7 +1160,7 @@ RESTART_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-restart-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-restart-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-restart-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -1168,7 +1169,7 @@ RESTART_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-restart-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-restart-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-restart-1",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -1233,7 +1234,7 @@ RESTART_RECONFIG_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-reconfig-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-reconfig-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-reconfig-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -1242,7 +1243,7 @@ RESTART_RECONFIG_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-reconfig-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-reconfig-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-reconfig-1",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -1475,7 +1476,7 @@ UNINSTALL_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-uninstall-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-uninstall-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-uninstall-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -1484,7 +1485,7 @@ UNINSTALL_AGENT_BATCH_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-uninstall-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-uninstall-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-uninstall-1",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -1775,7 +1776,7 @@ SCHEDULE_WORKFLOW_FAILED_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-fail-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-fail-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-fail-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -1784,7 +1785,7 @@ SCHEDULE_WORKFLOW_FAILED_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-fail-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-fail-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-fail-1",
             "success_count": 0,
             "failed_count": 1,
             "ex_data": "Workflow 执行失败: Operation op-fail-1 failed",
@@ -1852,7 +1853,7 @@ SCHEDULE_WORKFLOW_RUNNING_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-running-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-running-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-running-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -1861,7 +1862,7 @@ SCHEDULE_WORKFLOW_RUNNING_CASE = ComponentTestCase(
         schedule_finished=False,
         outputs={
             "workflow_id": "wf-running-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-running-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-running-1",
         },
     ),
     patchers=[
@@ -1908,7 +1909,7 @@ SCHEDULE_WORKFLOW_EMPTY_OPERATIONS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-empty-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-empty-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-empty-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -1917,7 +1918,7 @@ SCHEDULE_WORKFLOW_EMPTY_OPERATIONS_CASE = ComponentTestCase(
         schedule_finished=False,
         outputs={
             "workflow_id": "wf-empty-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-empty-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-empty-1",
         },
     ),
     patchers=[
@@ -1964,7 +1965,7 @@ SCHEDULE_WORKFLOW_API_FAIL_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-apifail-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-apifail-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-apifail-1",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -1973,7 +1974,7 @@ SCHEDULE_WORKFLOW_API_FAIL_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-apifail-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-apifail-1".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-apifail-1",
             "success_count": 0,
             "failed_count": 0,
             "ex_data": "Workflow 执行失败: wf api fail",
@@ -2055,7 +2056,7 @@ SCHEDULE_NO_WORKFLOW_ID_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-tobe-empty",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-tobe-empty".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-tobe-empty",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -2064,7 +2065,7 @@ SCHEDULE_NO_WORKFLOW_ID_CASE = ComponentTestCase(
         schedule_finished=False,
         outputs={
             "workflow_id": "wf-tobe-empty",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-tobe-empty".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-tobe-empty",
         },
     ),
     patchers=[

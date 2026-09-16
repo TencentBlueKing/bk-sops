@@ -4,6 +4,8 @@
             ref="aiBlueking"
             :url="aiAgentUrl"
             ext-cls="ai-spops-blueking-wrapper"
+            :enable-popup="false"
+            :error-toast="false"
             :request-options="requestOptions" />
     </div>
 </template>

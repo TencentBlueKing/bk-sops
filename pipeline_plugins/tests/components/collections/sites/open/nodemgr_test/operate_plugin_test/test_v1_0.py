@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -10,9 +9,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
-import env
+from unittest.mock import MagicMock
+
 from django.test import TestCase
-from mock import MagicMock
 from pipeline.component_framework.test import (
     Call,
     CallAssertion,
@@ -22,6 +21,8 @@ from pipeline.component_framework.test import (
     Patcher,
     ScheduleAssertion,
 )
+
+import env
 
 # 兜底注入 env 中的 nodemgr 配置, 保证非 PaaS V3 环境下也能加载组件
 WEB_URL = "http://nodemgr.test"
@@ -54,7 +55,7 @@ class NodemgrOperatePluginComponentTest(TestCase, ComponentTestMixin):
         return NodemgrOperatePluginComponent
 
 
-class MockClient(object):
+class MockClient:
     def __init__(
         self,
         host_list_return=None,
@@ -124,7 +125,7 @@ INSTALL_PLUGIN_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-plugin-install-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-plugin-install-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-plugin-install-1?active=plugin",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -133,7 +134,7 @@ INSTALL_PLUGIN_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-plugin-install-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-plugin-install-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-plugin-install-1?active=plugin",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -299,7 +300,7 @@ UNINSTALL_PLUGIN_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-plugin-uninstall-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-plugin-uninstall-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-plugin-uninstall-1?active=plugin",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -308,7 +309,7 @@ UNINSTALL_PLUGIN_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-plugin-uninstall-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-plugin-uninstall-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-plugin-uninstall-1?active=plugin",
             "success_count": 1,
             "failed_count": 0,
         },
@@ -455,7 +456,7 @@ SCHEDULE_PLUGIN_FAILED_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-plugin-fail-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-plugin-fail-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-plugin-fail-1?active=plugin",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -464,7 +465,7 @@ SCHEDULE_PLUGIN_FAILED_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-plugin-fail-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-plugin-fail-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-plugin-fail-1?active=plugin",
             "success_count": 0,
             "failed_count": 1,
             "ex_data": "Workflow 执行失败: Operation op-pf-1 failed",
@@ -575,7 +576,7 @@ UNINSTALL_PLUGIN_PARTIAL_HOST_SUCCESS_CASE = ComponentTestCase(
         success=True,
         outputs={
             "workflow_id": "wf-partial-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-partial-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-partial-1?active=plugin",
         },
     ),
     schedule_assertion=ScheduleAssertion(
@@ -584,7 +585,7 @@ UNINSTALL_PLUGIN_PARTIAL_HOST_SUCCESS_CASE = ComponentTestCase(
         schedule_finished=True,
         outputs={
             "workflow_id": "wf-partial-1",
-            "workflow_url": "{}/#/node-manager/history/detail/wf-partial-1?active=plugin".format(WEB_URL),
+            "workflow_url": f"{WEB_URL}/#/node-manager/history/detail/wf-partial-1?active=plugin",
             "success_count": 1,
             "failed_count": 0,
         },

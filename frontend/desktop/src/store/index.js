@@ -44,7 +44,7 @@ const store = new Vuex.Store({
         },
         hasAdminPerm: null, // 是否有管理员查看权限
         hasStatisticsPerm: null, // 是否有运营数据查看权限
-        hideHeader: window.HIDE_HEADER === 1,
+        hideHeader: window.HIDE_HEADER === 1 || (window.self !== window.top && window.location.pathname.startsWith(`${window.SITE_URL}sub/`)),
         site_url: window.SITE_URL,
         app_id: window.APP_ID, // 轻应用 id
         view_mode: window.VIEW_MODE,

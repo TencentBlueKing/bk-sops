@@ -35,7 +35,17 @@ class Command(BaseCommand):
         call_command("sync_apigw_stage", file=definition_file_path)
 
         print("[bk-sops]call sync_apigw_resources with resources: %s" % resources_file_path)
-        call_command("sync_apigw_resources", file=resources_file_path)
+        try:
+            call_command("sync_apigw_resources", file=resources_file_path)
+        except (Exception, SystemExit) as error:
+            # apigw-manager converts HTTP failures to SystemExit(1).
+            if not isinstance(error, SystemExit) or error.code not in (None, 0):
+                self.stderr.write(
+                    "[bk-sops]网关资源同步失败，后续文档同步和版本发布未执行。"
+                    "若上方错误是日志接口资源名称重复，请核对目标网关是否保留旧路径，"
+                    "并按 docs/zh_hans/deploy/apigw_log_resource_migration.md 原地迁移后重试。"
+                )
+            raise
 
         print("[bk-sops]call sync_resource_docs_by_archive with definition: %s" % definition_file_path)
         call_command("sync_resource_docs_by_archive", file=definition_file_path)

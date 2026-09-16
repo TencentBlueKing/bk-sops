@@ -1481,6 +1481,7 @@ const en = {
     '任务名': 'Task Name',
     'task_任务名': 'Name',
     'ID/任务名/创建人/执行人/状态/执行方式/执行代理人': 'ID/Name/Created At/Created By/Status/Source/Representative',
+    'ID/任务名/流程ID/创建人/执行人/状态/执行方式/执行代理人': 'ID/Name/Flow ID/Created At/Created By/Status/Source/Representative',
     'ID/任务名/创建人/更新人/状态': 'ID/Task Name/Creator/Editor/Status',
     'ID/任务名/创建人/更新人/状态/流程更新': 'ID/Task Name/Creator/Editor/Status/Flow Changed',
     '应用名': 'App Name',

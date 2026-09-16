@@ -23,8 +23,10 @@ from django.views.decorators.http import require_POST
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_response
 from gcloud.conf import settings
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit
 from gcloud.core.api_adapter.user_info import get_bk_username_by_tenant
 from gcloud.core.models import Business, EnvironmentVariables, Project
+from gcloud.iam_auth import IAMMeta
 from packages.bkapi.bk_cmdb.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
@@ -107,6 +109,13 @@ def register_project(request):
         message = "[api register_project] Error exists when create object: {}".format(e)
         logger.exception(message)
         return JsonResponse({"result": False, "message": message, "code": err_code.UNKNOWN_ERROR.code})
+
+    bk_audit_add_event_on_commit(
+        username=request.user.username,
+        action_id=IAMMeta.PROJECT_EDIT_ACTION,
+        resource_id=IAMMeta.PROJECT_RESOURCE,
+        instance=project,
+    )
 
     return JsonResponse(
         {

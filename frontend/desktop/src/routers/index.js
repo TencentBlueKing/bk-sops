@@ -12,6 +12,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store/index.js'
+import { connectToMain } from '@blueking/sub-saas'
 
 const NotFoundComponent = () => import('@/components/layout/NotFoundComponent.vue')
 const NotPermissionComponent = () => import('@/components/layout/NotPermissionComponent.vue')
@@ -74,8 +75,14 @@ const APPMAKER = {
     routes: ['appmakerTaskCreate', 'appmakerTaskExecute', 'appmakerTaskHome']
 }
 
+// 判断是否为 iframe 嵌入模式
+const isInIframe = window.self !== window.top
+// 仅在iframe嵌入且路径以 SITE_URL + sub/ 开头时才使用子系统路由 base
+const isSubPath = isInIframe && window.location.pathname.startsWith(`${SITE_URL}sub/`)
+const routerBase = isSubPath ? `${SITE_URL}sub/` : SITE_URL
+
 const routers = new VueRouter({
-    base: SITE_URL,
+    base: routerBase,
     mode: 'history',
     routes: [
         {
@@ -564,4 +571,9 @@ routers.onError(error => {
     }
 })
 
+// SITE_URL非/时因pathname非/sub开头导致subEnv=false不生效
+// 路由同步postMessage
+if (isInIframe) {
+    connectToMain(routers)
+}
 export default routers

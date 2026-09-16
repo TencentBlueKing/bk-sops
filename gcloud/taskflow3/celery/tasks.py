@@ -17,6 +17,7 @@ import socket
 import time
 
 import requests
+from bamboo_engine import states as bamboo_engine_states
 from celery import current_app
 from django.conf import settings
 from django.utils import timezone
@@ -259,6 +260,57 @@ def is_schedule_not_found_error(callback_result):
     )
 
 
+def get_callback_error_reason(callback_result):
+    message = callback_result.get("message", "").lower()
+    if is_sleep_process_error(callback_result):
+        return "sleep_process_missing"
+    if is_schedule_not_found_error(callback_result):
+        return "schedule_not_found"
+    if "schedule is already expired" in message:
+        return "schedule_expired"
+    if "node version" in message and "not exist" in message:
+        return "node_version_not_exist"
+    return "unknown"
+
+
+def get_callback_failure_state_context(engine_ver, node_id, node_version):
+    context = {
+        "outcome": "actionable_callback_failure",
+        "reason": "state_unavailable",
+        "current_node_version": None,
+        "current_node_state": None,
+        "current_node_skip": None,
+    }
+    if engine_ver != EngineConfig.ENGINE_VER_V2:
+        return context
+
+    try:
+        current_state = BambooDjangoRuntime().get_state_or_none(node_id)
+    except Exception:
+        context["reason"] = "state_lookup_failed"
+        return context
+
+    if current_state is None:
+        context["reason"] = "state_not_found"
+        return context
+
+    context.update(
+        {
+            "current_node_version": current_state.version,
+            "current_node_state": current_state.name,
+            "current_node_skip": current_state.skip,
+        }
+    )
+    if current_state.version != node_version:
+        context.update({"outcome": "stale_callback_ignored", "reason": "node_version_mismatch"})
+    elif current_state.name in {bamboo_engine_states.FINISHED, bamboo_engine_states.REVOKED}:
+        context.update({"outcome": "stale_callback_ignored", "reason": "node_already_terminal"})
+    else:
+        context["reason"] = "active_node_retry_exhausted"
+
+    return context
+
+
 @current_app.task
 def async_node_callback_retry(
     engine_ver, node_id, node_version, callback_data, taskflow_id=None, project_id=None, retry_times=0
@@ -288,19 +340,27 @@ def async_node_callback_retry(
     ):
         callback_result = dispatcher.dispatch(command="callback", operator="", version=node_version, data=callback_data)
 
+        error_reason = get_callback_error_reason(callback_result)
         logger.info(
-            "[async_node_callback_retry] result of callback call(engine_ver: {} node_id: {}, "
-            "taskflow_id: {}, node_version: {}, retry_times: {}): {}".format(
-                engine_ver, node_id, taskflow_id, node_version, retry_times, callback_result
+            "[async_node_callback_retry] outcome=attempt_result engine_ver={} taskflow_id={} node_id={} "
+            "callback_node_version={} retry_times={} success={} error_reason={} error_code={}".format(
+                engine_ver,
+                taskflow_id,
+                node_id,
+                node_version,
+                retry_times,
+                callback_result.get("result"),
+                error_reason,
+                callback_result.get("code"),
             )
         )
 
         # 如果成功，直接返回
         if callback_result.get("result"):
             logger.info(
-                "[async_node_callback_retry] callback success after async retry, "
-                "engine_ver: {}, node_id: {}, taskflow_id: {}, retry_times: {}".format(
-                    engine_ver, node_id, taskflow_id, retry_times
+                "[async_node_callback_retry] outcome=success engine_ver={} taskflow_id={} node_id={} "
+                "callback_node_version={} retry_times={}".format(
+                    engine_ver, taskflow_id, node_id, node_version, retry_times
                 )
             )
             return callback_result
@@ -308,35 +368,50 @@ def async_node_callback_retry(
         # 如果失败且错误信息中包含 sleep process 相关错误，且未达到最大重试次数，继续异步重试
         if is_sleep_process_error(callback_result) and retry_times < MAX_ASYNC_RETRY_TIMES:
             logger.warning(
-                "[async_node_callback_retry] Sleep process error detected, scheduling next async retry. "
-                "engine_ver: {}, node_id: {}, taskflow_id: {}, node_version: {}, retry_times: {}, message: {}. ".format(
+                "[async_node_callback_retry] outcome=retry_scheduled engine_ver={} taskflow_id={} node_id={} "
+                "callback_node_version={} retry_times={} error_reason={} error_code={}".format(
                     engine_ver,
-                    node_id,
                     taskflow_id,
+                    node_id,
                     node_version,
                     retry_times,
-                    callback_result.get("message", ""),
+                    error_reason,
+                    callback_result.get("code"),
                 )
             )
             async_node_callback_retry.apply_async(
-                kwargs=dict(
-                    engine_ver=engine_ver,
-                    node_id=node_id,
-                    node_version=node_version,
-                    callback_data=callback_data,
-                    taskflow_id=taskflow_id,
-                    project_id=project_id,
-                    retry_times=retry_times + 1,
-                ),
+                kwargs={
+                    "engine_ver": engine_ver,
+                    "node_id": node_id,
+                    "node_version": node_version,
+                    "callback_data": callback_data,
+                    "taskflow_id": taskflow_id,
+                    "project_id": project_id,
+                    "retry_times": retry_times + 1,
+                },
                 queue="task_callback",
                 routing_key="task_callback",
                 countdown=env.ASYNC_NODE_CALLBACK_RETRY_INTERVAL,
             )
         else:
-            logger.error(
-                "[async_node_callback_retry] callback failed after async retry, "
-                "engine_ver: {}, node_id: {}, taskflow_id: {},retry_times: {}, result: {}".format(
-                    engine_ver, node_id, taskflow_id, retry_times, callback_result
+            state_context = get_callback_failure_state_context(engine_ver, node_id, node_version)
+            log = logger.warning if state_context["outcome"] == "stale_callback_ignored" else logger.error
+            log(
+                "[async_node_callback_retry] outcome={} reason={} engine_ver={} taskflow_id={} node_id={} "
+                "callback_node_version={} current_node_version={} current_node_state={} current_node_skip={} "
+                "retry_times={} error_reason={} error_code={}".format(
+                    state_context["outcome"],
+                    state_context["reason"],
+                    engine_ver,
+                    taskflow_id,
+                    node_id,
+                    node_version,
+                    state_context["current_node_version"],
+                    state_context["current_node_state"],
+                    state_context["current_node_skip"],
+                    retry_times,
+                    error_reason,
+                    callback_result.get("code"),
                 )
             )
 
@@ -345,7 +420,13 @@ def async_node_callback_retry(
 
 @current_app.task
 def ai_analysis_notify(
-    bk_biz_id: str, task_id: str, executor: str, receivers: str, msg_type: str, ai_analysis_notify_types: dict
+    bk_biz_id: str,
+    task_id: str,
+    executor: str,
+    receivers: str,
+    msg_type: str,
+    ai_analysis_notify_types: dict,
+    username: str,
 ):
     """
     AI分析通知任务 个人通知
@@ -358,7 +439,7 @@ def ai_analysis_notify(
             f"[ai_analysis_notify] start processing, bk_biz_id: {bk_biz_id}, task_id: {task_id}, msg_type: {msg_type}"
         )
 
-        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
+        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type, username)
 
         if msg_type == ATOM_FAILED and task_error_analysis and task_summary:
 
@@ -407,7 +488,7 @@ def ai_analysis_notify(
 
 
 @current_app.task
-def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str):
+def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group: dict, msg_type: str, username: str):
     """
     AI分析通知任务 群聊通知
     """
@@ -426,7 +507,7 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
             )
             return
 
-        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type)
+        task_summary, task_error_analysis = get_ai_analysis_report(bk_biz_id, task_id, msg_type, username)
 
         # 消息发送
         if msg_type == ATOM_FAILED:
@@ -467,14 +548,14 @@ def ai_analysis_notify_group_chat(bk_biz_id: str, task_id: str, ai_notify_group:
         )
 
 
-def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str) -> tuple:
+def get_ai_analysis_report(bk_biz_id: str, task_id: str, msg_type: str, username: str) -> tuple:
     """
     AI分析报告
     """
 
     task_summary = None
     task_error_analysis = None
-    bk_sops_agent_client = BKSopsAgentClient(env.BK_SOPS_AGENT_HOST, AgentRequestType.PLUGIN)
+    bk_sops_agent_client = BKSopsAgentClient(env.AI_SOPS_AGENT_URL, AgentRequestType.USER, username)
 
     if msg_type == ATOM_FAILED:
         task_summary = bk_sops_agent_client.summarize_task_execution(bk_biz_id, task_id)
@@ -545,7 +626,6 @@ def truncate_error_analysis_content(content, max_bytes=4000) -> str:
 
 
 def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type: str) -> tuple:
-
     """
     AI分析报告群聊通知配置
     """

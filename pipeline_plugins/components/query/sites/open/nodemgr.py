@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
 Edition) available.
@@ -13,13 +12,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-import env
-import ujson as json
 from django.http import JsonResponse
 from django.urls import re_path
 from django.utils.translation import gettext_lazy as _
+import ujson as json
 
 from api.collections.nodemgr import BKNodemgrClient
+import env
 from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
 from gcloud.utils.handlers import handle_api_error
 
@@ -49,7 +48,7 @@ def get_login_info():
 
 
 def nodemgr_get_networkarea(request):
-    client = BKNodemgrClient(username=request.user.username)
+    client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
 
     result = []
     offset = 0
@@ -80,7 +79,7 @@ def nodemgr_get_networkarea(request):
 
 
 def nodemgr_get_networkunit(request, networkarea_id: int):
-    client = BKNodemgrClient(username=request.user.username)
+    client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
 
     result = []
     offset = 0
@@ -111,7 +110,7 @@ def nodemgr_get_networkunit(request, networkarea_id: int):
 
 
 def nodemgr_get_os_type(request, node_role: str):
-    client = BKNodemgrClient(username=request.user.username)
+    client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
 
     response = client.package_distinct(node_role=node_role)
     if response.get("code", -1) != 0:
@@ -128,7 +127,7 @@ def nodemgr_get_os_type(request, node_role: str):
 
 
 def nodemgr_get_release_version(request, node_role: str):
-    client = BKNodemgrClient(username=request.user.username)
+    client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
 
     version_set = set()
     offset = 0
@@ -157,7 +156,7 @@ def nodemgr_get_release_version(request, node_role: str):
 
 
 def nodemgr_get_plugin(request, biz_id: int):
-    client = BKNodemgrClient(username=request.user.username)
+    client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
 
     result = []
     offset = 0
@@ -187,7 +186,7 @@ def nodemgr_get_plugin(request, biz_id: int):
 
 
 def nodemgr_get_plugin_version(request, plugin_pkg_name: str):
-    client = BKNodemgrClient(username=request.user.username)
+    client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
 
     version_set = set()
     offset = 0

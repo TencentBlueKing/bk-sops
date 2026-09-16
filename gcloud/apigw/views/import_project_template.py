@@ -20,6 +20,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
 from gcloud.conf import settings
+from gcloud.contrib.audit.operations import audit_imported_templates
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.models import Action, Request, Subject
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -88,4 +89,5 @@ def import_project_template(request, project_id):
             "code": err_code.UNKNOWN_ERROR.code,
         }
 
+    audit_imported_templates(request.user.username, TaskTemplate, import_result)
     return format_import_result_to_response_data(import_result)

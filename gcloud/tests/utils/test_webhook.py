@@ -11,7 +11,7 @@ class GetWebhookConfigsTestCase(SimpleTestCase):
     def test_no_config_means_disabled(self, webhook_filter):
         webhook_filter.return_value.first.return_value = None
 
-        self.assertEqual(get_webhook_configs("1"), {})
+        self.assertEqual(get_webhook_configs("1"), {"result": True, "message": "success", "data": {}})
 
     @patch("gcloud.utils.webhook.process_sensitive_info", return_value={"token": "decrypted"})
     @patch("gcloud.utils.webhook.WebhookModel.objects.filter")
@@ -22,8 +22,10 @@ class GetWebhookConfigsTestCase(SimpleTestCase):
             extra_info={"token": "encrypted"},
         )
 
-        result = get_webhook_configs("1")
+        response = get_webhook_configs("1")
+        result = response["data"]
 
+        self.assertTrue(response["result"])
         self.assertTrue(result["enable_webhook"])
         self.assertEqual(result["method"], "POST")
         self.assertEqual(result["endpoint"], "https://example.com/webhook")

@@ -33,7 +33,21 @@
 
 将包含 `gcloud.plugin_gateway` 和 `gcloud.apigw.views.plugin_gateway` 变更的版本发布到部署环境。
 
-### 2.2 安装依赖
+### 2.2 开启功能开关
+
+插件网关由 `BKAPP_PLUGIN_GATEWAY_ENABLE` 控制，**默认关闭**，取值为 `1/true/yes/on` 时开启。
+
+关闭时的行为：
+
+- 不注册 `sweep_expired_plugin_gateway_runs` 周期任务，beat 不会向 `open_plugin_polling` 投递消息
+- 创建执行接口返回 `error_type=gateway_disabled`，不会写入 run 记录，也不会向 `open_plugin_dispatch` 投递消息
+- 网关内部回调接口与 `node_callback` 的插件网关分支不会向 `open_plugin_callback` 投递消息
+
+因此未部署 `open_plugin_*` worker 的环境不会出现队列堆积。开启开关前，请先确认 2.5 中的三条队列已经有 worker 消费。
+
+beat 使用 `django_celery_beat` 的 `DatabaseScheduler`，周期任务配置会落到 `PeriodicTask` 表且不会随配置移除自动清理。迁移 `plugin_gateway.0005` 会删除残留的 `sweep_expired_plugin_gateway_runs` 记录，开关开启时 beat 启动会重新登记，无需手工处理。
+
+### 2.3 安装依赖
 
 如部署流程会重建 Python 运行环境，请按常规方式安装依赖：
 
@@ -41,7 +55,7 @@
 pip install -r requirements.txt
 ```
 
-### 2.3 执行数据库迁移
+### 2.4 执行数据库迁移
 
 插件网关新增了以下模型：
 
@@ -54,13 +68,13 @@ pip install -r requirements.txt
 python manage.py migrate
 ```
 
-如需只迁移该 app，可执行：
+如需只迁移该 app，可执行（迁移与开关无关，关闭状态下也可以先建表）：
 
 ```bash
 python manage.py migrate plugin_gateway
 ```
 
-### 2.4 重启服务
+### 2.5 重启服务
 
 部署后应至少重启：
 
@@ -76,7 +90,20 @@ python manage.py celery worker -l info -Q open_plugin_polling
 python manage.py celery worker -l info -Q open_plugin_callback
 ```
 
-`sweep_expired_plugin_gateway_runs` 由 beat 每 60 秒触发，建议确认 beat 配置已随代码发布生效。
+`sweep_expired_plugin_gateway_runs` 默认关闭。使用开放插件的环境需在所有连接该环境数据库和 RabbitMQ 的
+Beat 进程中显式设置 `BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=1`，同时保持 `BKAPP_PLUGIN_GATEWAY_ENABLE=1`，
+重启后由 Beat 每 60 秒触发超时扫描。关闭插件网关总开关也会停用该调度，并同步已有记录。
+
+未使用开放插件、未部署对应消费者的环境，在所有连接该环境数据库和 RabbitMQ 的 Beat 进程中设置
+`BKAPP_ENABLE_PLUGIN_GATEWAY_SWEEP=0`，并重启 Beat，停止投递超时扫描任务。未配置时默认值为 `0`。
+
+当前使用 `django_celery_beat.schedulers.DatabaseScheduler`，Beat 启动时会将该开关同步到
+`PeriodicTask` 中名为 `sweep_expired_plugin_gateway_runs` 的记录，已有记录也会被停用，无需删除记录或执行迁移。
+重启后应确认该记录的 `enabled=False`，且不再新增此类扫描消息；其他周期任务继续运行。
+
+该开关只控制超时扫描，不关闭插件执行、业务轮询或回调，也不清理已入队消息。
+使用开放插件的环境需要保留扫描，特别是等待回调的执行依赖它进行超时兜底。
+恢复使用时，将所有相关 Beat 进程的开关设为 `1` 并重启，原记录会重新启用。
 
 ## 3. 初始化来源配置
 
@@ -128,7 +155,17 @@ PluginGatewaySourceConfig.objects.update_or_create(
 - `callback_domain_allow_list` 只应配置受信任平台域名
 - 内置插件 ID 采用 `builtin__<component_code>`，第三方插件兼容裸 `code`
 
-### 3.1 原生表单凭证 CORS
+### 3.1 业务 Scope 类型
+
+插件网关会将以下环境变量配置的 `scope_type` 按 CMDB 业务 ID 自动解析为标准运维项目：
+
+```text
+BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES=biz,cmdb_biz,bkcc
+```
+
+默认值为 `biz,cmdb_biz,bkcc`。配置值使用英文逗号分隔，会替换默认列表；未包含的 `scope_type` 继续使用来源配置中的 `scope_project_map` 和 `default_project_id` 兜底。
+
+### 3.2 原生表单凭证 CORS
 
 原生动态表单跨域访问默认关闭。仅在 Stage 已确认 BKFlow Origin 和登记接口后，显式配置：
 

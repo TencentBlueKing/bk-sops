@@ -23,7 +23,7 @@ from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.common_template.models import CommonTemplate
 from gcloud.conf import settings
-from gcloud.contrib.audit.utils import bk_audit_add_event
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.contrib.operate_record.constants import OperateSource, OperateType, RecordType
 from gcloud.contrib.operate_record.signal import operate_record_signal
 from gcloud.core.apis.drf.serilaziers.staff_group import StaffGroupSetSerializer
@@ -243,6 +243,8 @@ def modify_template_notify(request, template_id, project_id):
         }
 
     # 保存更新
+    resource_id = IAMMeta.COMMON_FLOW_RESOURCE if is_common else IAMMeta.FLOW_RESOURCE
+    origin_data = get_audit_snapshot(resource_id, template)
     serializer.save()
 
     # 发送信号和记录操作流水
@@ -257,11 +259,12 @@ def modify_template_notify(request, template_id, project_id):
             operate_source=OperateSource.api.name,
             instance_id=template.id,
         )
-        bk_audit_add_event(
+        bk_audit_add_event_on_commit(
             username=request.user.username,
             action_id=IAMMeta.COMMON_FLOW_EDIT_ACTION,
             resource_id=IAMMeta.COMMON_FLOW_RESOURCE,
             instance=template,
+            origin_data=origin_data,
         )
     else:
         post_template_save_commit.send(
@@ -279,11 +282,12 @@ def modify_template_notify(request, template_id, project_id):
             instance_id=template.id,
             project_id=template.project.id,
         )
-        bk_audit_add_event(
+        bk_audit_add_event_on_commit(
             username=request.user.username,
             action_id=IAMMeta.FLOW_EDIT_ACTION,
             resource_id=IAMMeta.FLOW_RESOURCE,
             instance=template,
+            origin_data=origin_data,
         )
     return {
         "result": True,

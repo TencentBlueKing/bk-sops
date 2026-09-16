@@ -12,6 +12,10 @@ specific language governing permissions and limitations under the License.
 """
 
 
+class PluginGatewayDisabledError(ValueError):
+    """Raised when plugin gateway execution is requested while the feature switch is off."""
+
+
 class PluginGatewayConflictError(ValueError):
     """Raised when the same idempotency key is reused with different business payload."""
 

@@ -29,19 +29,11 @@
         is_display_tag(self, ["upgrade", "restart"], value);
     }
 
-    function is_upgrade_op(self, value) {
-        is_display_tag(self, ["upgrade"], value);
-    }
-
     function is_restart_op(self, value) {
         is_display_tag(self, ["restart"], value);
     }
 
-    function is_uninstall_op(self, value) {
-        is_display_tag(self, ["uninstall"], value);
-    }
-
-    function validate_not_empty(self, value, allow_op_type, description) {
+    function validate_not_empty(self, value, opts) {
         let result = {
             result: true,
             error_message: ""
@@ -52,10 +44,10 @@
         }
 
         let op_type = self.get_parent().get_parent().get_child('nodemgr_operation_type');
-        if (op_type && op_type.value === allow_op_type) {
+        if (op_type && op_type.value === opts.allow_op_type) {
             if (value === '') {
                 result.result = false;
-                result.error_message = gettext(description);
+                result.error_message = gettext(opts.description);
             }
         }
 
@@ -530,7 +522,7 @@
                             {
                                 source: "nodemgr_node_role",
                                 type: "init",
-                                action: function (value) {
+                                action: function (_value) {
                                     // 统一以 change 事件抛出
                                     this.emit_event(this.tagCode, "change", this.value);
                                 }
@@ -560,7 +552,7 @@
                             {
                                 source: "nodemgr_operation_type",
                                 type: "init",
-                                action: function (value) {
+                                action: function (_value) {
                                     // 统一以 change 事件抛出
                                     this.emit_event(this.tagCode, "change", this.value);
                                 }
@@ -671,7 +663,7 @@
                             {
                                 source: "nodemgr_force_restart",
                                 type: "init",
-                                action: function (value) {
+                                action: function (_value) {
                                     // 统一以 change 事件抛出
                                     this.emit_event(this.tagCode, "change", this.value);
                                 }
@@ -762,7 +754,7 @@
                             {
                                 source: "nodemgr_hosts_param_mode",
                                 type: "init",
-                                action: function (value) {
+                                action: function (_value) {
                                     // 统一以 change 事件抛出
                                     this.emit_event(this.tagCode, "change", this.value);
                                 }
@@ -853,7 +845,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'install', '管控区域不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'install', description: '管控区域不可为空'});
                                                 }
                                             }
                                         ]
@@ -893,7 +885,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'install', '管控单元不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'install', description: '管控单元不可为空'});
                                                 }
                                             }
                                         ]
@@ -933,7 +925,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'install', '内网IP不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'install', description: '内网IP不可为空'});
                                                 }
                                             }
                                         ],
@@ -953,7 +945,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'install', '寻址方式不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'install', description: '寻址方式不可为空'});
                                                 }
                                             }
                                         ],
@@ -978,7 +970,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'install', '操作系统不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'install', description: '操作系统不可为空'});
                                                 }
                                             }
                                         ],
@@ -987,7 +979,7 @@
                                         {
                                             source: "os_type",
                                             type: "init",
-                                            action: function (value) {
+                                            action: function (_value) {
                                                 this.remote_url = $.context.get("site_url") + 'pipeline/nodemgr_get_os_type/' + this.get_parent().get_parent().get_child("nodemgr_node_role").value + '/'
                                                 this.remoteMethod();
                                             }
@@ -1067,7 +1059,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'install', '登录账号不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'install', description: '登录账号不可为空'});
                                                 }
                                             }
                                         ]
@@ -1210,7 +1202,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'upgrade', '管控区域不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'upgrade', description: '管控区域不可为空'});
                                                 }
                                             }
                                         ]
@@ -1227,7 +1219,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'upgrade', '内网IP不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'upgrade', description: '内网IP不可为空'});
                                                 }
                                             }
                                         ],
@@ -1258,7 +1250,7 @@
                                         {
                                             source: "upgrade_version",
                                             type: "init",
-                                            action: function (value) {
+                                            action: function (_value) {
                                                 this.remote_url = $.context.get("site_url") + 'pipeline/nodemgr_get_release_version/' + this.get_parent().get_parent().get_child("nodemgr_node_role").value + '/'
                                                 this.remoteMethod();
                                             }
@@ -1328,7 +1320,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'restart', '管控区域不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'restart', description: '管控区域不可为空'});
                                                 }
                                             }
                                         ]
@@ -1345,7 +1337,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'restart', '内网IP不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'restart', description: '内网IP不可为空'});
                                                 }
                                             }
                                         ],
@@ -1404,7 +1396,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'uninstall', '管控区域不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'uninstall', description: '管控区域不可为空'});
                                                 }
                                             }
                                         ]
@@ -1421,7 +1413,7 @@
                                             {
                                                 type: "custom",
                                                 args: function (value) {
-                                                    return validate_not_empty(this, value, 'uninstall', '内网IP不可为空');
+                                                    return validate_not_empty(this, value, {allow_op_type: 'uninstall', description: '内网IP不可为空'});
                                                 }
                                             }
                                         ],

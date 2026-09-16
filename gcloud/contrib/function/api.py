@@ -10,6 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from gcloud.contrib.audit.utils import bk_audit_add_event_on_commit, get_audit_snapshot
 from gcloud.contrib.function.models import FunctionTask
 from gcloud.contrib.function.serializers import (
     FunctionTaskClaimantTransferRequestSerializer,
@@ -62,6 +63,14 @@ class FunctionTaskClaimantTransferView(APIView):
                 .exists()
             ):
                 raise ValidationError("target claimant does not belong to tenant")
+            origin_data = get_audit_snapshot(IAMMeta.TASK_RESOURCE, function_task.task)
             function_task.claimant = serializer_data["claimant"]
             function_task.save(update_fields=["claimant"])
+            bk_audit_add_event_on_commit(
+                username=username,
+                action_id=IAMMeta.TASK_CLAIM_ACTION,
+                resource_id=IAMMeta.TASK_RESOURCE,
+                instance=function_task.task,
+                origin_data=origin_data,
+            )
         return Response({"result": True, "data": None})

@@ -152,7 +152,7 @@ def mysetting(request):
         "TASK_STATUS_DISPLAY_VERSION": settings.TASK_STATUS_DISPLAY_VERSION,
         "BK_DATA_REPORT_API_URL": settings.BK_DATA_REPORT_API_URL,
         # agent配置
-        "AI_SOPS_AGENT_URL": env.AI_SOPS_AGENT_URL,
+        "AI_SOPS_AGENT_URL": f"{env.AI_SOPS_AGENT_URL}/bk_plugin/plugin_api/",
         # 是否开启AI分析通知
         "ENABLE_AI_NOTIFICATION": env.ENABLE_AI_NOTIFICATION,
     }
