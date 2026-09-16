@@ -11,23 +11,20 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
-
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.request_resources import load_resource_for_request
 
 
 class TemplateEditInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
+        tenant_id = request.user.tenant_id
+        template_id = kwargs["template_id"]
+        resource = load_resource_for_request(request, IAMMeta.FLOW_RESOURCE, template_id)
         if request.is_trust:
             return
-
-        tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
-        template_id = kwargs["template_id"]
-
-        subject = Subject("user", request.user.username)
-        action = Action(IAMMeta.FLOW_EDIT_ACTION)
-        resources = res_factory.resources_for_flow(template_id, tenant_id)
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
+        PermissionService().require(
+            request.user.username,
+            tenant_id,
+            PermissionCheck(IAMMeta.FLOW_EDIT_ACTION, resource),
+        )

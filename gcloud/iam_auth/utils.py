@@ -12,15 +12,15 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from iam import Action, MultiActionRequest, Request, Subject
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import AuthFailedException, MultiAuthFailedException, RawAuthFailedException
-from iam.shortcuts import allow_or_raise_auth_failed
-
 from gcloud.core.models import Project
+from gcloud.iam_auth.constants import HTTP_AUTH_FORBIDDEN_CODE
+from gcloud.iam_auth.exceptions import AuthFailedException, MultiAuthFailedException, RawAuthFailedException
+from gcloud.iam_auth.models import Action, MultiActionRequest, Request, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 
 from . import res_factory
-from .conf import IAMMeta
+from .conf import COMMON_FLOW_PROJECT_ACTION_PAIRS, IAMMeta
+from .service import PermissionService
 from .shortcuts import get_iam_client
 
 logger = logging.getLogger("root")
@@ -168,15 +168,32 @@ def check_and_raise_raw_auth_fail_exception(result: dict, message=None):
 
 
 def get_common_flow_allowed_actions_for_user_and_project(username, actions, common_flow_id_list, project_id, tenant_id):
-    resources_list = res_factory.resources_list_for_common_flows_project(common_flow_id_list, project_id, tenant_id)
-
-    if not resources_list:
+    resources_list = res_factory.resources_list_for_common_flows(common_flow_id_list, tenant_id)
+    if not resources_list or not project_id:
         return {}
-
-    return get_resources_allowed_actions_for_user(
+    project_resources = res_factory.resources_for_project(project_id, tenant_id)
+    if not project_resources:
+        return {}
+    result = get_resources_allowed_actions_for_user(
         username,
         IAMMeta.SYSTEM_ID,
         actions,
         resources_list,
         tenant_id,
     )
+    service = PermissionService()
+    for common_action, project_action in COMMON_FLOW_PROJECT_ACTION_PAIRS.items():
+        if common_action not in actions:
+            continue
+        project_decisions = service.allowed_actions(
+            username,
+            tenant_id,
+            [project_action, IAMMeta.PROJECT_VIEW_ACTION],
+            project_resources[0],
+        )
+        project_allowed = all(project_decisions.values())
+        for decisions in result.values():
+            decisions[common_action] = decisions.get(common_action, False) and project_allowed
+            decisions[project_action] = project_decisions[project_action]
+            decisions[IAMMeta.PROJECT_VIEW_ACTION] = project_decisions[IAMMeta.PROJECT_VIEW_ACTION]
+    return result

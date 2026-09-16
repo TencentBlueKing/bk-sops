@@ -49,7 +49,6 @@ class SyncSaasApigwTest(unittest.TestCase):
                 "create_version_and_release_apigw",
                 "grant_apigw_permissions",
                 "fetch_apigw_public_key",
-                "fetch_esb_public_key",
             ],
         )
         self.assertEqual(self.stderr.getvalue(), "")

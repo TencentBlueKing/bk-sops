@@ -15,11 +15,11 @@ from types import SimpleNamespace
 from unittest import TestCase, mock
 
 import ujson as json
-from iam.exceptions import RawAuthFailedException
 
 from gcloud import err_code
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.exceptions import RawAuthFailedException
 from gcloud.taskflow3.apis.django import api
 
 TENANT_ID = "default"

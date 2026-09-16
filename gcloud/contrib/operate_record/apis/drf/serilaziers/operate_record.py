@@ -14,8 +14,8 @@ import json
 
 from rest_framework import serializers
 
+from gcloud.contrib.operate_record.constants import OperateSource, OperateType
 from gcloud.core.apis.drf.validators import ProjectExistValidator
-from gcloud.contrib.operate_record.constants import OperateType, OperateSource
 
 
 class OperateRecordSetSerializer(serializers.Serializer):
@@ -36,10 +36,15 @@ class OperateRecordSetSerializer(serializers.Serializer):
 
 
 class TemplateOperateRecordSetSerializer(OperateRecordSetSerializer):
-    ...
+    # 流程和项目的归属关系由 ViewSet 基于真实 TaskTemplate 校验，
+    # 不能复用只接受启用项目的通用校验器。
+    project_id = serializers.IntegerField(required=True)
 
 
 class TaskOperateRecordSetSerializer(OperateRecordSetSerializer):
+    # 任务操作记录允许审计已停用项目中的历史任务；任务、项目及租户关系
+    # 由 ViewSet 基于真实 TaskFlowInstance 校验，不能复用只接受启用项目的通用校验器。
+    project_id = serializers.IntegerField(required=True)
     node_id = serializers.CharField(required=False)
     extra_info = serializers.SerializerMethodField()
 

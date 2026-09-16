@@ -12,7 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 import logging
 
-from iam.exceptions import MultiAuthFailedException
 from rest_framework import permissions
 
 from gcloud.common_template.models import CommonTemplate
@@ -21,6 +20,7 @@ from gcloud.constants import PROJECT
 from gcloud.contrib.template_market.models import TemplateSharedRecord
 from gcloud.contrib.template_market.serializers import TemplateProjectBaseSerializer
 from gcloud.iam_auth import IAMMeta
+from gcloud.iam_auth.exceptions import MultiAuthFailedException
 from gcloud.iam_auth.utils import iam_multi_resource_auth_or_raise
 
 

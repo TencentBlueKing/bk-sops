@@ -47,11 +47,11 @@ def _get_webhook_audit_context(project_id, template_ids):
             for template in TaskTemplate.objects.filter(project_id=project_id, id__in=template_ids, is_deleted=False)
         }
         scope_codes = list(templates)
-        enabled_by_template = {
-            str(item["scope_code"]): item.get("enable_webhook", False)
-            for item in WebhookModel.objects.filter(
+        enabled_templates = {
+            str(scope_code)
+            for scope_code in WebhookModel.objects.filter(
                 scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_codes
-            ).values("scope_code", "enable_webhook")
+            ).values_list("scope_code", flat=True)
         }
         events_by_template = {scope_code: set() for scope_code in scope_codes}
         for scope_code, event_code in Subscription.objects.filter(
@@ -62,7 +62,7 @@ def _get_webhook_audit_context(project_id, template_ids):
             scope_code: AuditSnapshot(
                 {
                     "template_id": template.id,
-                    "webhook_enabled": enabled_by_template.get(scope_code, False),
+                    "webhook_enabled": scope_code in enabled_templates,
                     "event_types": sorted(events_by_template.get(scope_code, set())),
                 }
             )
@@ -125,7 +125,10 @@ def apply_webhook_configs(request, project_id):
     # 关闭webhook：关闭指定模板的所有webhook开关
     if enable_webhook is False:
         scope_codes = [str(template_id) for template_id in template_ids]
-        WebhookModel.objects.filter(scope_type="template", scope_code__in=scope_codes).update(enable_webhook=False)
+        with transaction.atomic():
+            WebhookModel.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_codes).delete()
+            Subscription.objects.filter(scope_type=WebhookScopeType.TEMPLATE.value, scope_code__in=scope_codes).delete()
+            Scope.objects.filter(type=WebhookScopeType.TEMPLATE.value, code__in=scope_codes).delete()
         _audit_webhook_changes(
             request.user.username,
             templates,
@@ -175,7 +178,6 @@ def apply_webhook_configs(request, project_id):
                         "name": webhook_name,
                         "scope_type": WebhookScopeType.TEMPLATE.value,
                         "scope_code": template_id,
-                        "enable_webhook": True,
                     }
                 )
                 webhook = Webhook(**webhook_config)
@@ -204,7 +206,7 @@ def apply_webhook_configs(request, project_id):
                 WebhookModel.objects.bulk_create(webhooks_to_create)
             if webhooks_to_update:
                 WebhookModel.objects.bulk_update(
-                    webhooks_to_update, fields=["code", "name", "endpoint", "extra_info", "enable_webhook"]
+                    webhooks_to_update, fields=["code", "name", "method", "endpoint", "extra_info"]
                 )
             Subscription.objects.bulk_create(subscriptions_to_create)
 

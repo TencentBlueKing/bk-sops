@@ -13,25 +13,24 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 from bamboo_engine.eri import ContextValue, ContextValueType
-
-from django.views.decorators.http import require_GET, require_POST
 from django.http.response import JsonResponse
-
-from gcloud.core.models import EngineConfig
-from gcloud.utils.handlers import handle_plain_log
-from pipeline.engine.models import PipelineModel, PipelineProcess, Status, ScheduleService
-from pipeline.core.pipeline import PipelineShell
-from pipeline.engine.utils import calculate_elapsed_time
+from django.views.decorators.http import require_GET, require_POST
 from pipeline.core.data.var import Variable
+from pipeline.core.flow.activity import Activity
+from pipeline.core.flow.event import EndEvent, StartEvent
+from pipeline.core.flow.gateway import Gateway
+from pipeline.core.pipeline import PipelineShell
+from pipeline.engine.models import PipelineModel, PipelineProcess, ScheduleService, Status
+from pipeline.engine.utils import calculate_elapsed_time
 from pipeline.eri.runtime import BambooDjangoRuntime
 from pipeline.service import task_service
-from pipeline.core.flow.activity import Activity
-from pipeline.core.flow.gateway import Gateway
-from pipeline.core.flow.event import StartEvent, EndEvent
-from gcloud.taskflow3.models import TaskFlowInstance
-from gcloud.taskflow3.domains.context import TaskContext
+
+from gcloud.core.models import EngineConfig
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.admin import AdminEditViewInterceptor, AdminViewViewInterceptor
+from gcloud.taskflow3.domains.context import TaskContext
+from gcloud.taskflow3.models import TaskFlowInstance
+from gcloud.utils.handlers import handle_plain_log
 
 SERIALIZE_DATE_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 
@@ -153,7 +152,7 @@ def get_taskflow_v1_node_detail(request):
         "execution_info": {},
         "inputs": "pipeline has been destoryed",
         "outputs": "pipeline has been destoryed",
-        "history": {},
+        "histories": [],
         "log": "",
         "ex_data": "",
     }
@@ -245,13 +244,14 @@ def get_taskflow_v1_node_detail(request):
         data["inputs"] = data["outputs"] = "pipeline had finished or had been revoked"
 
     # collect history
-    data["history"] = task_service.get_activity_histories(node_id)
+    data["histories"] = task_service.get_activity_histories(node_id)
 
     # collect log
     data["log"] = handle_plain_log(task_service.get_plain_log_for_node(node_id))
 
     # set ex_data
-    data["ex_data"] = task_service.get_outputs(node_id)["ex_data"]
+    execution_outputs = task_service.get_outputs(node_id)
+    data["ex_data"] = execution_outputs.get("ex_data", "") if isinstance(execution_outputs, dict) else ""
 
     return JsonResponse({"result": True, "data": data})
 

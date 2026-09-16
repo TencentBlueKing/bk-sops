@@ -44,6 +44,9 @@ class CommonTemplateManager(BaseTemplateManager):
         return data
 
     def export_templates(self, template_id_list, **kwargs):
+        if kwargs.get("is_full"):
+            template_id_list = list(self.filter(is_deleted=False).values_list("id", flat=True))
+
         restricted_templates = [
             str(t["id"])
             for t in self.filter(id__in=template_id_list).values("id", "extra_info")
@@ -52,8 +55,6 @@ class CommonTemplateManager(BaseTemplateManager):
 
         if restricted_templates:
             raise FlowExportError(f"禁止导出设置了可见范围的公共流程: {', '.join(restricted_templates)}")
-        if kwargs.get("is_full"):
-            template_id_list = list(self.all().values_list("id", flat=True))
         return super().export_templates(template_id_list, **kwargs)
 
     def import_templates(self, template_data, override, operator=None):

@@ -22,6 +22,7 @@ from pipeline.component_framework.test import (
     ScheduleAssertion,
 )
 
+from gcloud.conf import settings
 from pipeline_plugins.components.collections.sites.open.job.push_local_files.v2_1 import JobPushLocalFilesComponent
 from pipeline_plugins.tests.components.collections.sites.open.utils.cc_ipv6_mock_utils import MockCMDBClientIPv6
 
@@ -211,7 +212,7 @@ def PUSH_FILE_TO_IPS_FAIL_CASE():
         ),
         schedule_assertion=None,
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
@@ -315,7 +316,7 @@ def SCHEDULE_FAILURE_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[Call(tenant_id="system", username="executor", biz_cc_id="1", ip_str="1.1.1.1", use_cache=False)],
@@ -446,7 +447,7 @@ def SUCCESS_MULTI_CASE():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[
@@ -608,7 +609,7 @@ def SUCCESS_MULTI_CASE_WITH_TIMEOUT():
             schedule_finished=True,
         ),
         execute_call_assertion=[
-            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage="dev")]),
+            CallAssertion(func=GET_CLIENT_BY_USER, calls=[Call("executor", stage=settings.BK_APIGW_STAGE_NAME)]),
             CallAssertion(
                 func=CC_GET_IPS_INFO_BY_STR,
                 calls=[

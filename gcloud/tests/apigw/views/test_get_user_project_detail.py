@@ -12,9 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 from pipeline.utils.collections import FancyDict
 
+from gcloud import err_code
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
-from gcloud import err_code
 
 from .utils import APITest
 
@@ -100,6 +100,13 @@ class GetUserProjectDetailAPITest(APITest):
                 "bk_biz_maintainer": TEST_BIZ_MAINTAINER,
                 "bk_biz_tester": TEST_BIZ_TESTER,
                 "bk_biz_productor": TEST_BIZ_PRODUCTOR,
-                "auth_actions": ["project_view", "project_edit", "project_fast_create_task"],
+                "auth_actions": [
+                    "project_view",
+                    "project_edit",
+                    "project_fast_create_task",
+                    "project_common_create_task",
+                    "project_common_create_periodic",
+                    "function_task_view",
+                ],
             },
         )

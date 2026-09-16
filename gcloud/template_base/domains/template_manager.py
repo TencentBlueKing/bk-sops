@@ -13,6 +13,7 @@ specific lan
 import logging
 import traceback
 
+from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate, TemplateRelationship
@@ -64,9 +65,7 @@ class TemplateManager:
                 "result": False,
                 "data": None,
                 "message": message,
-                "verbose_message": _(
-                    f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | create_pipeline"
-                ),
+                "verbose_message": _(f"保存流程失败: 流程树合法性校验失败, 请检查流程. 失败原因: {traceback.format_exc()} | create_pipeline"),
             }
 
         create_template_kwargs = {
@@ -78,9 +77,7 @@ class TemplateManager:
         try:
             pipeline_template = self.template_model_cls.objects.create_pipeline_template(**create_template_kwargs)
         except Exception as e:
-            message = _(
-                f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], 失败原因: [{e}] | create_pipeline"
-            )
+            message = _(f"保存流程失败: 创建Pipeline流程失败, 请检查流程. 创建参数[{create_template_kwargs}], 失败原因: [{e}] | create_pipeline")
             logger.error(message)
             return {
                 "result": False,
@@ -128,9 +125,7 @@ class TemplateManager:
         try:
             template = self.template_model_cls.objects.create(**template_kwargs)
         except Exception as e:
-            message = _(
-                f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{e}] | create"
-            )
+            message = _(f"保存流程失败: 创建模板失败, 请检查流程. 创建参数[{template_kwargs}], 失败原因: [{e}] | create")
             logger.error(message)
             return {
                 "result": False,
@@ -199,9 +194,7 @@ class TemplateManager:
             try:
                 pipeline_template.update_template(**update_kwargs)
             except Exception as e:
-                message = _(
-                    f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}] | update_pipeline"
-                )
+                message = _(f"更新流程失败: 更新Pipeline失败, 请检查流程. 更新参数: [{update_kwargs}], 失败原因: [{e}] | update_pipeline")
                 logger.error(message)
                 return {
                     "result": False,
@@ -339,7 +332,7 @@ class TemplateManager:
         self.template_model_cls.objects.filter(id=template.id).update(is_deleted=True)
         return {"result": True, "data": template, "message": "success", "verbose_message": "success"}
 
-    def batch_delete(self, template_ids: list) -> dict:
+    def batch_delete(self, template_ids: list, tenant_id: str) -> dict:
         """
         批量删除 template
 
@@ -348,7 +341,14 @@ class TemplateManager:
         :return: [description]
         :rtype: dict
         """
-        templates = self.template_model_cls.objects.select_related("pipeline_template").filter(id__in=template_ids)
+        try:
+            self.template_model_cls._meta.get_field("tenant_id")
+            tenant_field = "tenant_id"
+        except FieldDoesNotExist:
+            tenant_field = "project__tenant_id"
+        templates = self.template_model_cls.objects.select_related("pipeline_template").filter(
+            id__in=template_ids, is_deleted=False, **{tenant_field: tenant_id}
+        )
         delete_list = []
         not_delete_list = []
         delete_pipeline_template_id_list = []

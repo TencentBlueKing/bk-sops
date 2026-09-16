@@ -688,8 +688,8 @@
                 const { inputs, state } = record
                 let outputs = record.outputs
                 // 执行记录的outputs可能为Object格式，需要转为Array格式
-                if (!this.adminView && !Array.isArray(outputs)) {
-                    const executeOutputs = this.executeInfo.outputs
+                if (outputs && typeof outputs === 'object' && !Array.isArray(outputs)) {
+                    const executeOutputs = Array.isArray(this.executeInfo.outputs) ? this.executeInfo.outputs : []
                     outputs = Object.keys(outputs).reduce((acc, key) => {
                         const outputInfo = executeOutputs.find(item => item.key === key)
                         if (outputInfo) {
@@ -704,6 +704,9 @@
                         }
                         return acc
                     }, [])
+                }
+                if (!Array.isArray(outputs)) {
+                    outputs = []
                 }
                 let outputsInfo = []
                 const renderData = {}

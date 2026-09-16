@@ -17,10 +17,10 @@ import traceback
 import ujson as json
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 
 from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.iam_auth import get_iam_client
+from gcloud.iam_auth.constants import HTTP_AUTH_FORBIDDEN_CODE
 
 logger = logging.getLogger("root")
 

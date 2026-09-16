@@ -104,10 +104,10 @@
                                 <div class="template-operation" :template-name="props.row.name">
                                     <template>
                                         <a
-                                            v-cursor="{ active: !props.row.auth_actions.includes('common_flow_create_task') }"
+                                            v-cursor="{ active: !hasCreateTaskPermission(props.row) }"
                                             class="template-operate-btn"
                                             :class="{
-                                                'text-permission-disable': !props.row.auth_actions.includes('common_flow_create_task')
+                                                'text-permission-disable': !hasCreateTaskPermission(props.row)
                                             }"
                                             @click.prevent="handleCreateTaskClick(props.row)">
                                             {{$t('新建任务')}}
@@ -702,7 +702,7 @@
 
             // 点击创建任务
             handleCreateTaskClick (tpl) {
-                if (!tpl.auth_actions.includes('common_flow_create_task')) {
+                if (!this.hasCreateTaskPermission(tpl)) {
                     const resourceData = {
                         project: [{
                             id: this.project_id,
@@ -722,6 +722,12 @@
                     query: { template_id: tpl.id, common: '1' },
                     params: { project_id: this.project_id, step: 'selectnode' }
                 })
+            },
+            hasCreateTaskPermission (tpl) {
+                return this.hasPermission(
+                    ['common_flow_create_task', 'project_common_create_task'],
+                    [...this.authActions, ...tpl.auth_actions]
+                )
             },
             // 点击仅项目可见的
             async handeleOnlyProjectVisible () {

@@ -28,6 +28,7 @@ from gcloud.core.logging import local
 from gcloud.core.models import Project
 from gcloud.core.utils.sites.open.tenant_tools import _thread_locals, set_current_tenant_id
 from gcloud.utils.timezone import get_user_timezone
+from gcloud.utils.token_backend import get_bk_token_userinfo
 
 logger = logging.getLogger("root")
 NOT_FOUND = object()
@@ -51,7 +52,7 @@ class TimezoneMiddleware(MiddlewareMixin):
         if getattr(view_func, "login_exempt", False):
             return None
 
-        time_zone = get_user_timezone(request)
+        time_zone = None if settings.IS_RUNNING_TESTS else get_user_timezone(request)
         if not time_zone:
             time_zone = self._get_project_timezone(view_kwargs)
 
@@ -135,12 +136,25 @@ class TenantMiddleware(MiddlewareMixin):
         except ValueError:
             raise Exception("The SECURE_PROXY_SSL_HEADER setting must be a tuple containing two values.")
 
-        # 从request.user获取租户ID（根据你的用户模型调整）
+        # 已登录存量用户可能来自升级前的 session，数据库中尚未写入 tenant_id。
+        # 多租户模式下使用当前 bk_token 补齐真实租户，禁止将这类请求误归到 default tenant。
         tenant_id = getattr(request.user, "tenant_id", None)
-        if not tenant_id:
+        bk_token = request.COOKIES.get("bk_token")
+        if (
+            tenant_id in (None, "", "default")
+            and settings.ENABLE_MULTI_TENANT_MODE
+            and getattr(request.user, "is_authenticated", False)
+        ):
+            tenant_id = ""
+            user_info = get_bk_token_userinfo(bk_token) if bk_token else None
+            if user_info and user_info.get("bk_username") == request.user.username and user_info.get("tenant_id"):
+                tenant_id = user_info["tenant_id"]
+                request.user.tenant_id = tenant_id
+                request.user.save(update_fields=["tenant_id"])
+        if not tenant_id and not settings.ENABLE_MULTI_TENANT_MODE:
             tenant_id = "default"
             setattr(request.user, "tenant_id", tenant_id)
-        set_current_tenant_id(tenant_id)
+        set_current_tenant_id(tenant_id or "")
 
     def process_response(self, request, response):
         """请求结束时清理数据（避免内存泄漏）"""

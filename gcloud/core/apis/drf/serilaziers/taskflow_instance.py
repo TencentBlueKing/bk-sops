@@ -160,8 +160,9 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
     template_source = serializers.ChoiceField(choices=TEMPLATE_SOURCE, help_text="模板来源")
 
     def validate_project(self, value):
+        tenant_id = getattr(getattr(self.context.get("request"), "user", None), "tenant_id", "")
         try:
-            project = Project.objects.get(id=int(value))
+            project = Project.objects.get(id=int(value), tenant_id=tenant_id, is_disable=False)
         except Project.DoesNotExist:
             raise serializers.ValidationError(f"id={value}的项目不存在")
         return project
@@ -169,8 +170,11 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
     def validate_template(self, value):
         template_source = self.initial_data["template_source"]
         model_cls = TaskTemplate if template_source == "project" else CommonTemplate
+        tenant_id = getattr(getattr(self.context.get("request"), "user", None), "tenant_id", "")
+        filters = {"id": value, "is_deleted": False}
+        filters["project__tenant_id" if template_source == "project" else "tenant_id"] = tenant_id
         try:
-            template = model_cls.objects.get(id=value)
+            template = model_cls.objects.get(**filters)
         except model_cls.DoesNotExist:
             raise serializers.ValidationError(f"id={value}的模板不存在")
         return template
@@ -178,8 +182,9 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
     def validate_create_method(self, value):
         if value == "app_maker":
             app_maker_id = self.initial_data["create_info"]
+            tenant_id = getattr(getattr(self.context.get("request"), "user", None), "tenant_id", "")
             try:
-                AppMaker.objects.get(id=app_maker_id)
+                self._app_maker = AppMaker.objects.get(id=app_maker_id, project__tenant_id=tenant_id, is_deleted=False)
             except AppMaker.DoesNotExist:
                 raise serializers.ValidationError(f"id={app_maker_id}的轻应用不存在")
         return value
@@ -194,6 +199,14 @@ class CreateTaskFlowInstanceSerializer(TaskSerializer):
 
     def validate(self, attrs):
         template_source = attrs.get("template_source")
+        if attrs.get("create_method") == TaskCreateMethod.APP_MAKER.value:
+            app_maker = self._app_maker
+            if (
+                template_source != "project"
+                or attrs.get("project").id != app_maker.project_id
+                or attrs.get("template").id != app_maker.task_template_id
+            ):
+                raise serializers.ValidationError("轻应用关联的项目或流程不匹配")
         if template_source == "common":
             template = attrs.get("template")
             project_id = attrs.get("project").id

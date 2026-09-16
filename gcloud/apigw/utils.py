@@ -16,17 +16,20 @@ import ujson as json
 from cachetools.keys import hashkey
 from django.core.handlers.wsgi import WSGIRequest
 
-from gcloud.core.models import Project
 from gcloud.apigw.constants import PROJECT_SCOPE_CMDB_BIZ
+from gcloud.core.models import Project
 
 
-def get_project_with(obj_id, scope):
+def get_project_with(obj_id, scope, tenant_id):
     get_filters = {}
     if scope == PROJECT_SCOPE_CMDB_BIZ:
         get_filters.update({"bk_biz_id": obj_id, "from_cmdb": True})
     else:
         get_filters.update({"id": obj_id})
 
+    if not tenant_id:
+        raise Project.DoesNotExist
+    get_filters.update({"tenant_id": tenant_id, "is_disable": False})
     return Project.objects.get(**get_filters)
 
 

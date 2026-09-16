@@ -18,7 +18,6 @@ import pytz
 import ujson as json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
-from iam.exceptions import AuthFailedException
 
 from gcloud import err_code
 from gcloud.apigw.constants import DEFAULT_APP_WHITELIST, PROJECT_SCOPE_CMDB_BIZ
@@ -27,6 +26,7 @@ from gcloud.apigw.utils import get_project_with
 from gcloud.apigw.whitelist import EnvWhitelist
 from gcloud.conf import settings
 from gcloud.core.models import Project
+from gcloud.iam_auth.exceptions import AuthFailedException, MultiAuthFailedException, RawAuthFailedException
 
 app_whitelist = EnvWhitelist(transient_list=DEFAULT_APP_WHITELIST, env_key="APP_WHITELIST")
 WHETHER_PREPARE_BIZ = getattr(settings, "WHETHER_PREPARE_BIZ_IN_API_CALL", True)
@@ -113,13 +113,17 @@ def return_json_response(view_func):
     def _wrapped_view(request, *args, **kwargs):
         try:
             result = view_func(request, *args, **kwargs)
-        except AuthFailedException as e:
-            result = {
-                "result": False,
-                "data": None,
-                "message": "iam authentication exception, please check, action:{}".format(e.action.id),
-                "code": 3599999,
-            }
+        except (AuthFailedException, MultiAuthFailedException, RawAuthFailedException) as e:
+            return JsonResponse(
+                {
+                    "result": False,
+                    "message": "permission denied",
+                    "code": 499,
+                    "permission": e.perms_apply_data(),
+                    "request_id": getattr(request, "trace_id", "") or request.META.get("HTTP_X_REQUEST_ID", ""),
+                },
+                status=499,
+            )
         if isinstance(result, dict):
             if hasattr(request, "trace_id"):
                 result["trace_id"] = request.trace_id
@@ -142,7 +146,10 @@ def project_inject(view_func):
             )
 
         try:
-            project = get_project_with(obj_id=obj_id, scope=obj_scope)
+            tenant_id = getattr(request.user, "tenant_id", "")
+            if not tenant_id:
+                raise Project.DoesNotExist
+            project = get_project_with(obj_id=obj_id, scope=obj_scope, tenant_id=tenant_id)
         except Project.DoesNotExist:
             return JsonResponse(
                 {

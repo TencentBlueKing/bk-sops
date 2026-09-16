@@ -31,7 +31,7 @@ class CheckDbObjectExistsTestCase(TestCase):
         mocked_allow_or_raise_auth_failed,
     ):
         app_maker = SimpleNamespace(id=1, project_id=2, creator="tester", name="mini-app")
-        request = SimpleNamespace(user=SimpleNamespace(username="tester"))
+        request = SimpleNamespace(user=SimpleNamespace(username="tester", tenant_id="system"))
         mocked_app_maker_model.objects.filter.return_value.first.return_value = app_maker
         mocked_resources_for_mini_app_obj.return_value = ["mini-app-resource"]
 

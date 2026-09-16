@@ -15,7 +15,8 @@ ALLOWED_ORIGIN = "https://plugin-form.example.com"
 )
 class PluginServiceDataApiTestCase(TestCase):
     def setUp(self):
-        self.user = get_user_model().objects.create_user(username="form-user")
+        # 多租户模式下用户租户默认为空串，插件侧会按租户透传，这里显式指定 default 租户
+        self.user = get_user_model().objects.create_user(username="form-user", tenant_id="default")
         self.client.force_login(self.user)
         self.login_patcher = patch(
             "blueapps.account.middlewares.LoginRequiredMiddleware.authenticate",

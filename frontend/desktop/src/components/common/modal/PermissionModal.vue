@@ -57,6 +57,7 @@
                     </tbody>
                 </table>
             </div>
+            <p v-if="errorMessage" class="permission-error">{{errorMessage}}</p>
         </div>
         <div class="permission-footer" slot="footer">
             <div class="button-group">
@@ -74,8 +75,11 @@
 </template>
 <script>
     import { mapActions } from 'vuex'
-    import openOtherApp from '@/utils/openOtherApp.js'
-
+    import {
+        normalizeIamApplyUrlError,
+        normalizeIamApplyUrlResponse,
+        openIamApplyUrl
+    } from '@/utils/iamApplyUrl.js'
     export default {
         name: 'permissionModal',
         props: {},
@@ -86,7 +90,9 @@
                 loading: false,
                 hasClicked: false,
                 lock: require('../../../assets/images/lock-radius.svg'),
-                hasAbnormalReturn: false // 接口是否返回异常
+                hasAbnormalReturn: false, // 接口是否返回异常
+                errorMessage: '',
+                url: ''
             }
         },
         watch: {
@@ -101,24 +107,37 @@
                 'getIamUrl'
             ]),
             async loadPermissionUrl () {
+                if (this.hasAbnormalReturn || !this.permissionData.actions || !this.permissionData.actions.length) {
+                    return
+                }
                 try {
                     this.loading = true
                     const res = await this.getIamUrl(this.permissionData)
-                    if (res.result) {
-                        this.url = res.data.url
-                    } else {
+                    const result = normalizeIamApplyUrlResponse(res, this.$t('获取权限申请链接失败'))
+                    this.url = result.url
+                    if (result.error) {
                         this.hasAbnormalReturn = true
+                        this.errorMessage = result.error
                     }
                 } catch (e) {
-                    console.log(e)
+                    this.hasAbnormalReturn = true
+                    this.errorMessage = normalizeIamApplyUrlError(e, this.$t('获取权限申请链接失败'))
                 } finally {
                     this.loading = false
                 }
             },
             show (data) {
-                this.isModalShow = true
                 this.hasClicked = false
                 this.permissionData = data
+                this.url = ''
+                this.errorMessage = ''
+                this.hasAbnormalReturn = !(data && Array.isArray(data.actions) && data.actions.length)
+                if (this.hasAbnormalReturn) {
+                    this.errorMessage = this.$t('权限数据无效，请记录 trace-id 并联系管理员')
+                }
+                // Set visible last: the watcher must only request an apply URL
+                // after the new permission payload has been fully validated.
+                this.isModalShow = true
             },
             getResource (resources) {
                 if (resources.length === 0) {
@@ -144,9 +163,11 @@
 
                 if (this.hasClicked) {
                     window.location.reload()
-                } else {
+                } else if (openIamApplyUrl(this.url)) {
                     this.hasClicked = true
-                    openOtherApp(window.BK_IAM_APP_CODE, this.url)
+                } else {
+                    this.hasAbnormalReturn = true
+                    this.errorMessage = this.$t('权限申请链接无效，请联系管理员')
                 }
             },
             onCloseDialog () {
@@ -158,6 +179,10 @@
 </script>
 <style lang="scss" scoped>
     .permission-modal {
+        .permission-error {
+            margin: 12px 0 0;
+            color: #ea3636;
+        }
         .permission-header {
             text-align: center;
             .title-icon {

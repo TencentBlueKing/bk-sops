@@ -11,11 +11,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Request, Subject
-from iam.exceptions import AuthFailedException
-
 from gcloud.iam_auth import IAMMeta, get_iam_client
+from gcloud.iam_auth.exceptions import AuthFailedException
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.models import Action, Request, Subject
 
 
 class StatisticsViewInpterceptor(ViewInterceptor):

@@ -19,14 +19,10 @@ if RUN_VER == "open":
 else:
     from blueapps.patch.settings_paas_services import *  # noqa
 
-import env
-
 # 正式环境
 RUN_MODE = "PRODUCT"
 
 BK_IAM_SYNC_TEMPLATES = True
-
-BK_IAM_RESOURCE_API_HOST = env.BK_IAM_RESOURCE_API_HOST
 
 CSRF_COOKIE_NAME = APP_CODE + "_csrftoken"
 

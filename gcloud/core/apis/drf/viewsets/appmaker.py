@@ -12,7 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from rest_framework import mixins, permissions
+from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 
 from gcloud.contrib.appmaker.models import AppMaker
 from gcloud.contrib.audit.utils import bk_audit_add_event, bk_audit_add_event_on_commit, get_audit_snapshot
@@ -21,11 +23,16 @@ from gcloud.core.apis.drf.resource_helpers import ViewSetResourceHelper
 from gcloud.core.apis.drf.serilaziers.appmaker import AppmakerSerializer
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.scope_resolver import ScopeResolver
+from gcloud.tasktmpl3.models import TaskTemplate
 
 
 class AppmakerPermission(IamPermission):
     actions = {
         "list": IamPermissionInfo(
+            IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
+        ),
+        "capabilities": IamPermissionInfo(
             IAMMeta.PROJECT_VIEW_ACTION, res_factory.resources_for_project, id_field="project__id"
         ),
         "retrieve": IamPermissionInfo(
@@ -44,6 +51,61 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
     permission_classes = [permissions.IsAuthenticated, AppmakerPermission]
     filter_fields = {"editor": ["exact"], "project__id": ["exact"], "edit_time": ["gte", "lte"], "name": ["icontains"]}
     pagination_class = LimitOffsetPagination
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if getattr(self, "action", None) != "list":
+            return queryset
+        mini_app_scope = ScopeResolver().authorized_scope(
+            self.request.user.username,
+            self.request.user.tenant_id,
+            IAMMeta.MINI_APP_VIEW_ACTION,
+        )
+        authorized_queryset = mini_app_scope.queryset(IAMMeta.MINI_APP_RESOURCE)
+        if authorized_queryset is None:
+            return queryset.filter(id__in=mini_app_scope.ids(IAMMeta.MINI_APP_RESOURCE))
+        return queryset.filter(id__in=authorized_queryset.values("id"))
+
+    @action(methods=["GET"], detail=False, url_path="capabilities")
+    def capabilities(self, request, *args, **kwargs):
+        project_id = request.query_params["project__id"]
+        resolver = ScopeResolver()
+        mini_app_scope = resolver.authorized_scope(
+            request.user.username,
+            request.user.tenant_id,
+            IAMMeta.MINI_APP_VIEW_ACTION,
+        )
+        flow_scope = resolver.authorized_scope(
+            request.user.username,
+            request.user.tenant_id,
+            IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
+        )
+        project_id = str(project_id)
+        can_view = mini_app_scope.contains(IAMMeta.PROJECT_RESOURCE, project_id) or self._scope_has_resource(
+            mini_app_scope,
+            IAMMeta.MINI_APP_RESOURCE,
+            AppMaker.objects.filter(
+                project_id=project_id,
+                project__tenant_id=request.user.tenant_id,
+                is_deleted=False,
+            ),
+        )
+        can_create = flow_scope.contains(IAMMeta.PROJECT_RESOURCE, project_id) or self._scope_has_resource(
+            flow_scope,
+            IAMMeta.FLOW_RESOURCE,
+            TaskTemplate.objects.filter(
+                project_id=project_id,
+                project__tenant_id=request.user.tenant_id,
+                is_deleted=False,
+            ),
+        )
+        return Response({"can_view": can_view, "can_create": can_create})
+
+    @staticmethod
+    def _scope_has_resource(scope, resource_type, queryset):
+        authorized_queryset = scope.queryset(resource_type)
+        ids = authorized_queryset.values("id") if authorized_queryset is not None else scope.ids(resource_type)
+        return queryset.filter(id__in=ids).exists()
 
     @staticmethod
     def iam_resource_helper(tenant_id):

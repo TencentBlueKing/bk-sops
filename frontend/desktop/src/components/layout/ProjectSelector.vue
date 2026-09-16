@@ -71,7 +71,6 @@
 </template>
 <script>
     import { mapState, mapActions } from 'vuex'
-    import openOtherApp from '@/utils/openOtherApp.js'
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
     import tools from '@/utils/tools.js'
@@ -237,7 +236,7 @@
             },
             // 这里统一直接用后端提供的 host 跳转
             jumpToOther () {
-                openOtherApp(window.BK_IAM_APP_CODE, window.BK_IAM_APPLY_URL)
+                this.applyForPermission(['project_view'])
             },
             async handleFavorToggle (option) {
                 try {

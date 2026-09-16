@@ -6,10 +6,12 @@
             </div>
             <h3>{{permissionTitle}}</h3>
             <p>{{$t('你没有相应资源的访问权限，请申请权限或联系管理员授权')}}</p>
+            <p v-if="errorMessage" class="permission-error">{{errorMessage}}</p>
             <div class="operation-btns">
                 <bk-button
                     theme="primary"
                     :loading="loading"
+                    :disabled="hasAbnormalReturn"
                     @click="applyBtnClick">
                     {{ hasClicked ? $t('已申请') : $t('去申请') }}
                 </bk-button>
@@ -21,7 +23,11 @@
     import i18n from '@/config/i18n/index.js'
     import { mapMutations, mapActions, mapState } from 'vuex'
     import permission from '@/mixins/permission.js'
-    import openOtherApp from '@/utils/openOtherApp.js'
+    import {
+        normalizeIamApplyUrlError,
+        normalizeIamApplyUrlResponse,
+        openIamApplyUrl
+    } from '@/utils/iamApplyUrl.js'
 
     export default {
         name: 'PermissionApply',
@@ -42,6 +48,8 @@
                 url: '',
                 loading: false,
                 hasClicked: false,
+                hasAbnormalReturn: false,
+                errorMessage: '',
                 authActions: [],
                 lock: require('../../assets/images/lock-radius.svg')
             }
@@ -86,13 +94,11 @@
                 }
                 if (this.hasClicked) {
                     window.location.reload()
-                } else {
+                } else if (openIamApplyUrl(this.url)) {
                     this.hasClicked = true
-                    let url = this.url
-                    if (this.permissionData.type === 'project' & !this.url) {
-                        url = window.BK_IAM_SAAS_HOST
-                    }
-                    openOtherApp(window.BK_IAM_APP_CODE, url)
+                } else {
+                    this.hasAbnormalReturn = true
+                    this.errorMessage = this.$t('权限申请链接无效，请联系管理员')
                 }
             },
             async queryProjectCreatePerm () {
@@ -109,14 +115,27 @@
                 }
             },
             async loadPermissionUrl () {
+                const permission = this.permissionData.permission
+                if (!permission || !Array.isArray(permission.actions) || permission.actions.length === 0) {
+                    this.hasAbnormalReturn = true
+                    this.errorMessage = this.$t('权限数据无效，请联系管理员')
+                    return
+                }
+                this.hasAbnormalReturn = false
+                this.errorMessage = ''
+                this.url = ''
                 try {
                     this.loading = true
-                    const res = await this.getIamUrl(this.permissionData.permission)
-                    if (res.result) {
-                        this.url = res.data.url
+                    const res = await this.getIamUrl(permission)
+                    const result = normalizeIamApplyUrlResponse(res, this.$t('获取权限申请链接失败'))
+                    this.url = result.url
+                    if (result.error) {
+                        this.hasAbnormalReturn = true
+                        this.errorMessage = result.error
                     }
                 } catch (e) {
-                    console.log(e)
+                    this.hasAbnormalReturn = true
+                    this.errorMessage = normalizeIamApplyUrlError(e, this.$t('获取权限申请链接失败'))
                 } finally {
                     this.loading = false
                 }
@@ -149,6 +168,9 @@
         .bk-button {
             height: 32px;
             line-height: 30px;
+        }
+        .permission-error {
+            color: #ea3636;
         }
     }
 </style>

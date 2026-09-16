@@ -14,6 +14,7 @@ from rest_framework import permissions
 
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.iam_auth import IAMMeta, res_factory
+from gcloud.taskflow3.models import TaskTemplate
 
 
 class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
@@ -46,10 +47,21 @@ class ClockedTaskPermissions(IAMMixin, permissions.BasePermission):
             serializer.is_valid(raise_exception=True)
 
             template_id = serializer.validated_data["template_id"]
+            project_id = serializer.validated_data["project_id"]
+            template = TaskTemplate.objects.filter(
+                id=template_id,
+                project_id=project_id,
+                project__tenant_id=request.user.tenant_id,
+                is_deleted=False,
+            ).first()
+            if template is None:
+                return False
+            if template.pipeline_template.creator == request.user.username:
+                return True
             self.iam_auth_check(
                 request,
                 action=self.actions[view.action],
-                resources=res_factory.resources_for_flow(template_id, request.user.tenant_id),
+                resources=res_factory.resources_for_flow_obj(template),
             )
         return True
 

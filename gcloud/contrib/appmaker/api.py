@@ -32,6 +32,12 @@ from gcloud.utils.strings import check_and_rename_params
 logger = logging.getLogger("root")
 
 
+def get_appmaker_link_prefix(request):
+    if settings.IS_LOCAL:
+        return request.build_absolute_uri("/appmaker/")
+    return f"{settings.APP_HOST.rstrip('/')}/appmaker/"
+
+
 def save(request, project_id):
     """
     @summary: 创建或编辑app maker
@@ -80,12 +86,8 @@ def save(request, project_id):
     if not params.get("desc"):
         params.update({"desc": "Standard OPS  Mini-App"})
 
-    if settings.IS_LOCAL:
-        params["link_prefix"] = "%s/appmaker/" % request.get_host()
-        fake = True
-    else:
-        params["link_prefix"] = "%sappmaker/" % settings.APP_HOST
-        fake = False
+    params["link_prefix"] = get_appmaker_link_prefix(request)
+    fake = settings.IS_LOCAL
 
     result, data = AppMaker.objects.save_app_maker(project_id, request.user.tenant_id, params, fake)
     if not result:

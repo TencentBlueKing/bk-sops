@@ -50,7 +50,9 @@ class CommonTemplateListSerializer(BaseTemplateSerializer):
         if project_scope == ["*"]:
             return project_scope
         else:
-            project_list = Project.objects.filter(id__in=project_scope).values_list("name", flat=True)
+            project_list = Project.objects.filter(
+                id__in=project_scope, tenant_id=obj.tenant_id, is_disable=False
+            ).values_list("name", flat=True)
             return project_list
 
 
@@ -153,7 +155,9 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
 
                 if not set(item_scope).issubset(scope_set):
                     conflicting_projects = sorted(set(item_scope) - scope_set)
-                    project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
+                    project_names = Project.objects.filter(
+                        id__in=conflicting_projects, tenant_id=self.instance.tenant_id, is_disable=False
+                    ).values_list("name", flat=True)
                     conflicts_common_templates.append(item["name"])
                     conflict_projects.update(project_names)
 
@@ -169,13 +173,19 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             raise serializers.ValidationError(err_message)
 
     def _validate_child_scope(self, pipeline_tree, project_scope):
+        tenant_id = self.context["request"].user.tenant_id
         project_scope_set = set(project_scope)
         conflict_details = set()
         subprocess = []
         for activity in pipeline_tree.get("activities", {}).values():
             if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
                 continue
-            common_template = CommonTemplate.objects.get(id=activity["template_id"])
+            try:
+                common_template = CommonTemplate.objects.get(
+                    id=activity["template_id"], tenant_id=tenant_id, is_deleted=False
+                )
+            except CommonTemplate.DoesNotExist as error:
+                raise serializers.ValidationError(_("子流程不存在")) from error
             common_scope = common_template.extra_info.get("project_scope", [])
             if common_scope == ["*"]:
                 continue
@@ -186,7 +196,9 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
                 )
             if not project_scope_set.issubset(set(common_scope)):
                 conflicting_projects = sorted(project_scope_set - set(common_scope))
-                project_names = Project.objects.filter(id__in=conflicting_projects).values_list("name", flat=True)
+                project_names = Project.objects.filter(
+                    id__in=conflicting_projects, tenant_id=tenant_id, is_disable=False
+                ).values_list("name", flat=True)
                 subprocess.append(common_template.pipeline_template.name)
                 conflict_details.update(project_names)
 
@@ -205,6 +217,15 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
 
         project_scope = attrs.get("extra_info").get("project_scope")
         request = self.context.get("request")
+        if project_scope != ["*"]:
+            valid_project_ids = {
+                str(project_id)
+                for project_id in Project.objects.filter(
+                    id__in=project_scope, tenant_id=user.tenant_id, is_disable=False
+                ).values_list("id", flat=True)
+            }
+            if valid_project_ids != set(project_scope):
+                raise serializers.ValidationError(_("流程使用范围包含无效项目"))
         # 检测其引用的子流程
         self._validate_child_scope(json.loads(attrs["pipeline_tree"]), project_scope)
 

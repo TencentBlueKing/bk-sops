@@ -16,9 +16,9 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
-from iam.exceptions import AuthFailedException
 
 from gcloud.core.models import Project
+from gcloud.iam_auth.exceptions import AuthFailedException
 from gcloud.iam_auth.view_interceptors.template import ConstantPreviewInterceptor
 
 GET_IAM_CLIENT = "gcloud.iam_auth.view_interceptors.template.get_iam_client"

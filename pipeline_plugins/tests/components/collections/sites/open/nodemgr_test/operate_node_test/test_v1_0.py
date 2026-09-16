@@ -9,6 +9,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import importlib
 from unittest.mock import MagicMock
 
 from django.test import TestCase
@@ -33,9 +34,15 @@ else:
 if not getattr(env, "BK_NODEMGR_DEFAULT_PROXY_INFO", None):
     env.BK_NODEMGR_DEFAULT_PROXY_INFO = ""
 
-from pipeline_plugins.components.collections.sites.open.nodemgr.operate_node.v1_0 import (  # noqa: E402
-    NodemgrOperateNodeComponent,
-)
+_original_nodemgr_enable = env.BK_NODEMGR_ENABLE
+env.BK_NODEMGR_ENABLE = True
+try:
+    from pipeline_plugins.components.collections.sites.open.nodemgr.operate_node import v1_0 as operate_node_v1_0
+
+    operate_node_v1_0 = importlib.reload(operate_node_v1_0)
+    NodemgrOperateNodeComponent = operate_node_v1_0.NodemgrOperateNodeComponent
+finally:
+    env.BK_NODEMGR_ENABLE = _original_nodemgr_enable
 
 
 class NodemgrOperateNodeComponentTest(TestCase, ComponentTestMixin):
@@ -118,13 +125,9 @@ class MockClient:
 
 
 # mock paths
-GET_CLIENT_BY_USER = (
-    "pipeline_plugins.components.collections.sites.open.nodemgr.base.BKNodemgrClient"
-)
+GET_CLIENT_BY_USER = "pipeline_plugins.components.collections.sites.open.nodemgr.base.BKNodemgrClient"
 # 走真实 encrypt_credit 路径, 但 mock 掉真实加解密 IO
-CRYPTO_DECRYPT = (
-    "pipeline_plugins.components.collections.sites.open.nodemgr.base.crypto.decrypt"
-)
+CRYPTO_DECRYPT = "pipeline_plugins.components.collections.sites.open.nodemgr.base.crypto.decrypt"
 LOAD_PEM_PUBLIC_KEY = (
     "pipeline_plugins.components.collections.sites.open.nodemgr.base.serialization.load_pem_public_key"
 )

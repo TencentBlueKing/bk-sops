@@ -78,7 +78,12 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
 
         if filters:
             queryset = list(
-                chain(*[source.objects.filter(**filters) for source in get_all_source_objects(request.user.tenant_id)])
+                chain(
+                    *[
+                        source.objects.filter(tenant_id=request.user.tenant_id, **filters)
+                        for source in get_source_models()
+                    ]
+                )
             )
         else:
             queryset = get_all_source_objects(request.user.tenant_id)
@@ -161,7 +166,7 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
             if caches:
                 cache_packages = {}
                 for origin_type, origin_model in list(source_cls_factory.items()):
-                    origins_from_db = origin_model.objects.all().values("packages")
+                    origins_from_db = origin_model.objects.filter(tenant_id=request.user.tenant_id).values("packages")
                     for origin in origins_from_db:
                         cache_packages.update(origin["packages"])
 
@@ -177,7 +182,9 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                 # create or update cache first
                 caches_to_update = [cache["id"] for cache in caches if "id" in cache]
                 # delete caches whom id not in param caches
-                CachePackageSource.objects.exclude(id__in=caches_to_update).delete()
+                CachePackageSource.objects.filter(tenant_id=request.user.tenant_id).exclude(
+                    id__in=caches_to_update
+                ).delete()
                 for cache in caches:
                     try:
                         jsonschema.validate(cache, UPDATE_SOURCE_SCHEMA)
@@ -199,7 +206,9 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                             logger.error(message)
                             raise NotAcceptable(message)
                         if cache.get("desc", ""):
-                            CachePackageSource.objects.filter(id=cache["id"]).update(desc=cache["desc"])
+                            CachePackageSource.objects.filter(id=cache["id"], tenant_id=request.user.tenant_id).update(
+                                desc=cache["desc"]
+                            )
                     else:
                         try:
                             CachePackageSource.objects.add_cache_source(
@@ -215,14 +224,14 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                             logger.error(message)
                             raise NotAcceptable(message)
             else:
-                CachePackageSource.objects.all().delete()
+                CachePackageSource.objects.filter(tenant_id=request.user.tenant_id).delete()
 
             # delete origins whom id not in param origins
             for origin_type, origin_model in list(source_cls_factory.items()):
                 origins_to_update = [
                     origin["id"] for origin in origins if "id" in origin and origin["type"] == origin_type
                 ]
-                origin_model.objects.exclude(id__in=origins_to_update).delete()
+                origin_model.objects.filter(tenant_id=request.user.tenant_id).exclude(id__in=origins_to_update).delete()
             # create origins after
             for origin in origins:
                 source_type = origin["type"]

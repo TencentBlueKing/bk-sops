@@ -52,7 +52,9 @@ def get_webhook_configs(scope_code, expose_sensitive=True):
             "method": webhook.method,
             "endpoint": webhook.endpoint,
             "extra_info": extra_info,
-            "enable_webhook": webhook.enable_webhook,
+            # bkflow-django-webhook 2.0.2 has no enable_webhook field;
+            # configuration existence means enabled.
+            "enable_webhook": True,
         }
     except Exception as e:
         logger.exception(f"get_scope_webhooks error: {e}")

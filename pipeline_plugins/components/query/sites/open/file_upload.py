@@ -16,14 +16,14 @@ import traceback
 from django.http import JsonResponse
 from django.urls import re_path
 from django.utils.translation import gettext_lazy as _
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 
 from files.factory import BartenderFactory, ManagerFactory
 from files.models import UploadTicket
 from gcloud.conf import settings
 from gcloud.core.models import EnvironmentVariables
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 
 logger = logging.getLogger("root")
 

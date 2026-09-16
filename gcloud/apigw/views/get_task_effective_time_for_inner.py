@@ -45,7 +45,7 @@ def get_task_effective_time_for_inner(request, task_id, bk_biz_id):
     scope = request.query_params.get("scope", PROJECT_SCOPE_CMDB_BIZ)
     debug_mode = request.query_params.get("debug", "0") == "1"
     try:
-        return Response(effective_time_for_task(scope, task_id, bk_biz_id, debug_mode))
+        return Response(effective_time_for_task(scope, task_id, bk_biz_id, request.user.tenant_id, debug_mode))
     except Exception as e:
         return Response(
             {

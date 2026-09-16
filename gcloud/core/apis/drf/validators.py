@@ -11,11 +11,15 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from gcloud.core.models import Project
 from gcloud.core.apis.drf.exceptions import ObjectDoesNotExistException
+from gcloud.core.models import Project
 
 
 class ProjectExistValidator:
-    def __call__(self, project_id):
-        if not Project.objects.filter(id=project_id).exists():
+    requires_context = True
+
+    def __call__(self, project_id, serializer_field):
+        request = serializer_field.context.get("request")
+        tenant_id = getattr(getattr(request, "user", None), "tenant_id", "")
+        if not tenant_id or not Project.objects.filter(id=project_id, tenant_id=tenant_id, is_disable=False).exists():
             raise ObjectDoesNotExistException("Project id: {} does not exist".format(project_id))

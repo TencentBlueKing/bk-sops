@@ -16,11 +16,11 @@ import logging
 import ujson as json
 from django.http import JsonResponse
 from django.utils.translation import gettext_lazy as _
-from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
-from iam.exceptions import RawAuthFailedException
 
 from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.iam_auth.constants import HTTP_AUTH_FORBIDDEN_CODE
+from gcloud.iam_auth.exceptions import RawAuthFailedException
 from gcloud.utils import cmdb
 from gcloud.utils.data_handler import chunk_data
 from gcloud.utils.handlers import handle_api_error

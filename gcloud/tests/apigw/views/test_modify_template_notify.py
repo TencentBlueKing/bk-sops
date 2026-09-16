@@ -97,6 +97,11 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
         tm_module = "gcloud.template_base.domains.template_manager.TemplateManager"
         patchers = [
             mock.patch(
+                "{}.settings.BK_APIGW_STAGE_NAME".format(view_module),
+                "test",
+                create=True,
+            ),
+            mock.patch(
                 "{}.get_client_by_username".format(view_module),
                 self.mock_get_client_by_username,
             ),

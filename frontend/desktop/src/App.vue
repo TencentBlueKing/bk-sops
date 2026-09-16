@@ -286,7 +286,13 @@
             async getProjectDetail () {
                 try {
                     this.projectDetailLoading = true
-                    const projectDetail = await this.loadProjectDetail(this.project_id)
+                    const reexecuteTaskId = this.$route.name === 'taskCreate' && this.$route.query.common
+                        ? this.$route.query.task_id
+                        : undefined
+                    const projectDetail = await this.loadProjectDetail({
+                        id: this.project_id,
+                        reexecuteTaskId
+                    })
                     const projectConfig = await this.getUserProjectConfigs(this.project_id)
                     const { name, id, bk_biz_id, auth_actions, is_disable } = projectDetail
                     this.isProjectDisabled = is_disable

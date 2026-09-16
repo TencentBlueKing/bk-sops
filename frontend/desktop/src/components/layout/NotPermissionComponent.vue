@@ -5,21 +5,23 @@
             <img class="desc-img" :src="notPermissionUrl" alt="">
             <p>{{ $t('已有业务，但尚未获取资源') }}</p>
             <p>{{ $t('前往权限中心申请相关的业务权限') }}</p>
-            <bk-button @click="jumpToOther('bk_iam')">{{ $t('申请业务权限') }}</bk-button>
+            <bk-button @click="applyForPermission(['project_view'])">{{ $t('申请业务权限') }}</bk-button>
         </div>
         <div class="guide-item">
             <p class="title">{{ $t('新接入业务') }}</p>
             <img class="desc-img" :src="addBizUrl" alt="">
             <p>{{ $t('还没有接入新的业务') }}</p>
             <p>{{ $t('需要前往配置平台新建业务') }}</p>
-            <bk-button @click="jumpToOther('bk_cmdb')">{{ $t('创建新业务') }}</bk-button>
+            <bk-button @click="jumpToCmdbCreate">{{ $t('创建新业务') }}</bk-button>
         </div>
     </div>
 </template>
 
 <script>
     import openOtherApp from '@/utils/openOtherApp.js'
+    import permission from '@/mixins/permission.js'
     export default {
+        mixins: [permission],
         data () {
             return {
                 notPermissionUrl: require('@/assets/images/not-permission.png'),
@@ -28,13 +30,8 @@
         },
         methods: {
             // 这里统一直接用后端提供的 host 跳转
-            jumpToOther (name) {
-                const code = name === 'bk_iam' ? window.BK_IAM_APP_CODE : name
-                const HOST_MAP = {
-                    'bk_iam': window.BK_IAM_APPLY_URL,
-                    'bk_cmdb': window.BK_CC_HOST
-                }
-                openOtherApp(code, HOST_MAP[name])
+            jumpToCmdbCreate () {
+                openOtherApp('bk_cmdb', window.BK_CC_CREATE_BUSINESS_URL)
             }
         }
     }

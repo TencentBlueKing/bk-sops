@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
-from iam.contrib.tastypie.resource import IAMResourceHelper
-
 from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
+from gcloud.iam_auth.resource_helpers.base import IAMResourceHelper, SimpleSubjectEnvHelperMixin
 
 
 class CollectionTemplateResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):

@@ -4,13 +4,13 @@ from unittest.mock import patch
 
 from celery import Celery
 from django.conf import settings
-from django.test import TestCase
+from django.test import TransactionTestCase
 from django.utils import timezone
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from django_celery_beat.schedulers import DatabaseScheduler
 
 
-class PluginGatewaySweepScheduleTestCase(TestCase):
+class PluginGatewaySweepScheduleTestCase(TransactionTestCase):
     schedule_name = "sweep_expired_plugin_gateway_runs"
 
     def setUp(self):

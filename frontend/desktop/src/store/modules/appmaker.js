@@ -44,6 +44,12 @@ const appmaker = {
                 return { results: response.data.data }
             })
         },
+        // 查询当前项目下轻应用页面的查看、创建能力
+        loadAppmakerCapabilities ({ commit }, projectId) {
+            return axios.get('api/v3/appmaker/capabilities/', {
+                params: { project__id: projectId }
+            }).then(response => response.data.data)
+        },
         /**
          * 加载对应轻应用详情
          * @param {String} id 轻应用id

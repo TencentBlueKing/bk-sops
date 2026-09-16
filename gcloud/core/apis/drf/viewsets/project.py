@@ -21,6 +21,9 @@ from gcloud.core.apis.drf.serilaziers import ProjectSerializer
 from gcloud.core.apis.drf.viewsets.base import GcloudListViewSet, GcloudUpdateViewSet
 from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.exceptions import IAMPermissionDenied
+from gcloud.iam_auth.service import PermissionService
+from gcloud.iam_auth.types import PermissionCheck
 from gcloud.iam_auth.utils import get_user_projects
 
 
@@ -35,6 +38,42 @@ class ProjectPermission(IamPermission):
             IAMMeta.PROJECT_EDIT_ACTION, resource_func, check_hook=HAS_OBJECT_PERMISSION
         ),
     }
+
+    def has_object_permission(self, request, view, obj):
+        if view.action not in {"retrieve", "detail"}:
+            return super().has_object_permission(request, view, obj)
+
+        resource = type(self).resource_func(obj, request.user.tenant_id)[0]
+        action_ids = [IAMMeta.PROJECT_VIEW_ACTION, IAMMeta.PROJECT_COMMON_CREATE_TASK_ACTION]
+        decisions = PermissionService().allowed_actions(
+            request.user.username, request.user.tenant_id, action_ids, resource
+        )
+        if any(decisions.values()):
+            return True
+
+        reexecute_task_id = request.query_params.get("reexecute_task_id")
+        if reexecute_task_id:
+            # “再次执行”需要项目基础上下文，但不应把 project_view 作为额外前置权限。
+            # 必须先确认原任务属于当前租户和项目，再复用 task_view（含创建人兼容）校验。
+            from gcloud.taskflow3.models import TaskFlowInstance
+
+            task_exists = TaskFlowInstance.objects.filter(
+                id=reexecute_task_id,
+                project_id=obj.id,
+                project__tenant_id=request.user.tenant_id,
+                is_deleted=False,
+            ).exists()
+            if task_exists:
+                task_resources = res_factory.resources_for_task(reexecute_task_id, request.user.tenant_id)
+                if task_resources and PermissionService().is_allowed(
+                    request.user.username,
+                    request.user.tenant_id,
+                    PermissionCheck(IAMMeta.TASK_VIEW_ACTION, task_resources[0]),
+                ):
+                    return True
+
+        # 保持原有无权限提示：普通项目详情仍申请 project_view，不向用户展示二选一权限。
+        raise IAMPermissionDenied([PermissionCheck(IAMMeta.PROJECT_VIEW_ACTION, resource)])
 
 
 class ProjectFilter(AllLookupSupportFilterSet):
@@ -69,6 +108,7 @@ class ProjectSetViewSet(GcloudUpdateViewSet, GcloudListViewSet):
                 IAMMeta.PROJECT_EDIT_ACTION,
                 IAMMeta.FLOW_CREATE_ACTION,
                 IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
+                IAMMeta.PROJECT_COMMON_CREATE_TASK_ACTION,
             ],
         )
 

@@ -12,6 +12,9 @@ specific language governing permissions and limitations under the License.
 """
 
 from .conf import IAMMeta  # noqa
-from .shortcuts import get_iam_client, get_iam_api_client  # noqa
+from .exceptions import IAMPermissionDenied, IAMV4Unavailable  # noqa
+from .service import PermissionService  # noqa
+from .shortcuts import allow_or_raise_auth_failed, get_iam_client  # noqa
+from .types import PermissionCheck  # noqa
 
 default_app_config = "gcloud.iam_auth.apps.IamAuthConfig"

@@ -673,7 +673,7 @@
                 this.updateUrl()
                 this.getPeriodicList()
             },
-            renderTableHeader (h, { column, $index }) {
+            renderTableHeader (h, { column }) {
                 if (column.property === 'cron') {
                     return h('span', {
                         'class': 'cron-label'
@@ -705,8 +705,7 @@
                         ])
                     ])
                 } else if (['last_run_at', 'create_time', 'edit_time'].includes(column.property)) {
-                    const index = this.adminView ? $index : $index + 1
-                    const id = this.setting.selectedFields[index].id
+                    const id = column.property
                     const date = this.requestData[id]
                     return <TableRenderHeader
                         name={ column.label }

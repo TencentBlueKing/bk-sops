@@ -11,16 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.http import QueryDict
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
 from gcloud.core.apis.drf.serilaziers import ResourceConfigSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
-from gcloud.core.models import ResourceConfig
+from gcloud.core.models import Project, ResourceConfig
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 
 
 class ResourceConfigPermission(permissions.BasePermission):
@@ -72,6 +72,12 @@ class ResourceConfigViewSet(
     queryset = ResourceConfig.objects.all().order_by("-id")
     serializer_class = ResourceConfigSerializer
     permission_classes = [permissions.IsAuthenticated, ResourceConfigPermission]
+
+    def get_queryset(self):
+        project_ids = Project.objects.filter(tenant_id=self.request.user.tenant_id, is_disable=False).values_list(
+            "id", flat=True
+        )
+        return super().get_queryset().filter(project_id__in=project_ids)
 
     def list(self, request, *args, **kwargs):
         project_id = request.query_params.get("project_id")

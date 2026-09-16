@@ -17,7 +17,7 @@ from django.views.i18n import JavaScriptCatalog
 from version_log import config as version_log_config
 
 from gcloud.core import api, views
-from gcloud.iam_auth.resource_api import dispatcher
+from gcloud.iam_auth.resource_api_v4.dispatcher import resource_callback
 
 javascript_catalog = JavaScriptCatalog.as_view(
     packages=[app_config.name for app_config in apps.get_app_configs() if app_config.name.startswith("gcloud")]
@@ -40,7 +40,7 @@ urlpatterns = [
     # version log
     re_path(r"^{}".format(version_log_config.ENTRANCE_URL), include("version_log.urls")),
     # iam resource api
-    re_path(r"^iam/resource/api/v1/$", dispatcher.as_view([login_exempt])),
+    re_path(r"^iam/resource/api/v4/$", login_exempt(resource_callback)),
     # iam api
     re_path(r"^iam/api/", include("gcloud.iam_auth.urls")),
     # django prom

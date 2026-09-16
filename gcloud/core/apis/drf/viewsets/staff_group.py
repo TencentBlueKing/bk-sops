@@ -15,7 +15,7 @@ from rest_framework.response import Response
 
 from gcloud.core.apis.drf.serilaziers.staff_group import ListSerializer, StaffGroupSetSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin, IAMMixin
-from gcloud.core.models import StaffGroupSet
+from gcloud.core.models import Project, StaffGroupSet
 from gcloud.iam_auth import IAMMeta, res_factory
 
 
@@ -32,8 +32,14 @@ class StaffGroupSetViewSet(
     serializer_class = StaffGroupSetSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        project_ids = Project.objects.filter(tenant_id=self.request.user.tenant_id, is_disable=False).values_list(
+            "id", flat=True
+        )
+        return super().get_queryset().filter(project_id__in=project_ids)
+
     def get_serializer_data(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 

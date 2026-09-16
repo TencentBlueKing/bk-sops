@@ -11,16 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from pipeline.contrib.external_plugins.models import FILE_SYSTEM, GIT, S3, FileSystemSource, S3Source
 
-from pipeline.contrib.external_plugins.models import GIT, S3, FILE_SYSTEM, S3Source, FileSystemSource
-
-from gcloud.tests.external_plugins.mock import *  # noqa
-from gcloud.tests.external_plugins.mock_settings import *  # noqa
 from gcloud.external_plugins import exceptions
 from gcloud.external_plugins.models.cache import CachePackageSource
+from gcloud.tests.external_plugins.mock import *  # noqa
+from gcloud.tests.external_plugins.mock_settings import *  # noqa
 
 
+@override_settings(ENABLE_MULTI_TENANT_MODE=False)
 class TestCachePackageSource(TestCase):
     def setUp(self):
         self.CACHE_SOURCE_NAME = "CACHE_S3_SOURCE"
@@ -80,6 +80,16 @@ class TestCachePackageSource(TestCase):
             packages=self.SOURCE_PACKAGES,
             **self.SOURCE_KWARGS
         )
+
+    @override_settings(ENABLE_MULTI_TENANT_MODE=True)
+    def test_add_cache_source_requires_tenant_id_in_multi_tenant_mode(self):
+        with self.assertRaisesRegex(ValueError, "tenant_id is required"):
+            CachePackageSource.objects.add_cache_source(
+                name=self.CACHE_SOURCE_NAME,
+                source_type=self.SOURCE_TYPE,
+                packages=self.SOURCE_PACKAGES,
+                **self.SOURCE_KWARGS
+            )
 
     def test_name(self):
         self.assertEqual(self.cache_source.name, self.CACHE_SOURCE_NAME)

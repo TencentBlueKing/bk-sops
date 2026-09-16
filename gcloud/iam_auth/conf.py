@@ -13,7 +13,6 @@ specific language governing permissions and limitations under the License.
 
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from iam import meta
 
 SYSTEM_ID = settings.BK_IAM_SYSTEM_ID
 
@@ -37,9 +36,9 @@ ACTIONS = [
     {
         "id": "project_create",
         "name": _("创建项目"),
-        "relate_resources": ["project"],
+        "relate_resources": [],
         "relate_actions": [],
-        "resource_topo": ["project"],
+        "resource_topo": [],
     },
     {
         "id": "project_view",
@@ -68,6 +67,27 @@ ACTIONS = [
         "relate_resources": ["project"],
         "relate_actions": ["project_view"],
         "resource_topo": ["project", "flow"],
+    },
+    {
+        "id": "project_common_create_task",
+        "name": _("在项目中使用公共流程新建任务"),
+        "relate_resources": ["project"],
+        "relate_actions": ["project_view"],
+        "resource_topo": ["project"],
+    },
+    {
+        "id": "project_common_create_periodic",
+        "name": _("在项目中使用公共流程新建周期任务"),
+        "relate_resources": ["project"],
+        "relate_actions": ["project_view"],
+        "resource_topo": ["project"],
+    },
+    {
+        "id": "function_task_view",
+        "name": _("查看业务职能化任务"),
+        "relate_resources": ["project"],
+        "relate_actions": ["project_view"],
+        "resource_topo": ["project"],
     },
     {
         "id": "flow_view",
@@ -191,15 +211,15 @@ ACTIONS = [
     {
         "id": "common_flow_create_task",
         "name": _("使用公共流程新建任务"),
-        "relate_resources": ["common_flow", "project"],
-        "relate_actions": ["common_flow_view", "project_view"],
+        "relate_resources": ["common_flow"],
+        "relate_actions": ["common_flow_view"],
         "resource_topo": ["common_flow"],
     },
     {
         "id": "common_flow_create_periodic_task",
         "name": _("使用公共流程新建周期任务"),
-        "relate_resources": ["common_flow", "project"],
-        "relate_actions": ["common_flow_view", "project_view"],
+        "relate_resources": ["common_flow"],
+        "relate_actions": ["common_flow_view"],
         "resource_topo": ["common_flow"],
     },
     {
@@ -292,9 +312,13 @@ class IAMMeta(object):
     PERIODIC_TASK_RESOURCE = "periodic_task"
     CLOCKED_TASK_RESOURCE = "clocked_task"
 
+    PROJECT_CREATE_ACTION = "project_create"
     PROJECT_VIEW_ACTION = "project_view"
     PROJECT_EDIT_ACTION = "project_edit"
     PROJECT_FAST_CREATE_TASK_ACTION = "project_fast_create_task"
+    PROJECT_COMMON_CREATE_TASK_ACTION = "project_common_create_task"
+    PROJECT_COMMON_CREATE_PERIODIC_ACTION = "project_common_create_periodic"
+    FUNCTION_TASK_VIEW_ACTION = "function_task_view"
 
     FLOW_CREATE_ACTION = "flow_create"
     FLOW_VIEW_ACTION = "flow_view"
@@ -339,14 +363,34 @@ class IAMMeta(object):
     STATISTICS_VIEW_ACTION = "statistics_view"
 
 
-for system in SYSTEM_INFO:
-    meta.setup_system(system["id"], system["name"])
+RESOURCE_TYPE_IDS = tuple(item["id"] for item in RESOURCES)
+RESOURCES_BY_ID = {item["id"]: item for item in RESOURCES}
+RESOURCE_NAMES = {item["id"]: item["name"] for item in RESOURCES}
+ACTIONS_BY_ID = {item["id"]: item for item in ACTIONS}
+ACTION_RESOURCE_TYPES = {
+    item["id"]: item["relate_resources"][0] if item["relate_resources"] else None for item in ACTIONS
+}
 
-for resource in RESOURCES:
-    meta.setup_resource(SYSTEM_ID, resource["id"], resource["name"])
+COMMON_FLOW_PROJECT_ACTION_PAIRS = {
+    IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION: IAMMeta.PROJECT_COMMON_CREATE_TASK_ACTION,
+    IAMMeta.COMMON_FLOW_CREATE_PERIODIC_TASK_ACTION: IAMMeta.PROJECT_COMMON_CREATE_PERIODIC_ACTION,
+}
 
-for action in ACTIONS:
-    meta.setup_action(SYSTEM_ID, action["id"], action["name"])
+
+def validate_permission_metadata():
+    if len(RESOURCE_TYPE_IDS) != 7 or len(set(RESOURCE_TYPE_IDS)) != 7:
+        raise RuntimeError("IAM V4 model must contain exactly 7 unique resource types")
+    if len(ACTIONS) != 42 or len(ACTIONS_BY_ID) != 42:
+        raise RuntimeError("IAM V4 model must contain exactly 42 unique actions")
+    for item in ACTIONS:
+        related = item["relate_resources"]
+        if len(related) > 1:
+            raise RuntimeError("IAM V4 action {} has more than one resource type".format(item["id"]))
+        if related and related[0] not in RESOURCE_TYPE_IDS:
+            raise RuntimeError("IAM V4 action {} references an unknown resource type".format(item["id"]))
+
+
+validate_permission_metadata()
 
 
 COMMON_FLOW_ACTIONS = [
@@ -395,4 +439,7 @@ PROJECT_ACTIONS = [
     IAMMeta.PROJECT_VIEW_ACTION,
     IAMMeta.PROJECT_EDIT_ACTION,
     IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION,
+    IAMMeta.PROJECT_COMMON_CREATE_TASK_ACTION,
+    IAMMeta.PROJECT_COMMON_CREATE_PERIODIC_ACTION,
+    IAMMeta.FUNCTION_TASK_VIEW_ACTION,
 ]

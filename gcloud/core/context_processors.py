@@ -31,6 +31,20 @@ from gcloud.utils.timezone import get_user_timezone
 logger = logging.getLogger("root")
 
 
+def _cmdb_create_business_url():
+    host = settings.BK_CC_HOST or ""
+    if not host:
+        return ""
+    return host.rstrip("/") + "/#/resource/business?create=true"
+
+
+def _ai_sops_agent_plugin_url():
+    host = env.AI_SOPS_AGENT_URL or ""
+    if not host:
+        return ""
+    return host.rstrip("/") + "/bk_plugin/plugin_api/"
+
+
 def get_cur_pos_from_url(request):
     """
     @summary: 返回公共变量给前端导航
@@ -76,12 +90,11 @@ def mysetting(request):
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问
         "BK_PAAS_HOST": settings.BK_PAAS_HOST,
         "BK_CC_HOST": settings.BK_CC_HOST,
+        "BK_CC_CREATE_BUSINESS_URL": _cmdb_create_business_url(),
         "BK_JOB_HOST": settings.BK_JOB_HOST,
-        "BK_IAM_SAAS_HOST": settings.BK_IAM_SAAS_HOST,
-        "BK_IAM_APPLY_URL": settings.BK_IAM_SAAS_HOST.strip("/") + "/apply-join-user-group",
-        "BK_IAM_APP_CODE": settings.BK_IAM_APP_CODE,
         "BK_USER_MANAGE_HOST": settings.BK_USER_MANAGE_HOST,
         "BKPAAS_USER_URL": settings.BKPAAS_USER_URL,
+        "BK_IAM_SAAS_HOST": settings.BK_IAM_SAAS_HOST,
         "BK_PAAS_ESB_HOST": settings.BK_PAAS_ESB_API_HOST,
         "APP_PATH": request.get_full_path(),  # 当前页面，主要为了login_required做跳转用
         "LOGIN_URL": getattr(settings, "BK_LOGIN_URL", os.getenv("BKPAAS_LOGIN_URL")),  # 登录链接
@@ -146,7 +159,7 @@ def mysetting(request):
         "TASK_STATUS_DISPLAY_VERSION": settings.TASK_STATUS_DISPLAY_VERSION,
         "BK_DATA_REPORT_API_URL": settings.BK_DATA_REPORT_API_URL,
         # agent配置
-        "AI_SOPS_AGENT_URL": f"{env.AI_SOPS_AGENT_URL}/bk_plugin/plugin_api/",
+        "AI_SOPS_AGENT_URL": _ai_sops_agent_plugin_url(),
         # 是否开启AI分析通知
         "ENABLE_AI_NOTIFICATION": env.ENABLE_AI_NOTIFICATION,
     }

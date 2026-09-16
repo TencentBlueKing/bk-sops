@@ -22,6 +22,8 @@ from django_test_toolkit.testcases import ToolkitApiTestCase
 from pipeline.models import PipelineTemplate, Snapshot
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.core.apis.drf.viewsets.common_template import CommonTemplateViewSet
+from gcloud.iam_auth import IAMMeta
 
 
 class TestCommonTemplateView(
@@ -34,6 +36,29 @@ class TestCommonTemplateView(
     @factory.django.mute_signals(signals.pre_save, signals.post_save)
     def setUp(self):
         super(TestCommonTemplateView, self).setUp()
+        # 多租户模式下用户租户默认为空串，CommonTemplateViewSet 按租户过滤后取不到测试数据，
+        # 这里显式把测试用户与测试数据统一到 default 租户
+        self.superuser.tenant_id = "default"
+        self.superuser.save(update_fields=["tenant_id"])
+        self.iam_instances_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.utils.IAMMixin.iam_get_instances_auth_actions", return_value=None
+        )
+        self.iam_instance_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.utils.IAMMixin.iam_get_instance_auth_actions", return_value=None
+        )
+        self.iam_permission_patcher = patch(
+            "gcloud.core.apis.drf.viewsets.common_template.CommonTemplatePermission.check_permission",
+            return_value=True,
+        )
+        self.timezone_patcher = patch("gcloud.core.middlewares.get_user_timezone", return_value=None)
+        self.iam_instances_patcher.start()
+        self.iam_instance_patcher.start()
+        self.iam_permission_patcher.start()
+        self.timezone_patcher.start()
+        self.addCleanup(self.iam_instances_patcher.stop)
+        self.addCleanup(self.iam_instance_patcher.stop)
+        self.addCleanup(self.iam_permission_patcher.stop)
+        self.addCleanup(self.timezone_patcher.stop)
         # 使用最小合法 pipeline_tree（包含 activities/gateways），避免保存流程模板时
         # set_has_subprocess_bit / count_pipeline_tree_nodes 读取对应字段抛 KeyError
         self.test_snapshot = Snapshot.objects.create_snapshot({"activities": {}, "gateways": {}})
@@ -60,6 +85,13 @@ class TestCommonTemplateView(
         response = self.client.get(self.template_url, data=query_params)
         self.assertTrue(response.data["result"])
         self.assertIsNotNone(response.data["data"])
+
+    @patch("gcloud.core.apis.drf.viewsets.common_template.get_iam_client")
+    def test_common_template_auth_actions_include_create_task(self, get_iam_client):
+        helper = CommonTemplateViewSet.iam_resource_helper("tenant_id")
+
+        self.assertIn(IAMMeta.COMMON_FLOW_CREATE_TASK_ACTION, helper.actions)
+        get_iam_client.assert_called_once_with(tenant_id="tenant_id")
 
     def test_update_common_template(self):
         self.template_url = "/api/v3/common_template/{}/update_specific_fields/".format(self.common_template.id)

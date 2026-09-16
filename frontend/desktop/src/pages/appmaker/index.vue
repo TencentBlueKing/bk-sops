@@ -18,6 +18,9 @@
                         theme="primary"
                         style="min-width: 120px;"
                         data-test-id="appmaker_form_creatApp"
+                        :loading="capabilityLoading"
+                        :class="{ 'btn-permission-disable': !capabilityLoading && !canCreateApp }"
+                        v-cursor="{ active: !capabilityLoading && !canCreateApp }"
                         @click="onCreateApp">
                         {{$t('新建')}}
                     </bk-button>
@@ -89,6 +92,8 @@
     import NoData from '@/components/common/base/NoData.vue'
     import SearchSelect from '@/components/common/searchSelect/index.vue'
     import CancelRequest from '@/api/cancelRequest.js'
+    import permission from '@/mixins/permission.js'
+    import bus from '@/utils/bus.js'
 
     const SEARCH_LIST = [
         {
@@ -111,6 +116,7 @@
             AppEditDialog,
             SearchSelect
         },
+        mixins: [permission],
         props: ['project_id', 'common'],
         data () {
             const { editor = '', flowName = '' } = this.$route.query
@@ -124,6 +130,9 @@
             }, [])
             return {
                 firstLoading: true,
+                capabilityLoading: true,
+                canViewApp: false,
+                canCreateApp: false,
                 loading: false,
                 collectedLoading: false,
                 contentWidth: 0,
@@ -147,14 +156,18 @@
         },
         computed: {
             ...mapState('project', {
-                'timeZone': state => state.timezone
+                'timeZone': state => state.timezone,
+                'projectName': state => state.projectName
             })
         },
         async created () {
-            this.getCollectList()
             this.resizeHandler = toolsUtils.debounce(this.setContainerWidth, 500)
             window.addEventListener('resize', this.resizeHandler)
-            await this.loadData()
+            const canAccess = await this.loadCapabilities()
+            if (canAccess && this.canViewApp) {
+                this.getCollectList()
+                await this.loadData()
+            }
             this.firstLoading = false
         },
         mounted () {
@@ -169,9 +182,49 @@
             ]),
             ...mapActions('appmaker', [
                 'loadAppmaker',
+                'loadAppmakerCapabilities',
                 'appmakerEdit',
                 'appmakerDelete'
             ]),
+            async loadCapabilities () {
+                try {
+                    const data = await this.loadAppmakerCapabilities(this.project_id)
+                    this.canViewApp = data.can_view
+                    this.canCreateApp = data.can_create
+                    if (!this.canViewApp && !this.canCreateApp) {
+                        await this.showPermissionApplyPage()
+                        return false
+                    }
+                    return true
+                } catch (e) {
+                    console.log(e)
+                    return false
+                } finally {
+                    this.capabilityLoading = false
+                }
+            },
+            async showPermissionApplyPage () {
+                const action = 'mini_app_view'
+                if (!this.$store.state.permissionMeta.system.length) {
+                    await this.$store.dispatch('getPermissionMeta')
+                }
+                const { actions, system } = this.$store.state.permissionMeta
+                const bksops = system.find(item => item.id === 'bk_sops')
+                const actionMeta = actions.find(item => item.id === action)
+                if (!bksops || !actionMeta) {
+                    return
+                }
+                const permissions = {
+                    system_id: bksops.id,
+                    system_name: bksops.name,
+                    actions: [{
+                        id: action,
+                        name: actionMeta.name,
+                        related_resource_types: []
+                    }]
+                }
+                bus.$emit('togglePermissionApplyPage', true, 'other', permissions)
+            },
             async loadData () {
                 this.loading = true
                 try {
@@ -223,6 +276,16 @@
                 }
             },
             onCreateApp () {
+                if (this.capabilityLoading) {
+                    return
+                }
+                if (!this.canCreateApp) {
+                    const resourceData = {
+                        project: [{ id: this.project_id, name: this.projectName }]
+                    }
+                    this.applyForPermission(['flow_create_mini_app'], [], resourceData)
+                    return
+                }
                 this.isEditDialogShow = true
                 this.isCreateNewApp = true
                 this.currentAppData = undefined

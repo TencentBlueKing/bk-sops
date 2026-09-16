@@ -12,9 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 from gcloud.iam_auth import res_factory
-from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
-
-from iam.contrib.tastypie.resource import IAMResourceHelper
+from gcloud.iam_auth.resource_helpers.base import IAMResourceHelper, SimpleSubjectEnvHelperMixin
 
 
 class TaskResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):

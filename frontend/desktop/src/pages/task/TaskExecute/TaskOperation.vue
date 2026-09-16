@@ -416,7 +416,8 @@
             }),
             ...mapState('project', {
                 projectId: state => state.project_id,
-                projectName: state => state.projectName
+                projectName: state => state.projectName,
+                projectAuthActions: state => state.authActions
             }),
             ...mapState({
                 'msgInstance': state => state.msgInstance
@@ -1700,10 +1701,17 @@
                     return
                 }
 
-                let requestPerm = this.templateSource === 'project' ? 'flow_create_task' : 'common_flow_create_task'
-                requestPerm = this.view_mode === 'appmaker' ? 'mini_app_create_task' : requestPerm
-                requestPerm = action !== 'reExecute' ? 'task_operate' : requestPerm
-                if (!this.hasPermission([requestPerm], this.instanceActions)) {
+                let requestPerm = this.templateSource === 'project'
+                    ? ['flow_create_task']
+                    : ['common_flow_create_task', 'project_common_create_task']
+                requestPerm = this.view_mode === 'appmaker' ? ['mini_app_create_task'] : requestPerm
+                requestPerm = action !== 'reExecute' ? ['task_operate'] : requestPerm
+                // 公共流程再次执行同时依赖公共流程与项目权限。任务详情返回流程/任务权限，
+                // 项目权限由项目详情写入 Vuex，需要与任务权限合并后再做前端递归依赖检查。
+                const currentPermissions = action === 'reExecute'
+                    ? [...this.instanceActions, ...this.projectAuthActions]
+                    : this.instanceActions
+                if (!this.hasPermission(requestPerm, currentPermissions)) {
                     const resourceData = {
                         task: [{
                             id: this.instance_id,
@@ -1725,7 +1733,7 @@
                             name: this.template_name
                         }]
                     }
-                    this.applyForPermission([requestPerm], this.instanceActions, resourceData)
+                    this.applyForPermission(requestPerm, currentPermissions, resourceData)
                     return
                 }
 

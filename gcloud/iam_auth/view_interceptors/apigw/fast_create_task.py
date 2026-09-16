@@ -11,27 +11,16 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam import Action, Subject
-from iam.contrib.tastypie.shortcuts import allow_or_raise_immediate_response_for_resources_list
-from iam.shortcuts import allow_or_raise_auth_failed
-
-from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService
 from gcloud.iam_auth.intercept import ViewInterceptor
+from gcloud.iam_auth.request_resources import load_resource_for_request
 
 
 class FastCreateTaskInterceptor(ViewInterceptor):
     def process(self, request, *args, **kwargs):
-        if request.is_trust:
-            return
-
         tenant_id = request.user.tenant_id
-        iam = get_iam_client(tenant_id)
         project = request.project
-
-        subject = Subject("user", request.user.username)
-        action = Action(IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION)
-        resources = res_factory.resources_for_project_obj(project)
-        allow_or_raise_auth_failed(iam, IAMMeta.SYSTEM_ID, subject, action, resources, cache=True)
+        project_resource = load_resource_for_request(request, IAMMeta.PROJECT_RESOURCE, project.id)
 
         params = request.params_json
         has_common_subprocess = params.get("has_common_subprocess", False)
@@ -41,15 +30,20 @@ class FastCreateTaskInterceptor(ViewInterceptor):
             if "template_id" in activity:
                 templates_in_task.add(activity["template_id"])
         if not has_common_subprocess:
-            action = Action(IAMMeta.FLOW_VIEW_ACTION)
-            resources_list = res_factory.resources_list_for_flows(list(templates_in_task), tenant_id)
+            action_id = IAMMeta.FLOW_VIEW_ACTION
+            resource_type = IAMMeta.FLOW_RESOURCE
         else:
-            action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
-            resources_list = res_factory.resources_list_for_common_flows(list(templates_in_task), tenant_id)
-        allow_or_raise_immediate_response_for_resources_list(
-            iam=iam,
-            system=IAMMeta.SYSTEM_ID,
-            subject=subject,
-            action=action,
-            resources_list=resources_list,
+            action_id = IAMMeta.COMMON_FLOW_VIEW_ACTION
+            resource_type = IAMMeta.COMMON_FLOW_RESOURCE
+        template_resources = [
+            load_resource_for_request(request, resource_type, template_id) for template_id in templates_in_task
+        ]
+        if request.is_trust:
+            return
+        service = PermissionService()
+        service.require(
+            request.user.username,
+            tenant_id,
+            PermissionCheck(IAMMeta.PROJECT_FAST_CREATE_TASK_ACTION, project_resource),
         )
+        service.require_resources(request.user.username, tenant_id, action_id, template_resources)

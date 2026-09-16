@@ -12,8 +12,6 @@ specific language governing permissions and limitations under the License.
 """
 
 from django.conf import settings
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.permissions import IsAdminUser
 
@@ -24,6 +22,8 @@ from gcloud.core.apis.drf.serilaziers import ProjectConfigSerializer
 from gcloud.core.apis.drf.viewsets.utils import ApiMixin
 from gcloud.core.models import Project, ProjectConfig
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 
 
 class ProjectConfigPermission(permissions.BasePermission):
@@ -49,8 +49,9 @@ class ProjectConfigViewSet(ApiMixin, mixins.RetrieveModelMixin, mixins.UpdateMod
 
     def get_object(self):
         project_id = self.kwargs["pk"]
+        tenant_id = self.request.user.tenant_id
 
-        if not Project.objects.filter(id=project_id).exists():
+        if not Project.objects.filter(id=project_id, tenant_id=tenant_id, is_disable=False).exists():
             raise ObjectDoesNotExistException("Project id: {} does not exist".format(project_id))
 
         obj, _ = ProjectConfig.objects.get_or_create(project_id=project_id)

@@ -20,10 +20,9 @@ from bk_audit.contrib.bk_audit.client import bk_audit_client
 from bk_audit.log.models import AuditContext
 from django.conf import settings
 from django.db import transaction
-from iam import Action
-from iam.auth.models import BaseObject
 
 from gcloud.contrib.audit.instances import AuditSnapshot, build_instance, build_instance_data
+from gcloud.iam_auth.models import Action, BaseObject
 
 logger = logging.getLogger("root")
 

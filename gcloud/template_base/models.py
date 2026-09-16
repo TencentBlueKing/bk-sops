@@ -76,6 +76,8 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         pipeline_template_id_list = []
         template = {}
         for tmpl in templates:
+            if tmpl["pipeline_template_id"] is None:
+                raise FlowExportError(_("流程导出失败: 流程 [{}] 缺少关联的流程定义, 请先修复该流程").format(tmpl["id"]))
             pipeline_template_id_list.append(tmpl["pipeline_template_id"])
             tmpl["pipeline_template_str_id"] = tmpl["pipeline_template_id"]
             template[tmpl["id"]] = tmpl

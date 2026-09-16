@@ -33,7 +33,7 @@ class CreateTemplateInterceptorTestCase(TestCase):
         interceptor = CreateTemplateInterceptor()
         request = SimpleNamespace(
             is_trust=False,
-            user=SimpleNamespace(username="tester"),
+            user=SimpleNamespace(username="tester", tenant_id="tenant-1"),
             project=SimpleNamespace(id=42, name="project-for-biz-9991"),
         )
         mocked_resources_for_project_obj.return_value = ["project-resource"]

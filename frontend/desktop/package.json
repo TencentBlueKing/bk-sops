@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --config ./builds/webpack.dev.config.js",
     "build": "cross-env NODE_ENV=production webpack --config ./builds/webpack.prod.config.js && npm run verify:artifacts",
-    "verify:artifacts": "node ./builds/verify-build-artifacts.js"
+    "verify:artifacts": "node ./builds/verify-build-artifacts.js",
+    "test:iam-v4": "node --test tests/iamApplyUrl.test.mjs"
   },
   "author": "",
   "license": "ISC",

@@ -16,8 +16,6 @@ import logging
 from django.db.models import Max, Value
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
-from iam import Action, Subject
-from iam.shortcuts import allow_or_raise_auth_failed
 from rest_framework import permissions, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -26,6 +24,9 @@ from rest_framework.views import APIView
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import PROJECT
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
+from gcloud.iam_auth.creator import is_flow_creator
+from gcloud.iam_auth.models import Action, Subject
+from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.preview import preview_template_tree_with_schemes
@@ -77,14 +78,23 @@ class PreviewTaskTreeWithSchemesView(APIView):
         tenant_id = request.user.tenant_id
         subject = Subject("user", request.user.username)
         if template_source == PROJECT:
-            iam_action = Action(IAMMeta.FLOW_VIEW_ACTION)
-            resources = res_factory.resources_for_flow(template_id, tenant_id)
+            creator_allowed = is_flow_creator(
+                request.user.username,
+                tenant_id,
+                template_id,
+                project_id=project_id,
+            )
+            if not creator_allowed:
+                iam_action = Action(IAMMeta.FLOW_VIEW_ACTION)
+                resources = res_factory.resources_for_flow(template_id, tenant_id)
         else:
+            creator_allowed = False
             iam_action = Action(IAMMeta.COMMON_FLOW_VIEW_ACTION)
             resources = res_factory.resources_for_common_flow(template_id, tenant_id)
-        allow_or_raise_auth_failed(
-            get_iam_client(tenant_id), IAMMeta.SYSTEM_ID, subject, iam_action, resources, cache=True
-        )
+        if not creator_allowed:
+            allow_or_raise_auth_failed(
+                get_iam_client(tenant_id), IAMMeta.SYSTEM_ID, subject, iam_action, resources, cache=True
+            )
 
         try:
             if template_source == PROJECT:

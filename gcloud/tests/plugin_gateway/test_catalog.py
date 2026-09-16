@@ -300,11 +300,11 @@ class PluginGatewayCatalogServiceTestCase(TestCase):
         self.assertEqual(third_party_plugin["latest_version"], "1.1.0")
         self.assertEqual(third_party_plugin["versions"], ["1.1.0", "1.0.0"])
         self.assertEqual(third_party_plugin["wrapper_version"], UNIFORM_API_WRAPPER_VERSION)
-        self.assertIn("/apigw/plugin-gateway/plugins/bk_plugin_demo/", third_party_plugin["meta_url_template"])
+        self.assertIn("/plugin-gateway/plugins/bk_plugin_demo/", third_party_plugin["meta_url_template"])
         self.assertEqual(builtin_plugin["plugin_source"], PLUGIN_SOURCE_BUILTIN)
         self.assertEqual(builtin_plugin["category"], "JOB")
         self.assertIn(
-            "/apigw/plugin-gateway/plugins/builtin__job_execute_task/",
+            "/plugin-gateway/plugins/builtin__job_execute_task/",
             builtin_plugin["meta_url_template"],
         )
 

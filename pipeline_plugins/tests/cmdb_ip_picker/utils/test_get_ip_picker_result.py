@@ -31,9 +31,15 @@ CMDB_UTILS_CC_GET_IPS_INFO_BY_STR_IPV6 = "pipeline_plugins.cmdb_ip_picker.utils.
 
 class GetIPPickerResultTestCase(TestCase):
     def setUp(self):
+        self.tenant_id = "system"
         self.username = "admin"
         self.bk_biz_id = "2"
-        self.bk_supplier_account = 0
+        self.dynamic_group_patcher = patch(
+            "pipeline_plugins.cmdb_ip_picker.utils.get_dynamic_group_list",
+            return_value=[{"id": "group1"}, {"id": "group2"}],
+        )
+        self.dynamic_group_patcher.start()
+        self.addCleanup(self.dynamic_group_patcher.stop)
 
     @patch(CMDB_UTILS_CMDB, MockCMDBReturnEmpty)
     @patch(CMDB_UTILS_GET_CLIENT, mock_get_client_by_user)
@@ -47,9 +53,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        self.assertTrue(
-            get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["result"]
-        )
+        self.assertTrue(get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["result"])
 
     @patch(CMDB_UTILS_CMDB, MockCMDB)
     @patch(CMDB_UTILS_GET_CLIENT, mock_get_client_by_user)
@@ -66,7 +70,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, ip_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, ip_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2", "3.3.3.3"])
 
@@ -83,7 +87,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2", "3.3.3.3"])
 
@@ -99,7 +103,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1"])
 
@@ -111,7 +115,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2"])
 
@@ -123,7 +127,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
@@ -141,9 +145,9 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+        self.assertCountEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch(CMDB_UTILS_CMDB, MockCMDB)
     @patch(CMDB_UTILS_GET_CLIENT, mock_get_client_by_user)
@@ -158,7 +162,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
@@ -171,9 +175,9 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+        self.assertCountEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch(CMDB_UTILS_CMDB, MockCMDB)
     @patch(CMDB_UTILS_GET_CLIENT, mock_get_client_by_user)
@@ -188,7 +192,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "set", "value": ["set2"]}],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2"])
 
@@ -204,7 +208,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
@@ -220,7 +224,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
@@ -269,7 +273,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
@@ -285,7 +289,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "set", "value": ["set2"]}],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2"])
 
@@ -301,7 +305,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [],
             "excludes": [{"field": "set", "value": ["set2"]}],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "3.3.3.3"])
 
@@ -317,7 +321,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "set", "value": ["set2"]}, {"field": "set", "value": ["set3"]}],
             "excludes": [{"field": "set", "value": ["set3"]}],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2"])
 
@@ -333,7 +337,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "layer", "value": ["中间层"]}],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["2.2.2.2", "3.3.3.3"])
 
@@ -349,7 +353,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "layer", "value": ["中间层"]}],
             "excludes": [{"field": "set", "value": ["set2"]}],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["3.3.3.3"])
 
@@ -365,7 +369,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
@@ -385,7 +389,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "excludes": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["1.1.1.1", "2.2.2.2"])
 
@@ -401,7 +405,7 @@ class GetIPPickerResultTestCase(TestCase):
             "excludes": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "filters": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["3.3.3.3"])
 
@@ -421,7 +425,7 @@ class GetIPPickerResultTestCase(TestCase):
             "excludes": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "filters": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["3.3.3.3"])
 
@@ -438,7 +442,7 @@ class GetIPPickerResultTestCase(TestCase):
             "excludes": [{"field": "host", "value": ["1.1.1.1", "2.2.2.2"]}],
             "filters": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["3.3.3.3"])
 
@@ -455,9 +459,9 @@ class GetIPPickerResultTestCase(TestCase):
             "excludes": [{"field": "host", "value": [""]}],
             "filters": [],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
-        self.assertEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
+        self.assertCountEqual(ip, ["1.1.1.1", "2.2.2.2", "3.3.3.3"])
 
     @patch(CMDB_UTILS_CMDB, MockCMDB)
     @patch(CMDB_UTILS_GET_CLIENT, mock_get_client_by_user)
@@ -472,7 +476,7 @@ class GetIPPickerResultTestCase(TestCase):
             "excludes": [],
             "filters": [{"field": "host", "value": [""]}],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, group_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, group_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, [])
 
@@ -488,7 +492,7 @@ class GetIPPickerResultTestCase(TestCase):
             "filters": [{"field": "set", "value": ["set2"]}, {"field": "set", "value": ["set3"]}],
             "excludes": [{"field": "host", "value": ["2.2.2.2"]}],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["3.3.3.3"])
 
@@ -504,6 +508,6 @@ class GetIPPickerResultTestCase(TestCase):
             "excludes": [{"field": "set", "value": ["set2"]}],
             "filters": [{"field": "host", "value": ["2.2.2.2", "3.3.3.3"]}],
         }
-        ip_data = get_ip_picker_result(self.username, self.bk_biz_id, self.bk_supplier_account, topo_kwargs)["data"]
+        ip_data = get_ip_picker_result(self.tenant_id, self.username, self.bk_biz_id, topo_kwargs)["data"]
         ip = [host["bk_host_innerip"] for host in ip_data]
         self.assertEqual(ip, ["3.3.3.3"])

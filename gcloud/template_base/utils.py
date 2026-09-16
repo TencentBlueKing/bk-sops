@@ -32,21 +32,56 @@ logger = logging.getLogger("root")
 def read_encoded_template_data(content):
     try:
         data = json.loads(base64.b64decode(content))
+        templates_data = data["template_data"]
+        data_digest = data["digest"]
     except Exception:
         message = _("模板解析失败: 文件解析异常, 模板参数缺陷. 请重试或联系管理员处理 | read_encoded_template_data")
         logger.error(message)
         return {"result": False, "message": message, "code": err_code.REQUEST_PARAM_INVALID.code}
 
     # check the validation of file
-    templates_data = data["template_data"]
-    check_digest = partial(check_template_digest, templates_data=templates_data, data_digest=data["digest"])
+    check_digest = partial(check_template_digest, templates_data=templates_data, data_digest=data_digest)
 
     if not check_digest(salt=settings.TEMPLATE_DATA_SALT):
         if not check_digest(salt=settings.OLD_COMMUNITY_TEMPLATE_DATA_SALT):
             message = _("模板解析失败: 文件解析异常, 模板参数非法. 请重试或联系管理员处理 | read_encoded_template_data")
             logger.error(message)
             return {"result": False, "message": message, "code": err_code.VALIDATION_ERROR.code}
+
+    is_valid, message = validate_template_data_structure(templates_data)
+    if not is_valid:
+        logger.error(message)
+        return {"result": False, "message": message, "code": err_code.VALIDATION_ERROR.code}
     return {"result": True, "data": data, "code": err_code.SUCCESS.code}
+
+
+def validate_template_data_structure(templates_data):
+    try:
+        templates = templates_data["template"]
+        pipeline_templates = templates_data["pipeline_template_data"]["template"]
+    except (KeyError, TypeError):
+        return False, _("模板解析失败: 文件缺少流程模板数据. 请重新导出后重试")
+
+    if not isinstance(templates, dict) or not isinstance(pipeline_templates, dict):
+        return False, _("模板解析失败: 流程模板数据格式错误. 请重新导出后重试")
+
+    for template_key, template in templates.items():
+        if not isinstance(template, dict):
+            return False, _("模板解析失败: 流程 [{}] 数据格式错误. 请重新导出后重试").format(template_key)
+        template_id = template.get("id", template_key)
+        pipeline_template_id = template.get("pipeline_template_str_id")
+        if pipeline_template_id is None:
+            pipeline_template_id = template.get("pipeline_template_id")
+        if pipeline_template_id is None or isinstance(pipeline_template_id, bool):
+            return False, _("模板解析失败: 流程 [{}] 缺少关联的流程定义. 请在源环境修复后重新导出").format(template_id)
+        pipeline_template_id = str(pipeline_template_id)
+        if not pipeline_template_id or pipeline_template_id not in pipeline_templates:
+            return False, _("模板解析失败: 流程 [{}] 关联的流程定义不存在. 请在源环境修复后重新导出").format(template_id)
+        pipeline_template = pipeline_templates[pipeline_template_id]
+        if not isinstance(pipeline_template, dict) or not pipeline_template.get("name"):
+            return False, _("模板解析失败: 流程 [{}] 关联的流程定义数据不完整. 请在源环境修复后重新导出").format(template_id)
+        template["pipeline_template_str_id"] = pipeline_template_id
+    return True, ""
 
 
 def check_template_digest(templates_data, data_digest, salt):

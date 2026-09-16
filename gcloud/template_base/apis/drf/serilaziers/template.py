@@ -17,7 +17,12 @@ from rest_framework import serializers
 class TemplateIdsSerializer(serializers.Serializer):
     """用于一些批量操作参数序列化使用"""
 
-    template_ids = serializers.ListField(help_text="流程ID列表", child=serializers.IntegerField())
+    template_ids = serializers.ListField(help_text="流程ID列表", child=serializers.IntegerField(), allow_empty=False)
+
+    def validate_template_ids(self, value):
+        if len(value) != len(set(value)):
+            raise serializers.ValidationError("流程ID不能重复")
+        return value
 
 
 class BatchOperationSerializer(serializers.Serializer):

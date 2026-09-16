@@ -17,6 +17,8 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase
 from rest_framework.exceptions import PermissionDenied
 
+from gcloud.core.apis.drf.permission import IamPermission
+from gcloud.core.apis.drf.viewsets.base import GcloudCommonMixin
 from gcloud.core.apis.drf.viewsets.task_template import TaskTemplatePermission, TaskTemplateViewSet
 from gcloud.iam_auth import IAMMeta
 
@@ -42,6 +44,92 @@ class VerifyWebhookConfigurationPermissionTestCase(TestCase):
         info = TaskTemplatePermission.actions["verify_webhook_configuration"]
         self.assertEqual(info.iam_action, IAMMeta.FLOW_CREATE_ACTION)
         self.assertNotEqual(info.iam_action, IAMMeta.PROJECT_VIEW_ACTION)
+
+
+class TaskTemplateCreatorPermissionTestCase(TestCase):
+    def test_creator_object_permission_does_not_depend_on_remote_grant(self):
+        request = SimpleNamespace(user=SimpleNamespace(username="creator"))
+        template = SimpleNamespace(pipeline_template=SimpleNamespace(creator="creator"))
+
+        with patch.object(IamPermission, "has_object_permission") as parent_check:
+            self.assertTrue(TaskTemplatePermission().has_object_permission(request, SimpleNamespace(), template))
+        parent_check.assert_not_called()
+
+    def test_non_creator_object_permission_uses_iam(self):
+        request = SimpleNamespace(user=SimpleNamespace(username="other"))
+        template = SimpleNamespace(pipeline_template=SimpleNamespace(creator="creator"))
+
+        with patch.object(IamPermission, "has_object_permission", return_value=False) as parent_check:
+            self.assertFalse(TaskTemplatePermission().has_object_permission(request, SimpleNamespace(), template))
+        parent_check.assert_called_once()
+
+    def test_creator_gets_all_flow_actions_in_list_response(self):
+        request = SimpleNamespace(user=SimpleNamespace(username="creator", tenant_id="system"))
+        template = SimpleNamespace(id=1, pipeline_template=SimpleNamespace(creator="creator"))
+        data = [{"id": 1, "auth_actions": []}]
+        actions = [IAMMeta.FLOW_VIEW_ACTION, IAMMeta.FLOW_CREATE_PERIODIC_TASK_ACTION]
+
+        with patch.object(GcloudCommonMixin, "injection_auth_actions", return_value=data):
+            with patch.object(
+                TaskTemplateViewSet, "iam_resource_helper", return_value=SimpleNamespace(actions=actions)
+            ):
+                result = TaskTemplateViewSet().injection_auth_actions(request, data, [template])
+
+        self.assertEqual(result[0]["auth_actions"], actions)
+
+
+class TaskTemplateWebhookUpdateTestCase(TestCase):
+    @patch("gcloud.core.apis.drf.viewsets.task_template.bk_audit_add_event")
+    @patch("gcloud.core.apis.drf.viewsets.task_template.operate_record_signal.send")
+    @patch("gcloud.core.apis.drf.viewsets.task_template.post_template_save_commit.send")
+    @patch("gcloud.core.apis.drf.viewsets.task_template.clear_scope_webhooks")
+    @patch("gcloud.core.apis.drf.viewsets.task_template.manager.update_pipeline")
+    @patch("gcloud.core.apis.drf.viewsets.task_template.CreateTaskTemplateSerializer")
+    def test_disable_webhook_clears_config_when_saving_template(
+        self,
+        serializer_cls,
+        update_pipeline,
+        clear_scope_webhooks,
+        post_template_save,
+        operate_record,
+        audit_event,
+    ):
+        template = SimpleNamespace(
+            id=5,
+            project_id=42,
+            project=SimpleNamespace(id=42),
+            pipeline_template=SimpleNamespace(),
+            is_deleted=False,
+        )
+        serializer = MagicMock()
+        serializer.validated_data = {
+            "name": "flow",
+            "pipeline_tree": "{}",
+            "description": "",
+            "webhook_configs": {},
+            "enable_webhook": False,
+            "template_labels": [],
+        }
+        serializer.instance = template
+        serializer.data = {"id": 5}
+        serializer_cls.return_value = serializer
+        update_pipeline.return_value = {"result": True}
+        clear_scope_webhooks.return_value = {"result": True}
+        request = SimpleNamespace(data={}, user=SimpleNamespace(username="tester"))
+        view = TaskTemplateViewSet()
+
+        with patch.object(view, "get_object", return_value=template), patch.object(
+            view, "perform_update"
+        ), patch.object(view, "_sync_template_lables"), patch.object(
+            view, "injection_auth_actions", return_value={"id": 5}
+        ):
+            response = view.update(request, partial=True)
+
+        self.assertEqual(response.data, {"id": 5})
+        clear_scope_webhooks.assert_called_once_with(["5"])
+        post_template_save.assert_called_once()
+        operate_record.assert_called_once()
+        audit_event.assert_called_once()
 
 
 class CommonInfoProjectBindingTestCase(TestCase):

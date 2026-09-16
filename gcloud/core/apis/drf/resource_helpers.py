@@ -11,10 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-from iam.contrib.tastypie.resource import IAMResourceHelper
-
 from gcloud.iam_auth import IAMMeta
-from gcloud.iam_auth.resource_helpers.base import SimpleSubjectEnvHelperMixin
+from gcloud.iam_auth.resource_helpers.base import IAMResourceHelper, SimpleSubjectEnvHelperMixin
 
 
 class ViewSetResourceHelper(SimpleSubjectEnvHelperMixin, IAMResourceHelper):
