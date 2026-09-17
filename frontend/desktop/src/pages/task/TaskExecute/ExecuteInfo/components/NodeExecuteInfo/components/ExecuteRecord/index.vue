@@ -127,16 +127,28 @@
                 return ['RUNNING', 'SUSPENDED', 'FINISHED', 'FAILED'].includes(this.executeInfo.state)
             }
         },
-        mounted () {
-            const showDom = document.querySelector('.show-html-text')
-            const hideDom = document.querySelector('.hide-html-text')
-            if (showDom && hideDom) {
-                const showDomHeight = showDom.getBoundingClientRect().height
-                const hideDomHeight = hideDom.getBoundingClientRect().height
-                this.isExpandTextShow = hideDomHeight > showDomHeight
+        watch: {
+            'executeInfo.ex_data' () {
+                this.$nextTick(() => {
+                    this.checkExpandBtn()
+                })
             }
         },
+        mounted () {
+            this.$nextTick(() => {
+                this.checkExpandBtn()
+            })
+        },
         methods: {
+            checkExpandBtn () {
+                const showDom = this.$el.querySelector('.show-html-text')
+                const hideDom = this.$el.querySelector('.hide-html-text')
+                if (showDom && hideDom) {
+                    const showDomHeight = showDom.getBoundingClientRect().height
+                    const hideDomHeight = hideDom.getBoundingClientRect().height
+                    this.isExpandTextShow = hideDomHeight > showDomHeight
+                }
+            },
             getLastTime (time) {
                 return tools.timeTransform(time)
             },
