@@ -87,3 +87,18 @@ Saving resource drafts does not update an already published gateway version,
 and merging the PR does not migrate the target environment. Roll back the
 backend, callers and gateway version together when necessary; reverting drafts
 alone does not change the published version.
+
+## Environments without ESB
+
+`fetch_esb_public_key` retrieves the JWT verification key for the legacy ESB
+entry point, not credentials for the JOB or CMDB gateway SDKs. Some PaaS V3
+environments do not provide this entry point and return HTTP 404. Only a
+confirmed HTTP 404 from this optional step is skipped, including when
+apigw-manager wraps the HTTP error in `SystemExit(1)`.
+
+Fetching the `bk-sops` gateway's own key remains mandatory. ESB authentication
+failures, server errors, timeouts and unknown failures still stop deployment.
+Keep `set -e` in `bin/pre_release`; do not ignore the entire synchronization
+command's exit status. This handling does not migrate legacy ESB clients:
+plugins or development tools requesting `/api/c/compapi/` still require a
+supported endpoint in the target environment.
