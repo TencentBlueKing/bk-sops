@@ -27,7 +27,6 @@ urlpatterns_custom = [
     re_path(r"^taskflow/", include("gcloud.taskflow3.urls")),
     re_path(r"^appmaker/", include("gcloud.contrib.appmaker.urls")),
     re_path(r"^collection/", include("gcloud.contrib.collection.urls")),
-    re_path(r"^develop/", include("gcloud.contrib.develop.urls")),
     re_path(r"^function/", include("gcloud.contrib.function.urls")),
     re_path(r"^pipeline/", include("pipeline_plugins.base.urls")),
     re_path(r"^pipeline/", include("pipeline_plugins.components.urls")),

@@ -87,3 +87,19 @@ Saving resource drafts does not update an already published gateway version,
 and merging the PR does not migrate the target environment. Roll back the
 backend, callers and gateway version together when necessary; reverting drafts
 alone does not change the published version.
+
+## Multi-tenant deployment no longer initializes ESB
+
+The multi-tenant branch no longer runs `fetch_esb_public_key` during deployment
+or fetches a legacy ESB public key at application startup. The target environment
+does not need to provide the `bk-esb` gateway or its public-key endpoint.
+
+Synchronization of the `bk-sops` API Gateway configuration, resources, versions,
+permissions and public key remains mandatory. Keep `set -e` and the normal
+`migrate` step in `bin/pre_release`; failures must still stop deployment. API
+Gateway context tables and JWT verification remain in use and must be retained.
+
+The legacy plugin development endpoints for system lists, component lists and
+ESB plugin code generation have been removed. Light applications use PaaS V3
+only. This cleanup does not migrate ESB calls in `nodeman_create_task:legacy`
+or other custom plugins.

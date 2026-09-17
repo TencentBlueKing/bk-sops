@@ -11,13 +11,4 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-import os
-
-IS_OPEN_V3 = os.getenv("BKPAAS_MAJOR_VERSION", False)
-
-if not IS_OPEN_V3:
-    # paas v2
-    from .v2 import create_maker_app, edit_maker_app, del_maker_app, modify_app_logo, get_app_logo_url  # noqa
-else:
-    # paas v3
-    from .v3 import create_maker_app, edit_maker_app, del_maker_app, modify_app_logo, get_app_logo_url  # noqa
+from .v3 import create_maker_app, del_maker_app, edit_maker_app, get_app_logo_url, modify_app_logo  # noqa

@@ -61,7 +61,6 @@
                                 @click="changeRoute(routerList[groupIndex][routeIndex].children[childIndex])">
                                 <span>
                                     {{child.name}}
-                                    <span v-if="child.id === 'atomDev'" class="offline-tip">{{ $t('即将下线') }}</span>
                                 </span>
                             </bk-navigation-menu-item>
                         </div>
@@ -102,8 +101,7 @@
                 hasAdminPerm: state => state.hasAdminPerm,
                 hasStatisticsPerm: state => state.hasStatisticsPerm,
                 app_id: state => state.app_id,
-                view_mode: state => state.view_mode,
-                isMultiTenantMode: state => state.isMultiTenantMode
+                view_mode: state => state.view_mode
             }),
             ...mapState('project', {
                 'project_id': state => state.project_id,
@@ -132,10 +130,6 @@
                     const firstRouteGroup = adminRouteList[0][0]
 
                     const filterConditions = [
-                        { // 多租户模式下过滤掉【插件开发】
-                            condition: this.isMultiTenantMode,
-                            idToRemove: 'atomDev'
-                        },
                         { // 暂时用写死的方式去掉管理员入口导航的运营数据
                             condition: !this.hasStatisticsPerm,
                             idToRemove: 'operation'
@@ -373,16 +367,6 @@
                 height: 4px;
                 width: 4px;
             }
-        }
-        .offline-tip {
-            display: inline-block;
-            line-height: 22px;
-            font-size: 12px;
-            transform: scale(.8);
-            color: #ff9c01;
-            padding: 0 4px;
-            border: 1px solid #ffb848;
-            border-radius: 2px;
         }
     }
 </style>
