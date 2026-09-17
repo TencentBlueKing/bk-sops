@@ -18,14 +18,11 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-from apigw_manager.apigw.management.commands.fetch_esb_public_key import Command as FetchEsbPublicKeyCommand
-from apigw_manager.core.exceptions import ApiResponseError
-from bkapi_client_core.exceptions import HTTPResponseError
 from django.core.management.base import CommandError
-from requests import Response
 
+from gcloud.apigw import apps as apigw_apps
 from gcloud.apigw.management.commands import sync_saas_apigw
 
 
@@ -54,7 +51,6 @@ class SyncSaasApigwTest(unittest.TestCase):
                 "create_version_and_release_apigw",
                 "grant_apigw_permissions",
                 "fetch_apigw_public_key",
-                "fetch_esb_public_key",
             ],
         )
         self.assertEqual(self.stderr.getvalue(), "")
@@ -85,77 +81,23 @@ class SyncSaasApigwTest(unittest.TestCase):
         self.assertEqual(raised.exception.code, 0)
         self.assertEqual(self.stderr.getvalue(), "")
 
-    @staticmethod
-    def raise_public_key_error(status):
-        response = Response()
-        response.status_code = status
-        try:
-            raise HTTPResponseError("public key request failed", response=response)
-        except HTTPResponseError:
-            # Match apigw-manager's wrapping without serializing authorization headers.
-            raise ApiResponseError("public key request failed")
-
-    def call_esb_command(self, status):
-        # Exercise the installed dependency's real SystemExit wrapper; never call HTTP or save a key.
-        command = FetchEsbPublicKeyCommand(stderr=io.StringIO())
-        manager = Mock()
-        manager.public_key.side_effect = lambda: self.raise_public_key_error(status)
-        with patch.object(command, "get_configuration"), patch.object(command, "manager_class", return_value=manager):
-            command.handle(gateway_name="bk-sops")
-
-    def test_missing_esb_key_system_exit_does_not_fail_sync(self):
-        def call(name, *args, **kwargs):
-            if name == "fetch_esb_public_key":
-                self.call_esb_command(404)
-
-        with patch.object(sync_saas_apigw, "call_command", side_effect=call):
-            self.command.handle()
-        self.assertIn("HTTP 404", self.stdout.getvalue())
-        self.assertIn("继续发布", self.stdout.getvalue())
-
-    def test_missing_esb_key_api_error_does_not_fail_sync(self):
-        def call(name, *args, **kwargs):
-            if name == "fetch_esb_public_key":
-                self.raise_public_key_error(404)
-
-        with patch.object(sync_saas_apigw, "call_command", side_effect=call):
-            self.command.handle()
-        self.assertIn("HTTP 404", self.stdout.getvalue())
-
-    def test_esb_auth_and_server_errors_still_fail_sync(self):
-        for status in (401, 403, 500):
-            with self.subTest(status=status):
-                self.stdout.seek(0)
-                self.stdout.truncate()
-
-                def call(name, *args, **kwargs):
-                    if name == "fetch_esb_public_key":
-                        self.call_esb_command(status)
-
-                with patch.object(sync_saas_apigw, "call_command", side_effect=call):
-                    with self.assertRaises(SystemExit) as raised:
-                        self.command.handle()
-                self.assertEqual(raised.exception.code, 1)
-                self.assertEqual(self.stdout.getvalue(), "")
-
-    def test_unknown_esb_failures_are_not_treated_as_missing_gateway(self):
-        for error in (SystemExit(1), RuntimeError("status_code: 404"), CommandError("request timed out")):
+    def test_required_gateway_key_failure_still_stops_sync(self):
+        for error in (SystemExit(1), CommandError("public key missing"), RuntimeError("request failed")):
             with self.subTest(error=type(error).__name__):
-                with patch.object(sync_saas_apigw, "call_command", side_effect=[None] * 7 + [error]):
+                with patch.object(sync_saas_apigw, "call_command", side_effect=[None] * 6 + [error]) as call_command:
                     with self.assertRaises(type(error)) as raised:
                         self.command.handle()
                 self.assertIs(raised.exception, error)
+                self.assertEqual(call_command.call_args.args[0], "fetch_apigw_public_key")
+                self.assertEqual(call_command.call_count, 7)
 
-    def test_required_gateway_key_404_still_fails_sync(self):
-        def call(name, *args, **kwargs):
-            if name == "fetch_apigw_public_key":
-                self.call_esb_command(404)
-
-        with patch.object(sync_saas_apigw, "call_command", side_effect=call) as call_command:
-            with self.assertRaises(SystemExit):
-                self.command.handle()
-        self.assertEqual(call_command.call_args.args[0], "fetch_apigw_public_key")
-        self.assertEqual(self.stdout.getvalue(), "")
+    @patch("gcloud.conf.settings.ESB_GET_CLIENT_BY_USER")
+    def test_application_startup_does_not_fetch_esb_public_key(self, esb_client):
+        config = apigw_apps.ApiConfig("gcloud.apigw", apigw_apps)
+        for is_paas_v3 in (False, True):
+            with self.subTest(is_paas_v3=is_paas_v3), patch.object(sync_saas_apigw.env, "IS_PAAS_V3", is_paas_v3):
+                config.ready()
+        esb_client.assert_not_called()
 
 
 class PreReleaseTest(unittest.TestCase):

@@ -36,7 +36,6 @@ const proxyPath = [
     'admin/api',
     'admin/taskflow',
     'admin/template',
-    'develop/api',
     'version_log',
     'iam',
     'plugin_service',

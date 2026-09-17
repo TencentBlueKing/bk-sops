@@ -13,21 +13,10 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from bkapi_client_core.exceptions import ResponseError
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 import env
-
-
-def is_missing_esb_public_key(error):
-    # apigw-manager wraps ResponseError in ApiResponseError and then SystemExit(1).
-    # Inspect the structured HTTP status, never the credential-bearing error text.
-    while error is not None:
-        if isinstance(error, ResponseError):
-            return error.response_status_code == 404
-        error = error.__cause__ or error.__context__
-    return False
 
 
 class Command(BaseCommand):
@@ -69,11 +58,3 @@ class Command(BaseCommand):
 
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
-
-        print("[bk-sops]call fetch_esb_public_key")
-        try:
-            call_command("fetch_esb_public_key")
-        except (Exception, SystemExit) as error:
-            if not is_missing_esb_public_key(error):
-                raise
-            self.stdout.write("[bk-sops]可选 ESB 公钥不存在（HTTP 404），跳过 fetch_esb_public_key，继续发布。")

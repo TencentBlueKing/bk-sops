@@ -21,6 +21,7 @@ from gcloud.iam_auth import IAMMeta
 
 
 class CheckDbObjectExistsTestCase(TestCase):
+    @mock.patch("gcloud.contrib.appmaker.decorators.get_iam_client")
     @mock.patch("gcloud.contrib.appmaker.decorators.allow_or_raise_auth_failed")
     @mock.patch("gcloud.contrib.appmaker.decorators.res_factory.resources_for_mini_app_obj")
     @mock.patch("gcloud.contrib.appmaker.decorators.AppMaker")
@@ -29,9 +30,10 @@ class CheckDbObjectExistsTestCase(TestCase):
         mocked_app_maker_model,
         mocked_resources_for_mini_app_obj,
         mocked_allow_or_raise_auth_failed,
+        mocked_get_iam_client,
     ):
         app_maker = SimpleNamespace(id=1, project_id=2, creator="tester", name="mini-app")
-        request = SimpleNamespace(user=SimpleNamespace(username="tester"))
+        request = SimpleNamespace(user=SimpleNamespace(username="tester", tenant_id="tenant-a"))
         mocked_app_maker_model.objects.filter.return_value.first.return_value = app_maker
         mocked_resources_for_mini_app_obj.return_value = ["mini-app-resource"]
 
@@ -44,7 +46,9 @@ class CheckDbObjectExistsTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         mocked_app_maker_model.objects.filter.assert_called_once_with(pk=1, project_id=2, is_deleted=False)
         mocked_resources_for_mini_app_obj.assert_called_once_with(app_maker)
+        mocked_get_iam_client.assert_called_once_with("tenant-a")
         mocked_allow_or_raise_auth_failed.assert_called_once()
+        self.assertIs(mocked_allow_or_raise_auth_failed.call_args[1]["iam"], mocked_get_iam_client.return_value)
         self.assertEqual(mocked_allow_or_raise_auth_failed.call_args[1]["action"].id, IAMMeta.MINI_APP_VIEW_ACTION)
 
     @mock.patch("gcloud.contrib.appmaker.decorators.allow_or_raise_auth_failed")

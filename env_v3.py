@@ -226,7 +226,4 @@ except Exception:
 # celery broker 连接池数量配置
 CELERY_BROKER_POOL_LIMIT = int(os.getenv("BKAPP_CELERY_BROKER_POOL_LIMIT", 10))
 
-# PAAS APIGW 网关名
-PAASV3_APIGW_NAME = os.getenv("PAASV3_APIGW_NAME", "bkpaas3")
-
 BK_PAAS_ESB_API_HOST = BKAPP_SOPS_PAAS_ESB_HOST

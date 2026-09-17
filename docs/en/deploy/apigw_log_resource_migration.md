@@ -88,17 +88,18 @@ and merging the PR does not migrate the target environment. Roll back the
 backend, callers and gateway version together when necessary; reverting drafts
 alone does not change the published version.
 
-## Environments without ESB
+## Multi-tenant deployment no longer initializes ESB
 
-`fetch_esb_public_key` retrieves the JWT verification key for the legacy ESB
-entry point, not credentials for the JOB or CMDB gateway SDKs. Some PaaS V3
-environments do not provide this entry point and return HTTP 404. Only a
-confirmed HTTP 404 from this optional step is skipped, including when
-apigw-manager wraps the HTTP error in `SystemExit(1)`.
+The multi-tenant branch no longer runs `fetch_esb_public_key` during deployment
+or fetches a legacy ESB public key at application startup. The target environment
+does not need to provide the `bk-esb` gateway or its public-key endpoint.
 
-Fetching the `bk-sops` gateway's own key remains mandatory. ESB authentication
-failures, server errors, timeouts and unknown failures still stop deployment.
-Keep `set -e` in `bin/pre_release`; do not ignore the entire synchronization
-command's exit status. This handling does not migrate legacy ESB clients:
-plugins or development tools requesting `/api/c/compapi/` still require a
-supported endpoint in the target environment.
+Synchronization of the `bk-sops` API Gateway configuration, resources, versions,
+permissions and public key remains mandatory. Keep `set -e` and the normal
+`migrate` step in `bin/pre_release`; failures must still stop deployment. API
+Gateway context tables and JWT verification remain in use and must be retained.
+
+The legacy plugin development endpoints for system lists, component lists and
+ESB plugin code generation have been removed. Light applications use PaaS V3
+only. This cleanup does not migrate ESB calls in `nodeman_create_task:legacy`
+or other custom plugins.

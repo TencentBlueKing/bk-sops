@@ -100,6 +100,9 @@ NODE_LOG_DATA_SOURCE_CONFIG = json.loads(os.getenv("NODE_LOG_DATA_SOURCE_CONFIG"
 # PAAS V3 APIGW token
 PAASV3_APIGW_API_TOKEN = os.getenv("BKAPP_PAASV3_APIGW_API_TOKEN")
 
+# Light applications always use PaaS V3, including local development.
+PAASV3_APIGW_NAME = os.getenv("PAASV3_APIGW_NAME", "bkpaas3")
+
 # APIGW 访问地址
 BK_APIGW_URL_TMPL = os.getenv("BK_API_URL_TMPL") or os.getenv("BKAPP_BK_API_URL_TMPL", "")
 

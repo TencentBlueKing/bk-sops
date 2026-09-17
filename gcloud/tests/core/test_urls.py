@@ -11,6 +11,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 from django.test import SimpleTestCase
+from django.urls import Resolver404, resolve
 
 from gcloud.core.urls import urlpatterns
 
@@ -20,3 +21,9 @@ class CoreUrlsTestCase(SimpleTestCase):
         patterns = [url_pattern.pattern.regex.pattern for url_pattern in urlpatterns]
 
         self.assertNotIn(r"^core/api/get_roles_and_personnel/(?P<biz_cc_id>\d+)/$", patterns)
+
+    def test_legacy_esb_development_endpoints_are_not_routable(self):
+        for endpoint in ("esb_get_systems", "esb_get_components", "get_plugin_initial_code"):
+            with self.subTest(endpoint=endpoint):
+                with self.assertRaises(Resolver404):
+                    resolve("/develop/api/{}/".format(endpoint))
