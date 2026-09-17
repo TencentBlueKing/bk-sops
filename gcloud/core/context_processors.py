@@ -31,6 +31,13 @@ from gcloud.utils.timezone import get_user_timezone
 logger = logging.getLogger("root")
 
 
+def _ai_sops_agent_plugin_url():
+    host = (env.AI_SOPS_AGENT_URL or "").strip().rstrip("/")
+    if not host:
+        return ""
+    return f"{host}/bk_plugin/plugin_api/"
+
+
 def get_cur_pos_from_url(request):
     """
     @summary: 返回公共变量给前端导航
@@ -71,6 +78,7 @@ def mysetting(request):
     except Exception:
         enable_notice_center = 0
 
+    ai_sops_agent_url = _ai_sops_agent_plugin_url()
     ctx = {
         "MEDIA_URL": settings.MEDIA_URL,  # MEDIA_URL
         "STATIC_URL": settings.STATIC_URL,  # 本地静态文件访问
@@ -146,9 +154,9 @@ def mysetting(request):
         "TASK_STATUS_DISPLAY_VERSION": settings.TASK_STATUS_DISPLAY_VERSION,
         "BK_DATA_REPORT_API_URL": settings.BK_DATA_REPORT_API_URL,
         # agent配置
-        "AI_SOPS_AGENT_URL": f"{env.AI_SOPS_AGENT_URL}/bk_plugin/plugin_api/",
-        # 是否开启AI分析通知
-        "ENABLE_AI_NOTIFICATION": env.ENABLE_AI_NOTIFICATION,
+        "AI_SOPS_AGENT_URL": ai_sops_agent_url,
+        # AI分析通知同时依赖智能体地址和通知开关
+        "ENABLE_AI_NOTIFICATION": int(bool(ai_sops_agent_url) and env.ENABLE_AI_NOTIFICATION),
     }
 
     # custom context config

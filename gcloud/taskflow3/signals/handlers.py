@@ -103,9 +103,13 @@ def send_task_message(pipeline_id, node_id, msg_type):
         executor = taskflow.pipeline_instance.executor
         # TODO 暂时先使用执行人作为接收人，后续支持通知分组
         receivers = executor
-        # AI分析通知开关关闭时不读取模板上的AI通知配置，避免影响后续的webhook事件广播
+        # 未配置智能体或关闭AI分析通知时不读取模板上的AI通知配置，避免影响后续的webhook事件广播
         # 排除周期任务(周期任务频繁执行，避免频繁调用AI接口产生过多通知)
-        need_ai_notify = env.ENABLE_AI_NOTIFICATION and taskflow.create_method != TaskCreateMethod.PERIODIC.value
+        need_ai_notify = (
+            env.ENABLE_AI_NOTIFICATION
+            and (env.AI_SOPS_AGENT_URL or "").strip().rstrip("/")
+            and taskflow.create_method != TaskCreateMethod.PERIODIC.value
+        )
         ai_notify_type = taskflow.get_ai_notify_type() if need_ai_notify else None
         ai_notify_group = taskflow.get_ai_notify_group() if need_ai_notify else None
 
