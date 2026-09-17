@@ -57,6 +57,9 @@ class Command(BaseCommand):
         print("[bk-sops] call grant_apigw_permissions with definition: %s" % definition_file_path)
         call_command("grant_apigw_permissions", file=definition_file_path)
 
+        print("[bk-sops]call sync_apigw_stage_mcp_servers with definition: %s" % definition_file_path)
+        call_command("sync_apigw_stage_mcp_servers", file=definition_file_path)
+
         print("[bk-sops]call fetch_apigw_public_key")
         call_command("fetch_apigw_public_key")
 

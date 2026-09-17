@@ -1,0 +1,13 @@
+apiVersion: bkai.tencent.com/v1
+kind: KnowledgeBase
+
+metadata:
+  code: bk_sops_faq
+  name: 标准运维常见问题
+  description: 标准运维常见使用问题、周期任务、流程编排、环境差异、API 调用等 FAQ
+
+spec:
+  generate_type: space
+  is_public: false
+  config: {}
+  tag_names: []

@@ -72,6 +72,7 @@ INSTALLED_APPS += (
     "gcloud.contrib.template_market",
     "gcloud.contrib.itsm_workflow",
     "gcloud.contrib.init_tenant",
+    "gcloud.contrib.sync_agent",
     "gcloud.apigw",
     "gcloud.plugin_gateway.apps.PluginGatewayConfig",
     "gcloud.common_template",

@@ -1,0 +1,13 @@
+apiVersion: bkai.tencent.com/v1
+kind: KnowledgeBase
+
+metadata:
+  code: bk_sops_product
+  name: 标准运维产品文档
+  description: 标准运维产品功能与使用说明文档
+
+spec:
+  generate_type: space
+  is_public: false
+  config: {}
+  tag_names: []

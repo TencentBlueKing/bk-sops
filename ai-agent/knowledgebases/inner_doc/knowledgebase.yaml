@@ -1,0 +1,13 @@
+apiVersion: bkai.tencent.com/v1
+kind: KnowledgeBase
+
+metadata:
+  code: inner_doc
+  name: 内部设计文档
+  description: 标准运维内部设计介绍与架构说明
+
+spec:
+  generate_type: space
+  is_public: false
+  config: {}
+  tag_names: []
