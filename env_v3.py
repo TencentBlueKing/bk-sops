@@ -96,6 +96,9 @@ BK_ITSM_API_ENTRY = os.getenv("BK_ITSM_API_ENTRY")
 BK_NODEMAN_API_ENTRY = os.getenv("BK_NODEMAN_API_ENTRY")
 BK_GSE_KIT_API_ENTRY = os.getenv("BK_GSE_KIT_API_ENTRY")
 
+# Nodeman 插件列表可见性，默认开启；设置为 0 时不展示「新建任务」「插件操作」
+BK_NODEMAN_ENABLE = os.getenv("BK_NODEMAN_ENABLE", "1") == "1"
+
 # Nodemgr
 BK_NODEMGR_ENABLE = os.getenv("BK_NODEMGR_ENABLE", "0") == "1"
 BK_NODEMGR_WEB_URL = os.getenv("BK_NODEMGR_WEB_URL", "")

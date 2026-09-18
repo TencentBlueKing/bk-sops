@@ -10,6 +10,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import env
 from django.db.models import Q
 from django_filters import CharFilter, FilterSet
 from pipeline.component_framework.models import ComponentModel
@@ -21,6 +22,15 @@ from gcloud.core.apis.drf.serilaziers.component_model import (
 )
 from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.models import DisabledComponent, ProjectBasedComponent
+
+LIST_EXCLUDED_COMPONENT_CODES = [
+    "remote_plugin",
+    "subprocess_plugin",
+    "gsekit_job_exec",
+    "gsekit_flush_process",
+]
+if not env.BK_NODEMAN_ENABLE:
+    LIST_EXCLUDED_COMPONENT_CODES.extend(["nodeman_create_task", "nodeman_plugin_operate"])
 
 
 class ComponentModelFilter(FilterSet):
@@ -43,7 +53,7 @@ class ComponentModelFilter(FilterSet):
 class ComponentModelSetViewSet(GcloudReadOnlyViewSet):
     queryset = (
         ComponentModel.objects.filter(status=True)
-        .exclude(code__in=["remote_plugin", "subprocess_plugin", "gsekit_job_exec", "gsekit_flush_process"])
+        .exclude(code__in=LIST_EXCLUDED_COMPONENT_CODES)
         .extra(
             select={"converted_name": "CONVERT(SUBSTRING_INDEX(name, '-', -1) USING gbk)"}, order_by=["converted_name"]
         )

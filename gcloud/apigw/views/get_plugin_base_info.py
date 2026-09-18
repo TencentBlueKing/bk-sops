@@ -20,6 +20,7 @@ from pipeline.component_framework.models import ComponentModel
 from gcloud import err_code
 from gcloud.apigw.decorators import project_inject, return_json_response
 from gcloud.apigw.utils import api_hash_key
+from gcloud.core.apis.drf.viewsets.component_model import LIST_EXCLUDED_COMPONENT_CODES
 from gcloud.core.models import DisabledComponent, ProjectBasedComponent
 
 
@@ -41,6 +42,7 @@ def get_plugin_base_info(request, project_id):
             scope=DisabledComponent.SCOPE_TYPE_FLOW, action=DisabledComponent.ACTION_TYPE_LIST
         )
     )
+    exclude_component_codes.extend(LIST_EXCLUDED_COMPONENT_CODES)
     components = ComponentModel.objects.filter(status=True).exclude(code__in=exclude_component_codes)
 
     data = []
