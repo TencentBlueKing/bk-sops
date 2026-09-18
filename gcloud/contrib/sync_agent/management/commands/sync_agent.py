@@ -15,13 +15,20 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
+        # 必填环境变量：开启开关后缺失则给出清晰报错，而非裸 KeyError。
+        base_url = os.environ.get("BKAI_BASE_URL")
+        space_id = os.environ.get("BKAI_SPACE_ID")
+        missing = [name for name, value in (("BKAI_BASE_URL", base_url), ("BKAI_SPACE_ID", space_id)) if not value]
+        if missing:
+            raise RuntimeError("sync_agent 已开启但缺少必填环境变量：%s。请补充配置后再执行。" % ", ".join(missing))
+
         initializer = BkaiInit(
-            base_url=os.environ["BKAI_BASE_URL"],
+            base_url=base_url,
             app_code=settings.APP_CODE,
             app_secret=settings.SECRET_KEY,
             access_token=os.environ.get("BKAI_ACCESS_TOKEN") or os.environ.get("ACCESS_TOKEN"),
             tenant_id="system",
-            space=os.environ["BKAI_SPACE_ID"],
+            space=space_id,
             variables={"SKILL_BASE_IMAGE": "registry.example.com/team/skill:1.0"},
         )
 
