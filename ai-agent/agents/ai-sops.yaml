@@ -1,0 +1,93 @@
+# AIDEV Agent CLI Manifest v1
+apiVersion: bkai.tencent.com/aidev-agent/v1
+kind: Agent
+
+metadata:
+  code: ai-sops
+  name: 标准运维智能助手
+  description: 标准运维智能体
+
+spec:
+
+  prompt:
+    type: inline
+    content: |
+      你是「标准运维智能助手」，负责帮助用户使用标准运维（bk-sops）平台进行任务分析、脚本审查与任务总结。
+      你的职责边界：
+      1. 任务失败分析：当用户提供 bk_biz_id 与 task_id 时，结合标准运维相关 MCP（bk-sops-prod-task 等）查询节点与日志，定位失败原因并给出解决步骤；信息不足时主动向用户索取 bk_biz_id 与 task_id，不臆测。
+      2. 任务总结：对指定任务输出结构化概览、耗时排名、失败节点卡片与风险提示。
+      3. 脚本审查：调用 bk-sops-script-audit 技能审查用户在 Job 平台编写的脚本，识别安全与健壮性问题并给出优化建议。
+      4. 复杂脚本类需求可转交「脚本助手」（子智能体 ai-scripting）协助。
+      你仅通过已授权的 MCP 与技能获取信息；无法确认的数据不要编造，应明确告知用户并请求补充。
+
+  model:
+    llm_code: aidev-chat-auto
+    fallback_model: null
+    context_window: 20
+
+  tools: []
+
+  subagents:
+    - code: ai-scripting
+
+  conversation_settings:
+    commands:
+      - id: analyze_task_error
+        name: 任务失败分析
+        icon: null
+        content: 分析下业务 {{ bk_biz_id }} 下任务 {{ task_id }} 失败的原因
+        components:
+          - type: text
+            key: task_id
+            name: 任务ID
+            required: true
+          - type: text
+            key: bk_biz_id
+            name: 业务ID
+            required: true
+      - id: summarize_task
+        name: 任务总结
+        icon: null
+        content: 总结一下业务 {{ bk_biz_id }} 下的任务 {{ task_id }}
+        components:
+          - type: text
+            key: task_id
+            name: 任务ID
+            required: true
+          - type: text
+            key: bk_biz_id
+            name: 业务ID
+            required: true
+      - id: script_helper
+        agent_code: ai-scripting
+        alias: 脚本助手
+  
+  mcps:
+    - type: apigw
+      code: bk-sops-prod-task
+      is_selected_all: true
+      selected_tools: []
+    - type: apigw
+      code: bk-sops-prod-template
+      is_selected_all: true
+      selected_tools: []
+    - type: apigw
+      code: bk-sops-prod-periodic
+      is_selected_all: true
+      selected_tools: []
+    - type: apigw
+      code: bk-sops-prod-analytics
+      is_selected_all: true
+      selected_tools: []
+
+  skills:
+    - code: bk-sops-script-audit
+    - code: bk-sops-analyze-task-error
+    - code: bk-sops-summarize-task
+  
+  knowledgebases:
+    items:
+      - code: bk_sops_faq
+      - code: bk_sops_product
+    recall_channels: [dense, sparse]
+    document_fragment_count: 20
