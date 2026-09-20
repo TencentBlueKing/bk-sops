@@ -1,3 +1,5 @@
+spec_version: 2
+
 apigateway:
   description: 标准运维（{{ settings.BK_APP_CODE }}）API 网关，包含了项目、流程、任务等资源的查询和操作接口
   description_en: {{ settings.BK_APP_CODE }} API Gateway, including query and operation interface of project, flow, task and other resources
@@ -8,156 +10,153 @@ apigateway:
     - "{{ member }}"
     {% endfor %}
 
-stage:
-  name: {{ settings.BK_APIGW_STAGE_NAME }}
-  vars:
-    api_sub_path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}
-    callback_sub_path: {{ settings.BK_APIGW_CALLBACK_SERVER_SUB_PATH }}
-    callback_host: {{ settings.BK_APIGW_CALLBACK_SERVER_HOST }}
-  proxy_http:
-    timeout: 120
-    upstreams:
-      loadbalance: roundrobin
-      hosts:
-        - host: http://{{ settings.BK_APIGW_API_SERVER_HOST }}
-          weight: 100
-  rate_limit:
-    enabled: false
-    rate:
-      tokens: 5000
-      period: 60
+stages:
+  - name: {{ settings.BK_APIGW_STAGE_NAME }}
+    vars:
+      api_sub_path: {{ settings.BK_APIGW_API_SERVER_SUB_PATH }}
+      callback_sub_path: {{ settings.BK_APIGW_CALLBACK_SERVER_SUB_PATH }}
+      callback_host: {{ settings.BK_APIGW_CALLBACK_SERVER_HOST }}
 
-  mcp_servers:
-    - name: "bk-sops-prod-task"
-      title: "【标准运维】任务管理MCP"
-      description: "标准运维任务全生命周期管理，支持任务创建/启动/暂停/撤销、节点重试/跳过、节点执行日志与插件日志查询、任务参数修改"
-      labels:
-        - "标准运维"
-        - "任务管理"
-        - "任务执行"
-        - "节点操作"
-        - "执行日志"
-        - "故障排查"
-        - "运维自动化"
-      resource_names:
-        - "create_task"
-        - "get_task_detail"
-        - "get_task_node_detail"
-        - "get_task_status"
-        - "operate_task"
-        - "start_task"
-        - "get_user_project_list"
-        - "get_user_project_detail"
-        - "get_task_node_data"
-        - "operate_node"
-        - "get_tasks_status"
-        - "node_callback"
-        - "get_task_list"
-        - "get_task_operate_record"
-        - "get_task_node_log"
-        - "get_task_plugin_log"
-      is_public: true
-      protocol_type: "streamable_http"
-      status: 1
-      target_app_codes:
-        - "bk_sops"
-        - "ai-sops"
-      oauth2_public_client_enabled: true
-      oauth2_personal_client_enabled: false
-      raw_response_enabled: false
-      category_names:
-        - "Automation"
+    backends:
+      - name: default
+        config:
+          timeout: 60
+          loadbalance: roundrobin
+          hosts:
+            - host: http://{{ settings.BK_APIGW_API_SERVER_HOST }}
+              weight: 100
 
-    - name: "bk-sops-prod-template"
-      title: "【标准运维】流程模板MCP"
-      description: "标准运维流程模板与公共流程管理，支持项目/公共模板查询、执行方案获取、流程树预览、插件信息查询"
-      labels:
-        - "标准运维"
-        - "流程模板"
-        - "公共流程"
-        - "插件管理"
-        - "流程设计"
-        - "流程审查"
-      resource_names:
-        - "get_template_info"
-        - "get_template_list"
-        - "get_user_project_list"
-        - "get_user_project_detail"
-        - "get_template_schemes"
-        - "preview_task_tree"
-        - "get_common_template_list"
-        - "get_common_template_info"
-        - "get_plugin_list"
-      is_public: true
-      protocol_type: "streamable_http"
-      status: 1
-      target_app_codes:
-        - "bk_sops"
-        - "ai-sops"
-      oauth2_public_client_enabled: true
-      oauth2_personal_client_enabled: false
-      raw_response_enabled: false
-      category_names:
-        - "Automation"
+    mcp_servers:
+      - name: "bk-sops-prod-task"
+        title: "【标准运维】任务管理MCP"
+        description: "标准运维任务全生命周期管理，支持任务创建/启动/暂停/撤销、节点重试/跳过、节点执行日志与插件日志查询、任务参数修改"
+        labels:
+          - "标准运维"
+          - "任务管理"
+          - "任务执行"
+          - "节点操作"
+          - "执行日志"
+          - "故障排查"
+          - "运维自动化"
+        resource_names:
+          - "create_task"
+          - "get_task_detail"
+          - "get_task_node_detail"
+          - "get_task_status"
+          - "operate_task"
+          - "start_task"
+          - "get_user_project_list"
+          - "get_user_project_detail"
+          - "get_task_node_data"
+          - "operate_node"
+          - "get_tasks_status"
+          - "node_callback"
+          - "get_task_list"
+          - "get_task_operate_record"
+          - "get_task_node_log"
+          - "get_task_plugin_log"
+        is_public: true
+        protocol_type: "streamable_http"
+        status: 1
+        target_app_codes:
+          - "bk_sops"
+          - "ai-sops"
+        oauth2_public_client_enabled: true
+        oauth2_personal_client_enabled: false
+        raw_response_enabled: false
+        category_names:
+          - "Automation"
 
-    - name: "bk-sops-prod-periodic"
-      title: "【标准运维】周期任务MCP"
-      description: "标准运维周期任务管理，支持周期任务创建/查询/启停控制、cron 表达式修改和任务参数调整（目前只支持配置10分钟或以上周期的周期任务，如需周期更小的，请联系管理员）"
-      labels:
-        - "标准运维"
-        - "周期任务"
-        - "定时任务"
-        - "cron"
-        - "自动巡检"
-        - "定时执行"
-      resource_names:
-        - "create_periodic_task"
-        - "get_periodic_task_info"
-        - "get_periodic_task_list"
-        - "modify_constants_for_periodic_task"
-        - "modify_cron_for_periodic_task"
-        - "set_periodic_task_enabled"
-        - "get_user_project_list"
-        - "get_user_project_detail"
-      is_public: true
-      protocol_type: "streamable_http"
-      status: 1
-      target_app_codes:
-        - "bk_sops"
-        - "ai-sops"
-      oauth2_public_client_enabled: true
-      oauth2_personal_client_enabled: false
-      raw_response_enabled: false
-      category_names:
-        - "Automation"
+      - name: "bk-sops-prod-template"
+        title: "【标准运维】流程模板MCP"
+        description: "标准运维流程模板与公共流程管理，支持项目/公共模板查询、执行方案获取、流程树预览、插件信息查询"
+        labels:
+          - "标准运维"
+          - "流程模板"
+          - "公共流程"
+          - "插件管理"
+          - "流程设计"
+          - "流程审查"
+        resource_names:
+          - "get_template_info"
+          - "get_template_list"
+          - "get_user_project_list"
+          - "get_user_project_detail"
+          - "get_template_schemes"
+          - "preview_task_tree"
+          - "get_common_template_list"
+          - "get_common_template_info"
+          - "get_plugin_list"
+        is_public: true
+        protocol_type: "streamable_http"
+        status: 1
+        target_app_codes:
+          - "bk_sops"
+          - "ai-sops"
+        oauth2_public_client_enabled: true
+        oauth2_personal_client_enabled: false
+        raw_response_enabled: false
+        category_names:
+          - "Automation"
 
-    - name: "bk-sops-prod-analytics"
-      title: "【标准运维】数据分析MCP"
-      description: "标准运维执行数据查询与统计，支持任务列表过滤、执行时间统计、轻应用与职能化任务数据获取"
-      labels:
-        - "标准运维"
-        - "数据分析"
-        - "执行统计"
-        - "审计报告"
-        - "运营洞察"
-        - "效率分析"
-      resource_names:
-        - "get_user_project_list"
-        - "get_user_project_detail"
-        - "get_task_list"
-        - "get_mini_app_list"
-        - "get_task_effective_time"
-      is_public: true
-      protocol_type: "streamable_http"
-      status: 1
-      target_app_codes:
-        - "bk_sops"
-        - "ai-sops"
-      oauth2_public_client_enabled: true
-      oauth2_personal_client_enabled: false
-      raw_response_enabled: false
-      category_names:
-        - "Automation"
+      - name: "bk-sops-prod-periodic"
+        title: "【标准运维】周期任务MCP"
+        description: "标准运维周期任务管理，支持周期任务创建/查询/启停控制、cron 表达式修改和任务参数调整（目前只支持配置10分钟或以上周期的周期任务，如需周期更小的，请联系管理员）"
+        labels:
+          - "标准运维"
+          - "周期任务"
+          - "定时任务"
+          - "cron"
+          - "自动巡检"
+          - "定时执行"
+        resource_names:
+          - "create_periodic_task"
+          - "get_periodic_task_info"
+          - "get_periodic_task_list"
+          - "modify_constants_for_periodic_task"
+          - "modify_cron_for_periodic_task"
+          - "set_periodic_task_enabled"
+          - "get_user_project_list"
+          - "get_user_project_detail"
+        is_public: true
+        protocol_type: "streamable_http"
+        status: 1
+        target_app_codes:
+          - "bk_sops"
+          - "ai-sops"
+        oauth2_public_client_enabled: true
+        oauth2_personal_client_enabled: false
+        raw_response_enabled: false
+        category_names:
+          - "Automation"
+
+      - name: "bk-sops-prod-analytics"
+        title: "【标准运维】数据分析MCP"
+        description: "标准运维执行数据查询与统计，支持任务列表过滤、执行时间统计、轻应用与职能化任务数据获取"
+        labels:
+          - "标准运维"
+          - "数据分析"
+          - "执行统计"
+          - "审计报告"
+          - "运营洞察"
+          - "效率分析"
+        resource_names:
+          - "get_user_project_list"
+          - "get_user_project_detail"
+          - "get_task_list"
+          - "get_mini_app_list"
+          - "get_task_effective_time"
+        is_public: true
+        protocol_type: "streamable_http"
+        status: 1
+        target_app_codes:
+          - "bk_sops"
+          - "ai-sops"
+        oauth2_public_client_enabled: true
+        oauth2_personal_client_enabled: false
+        raw_response_enabled: false
+        category_names:
+          - "Automation"
 
 resource_docs:
   # 资源文档的归档文件，可为 tar.gz，zip 格式文件；创建归档文件可使用指令 `tar czvf xxx.tgz en zh`
@@ -167,7 +166,11 @@ resource_docs:
   archivefile: {{ settings.BK_APIGW_RESOURCE_DOCS_ARCHIVE_FILE }}
 
 release:
+  # 发布版本号；
   version: {{ settings.APIGW_DOCS_VERSION }}
+  # 版本标题
+  title: "sops release"
+  # 版本描述
   comment: "auto release by bk-sops"
 
 
