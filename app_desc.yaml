@@ -40,11 +40,17 @@ modules:
         value: 0
         description: 是否自动更新插件模型
       - key: GUNICORN_WORKER_NUM
-        value: 1
+        value: 2
         description: GunicornWorker数量
       - key: GUNICORN_THREAD_NUM
         value: 10
         description: GunicornThread数量
+      - key: GUNICORN_MAX_REQUESTS
+        value: 500
+        description: Gunicorn worker 处理请求数达到后回收
+      - key: GUNICORN_MAX_REQUESTS_JITTER
+        value: 50
+        description: Gunicorn worker 回收抖动，避免多进程同时重启
       - key: C_FORCE_ROOT
         value: 1
         description: celery5 fit
@@ -55,7 +61,7 @@ modules:
       web:
         command: bin/start_web.sh
         plan: 4C2G5R
-        replicas: 5
+        replicas: 3
       beat:
         command: python manage.py celery beat -l info
         plan: 4C1G5R
@@ -63,7 +69,7 @@ modules:
       dworker:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -Q default -n default@%h -P threads -c 20 -l info
         plan: 4C2G5R
-        replicas: 5
+        replicas: 3
     svc_discovery:
       bk_saas:
         - bk_app_code: "bk_iam"
@@ -108,11 +114,17 @@ modules:
         value: 0
         description: 是否自动更新插件模型
       - key: GUNICORN_WORKER_NUM
-        value: 1
+        value: 2
         description: GunicornWorker数量
       - key: GUNICORN_THREAD_NUM
         value: 10
         description: GunicornThread数量
+      - key: GUNICORN_MAX_REQUESTS
+        value: 500
+        description: Gunicorn worker 处理请求数达到后回收
+      - key: GUNICORN_MAX_REQUESTS_JITTER
+        value: 50
+        description: Gunicorn worker 回收抖动，避免多进程同时重启
       - key: C_FORCE_ROOT
         value: 1
         description: celery5 fit
@@ -121,9 +133,9 @@ modules:
         description: 是否启动 metrics server
     processes:
       web:
-        command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
-        plan: 4C5G5R
-        replicas: 5
+        command: gunicorn wsgi -w ${GUNICORN_WORKER_NUM:-2} -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=${GUNICORN_MAX_REQUESTS:-500} --max-requests-jitter=${GUNICORN_MAX_REQUESTS_JITTER:-50} -k gthread --threads ${GUNICORN_THREAD_NUM:-10}
+        plan: 4C2G5R
+        replicas: 3
     svc_discovery:
       bk_saas:
         - bk_app_code: "bk_iam"
@@ -190,11 +202,11 @@ modules:
         replicas: 2
       api-er-e:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_execute_api -n api_er_e_worker@%h -c 100 -l info
-        plan: 4C1G5R
+        plan: 4C2G5R
         replicas: 4
       api-er-s:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_schedule_api -n api_er_s_worker@%h -c 100 -l info
-        plan: 4C1G5R
+        plan: 4C2G5R
         replicas: 4
       api-task:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q task_prepare_api -n api_task_worker@%h -c 50 -l info
@@ -214,11 +226,11 @@ modules:
         replicas: 2
       peri-er-e:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_execute_periodic_task -n peri_er_e_worker@%h -c 100 -l info
-        plan: 4C1G5R
+        plan: 4C2G5R
         replicas: 2
       peri-er-s:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q er_schedule_periodic_task -n peri_er_s_worker@%h -c 100 -l info
-        plan: 4C1G5R
+        plan: 4C2G5R
         replicas: 2
       stats-worker:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q pipeline_statistics_priority -n default@%h -c 100 -l info
@@ -239,7 +251,7 @@ modules:
       ai-notify:
         command: bash bin/celery_auto_restart.sh -A blueapps.core.celery worker -P threads -Q ai_notify -n ai_notify_worker@%h -c 35 -l info
         plan: 4C1G5R
-        replicas: 2
+        replicas: 1
     svc_discovery:
       bk_saas:
         - bk_app_code: "bk_iam"
@@ -282,11 +294,17 @@ modules:
         value: 0
         description: 是否自动更新插件模型
       - key: GUNICORN_WORKER_NUM
-        value: 1
+        value: 2
         description: GunicornWorker数量
       - key: GUNICORN_THREAD_NUM
         value: 10
         description: GunicornThread数量
+      - key: GUNICORN_MAX_REQUESTS
+        value: 500
+        description: Gunicorn worker 处理请求数达到后回收
+      - key: GUNICORN_MAX_REQUESTS_JITTER
+        value: 50
+        description: Gunicorn worker 回收抖动，避免多进程同时重启
       - key: C_FORCE_ROOT
         value: 1
         description: celery5 fit
@@ -295,7 +313,7 @@ modules:
         description: 是否启动 metrics server
     processes:
       web:
-        command: gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
+        command: gunicorn wsgi -w ${GUNICORN_WORKER_NUM:-2} -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=${GUNICORN_MAX_REQUESTS:-500} --max-requests-jitter=${GUNICORN_MAX_REQUESTS_JITTER:-50} -k gthread --threads ${GUNICORN_THREAD_NUM:-10}
         plan: 4C2G5R
         replicas: 5
     svc_discovery:

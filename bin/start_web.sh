@@ -1,2 +1,2 @@
 python manage.py collectstatic --noinput
-gunicorn wsgi -w $GUNICORN_WORKER_NUM -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=500 -k gthread --threads $GUNICORN_THREAD_NUM
+gunicorn wsgi -w ${GUNICORN_WORKER_NUM:-2} -b [::]:${PORT:-5000} --access-logfile - --error-logfile - --access-logformat '[%(h)s] %({request_id}i)s %(u)s %(t)s "%(r)s" %(s)s %(D)s %(b)s "%(f)s" "%(a)s"' --max-requests=${GUNICORN_MAX_REQUESTS:-500} --max-requests-jitter=${GUNICORN_MAX_REQUESTS_JITTER:-50} -k gthread --threads ${GUNICORN_THREAD_NUM:-10}
