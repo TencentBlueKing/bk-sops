@@ -32,7 +32,7 @@ class Command(BaseCommand):
             variables={"SKILL_BASE_IMAGE": "registry.example.com/team/skill:1.0"},
         )
 
-        package = "/ai-agent/bkai.yaml"
+        package = os.environ.get("BKAI_PACKAGE") or os.path.join(settings.BASE_DIR, "ai-agent", "bkai.yaml")
 
         # 1. 本地协议校验
         initializer.validate(package)
