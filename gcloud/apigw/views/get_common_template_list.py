@@ -21,6 +21,8 @@ from gcloud.apigw.views.utils import format_template_list_data
 from gcloud.common_template.models import CommonTemplate
 from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
+from gcloud.iam_auth.intercept import iam_intercept
+from gcloud.iam_auth.view_interceptors.apigw import CommonFlowViewInterceptor
 
 
 @login_exempt
@@ -29,6 +31,7 @@ from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
 @return_json_response
 @mark_request_whether_is_trust
 @timezone_inject
+@iam_intercept(CommonFlowViewInterceptor())
 def get_common_template_list(request):
     serializer = IncludeTemplateSerializer(data=request.GET)
     if not serializer.is_valid():

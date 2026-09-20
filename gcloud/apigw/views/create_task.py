@@ -177,7 +177,7 @@ def create_task(request, template_id, project_id):
                             default_val = constant["value"].get("default_text", "")
 
                         if (
-                            constant.get("custom_type") == "text_value_select"
+                            constant.get("custom_type") in ["text_value_select", "select"]
                             and constant["value"].get("type") == "1"
                             and isinstance(default_val, str)
                         ):
