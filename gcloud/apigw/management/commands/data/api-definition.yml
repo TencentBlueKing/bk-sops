@@ -27,7 +27,7 @@ stages:
               weight: 100
 
     mcp_servers:
-      - name: "bk-sops-prod-task"
+      - name: "task"
         title: "【标准运维】任务管理MCP"
         description: "标准运维任务全生命周期管理，支持任务创建/启动/暂停/撤销、节点重试/跳过、节点执行日志与插件日志查询、任务参数修改"
         labels:
@@ -67,7 +67,7 @@ stages:
         category_names:
           - "Automation"
 
-      - name: "bk-sops-prod-template"
+      - name: "template"
         title: "【标准运维】流程模板MCP"
         description: "标准运维流程模板与公共流程管理，支持项目/公共模板查询、执行方案获取、流程树预览、插件信息查询"
         labels:
@@ -99,7 +99,7 @@ stages:
         category_names:
           - "Automation"
 
-      - name: "bk-sops-prod-periodic"
+      - name: "periodic"
         title: "【标准运维】周期任务MCP"
         description: "标准运维周期任务管理，支持周期任务创建/查询/启停控制、cron 表达式修改和任务参数调整（目前只支持配置10分钟或以上周期的周期任务，如需周期更小的，请联系管理员）"
         labels:
@@ -130,7 +130,7 @@ stages:
         category_names:
           - "Automation"
 
-      - name: "bk-sops-prod-analytics"
+      - name: "analytics"
         title: "【标准运维】数据分析MCP"
         description: "标准运维执行数据查询与统计，支持任务列表过滤、执行时间统计、轻应用与职能化任务数据获取"
         labels:

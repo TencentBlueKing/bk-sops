@@ -2,7 +2,7 @@ apiVersion: bkai.tencent.com/v1
 kind: Skill
 metadata:
   code: bk-sops-summarize-task
-  name: 任务总结 Skill
+  name: 任务总结
   version: "1.0.0"
   description: 标准运维任务执行结果总结 — 基于任务返回的成功节点、失败节点、耗时与重试信息，输出结构化的整体概览、耗时排名、失败节点卡片、潜在风险与分析总结。
 spec:

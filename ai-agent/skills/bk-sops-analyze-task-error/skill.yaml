@@ -2,9 +2,9 @@ apiVersion: bkai.tencent.com/v1
 kind: Skill
 metadata:
   code: bk-sops-analyze-task-error
-  name: 标准运维任务失败分析 Skill
+  name: 标准运维任务失败分析
   version: "1.0.0"
-  description: 分析任务失败
+  description: 标准运维任务失败原因分析 — 基于任务返回的节点信息、执行日志、错误详情，输出结构化的失败概要、根因分析与解决步骤。
 spec:
   generate_type: space
   is_public: true
