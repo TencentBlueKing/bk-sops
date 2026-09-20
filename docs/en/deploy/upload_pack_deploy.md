@@ -50,3 +50,5 @@ When the packaging is completed, a file named "bk_sops-CurrentTimeString.tar.gz"
 ## Upload the version and deploy
 Go to your deployed Blueking PaaS platform, click "S-mart App" in "Developer Center", locate official SOPS app and click details.
 Click "upload files" in "upload version", then select the version package generated in the previous step and wait until the upload is complete. Then, click "Release and Deploy". You should now be able to deploy your latest version package in testing environment or production environment.
+
+For replica counts, resource plans, and gunicorn tuning on the four multi-tenant / enterprise modules, see [PaaS process specs and instance operations](paas_process_scale.md).

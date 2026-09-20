@@ -14,7 +14,7 @@
 
 ## 部署架构
 
-标准运维部署架构主要包括 Web/API 模块、Celery Worker/Schedule 模块、RabbitMQ、Redis、MySQL 等组件。
+标准运维部署架构主要包括 Web/API 模块、Celery Worker/Schedule 模块、RabbitMQ、Redis、MySQL 等组件。多模块下的副本、套餐和 gunicorn 调整见 [PaaS 进程规格与实例运维](../deploy/paas_process_scale.md)。
 
 根据部署架构，再结合实际问题进行定位和排查，例如：
 

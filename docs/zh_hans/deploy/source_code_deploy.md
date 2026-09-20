@@ -92,3 +92,5 @@ DATABASES = {
 
 2) 由于标准运维接入了蓝鲸PaaS平台API网关，你需要修改标准运维网关配置
 请参考[API网关替换方式](https://docs.bk.tencent.com/bk_osed/guide.html#SaaS)文档，把标准运维 API 转发到你的定制版本的接口。
+
+多租户 / 企业版四个模块的副本、套餐和 gunicorn 如何调整，见 [PaaS 进程规格与实例运维](paas_process_scale.md)。

@@ -92,3 +92,5 @@ DATABASES = {
 
 2) Because the SOPS is connected to the Blueking PaaS platform API gateway, you need to modify the SOPS gateway configuration.
 Please refer to [API Gateway Replace Instructions] (https://docs.bk.tencent.com/bk_osed/guide.html#SaaS) on how to forward the SOPS API to your custom interface.
+
+For replica counts, resource plans, and gunicorn tuning on the four multi-tenant / enterprise modules, see [PaaS process specs and instance operations](paas_process_scale.md).
