@@ -61,6 +61,7 @@ stage:
       status: 1
       target_app_codes:
         - "bk_sops"
+        - "ai-sops"
       oauth2_public_client_enabled: true
       oauth2_personal_client_enabled: false
       raw_response_enabled: false
@@ -92,6 +93,7 @@ stage:
       status: 1
       target_app_codes:
         - "bk_sops"
+        - "ai-sops"
       oauth2_public_client_enabled: true
       oauth2_personal_client_enabled: false
       raw_response_enabled: false
@@ -122,6 +124,7 @@ stage:
       status: 1
       target_app_codes:
         - "bk_sops"
+        - "ai-sops"
       oauth2_public_client_enabled: true
       oauth2_personal_client_enabled: false
       raw_response_enabled: false
@@ -149,6 +152,7 @@ stage:
       status: 1
       target_app_codes:
         - "bk_sops"
+        - "ai-sops"
       oauth2_public_client_enabled: true
       oauth2_personal_client_enabled: false
       raw_response_enabled: false
