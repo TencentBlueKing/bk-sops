@@ -15,11 +15,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-        # 必填环境变量：开启开关后缺失则给出清晰报错，而非裸 KeyError。
-        space_id = os.environ.get("BKAI_SPACE_ID")
-        if not space_id:
-            raise RuntimeError("sync_agent 已开启但缺少必填环境变量：BKAI_SPACE_ID。请补充配置后再执行。")
-
         initializer = BkaiInit(
             base_url=f"{settings.BK_API_URL_TMPL.format(api_name='bk-aidev')}/{settings.BK_APIGW_STAGE_NAME}",
             app_code=settings.APP_CODE,
@@ -27,7 +22,7 @@ class Command(BaseCommand):
             access_token=os.environ.get("BKAI_ACCESS_TOKEN") or os.environ.get("ACCESS_TOKEN"),
             bk_user_base_url=f"{settings.BK_API_URL_TMPL.format(api_name='bk-user')}/{settings.BK_APIGW_STAGE_NAME}",
             tenant_id="system",
-            space=space_id,
+            space=os.environ.get("BKAI_SPACE_ID", "system-bkaidev"),
             variables={
                 "SKILL_BASE_IMAGE": "registry.example.com/team/skill:1.0",
                 "BKAI_ADMIN_USERNAME": os.environ.get("BKAI_ADMIN_USERNAME", ""),
