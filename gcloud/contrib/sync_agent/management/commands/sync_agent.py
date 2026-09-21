@@ -18,6 +18,8 @@ class Command(BaseCommand):
         # 必填环境变量：开启开关后缺失则给出清晰报错，而非裸 KeyError。
         base_url = os.environ.get("BKAI_BASE_URL")
         space_id = os.environ.get("BKAI_SPACE_ID")
+        BKAI_ADMIN_USERNAME = os.environ.get("BKAI_ADMIN_USERNAME", "")
+
         missing = [name for name, value in (("BKAI_BASE_URL", base_url), ("BKAI_SPACE_ID", space_id)) if not value]
         if missing:
             raise RuntimeError("sync_agent 已开启但缺少必填环境变量：%s。请补充配置后再执行。" % ", ".join(missing))
@@ -27,9 +29,13 @@ class Command(BaseCommand):
             app_code=settings.APP_CODE,
             app_secret=settings.SECRET_KEY,
             access_token=os.environ.get("BKAI_ACCESS_TOKEN") or os.environ.get("ACCESS_TOKEN"),
+            bk_user_base_url=os.environ.get("BK_USER_BASE_URL") or os.environ.get("BK_API_URL_TMPL"),
             tenant_id="system",
             space=space_id,
-            variables={"SKILL_BASE_IMAGE": "registry.example.com/team/skill:1.0"},
+            variables={
+                "SKILL_BASE_IMAGE": "registry.example.com/team/skill:1.0",
+                "BKAI_ADMIN_USERNAME": BKAI_ADMIN_USERNAME,
+            },
         )
 
         package = os.environ.get("BKAI_PACKAGE") or os.path.join(settings.BASE_DIR, "ai-agent", "bkai.yaml")

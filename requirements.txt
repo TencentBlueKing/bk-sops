@@ -102,5 +102,5 @@ croniter==1.4.1
 # bkflow webhook
 bkflow-django-webhook==2.0.2
 
-bkai-init==0.1.0rc8
+bkai-init==0.1.0
 
