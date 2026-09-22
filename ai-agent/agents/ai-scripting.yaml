@@ -9,6 +9,9 @@ metadata:
 
 spec:
 
+  user_scope: public          # 所有人可使用；custom 为指定人，省略则不修改使用范围
+  admins: [ ]
+
   prompt:
     type: inline
     content: |

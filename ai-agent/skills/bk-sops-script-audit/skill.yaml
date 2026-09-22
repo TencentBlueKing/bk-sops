@@ -3,7 +3,6 @@ kind: Skill
 metadata:
   code: bk-sops-script-audit
   name: 脚本审查
-  version: "1.0.0"
   description: 审查用户在 Job 自动化运维平台上编写的业务逻辑代码
 spec:
   generate_type: space

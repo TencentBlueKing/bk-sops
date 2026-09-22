@@ -6,8 +6,8 @@ metadata:
   version: "1.0.0"
 
 resources:
-  - agents/ai-sops.yaml
   - agents/ai-scripting.yaml
+  - agents/ai-sops.yaml
   - skills/bk-sops-analyze-task-error
   - skills/bk-sops-script-audit
   - skills/bk-sops-summarize-task
