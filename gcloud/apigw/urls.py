@@ -21,6 +21,7 @@ from gcloud.apigw.views.create_clocked_task import create_clocked_task
 from gcloud.apigw.views.create_periodic_task import create_periodic_task
 from gcloud.apigw.views.create_task import create_task
 from gcloud.apigw.views.create_template import create_template
+from gcloud.apigw.views.create_template_scheme import create_template_scheme
 from gcloud.apigw.views.fast_create_task import fast_create_task
 from gcloud.apigw.views.get_clocked_task_list import get_clocked_task_list
 from gcloud.apigw.views.get_common_template_info import get_common_template_info
@@ -208,4 +209,8 @@ urlpatterns = [
     url(r"^modify_template_executor_proxy/(?P<template_id>\d+)/(?P<project_id>\d+)/$", modify_template_executor_proxy),
     url(r"^modify_project_executor_proxy/(?P<project_id>\d+)/$", modify_project_executor_proxy),
     url(r"^get_node_execution_record/(?P<template_id>\d+)/(?P<project_id>\d+)/$", get_node_execution_record),
+    url(
+        r"^create_template_scheme/(?P<project_id>\d+)/(?P<template_id>\d+)/$",
+        create_template_scheme,
+    ),
 ]
