@@ -72,7 +72,7 @@ fakeredis==2.26.1
 django-test-toolkit==1.1.0
 
 # apigw
-apigw-manager[cryptography]==4.1.0
+apigw-manager[cryptography]==4.2.4
 tldextract==3.1.2
 
 # rsa
@@ -101,3 +101,6 @@ croniter==1.4.1
 
 # bkflow webhook
 bkflow-django-webhook==2.0.2
+
+bkai-init==0.1.0
+
