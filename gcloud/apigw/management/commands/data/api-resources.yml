@@ -48,6 +48,55 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - cron
+              properties:
+                name:
+                  type: string
+                  description: 周期任务名称
+                cron:
+                  type: object
+                  description: 周期任务的调度策略，cron 表达式相关信息
+                  additionalProperties: true
+                constants:
+                  type: object
+                  description: 任务全局参数，key为变量KEY（${key}格式），value为变量值
+                  additionalProperties: true
+                exclude_task_nodes_id:
+                  type: array
+                  items:
+                    type: string
+                  description: 需要排除（不执行）的节点 ID 列表
+                template_source:
+                  type: string
+                  default: business
+                  description: 模板来源，business：业务模板，common：公共流程
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+                    ID，反之代表项目 ID，不传时默认为 cmdb_biz
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: false
@@ -474,6 +523,34 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 周期任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: include_edit_info
+        schema:
+          type: boolean
+          default: false
+        required: false
+        description: 是否返回任务更新信息
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -500,6 +577,28 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: include_edit_info
+        schema:
+          type: boolean
+          default: false
+        required: false
+        description: 是否返回任务更新信息
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -614,6 +713,33 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - task_id_list
+              properties:
+                task_id_list:
+                  type: array
+                  items:
+                    type: integer
+                  description: 任务 ID 列表，单次最多查询 50 个
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+                    ID，反之代表项目 ID，不传时默认为 cmdb_biz
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -1547,6 +1673,34 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: with_constants
+        schema:
+          type: boolean
+          default: false
+        required: false
+        description: 是否返回执行方案包含的全局变量详情
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -1685,6 +1839,14 @@ paths:
                     type: string
                     description: open telemetry trace_id
           description: ''
+      parameters:
+      - in: query
+        name: include_executor_proxy
+        schema:
+          type: boolean
+          default: false
+        required: false
+        description: 是否返回项目下的任务执行人代理信息
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -1737,6 +1899,38 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 周期任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - constants
+              properties:
+                constants:
+                  type: object
+                  description: 任务全局参数，key为变量KEY（${key}格式），value为变量值
+                  additionalProperties: true
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+                    ID，反之代表项目 ID，不传时默认为 cmdb_biz
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -1763,6 +1957,38 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 周期任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - cron
+              properties:
+                cron:
+                  type: object
+                  description: 周期任务的调度策略，cron 表达式相关信息
+                  additionalProperties: true
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+                    ID，反之代表项目 ID，不传时默认为 cmdb_biz
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -1789,6 +2015,44 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - node_id
+              properties:
+                node_id:
+                  type: string
+                  description: 需要回调的节点 ID
+                callback_data:
+                  type: object
+                  description: 节点回调时携带的数据，具体结构取决于节点类型
+                  additionalProperties: true
+                version:
+                  type: string
+                  description: 节点回调的版本号，用于幂等校验
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+                    ID，反之代表项目 ID，不传时默认为 cmdb_biz
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -2103,6 +2367,37 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 周期任务ID
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - enabled
+              properties:
+                enabled:
+                  type: boolean
+                  description: 是否激活周期任务，true：激活，false：停用
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+                    ID，反之代表项目 ID，不传时默认为 cmdb_biz
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -3007,6 +3302,25 @@ paths:
       responses:
         default:
           description: ''
+      parameters:
+      - in: path
+        name: task_id
+        schema:
+          type: string
+        required: true
+        description: 任务ID
+      - in: path
+        name: project_id
+        schema:
+          type: string
+        required: true
+        description: 业务ID
+      - in: query
+        name: node_id
+        schema:
+          type: string
+        required: false
+        description: 节点ID，传入时只返回该节点的操作记录
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -3102,6 +3416,61 @@ paths:
       description: 获取轻应用列表
       tags:
       - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码
+                  data:
+                    type: array
+                    description: result=true 时返回数据，详情见下面说明
+                  count:
+                    type: integer
+                    description: 数据总数
+                  result:
+                    type: boolean
+                    description: true/false 成功与否
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: query
+        name: scope
+        schema:
+          type: string
+          default: cmdb_biz
+        required: false
+        description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务
+          ID，反之代表项目 ID，不传时默认为 cmdb_biz
+      - in: query
+        name: offset
+        schema:
+          type: integer
+          default: 0
+        required: false
+        description: 数据偏移量，用于分页
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        required: false
+        description: 返回数据条数，默认 100，最大 200
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true

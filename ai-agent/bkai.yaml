@@ -1,0 +1,15 @@
+apiVersion: bkai.tencent.com/v1
+kind: AgentPackage
+
+metadata:
+  name: bk-sops
+  version: "1.0.0"
+
+resources:
+  - agents/ai-scripting.yaml
+  - agents/ai-sops.yaml
+  - skills/bk-sops-analyze-task-error
+  - skills/bk-sops-script-audit
+  - skills/bk-sops-summarize-task
+  - knowledgebases/bk_sops_faq
+  - knowledgebases/bk_sops_product

@@ -1,0 +1,10 @@
+apiVersion: bkai.tencent.com/v1
+kind: Skill
+metadata:
+  code: bk-sops-script-audit
+  name: 脚本审查
+  description: 审查用户在 Job 自动化运维平台上编写的业务逻辑代码
+spec:
+  generate_type: space
+  is_public: true
+  tag_names: []
