@@ -48,6 +48,7 @@ class SyncSaasApigwTest(unittest.TestCase):
                 "sync_resource_docs_by_archive",
                 "create_version_and_release_apigw",
                 "grant_apigw_permissions",
+                "sync_apigw_stage_mcp_servers",
                 "fetch_apigw_public_key",
             ],
         )
@@ -79,6 +80,16 @@ class SyncSaasApigwTest(unittest.TestCase):
         self.assertEqual(raised.exception.code, 0)
         self.assertEqual(self.stderr.getvalue(), "")
 
+    def test_required_gateway_key_failure_still_stops_sync(self):
+        for error in (SystemExit(1), CommandError("public key missing"), RuntimeError("request failed")):
+            with self.subTest(error=type(error).__name__):
+                with patch.object(sync_saas_apigw, "call_command", side_effect=[None] * 7 + [error]) as call_command:
+                    with self.assertRaises(type(error)) as raised:
+                        self.command.handle()
+                self.assertIs(raised.exception, error)
+                self.assertEqual(call_command.call_args.args[0], "fetch_apigw_public_key")
+                self.assertEqual(call_command.call_count, 8)
+
 
 class PreReleaseTest(unittest.TestCase):
     commands = [
@@ -89,6 +100,7 @@ class PreReleaseTest(unittest.TestCase):
         "sync_saas_apigw",
         "register_bksops_notice",
         "sync_webhook_events",
+        "sync_agent",
     ]
 
     def run_pre_release(self, fail_command=""):

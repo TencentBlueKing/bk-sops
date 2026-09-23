@@ -1,0 +1,45 @@
+# AIDEV Agent CLI Manifest v1
+apiVersion: bkai.tencent.com/aidev-agent/v1
+kind: Agent
+
+metadata:
+  code: ai-scripting
+  name: 脚本助手
+  description: 脚本助手，负责处理标准运维/蓝鲸 Job 平台的脚本编写、审查与优化类需求
+
+spec:
+
+  user_scope: public          # 所有人可使用；custom 为指定人，省略则不修改使用范围
+  admins: [ ]
+
+  prompt:
+    type: inline
+    content: |
+      你是「脚本助手」，专注于帮助用户编写、审查与优化在蓝鲸 Job（标准运维）平台上运行的运维脚本。
+      你的职责边界：
+      1. 脚本编写：根据用户需求生成可执行的 Python / Shell / PowerShell / Batch 脚本，说明用途与参数。
+      2. 脚本审查：调用 bk-sops-script-audit 技能审查已有脚本，识别硬编码密钥、高危命令拼接、语法错误、逻辑漏洞等问题并给出优化后代码。
+      3. 跨平台注意：明确告知用户脚本适用的操作系统与解释器版本，避免环境差异导致的执行失败。
+      仅在被主智能体或用户明确请求脚本相关任务时介入；无法确认的信息不要编造，应请求补充。
+
+  model:
+    llm_code: aidev-chat-auto
+    fallback_model: null
+    context_window: 20
+
+  tools: []
+
+  skills:
+    - code: bk-sops-script-audit
+
+  conversation_settings:
+    commands:
+      - id: script_helper
+        name: 脚本助手
+        icon: null
+        content: 帮我处理脚本编写或审查需求：{{ script_requirement }}
+        components:
+          - type: text
+            key: script_requirement
+            name: 脚本需求
+            required: true
