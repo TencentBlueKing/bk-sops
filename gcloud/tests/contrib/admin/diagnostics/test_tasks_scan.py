@@ -96,10 +96,14 @@ class RootScanSelectionTest(TestCase):
         supp, close = _supplement_patches()
         with mock.patch.object(
             tasks, "scan_silence_windows", return_value=[SimpleNamespace(cases=2)]
-        ) as m_window, mock.patch.object(tasks, "scan_stalled_roots", return_value=[]) as m_scan, supp, close:
+        ) as m_window, mock.patch.object(
+            tasks, "scan_stalled_roots", return_value=[]
+        ) as m_scan, supp as m_supp, close as m_close:
             tasks.scan_stuck_diagnostics()
         self.assertTrue(m_window.called)
         self.assertFalse(m_scan.called)
+        self.assertTrue(m_supp.called)
+        self.assertTrue(m_close.called)
 
     @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=False)
     def test_sampling_scan_is_kept_when_window_disabled(self):
@@ -130,9 +134,12 @@ class SignatureTaskTest(TestCase):
 
     @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED=False)
     def test_noop_when_disabled(self):
-        with mock.patch.object(tasks, "scan_signatures") as m_scan:
+        with mock.patch.object(tasks, "scan_signatures") as m_scan, mock.patch.object(
+            tasks, "_acquire_singleflight"
+        ) as m_lock:
             tasks.scan_stuck_signatures()
         self.assertFalse(m_scan.called)
+        m_lock.assert_not_called()
 
     @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED=True)
     def test_skips_when_lock_busy(self):
@@ -161,11 +168,17 @@ class CallbackTaskTest(TestCase):
 
     @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_CALLBACK_SCAN_ENABLED=False)
     def test_noop_when_disabled(self):
-        with mock.patch.object(tasks, "scan_callbacks") as m_scan:
+        with mock.patch.object(tasks, "scan_callbacks") as m_scan, mock.patch.object(
+            tasks, "_acquire_singleflight"
+        ) as m_lock:
             tasks.scan_stuck_callbacks()
         self.assertFalse(m_scan.called)
+        m_lock.assert_not_called()
 
     @override_settings(PIPELINE_DIAGNOSTICS_CALLBACK_SCAN_ENABLED=True)
     def test_noop_on_old_engine(self):
-        with mock.patch.object(tasks, "scan_callbacks", None):
+        with mock.patch.object(tasks, "scan_callbacks", None), mock.patch.object(
+            tasks, "_acquire_singleflight"
+        ) as m_lock:
             tasks.scan_stuck_callbacks()
+        m_lock.assert_not_called()
