@@ -46,7 +46,8 @@ prometheus-client==0.9.0
 # 3.24.18（依赖 bamboo-engine==2.6.7）：包含 PR#284 Mako 加固与 PR#285 可选子进程渲染。
 # format 仅在 enforce 下拒绝；标准运维默认子进程渲染，部署配置见 docs/zh_hans/deploy/mako_render.md。
 # 3.24.19（依赖 bamboo-engine==2.6.8）：子进程渲染基础设施故障显式失败，配套 SystemObject 传输修复。
-bamboo-pipeline==3.24.19
+# 3.24.20（依赖 bamboo-engine==2.6.8）：流程卡住治理三期 P3-1，诊断新增静默窗口扫描、形态快检与回调水位扫描，开关默认全关。
+bamboo-pipeline==3.24.20
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 pyyaml==5.4.1
