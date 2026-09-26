@@ -187,3 +187,61 @@ python manage.py close_recovered_diagnostic_cases
 ```
 
 命令按 id 游标翻页扫全量 `open` 案例，周期任务只看最近未更新的一批，两者判据一致。输出形如 `scanned=N resolved=X ignored=Y`，`--dry-run` 时前缀 `would_`。
+
+## 三期检测全覆盖（P3-1）
+
+需要 `bamboo-pipeline>=3.24.20`。三个扫描器各有开关，默认全关；只立案，不重放。三个开关互相独立，也不受 M1 的 `BKAPP_DIAGNOSTICS_SCAN_ENABLED` 约束：打开窗口扫描后，即使 M1 开关是关的，也会扫描 root 并立案。
+
+| 扫描器 | 周期 | 发现什么 |
+| --- | --- | --- |
+| 静默窗口扫描 | 随 `BKAPP_DIAGNOSTICS_SCAN_CRON` | 心跳跨过 1 小时 / 24 小时的 root，判据同 M1；开启后替代 M1 取样扫描，不再受 batch 截断 |
+| 形态快检 | 每分钟 | 执行、首次轮询、轮询续派、父进程唤醒、子进程启动这五类消息丢失 |
+| 回调水位扫描 | 每 30 秒 | 回调数据已落库、调度却没消费（回调锁重试用尽等） |
+
+### 新增诊断类型
+
+| 类型 | 含义 | 证据里的关键字段 |
+| --- | --- | --- |
+| `execute_dispatch_lost` | 节点已完成，后继节点的执行消息没被消费 | `derived_message`、`next_node_ids` |
+| `poll_dispatch_lost` | 轮询消息没被消费；`signature=S2` 是首次轮询，`S3` 是续派 | `schedule_id`、`schedule_times`、`code` |
+| `callback_dispatch_lost` | 回调数据已落库，调度没消费 | `callback_data_id`、`schedule_id` |
+| `parent_wakeup_lost` | 并行分支全部结束，父进程没被唤醒 | `child_process_id`、`converge_gateway_id` |
+| `child_start_lost` | 子进程已创建，启动消息没被消费 | `parent_process_id` |
+
+`derived_message` 是推导出的"应该被消费却丢失的那条消息"，三期重放单元上线后按它补发。在那之前按现有流程人工处理：`callback_dispatch_lost` 可以用已有的回调重放动作（仍受 `APPLY_ENABLED` 控制），其余类型按证据定位后人工处置。
+
+这些案例由各自的扫描器逐条复核：进程往前走了，或者任务被撤销了，下一轮就会关成 `resolved`，不参与按 root 进展关闭。
+
+### env 开关速查（三期）
+
+| 环境变量 | 默认 | 作用 |
+| --- | --- | --- |
+| `BKAPP_DIAGNOSTICS_WINDOW_SCAN_ENABLED` | `0` | 静默窗口扫描（开启后替代 M1 取样扫描） |
+| `BKAPP_DIAGNOSTICS_WINDOW_TIERS` | `3600,86400` | 窗口档位（秒）；不要设成空值，空值会让窗口扫描没有任何档位 |
+| `BKAPP_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED` | `0` | 形态快检 |
+| `BKAPP_DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS` | `300` | 快档阈值（执行、首次轮询、父子进程） |
+| `BKAPP_DIAGNOSTICS_SIGNATURE_SLOW_THRESHOLD_SECONDS` | `1800` | 慢档阈值（轮询续派，并复查快档） |
+| `BKAPP_DIAGNOSTICS_POLL_EXCLUDE_CODES` | `sleep_timer` | 不检查轮询续派的插件 code，逗号分隔 |
+| `BKAPP_DIAGNOSTICS_CALLBACK_SCAN_ENABLED` | `0` | 回调水位扫描 |
+| `BKAPP_DIAGNOSTICS_CALLBACK_CONFIRM_SECONDS` | `120` | 回调持续未消费多久才立案（要长于回调锁重试的约 19 秒） |
+| `BKAPP_DIAGNOSTICS_SIGNATURE_SCAN_CRON` | `* * * * *` | 形态快检周期 |
+| `BKAPP_DIAGNOSTICS_CALLBACK_SCAN_INTERVAL` | `30` | 回调扫描间隔（秒） |
+
+### 上线步骤
+
+1. 发版后开关保持全关，先在 webconsole 做只读预演（都带 `--dry-run`，不写任何表）：
+
+   ```bash
+   python manage.py diagnostics_scan --scanner signature --dry-run --start-seconds 3600
+   python manage.py diagnostics_scan --scanner window --tier 3600 --dry-run --start-seconds 7200
+   python manage.py diagnostics_scan --scanner callback --dry-run --from-callback-id <起点 id>
+   python manage.py diagnostics_poll_profile --days 7
+   ```
+
+2. 依次打开回调、形态、窗口三个开关，每开一个观察一天；`BKAPP_DIAGNOSTICS_ALERT_ENABLED` 保持关闭。
+3. 观察日志 `[pipeline_diagnostics_scan]` 和指标 `pipeline_diagnostics_scan_rows`、`pipeline_diagnostics_scan_hits`、`pipeline_diagnostics_scan_cursor_lag`、`pipeline_diagnostics_detect_latency_seconds`：水位滞后应接近 0，`capped=True` 只能偶发。
+4. 用 `diagnostics_poll_profile` 的结果调整慢档阈值和排除清单：`silent_*` 是距上次轮询的静默时长分位数，`interval_p50` 是续派间隔中位数。首行 `capped=True` 表示读满了 `--max-rows`，缺的是心跳最新的进程，调大 `--max-rows` 或缩小 `--days` 后再看。
+
+需要真实补扫一段历史区间时，去掉 `--dry-run`、保留 `--start-seconds`：照常立案，但既不读也不写定时扫描的水位，不会让定时扫描跳过任何区间。
+
+回滚：把开关关掉即可；水位表里的记录无害，重新打开时从上次水位继续。
