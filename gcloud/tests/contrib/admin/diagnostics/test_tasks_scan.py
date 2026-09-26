@@ -80,6 +80,21 @@ class ScanTaskTest(TestCase):
             tasks.scan_stuck_diagnostics()
         self.assertTrue(m_scan.called)
 
+    @override_settings(redis_inst=FakeRedis())
+    def test_root_scan_failure_still_runs_supplement_and_close(self):
+        from django.conf import settings
+
+        with mock.patch.object(tasks, "scan_stalled_roots", side_effect=Exception("boom")), mock.patch(
+            "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
+            return_value=[],
+        ) as m_supp, mock.patch(
+            "gcloud.contrib.admin.diagnostics.supplement.close_recovered_cases", return_value=(0, 0)
+        ) as m_close:
+            tasks.scan_stuck_diagnostics()
+        self.assertTrue(m_supp.called)
+        self.assertTrue(m_close.called)
+        self.assertIsNone(settings.redis_inst.get(tasks._SCAN_LOCK_KEY))
+
 
 def _supplement_patches():
     return (

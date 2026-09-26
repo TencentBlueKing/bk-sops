@@ -22,6 +22,7 @@ class Phase3SettingsTest(TestCase):
 
     def test_defaults(self):
         self.assertEqual(settings.PIPELINE_DIAGNOSTICS_WINDOW_TIERS, (3600, 86400))
+        self.assertEqual(settings.PIPELINE_DIAGNOSTICS_WINDOW_MAX_ROOTS, 1000)
         self.assertEqual(settings.PIPELINE_DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS, 300)
         self.assertEqual(settings.PIPELINE_DIAGNOSTICS_SIGNATURE_SLOW_THRESHOLD_SECONDS, 1800)
         self.assertEqual(settings.PIPELINE_DIAGNOSTICS_POLL_EXCLUDE_CODES, ["sleep_timer"])

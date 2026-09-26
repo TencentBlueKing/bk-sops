@@ -194,7 +194,7 @@ python manage.py close_recovered_diagnostic_cases
 
 | 扫描器 | 周期 | 发现什么 |
 | --- | --- | --- |
-| 静默窗口扫描 | 随 `BKAPP_DIAGNOSTICS_SCAN_CRON` | 心跳跨过 1 小时 / 24 小时的 root，判据同 M1；开启后替代 M1 取样扫描，不再受 batch 截断 |
+| 静默窗口扫描 | 随 `BKAPP_DIAGNOSTICS_SCAN_CRON` | 心跳跨过 1 小时 / 24 小时的 root，判据同 M1；开启后替代 M1 取样扫描，不再受 batch 截断，每轮静默 root 超过上限时停在已读位置、下一轮接着扫 |
 | 形态快检 | 每分钟 | 执行、首次轮询、轮询续派、父进程唤醒、子进程启动这五类消息丢失 |
 | 回调水位扫描 | 每 30 秒 | 回调数据已落库、调度却没消费（回调锁重试用尽等） |
 
@@ -212,12 +212,15 @@ python manage.py close_recovered_diagnostic_cases
 
 这些案例由各自的扫描器逐条复核：进程往前走了，或者任务被撤销了，下一轮就会关成 `resolved`，不参与按 root 进展关闭。
 
+M1 规则产出的案例（如 `stalled_no_progress`）在 root 恢复进展、没有存活进程或根流程已撤销 / 已结束时关成 `resolved`；补充检测的 `running_task_without_live_process` 只由 bk-sops 自己的收敛逻辑关闭，引擎不再碰它。
+
 ### env 开关速查（三期）
 
 | 环境变量 | 默认 | 作用 |
 | --- | --- | --- |
 | `BKAPP_DIAGNOSTICS_WINDOW_SCAN_ENABLED` | `0` | 静默窗口扫描（开启后替代 M1 取样扫描） |
 | `BKAPP_DIAGNOSTICS_WINDOW_TIERS` | `3600,86400` | 窗口档位（秒）；不要设成空值，空值会让窗口扫描没有任何档位 |
+| `BKAPP_DIAGNOSTICS_WINDOW_MAX_ROOTS` | `1000` | 窗口扫描每档每轮最多处理的静默 root 数；超出的下一轮接着处理，不会漏 |
 | `BKAPP_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED` | `0` | 形态快检 |
 | `BKAPP_DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS` | `300` | 快档阈值（执行、首次轮询、父子进程） |
 | `BKAPP_DIAGNOSTICS_SIGNATURE_SLOW_THRESHOLD_SECONDS` | `1800` | 慢档阈值（轮询续派，并复查快档） |

@@ -95,8 +95,11 @@ def scan_stuck_diagnostics():
         return
 
     try:
-        cases = _scan_roots()
-        logger.info("[diagnostics] scan_stuck_diagnostics upserted cases: %s", cases)
+        try:
+            cases = _scan_roots()
+            logger.info("[diagnostics] scan_stuck_diagnostics upserted cases: %s", cases)
+        except Exception:
+            logger.exception("[diagnostics] root scan failed")
 
         try:
             from gcloud.contrib.admin.diagnostics.supplement import (
