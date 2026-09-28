@@ -208,7 +208,7 @@ python manage.py close_recovered_diagnostic_cases
 | `parent_wakeup_lost` | 并行分支全部结束，父进程没被唤醒 | `child_process_id`、`converge_gateway_id` |
 | `child_start_lost` | 子进程已创建，启动消息没被消费 | `parent_process_id` |
 
-`derived_message` 是推导出的"应该被消费却丢失的那条消息"，三期重放单元上线后按它补发。在那之前按现有流程人工处理：`callback_dispatch_lost` 可以用已有的回调重放动作（仍受 `APPLY_ENABLED` 控制），其余类型按证据定位后人工处置。
+`derived_message` 是推导出的"应该被消费却丢失的那条消息"。3.24.22 起可以在控制台对这些案例预览重放、人工重放（见"三期恢复台账与人工重放"）；更早的版本按现有流程人工处理：`callback_dispatch_lost` 可以用已有的回调重放动作（仍受 `APPLY_ENABLED` 控制），其余类型按证据定位后人工处置。
 
 这些案例由各自的扫描器逐条复核：进程往前走了，或者任务被撤销了，下一轮就会关成 `resolved`，不参与按 root 进展关闭。
 
@@ -258,7 +258,7 @@ M1 规则产出的案例（如 `stalled_no_progress`）在 root 恢复进展、�
 | 调度完成后执行下一节点、唤醒父进程、启动子进程 | `from_node`、`from_version` | 进程仍睡在 `from_node`，且该节点的状态版本没变 |
 | 首次轮询、轮询续派 | `schedule_times` | 调度次数没变；锁被占用时沿用原有处理 |
 
-API 触发的执行（启动、继续、重试、跳过等）、回调触发的调度、诊断里的重放动作都不带令牌，按原逻辑执行。
+API 触发的执行（启动、继续、重试、跳过等）、回调触发的调度、诊断里原有的恢复动作（`resend_schedule`、`replay_callback_data` 等）都不带令牌，按原逻辑执行。P3-3 的案例重放对执行类、轮询类消息附带令牌。
 
 ### env 开关速查（P3-2）
 
@@ -287,3 +287,66 @@ API 触发的执行（启动、继续、重试、跳过等）、回调触发的�
 
 - 引擎 celery 任务目前不开 `acks_late`，消息在执行前确认。将来如果开启，worker 崩溃后重投的消息会被当作重复丢弃，而进程已被第一次投递抢占，会留下"已唤醒但没人推进"的进程；开启前必须重新评估门禁。
 - 进程抢占的条件更新已经提交、随后数据库连接才报错时，断点恢复会把同一条消息当作重复丢弃，同样留下已唤醒的空闲进程。这种情况极少见，由三期的静默窗口扫描发现。
+
+## 三期恢复台账与人工重放（P3-3）
+
+需要 `bamboo-pipeline>=3.24.22`（依赖 `bamboo-engine==2.6.9`），新增迁移 `pipeline_diagnostics.0003`（恢复台账表）。
+
+重放针对形态快检和回调水位扫描立的案例：按库内当前状态重新判定形态，推导出丢失的那条消息，附带门禁令牌交给运行时派发。原消息如果只是迟到，两条消息谁先到谁生效，后到的被 P3-2 门禁丢弃。形态已不成立时不重放。
+
+| 类型 | 重放的消息 | 令牌 |
+| --- | --- | --- |
+| `execute_dispatch_lost` | 执行唯一的后继节点 | 已完成节点和它的状态版本 |
+| `parent_wakeup_lost` | 父进程执行汇聚网关 | 父进程当前节点和状态版本 |
+| `child_start_lost` | 子进程执行分支首节点 | 首节点和状态版本（还没有状态时为空） |
+| `poll_dispatch_lost` | 轮询当前调度 | 当前调度次数 |
+| `callback_dispatch_lost` | 按回调数据调度 | 不带，依靠调度入口原有的检查（调度已完成、版本不符、调度锁） |
+
+以下情况不重放，结果里的 `blockers` 给出原因：
+
+| 原因 | 含义 / 处理 |
+| --- | --- |
+| `fence enforce is off` | 执行类、轮询类重放要求 `BKAPP_PIPELINE_FENCE_ENFORCE=1`，否则迟到的原消息会和重放各执行一次 |
+| `fence emit is off, confirm the risk to replay` | `EMIT` 未开时正常派发不带令牌，迟到的原消息会无条件执行；控制台会弹出二次确认，确认已排除队列积压后再重放 |
+| `successor node is not unique` | 后继不唯一，按证据人工处置 |
+| `callback schedule is running` | 回调对应的调度正在进行，继续观察 |
+| `more than one callback was lost on this node` | 同一节点丢失过不止一条回调（按案例命中次数判断，命中超过一次即阻断），按证据人工处置 |
+| `a replay is waiting to settle` | 同一消息已派发、还在等待复核 |
+| `apply disabled` | 人工重放还受 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 约束 |
+| `shape no longer holds` | 形态已不成立，无需重放 |
+
+### 控制台
+
+案例详情展示最近 20 条重放记录。可重放的类型多出"预览重放""重放"两个按钮：预览只返回推导出的消息和阻断原因，不派发；重放派发后在台账记一行 `dispatched`。两者都写操作审计，类型 `replay_case`。已有的 `replay_callback_data`、`resend_schedule` 等动作保持原样。
+
+### 恢复任务
+
+恢复任务每分钟一轮（redis 单例锁，队列 `task_data_clean`），P3-3 只预演、不重放：
+
+1. 复核到期的记录：派发满 `BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS`（默认 180 秒）后再判定一次形态，`dispatched` 改为 `applied`（形态已解除、根流程仍在运行）、`obsolete`（形态已解除，但根流程已结束、撤销或暂停）或 `ineffective`（形态仍成立，轮询类还要求调度次数没变）；预演记录只把形态是否仍成立写进 `detail.settled_holds`。
+2. 检查未关闭的可重放案例（每轮最多 200 个，先看最新的）：同一案例同一消息只记一行 `previewed`（会重放）或 `blocked`（带阻断原因）；形态已不成立的只计数。
+
+台账与操作审计的保留期相同（365 天），由已有的 `cleanup_diagnostics` 周期任务清理。
+
+### env 开关速查（P3-3）
+
+| 环境变量 | 默认 | 作用 |
+| --- | --- | --- |
+| `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` | `0` | 恢复任务（复核与预演） |
+| `BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS` | `180` | 派发后多久复核；要长于执行、调度消息正常排队和处理的时长 |
+| `BKAPP_DIAGNOSTICS_RECOVERY_CRON` | `* * * * *` | 恢复任务周期 |
+
+### 上线步骤（P3-3）
+
+1. 发版并执行迁移，开关保持关闭。
+2. 打开 `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED=1`，观察几天。日志关键字 `[pipeline_diagnostics_recovery]`；在 webconsole 查看预演报告（只读）：
+
+   ```bash
+   python manage.py diagnostics_recovery_report --hours 24
+   ```
+
+   按类型看：`preview` 是预演结果分布，`blockers` 是阻断原因分布，`settled.healed` / `settled.holds` 是预演后不重放也自愈 / 仍然卡住的条数，`self_heal_ratio` 是自愈比例。自愈比例高的类型说明阈值偏短，先调形态快检阈值，再考虑自动重放。
+3. 超管在控制台对个别案例先"预览重放"，核对推导出的消息与证据一致后再"重放"。复核后看记录状态：`applied` 表示已恢复推进；`ineffective` 表示重放后仍卡住，按证据人工处置。`BKAPP_DIAGNOSTICS_APPLY_ENABLED` 同时放开控制台其他写动作的 `apply` 模式，打开前确认操作人范围，或只在需要时临时打开。
+4. 指标 `pipeline_diagnostics_recovery_total{stuck_type, trigger, result}`：`result` 为 `dispatched`、`blocked`（派发报错）、`applied`、`obsolete`、`ineffective`。
+
+回滚：关掉 `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 即停止复核和预演；人工重放由 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 控制。台账记录无害，可以保留。
