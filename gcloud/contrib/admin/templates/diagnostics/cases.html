@@ -229,7 +229,7 @@
     var payload = { case_id: caseId, action: 'replay_case', mode: mode, confirm_risk: !!confirmRisk };
     post(SITE_URL + 'admin/diagnostics/cases/action/', payload).then(function (body) {
       var needConfirm = mode === 'apply' && !confirmRisk && body.data && body.data.requires_risk_confirm;
-      if (needConfirm && confirm('原消息不受门禁保护（引擎门禁 EMIT 未打开，或节点是被跳过的）：'
+      if (needConfirm && confirm('原消息不受门禁保护（引擎门禁 EMIT 未打开，或节点、条件并行网关是被跳过的）：'
           + '原消息如果只是延迟、之后又到达，会和重放各执行一次。确认已排除队列积压后继续?')) {
         replayCase(caseId, mode, true);
         return;
