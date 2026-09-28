@@ -309,6 +309,8 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 | `fence enforce is off` | 执行类、轮询类重放要求 `BKAPP_PIPELINE_FENCE_ENFORCE=1`，否则迟到的原消息会和重放各执行一次 |
 | `fence emit is off, confirm the risk to replay` | `EMIT` 未开时正常派发不带令牌，迟到的原消息会无条件执行；控制台会弹出二次确认，确认已排除队列积压后再重放 |
 | `fence emit is off` | 恢复任务自动预演时 `EMIT` 未开的阻断原因；自动预演没有确认风险这一步，控制台人工重放遇到同样情况给出的是 `fence emit is off, confirm the risk to replay` |
+| `message came from a skip and carries no fence token, confirm the risk to replay` | `execute_dispatch_lost` 的节点、或 `child_start_lost` 父进程所在的并行网关是被跳过的（人工跳过，或节点超时策略"强制失败并跳过"）：跳过接口派发的消息不带令牌，即使开了 `ENFORCE`，迟到的原消息也会无条件执行；控制台会弹出二次确认，确认已排除队列积压后再重放 |
+| `message came from a skip and carries no fence token` | 恢复任务自动预演时遇到跳过产生的消息的阻断原因；自动预演没有确认风险这一步，控制台人工重放遇到同样情况给出的是 `message came from a skip and carries no fence token, confirm the risk to replay` |
 | `successor node is not unique` | 后继不唯一，按证据人工处置 |
 | `callback schedule is running` | 回调对应的调度正在进行，继续观察 |
 | `more than one callback was lost on this node` | 同一节点丢失过不止一条回调（按案例命中次数判断，命中超过一次即阻断），按证据人工处置 |
@@ -319,7 +321,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 
 ### 控制台
 
-案例详情展示最近 20 条重放记录。可重放的类型多出"预览重放""重放"两个按钮：预览只返回推导出的消息和阻断原因，不派发；重放派发后在台账记一行 `dispatched`。两者都写操作审计（案例不存在时不写），类型 `replay_case`。已有的 `replay_callback_data`、`resend_schedule` 等动作保持原样。
+案例详情展示最近 20 条重放记录。可重放的类型多出"预览重放""重放"两个按钮：预览只返回推导出的消息和阻断原因，不派发；重放派发后在台账记一行 `dispatched`。两者都写操作审计（案例不存在时不写），类型 `replay_case`。重放遇到需要确认风险的阻断（`EMIT` 未开，或节点、并行网关是被跳过的）时，控制台弹出二次确认，确认已排除队列积压后才带上确认重新提交。已有的 `replay_callback_data`、`resend_schedule` 等动作保持原样。
 
 控制台返回 `replay_case raised, check recovery history before retrying: …`，或者显示"重放请求失败，请先查看重放记录再决定是否重试："时，重放结果未知：消息可能已经派发，台账或操作审计里却可能没有对应记录。重试前先看案例的重放记录，再看节点是否已经往前走；标准运维日志关键字 `[diagnostics] replay_case raised`。
 
