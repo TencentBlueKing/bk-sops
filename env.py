@@ -183,6 +183,15 @@ PIPELINE_FENCE_ENFORCE = os.getenv("BKAPP_PIPELINE_FENCE_ENFORCE", "0").lower() 
 DIAGNOSTICS_RECOVERY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_RECOVERY_SETTLE_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS", 180))
 DIAGNOSTICS_RECOVERY_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_CRON", "* * * * *").split())
+# 流程卡住治理三期 P3-4（自动重放，需 bamboo-pipeline>=3.24.23）：默认只预演。RECOVERY_MODE=apply 时，只对 AUTO_REPLAY_TYPES
+# 里的类型、且根流程所属项目在 RECOVERY_PROJECT_IDS 里的案例自动重放（项目 ID 逗号分隔，空表示不放开，* 表示全部）。
+DIAGNOSTICS_RECOVERY_MODE = os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_MODE", "preview").strip().lower()
+DIAGNOSTICS_AUTO_REPLAY_TYPES = [
+    item.strip() for item in os.getenv("BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES", "").split(",") if item.strip()
+]
+DIAGNOSTICS_RECOVERY_PROJECT_IDS = [
+    item.strip() for item in os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS", "").split(",") if item.strip()
+]
 
 # 是否启动swagger ui
 ENABLE_SWAGGER_UI = os.getenv("BKAPP_ENABLE_SWAGGER_UI", False)

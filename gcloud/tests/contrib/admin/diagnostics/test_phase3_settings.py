@@ -13,6 +13,9 @@ specific language governing permissions and limitations under the License.
 from bamboo_engine.config import Settings as BambooSettings
 from django.conf import settings
 from django.test import TestCase
+from django.utils.module_loading import import_string
+
+from gcloud.contrib.admin.diagnostics.recovery_scope import in_recovery_scope
 
 
 class Phase3SettingsTest(TestCase):
@@ -26,6 +29,12 @@ class Phase3SettingsTest(TestCase):
         self.assertFalse(settings.PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED)
         self.assertEqual(settings.PIPELINE_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS, 180)
         self.assertEqual(settings.DIAGNOSTICS_RECOVERY_CRON, ("*", "*", "*", "*", "*"))
+
+    def test_auto_replay_defaults(self):
+        self.assertEqual(settings.PIPELINE_DIAGNOSTICS_RECOVERY_MODE, "preview")
+        self.assertEqual(settings.PIPELINE_DIAGNOSTICS_AUTO_REPLAY_TYPES, [])
+        self.assertEqual(settings.DIAGNOSTICS_RECOVERY_PROJECT_IDS, [])
+        self.assertIs(import_string(settings.PIPELINE_DIAGNOSTICS_RECOVERY_SCOPE_RESOLVER), in_recovery_scope)
 
     def test_scanners_default_off(self):
         self.assertFalse(settings.PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED)
