@@ -22,6 +22,11 @@ class Phase3SettingsTest(TestCase):
         self.assertFalse(BambooSettings.FENCE_EMIT_ENABLED)
         self.assertFalse(BambooSettings.FENCE_ENFORCE)
 
+    def test_recovery_defaults(self):
+        self.assertFalse(settings.PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED)
+        self.assertEqual(settings.PIPELINE_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS, 180)
+        self.assertEqual(settings.DIAGNOSTICS_RECOVERY_CRON, ("*", "*", "*", "*", "*"))
+
     def test_scanners_default_off(self):
         self.assertFalse(settings.PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED)
         self.assertFalse(settings.PIPELINE_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED)
