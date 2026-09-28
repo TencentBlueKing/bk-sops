@@ -10,11 +10,18 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from bamboo_engine.config import Settings as BambooSettings
 from django.conf import settings
 from django.test import TestCase
 
 
 class Phase3SettingsTest(TestCase):
+    def test_fence_default_off(self):
+        self.assertFalse(settings.PIPELINE_FENCE_EMIT_ENABLED)
+        self.assertFalse(settings.PIPELINE_FENCE_ENFORCE)
+        self.assertFalse(BambooSettings.FENCE_EMIT_ENABLED)
+        self.assertFalse(BambooSettings.FENCE_ENFORCE)
+
     def test_scanners_default_off(self):
         self.assertFalse(settings.PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED)
         self.assertFalse(settings.PIPELINE_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED)
