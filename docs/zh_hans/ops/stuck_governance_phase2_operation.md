@@ -380,11 +380,11 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 
 ### 限次、每轮上限与熔断
 
-- **限次**：同一案例同一消息（同一指纹）最多自动重放 3 次，派发报错的那次也算一次；两次之间至少隔一个收敛窗口（`BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS`）。第 3 次派发满一个收敛窗口后（第 3 次派发报错时是紧接着的下一轮），恢复任务如果仍推导出同一条消息、且没有其他阻断，就记一行 `manual_required`，打告警日志 `[pipeline_diagnostics_alert] type=recovery_manual_required`，之后不再自动重放这条消息，转人工处置；控制台人工重放不受次数限制，也不计入次数。轮询每推进一次就是新的指纹，次数重新计算。
+- **限次**：同一案例同一消息（同一指纹）最多自动重放 3 次，派发报错的那次也算一次；两次之间至少隔一个收敛窗口（`BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS`）。第 3 次派发满一个收敛窗口后（第 3 次派发报错时是紧接着的下一轮），恢复任务如果仍推导出同一条消息、案例仍在自动重放范围内（模式为 `apply`、类型已放开、项目在白名单内，本轮也没有熔断或因 `auto replay skipped` 只预演），且没有其他阻断，就记一行 `manual_required`，打告警日志 `[pipeline_diagnostics_alert] type=recovery_manual_required`，之后不再自动重放这条消息，转人工处置；控制台人工重放不受次数限制，也不计入次数。轮询每推进一次就是新的指纹，次数重新计算。
 - **每轮上限**：每轮最多自动重放 20 个，其余留到下一轮。
 - **熔断**：最近 5 分钟新立案的可重放案例超过 50 个时，本轮只预演，打告警日志 `[pipeline_diagnostics_alert] type=recovery_breaker_open`，指标 `pipeline_diagnostics_recovery_breaker_open_total{hostname}` 加一。这种突增通常说明 MQ 大面积丢消息，先排查 MQ，再在控制台人工重放；熔断不影响人工重放。
 
-两种告警日志都受 `BKAPP_DIAGNOSTICS_ALERT_ENABLED` 控制（默认关闭，要在 `pipeline` 模块打开）；关闭时只能从指标 `pipeline_diagnostics_recovery_total{result="manual_required"}`、`pipeline_diagnostics_recovery_breaker_open_total` 和下面恢复任务日志里的计数看到转人工和熔断。
+两种告警日志都受 `BKAPP_DIAGNOSTICS_ALERT_ENABLED` 控制（默认关闭，要在 `pipeline` 模块打开）；关闭时，转人工和熔断仍会体现在指标 `pipeline_diagnostics_recovery_total{result="manual_required"}`、`pipeline_diagnostics_recovery_breaker_open_total` 和下面恢复任务日志里的计数上，转人工还会出现在预演报告 `auto_apply` 的 `manual_required` 里。
 
 这几个上限使用引擎默认值（Django 配置 `PIPELINE_DIAGNOSTICS_RECOVERY_MAX_ATTEMPTS`、`PIPELINE_DIAGNOSTICS_RECOVERY_MAX_PER_ROUND`、`PIPELINE_DIAGNOSTICS_RECOVERY_BREAKER_WINDOW_SECONDS`、`PIPELINE_DIAGNOSTICS_RECOVERY_BREAKER_THRESHOLD`），bk-sops 不单独提供 env。
 
@@ -400,7 +400,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 | `auto_exhausted` | 之前已转人工，跳过 |
 | `breaker_open` | 本轮熔断，只预演 |
 
-开关都配了却没有案例被自动重放时，先查日志 `[pipeline_diagnostics_recovery] auto replay skipped`：后面跟 `scope resolver is not configured`（没有配置范围判定函数）、`cannot import <路径>`（范围判定函数导入失败）或 `scope setup failed`（准备本轮范围时出错，例如熔断计数查询失败），出现这些日志的轮次只预演。某个根流程的范围判定报错时日志为 `[pipeline_diagnostics_recovery] scope resolver failed: <root_pipeline_id>`，这个根流程本轮按范围外处理。都没有时，核对三个开关是否在 `pipeline` 模块生效、类型名是否拼对（写错的类型名被忽略，不报错）。
+开关都配了却没有案例被自动重放时，先看恢复任务日志的计数里有没有 `breaker_open`（本轮熔断，只预演），再查日志 `[pipeline_diagnostics_recovery] auto replay skipped`：后面跟 `scope resolver is not configured`（没有配置范围判定函数）、`cannot import <路径>`（范围判定函数导入失败）或 `scope setup failed`（准备本轮范围时出错，例如熔断计数查询失败），出现这些日志的轮次只预演。某个根流程的范围判定报错时日志为 `[pipeline_diagnostics_recovery] scope resolver failed: <root_pipeline_id>`，这个根流程本轮按范围外处理。案例在范围内但被阻断时，台账记一行 `blocked`，原因在台账记录的 `detail.blockers` 和预演报告的 `blockers` 里；放开初期常见的是 `fence emit is off`、`fence enforce is off`（`pipeline` 模块的门禁开关没打开）和 `message came from a skip and carries no fence token`（节点或并行网关是被跳过的）。都没有时，核对三个开关是否在 `pipeline` 模块生效、类型名是否拼对（写错的类型名被忽略，不报错）。
 
 预演报告 `diagnostics_recovery_report` 的 `apply` 是人工和自动重放的结果合计，`auto_apply` 是其中自动重放的部分。
 
@@ -416,7 +416,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 
 ### 上线步骤（P3-4）
 
-1. 前提：P3-3 已只预演观察过，各类型的阻断原因都能解释；门禁 `EMIT`、`ENFORCE` 都已打开。
+1. 前提：P3-3 已只预演观察过，各类型的阻断原因都能解释；门禁 `EMIT`、`ENFORCE` 都已打开；转人工和熔断的告警已接好：在 `pipeline` 模块打开 `BKAPP_DIAGNOSTICS_ALERT_ENABLED`（同时会打开引擎调度锁冲突的告警日志 `type=schedule_lock_conflict`），或者对指标 `pipeline_diagnostics_recovery_total{result="manual_required"}`、`pipeline_diagnostics_recovery_breaker_open_total` 配监控告警。新立案数一直超过熔断阈值时，每轮都会再打一次熔断告警日志、指标也每轮加一，告警规则要去重。
 2. 选一两个项目：`BKAPP_DIAGNOSTICS_RECOVERY_MODE=apply`，`BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` 配确定性形态的四个类型，`BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS` 配这些项目的 ID。
 3. 每天看 `python manage.py diagnostics_recovery_report --hours 24` 的 `auto_apply`：绝大多数应为 `applied`；出现 `ineffective`、`manual_required` 时按证据查原因。同时关注转人工与熔断：告警日志 `type=recovery_manual_required`、`type=recovery_breaker_open`（打开告警时），或上面的指标。
 4. 稳定后逐步扩大项目范围，最后配 `*`。
@@ -424,7 +424,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 
 指标 `pipeline_diagnostics_recovery_total{stuck_type, trigger, result, hostname}` 的 `result` 新增 `manual_required`。
 
-回滚：`BKAPP_DIAGNOSTICS_RECOVERY_MODE=preview`（或清空 `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES`、`BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS`），恢复任务回到只预演；只要恢复任务保持打开（`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED=1`），已派发的重放照常复核。直接关掉 `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 也会停止自动重放，但同时停止复核，已派发的记录停在 `dispatched`。
+回滚：设 `BKAPP_DIAGNOSTICS_RECOVERY_MODE=preview`（清空 `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` 效果相同），恢复任务回到只预演；只要恢复任务保持打开（`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED=1`），已派发的重放照常复核。只清空 `BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS` 也会停止自动重放，但熔断仍每轮计算：新立案数超过阈值时仍累加熔断指标，打开告警时还会打 `recovery_breaker_open` 告警日志，所以不建议用它回滚。直接关掉 `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 也会停止自动重放，但同时停止复核，已派发的记录停在 `dispatched`。
 
 ### 已知限制（P3-4）
 
@@ -432,3 +432,5 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 - 熔断按所有项目、所有可重放类型的新立案数计算，不区分是否在白名单内。
 - 范围内但有阻断原因（如后继不唯一、同一节点丢失多条回调）的案例只在台账记一行 `blocked`，不单独告警，需要在控制台或报告的 `blockers` 里查看。
 - 每轮先处理最新发现的案例；可派发的超过 20 个时，较早的案例顺延到下一轮。
+- `execute_dispatch_lost` 的节点、或 `child_start_lost` 父进程所在的并行网关是被跳过的（人工跳过，或节点超时策略"强制失败并跳过"），这类案例不自动重放：跳过接口派发的消息不带令牌，原消息晚到时会绕过门禁再执行一次。它们在台账记一行 `blocked`，原因 `message came from a skip and carries no fence token`；确认已排除队列积压后，在控制台人工重放（需要确认风险）。
+- 并行分支结束时如果生成唤醒父进程的令牌失败（引擎日志 `[fence] build fence for process(...) failed, dispatch without fence`），这条唤醒消息不带令牌；原消息如果只是延迟，之后对这个 `parent_wakeup_lost` 案例的自动重放会和它各执行一次。这种情况很少见，出现时按这个日志关键字排查。

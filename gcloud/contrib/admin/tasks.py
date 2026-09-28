@@ -157,7 +157,7 @@ def scan_stuck_callbacks():
 
 @periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_RECOVERY_CRON)), ignore_result=True, queue="task_data_clean")
 def run_stuck_recovery():
-    """复核已派发的重放，并预演未关闭的可重放案例。"""
+    """复核已派发的重放，按开关自动重放范围内的可重放案例，其余只预演。"""
     _run_singleflight(
         "run_stuck_recovery",
         _RECOVERY_LOCK_KEY,
