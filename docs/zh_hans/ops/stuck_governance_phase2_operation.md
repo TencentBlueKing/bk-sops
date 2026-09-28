@@ -369,7 +369,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 2. 案例类型在 `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` 里；
 3. 根流程所属项目在 `BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS` 里（逗号分隔的项目 ID，空表示不放开，`*` 表示全部；查不到对应任务、任务已删除或任务没有所属项目的根流程不放开）。
 
-自动重放推导消息、阻断条件都与人工重放相同，只有两处不同：执行类、轮询类要求 `BKAPP_PIPELINE_FENCE_EMIT_ENABLED=1` 与 `BKAPP_PIPELINE_FENCE_ENFORCE=1` 都已打开，否则在台账记一行 `blocked`（原因 `fence emit is off` 或 `fence enforce is off`），没有"确认风险"的选项；不受 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 约束，也不写操作审计，台账记录的 `trigger` 为 `auto`。回调类不依赖门禁。
+自动重放推导消息、其余阻断条件都与人工重放相同，只有两处不同：一是人工重放可以确认风险后继续的情况，自动重放一律阻断，在台账记一行 `blocked`：执行类、轮询类要求 `BKAPP_PIPELINE_FENCE_EMIT_ENABLED=1` 与 `BKAPP_PIPELINE_FENCE_ENFORCE=1` 都已打开，否则原因为 `fence emit is off` 或 `fence enforce is off`（`ENFORCE` 未开时人工重放同样不能继续）；节点或条件并行网关是被跳过的，原因为 `message came from a skip and carries no fence token`。二是不受 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 约束，也不写操作审计，台账记录的 `trigger` 为 `auto`。回调类不依赖门禁。
 
 分两级放开：
 
@@ -400,7 +400,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 | `auto_exhausted` | 之前已转人工，跳过 |
 | `breaker_open` | 本轮熔断，只预演 |
 
-开关都配了却没有案例被自动重放时，先看恢复任务日志的计数里有没有 `breaker_open`（本轮熔断，只预演），再查日志 `[pipeline_diagnostics_recovery] auto replay skipped`：后面跟 `scope resolver is not configured`（没有配置范围判定函数）、`cannot import <路径>`（范围判定函数导入失败）或 `scope setup failed`（准备本轮范围时出错，例如熔断计数查询失败），出现这些日志的轮次只预演。某个根流程的范围判定报错时日志为 `[pipeline_diagnostics_recovery] scope resolver failed: <root_pipeline_id>`，这个根流程本轮按范围外处理。案例在范围内但被阻断时，台账记一行 `blocked`，原因在台账记录的 `detail.blockers` 和预演报告的 `blockers` 里；放开初期常见的是 `fence emit is off`、`fence enforce is off`（`pipeline` 模块的门禁开关没打开）和 `message came from a skip and carries no fence token`（节点或并行网关是被跳过的）。都没有时，核对三个开关是否在 `pipeline` 模块生效、类型名是否拼对（写错的类型名被忽略，不报错）。
+开关都配了却没有案例被自动重放时，先看恢复任务日志的计数里有没有 `breaker_open`（本轮熔断，只预演），再查日志 `[pipeline_diagnostics_recovery] auto replay skipped`：后面跟 `scope resolver is not configured`（没有配置范围判定函数）、`cannot import <路径>`（范围判定函数导入失败）或 `scope setup failed`（准备本轮范围时出错，例如熔断计数查询失败），出现这些日志的轮次只预演。某个根流程的范围判定报错时日志为 `[pipeline_diagnostics_recovery] scope resolver failed: <root_pipeline_id>`，这个根流程本轮按范围外处理。案例在范围内但被阻断时，台账记一行 `blocked`，原因在台账记录的 `detail.blockers` 和预演报告的 `blockers` 里；放开初期常见的是 `fence emit is off`、`fence enforce is off`（`pipeline` 模块的门禁开关没打开）和 `message came from a skip and carries no fence token`（节点或条件并行网关是被跳过的）。都没有时，核对三个开关是否在 `pipeline` 模块生效、类型名是否拼对（写错的类型名被忽略，不报错）。
 
 预演报告 `diagnostics_recovery_report` 的 `apply` 是人工和自动重放的结果合计，`auto_apply` 是其中自动重放的部分。
 
@@ -432,5 +432,5 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 - 熔断按所有项目、所有可重放类型的新立案数计算，不区分是否在白名单内。
 - 范围内但有阻断原因（如后继不唯一、同一节点丢失多条回调）的案例只在台账记一行 `blocked`，不单独告警，需要在控制台或报告的 `blockers` 里查看。
 - 每轮先处理最新发现的案例；可派发的超过 20 个时，较早的案例顺延到下一轮。
-- `execute_dispatch_lost` 的节点、或 `child_start_lost` 父进程所在的并行网关是被跳过的（人工跳过，或节点超时策略"强制失败并跳过"），这类案例不自动重放：跳过接口派发的消息不带令牌，原消息晚到时会绕过门禁再执行一次。它们在台账记一行 `blocked`，原因 `message came from a skip and carries no fence token`；确认已排除队列积压后，在控制台人工重放（需要确认风险）。
+- `execute_dispatch_lost` 的节点、或 `child_start_lost` 父进程所在的条件并行网关是被跳过的（人工跳过，或节点超时策略"强制失败并跳过"），这类案例不自动重放：跳过接口派发的消息不带令牌，原消息晚到时会绕过门禁再执行一次。它们在台账记一行 `blocked`，原因 `message came from a skip and carries no fence token`；确认已排除队列积压后，在控制台人工重放（需要确认风险）。
 - 并行分支结束时如果生成唤醒父进程的令牌失败（引擎日志 `[fence] build fence for process(...) failed, dispatch without fence`），这条唤醒消息不带令牌；原消息如果只是延迟，之后对这个 `parent_wakeup_lost` 案例的自动重放会和它各执行一次。这种情况很少见，出现时按这个日志关键字排查。
