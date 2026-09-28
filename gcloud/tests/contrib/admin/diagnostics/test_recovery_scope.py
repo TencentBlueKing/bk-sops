@@ -4,9 +4,10 @@ from unittest import mock
 from django.test import TestCase, override_settings
 
 from gcloud.contrib.admin.diagnostics import recovery_scope
+from gcloud.tests.contrib.admin.diagnostics.test_supplement import DiagnosticsDataMixin
 
 
-class RecoveryScopeTest(TestCase):
+class RecoveryScopeTest(DiagnosticsDataMixin, TestCase):
     def resolve(self, project_id):
         with mock.patch.object(recovery_scope, "TaskFlowInstance") as m_tf:
             m_tf.objects.filter.return_value.values_list.return_value.first.return_value = project_id
@@ -22,7 +23,7 @@ class RecoveryScopeTest(TestCase):
     def test_only_whitelisted_projects_are_allowed(self):
         allowed, m_tf = self.resolve(2)
         self.assertTrue(allowed)
-        m_tf.objects.filter.assert_called_once_with(pipeline_instance__instance_id="root-1")
+        m_tf.objects.filter.assert_called_once_with(pipeline_instance__instance_id="root-1", is_deleted=False)
         m_tf.objects.filter.return_value.values_list.assert_called_once_with("project_id", flat=True)
         self.assertFalse(self.resolve(3)[0])
 
@@ -38,3 +39,13 @@ class RecoveryScopeTest(TestCase):
     @override_settings(DIAGNOSTICS_RECOVERY_PROJECT_IDS=["*"])
     def test_unknown_root_is_denied(self):
         self.assertFalse(recovery_scope.in_recovery_scope("no-such-root"))
+
+    def test_whitelisted_live_task_is_allowed(self):
+        task = self.create_task("root-live")
+        with override_settings(DIAGNOSTICS_RECOVERY_PROJECT_IDS=[str(task.project_id)]):
+            self.assertTrue(recovery_scope.in_recovery_scope("root-live"))
+
+    def test_deleted_task_is_denied(self):
+        self.create_task("root-deleted", is_deleted=True)
+        with override_settings(DIAGNOSTICS_RECOVERY_PROJECT_IDS=["*"]):
+            self.assertFalse(recovery_scope.in_recovery_scope("root-deleted"))

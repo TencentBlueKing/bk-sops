@@ -16,12 +16,12 @@ def _project_ids():
 
 
 def in_recovery_scope(root_pipeline_id):
-    """根流程所属项目在白名单内才允许自动重放；白名单为空时不放开，含 * 时放开全部，查不到任务时不放开。"""
+    """根流程所属项目在白名单内才允许自动重放；白名单为空时不放开，含 * 时放开全部，查不到任务或任务已删除时不放开。"""
     project_ids = _project_ids()
     if not project_ids:
         return False
     project_id = (
-        TaskFlowInstance.objects.filter(pipeline_instance__instance_id=root_pipeline_id)
+        TaskFlowInstance.objects.filter(pipeline_instance__instance_id=root_pipeline_id, is_deleted=False)
         .values_list("project_id", flat=True)
         .first()
     )
