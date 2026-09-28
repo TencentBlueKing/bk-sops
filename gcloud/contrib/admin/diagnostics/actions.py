@@ -13,6 +13,7 @@ ACTION_OPERATION_NAMES = {
 
 SCHEDULE_ACTIONS = {"resend_schedule", "expire_stale_schedule"}
 INSPECT_ACTIONS = {"inspect_ack_converge", "inspect_node_runtime_readiness"}
+REPLAY_CASE_ACTION = "replay_case"
 
 
 def _blocked(message):
@@ -62,3 +63,12 @@ def run_task_action(task_id, node_id, action, operator, mode="dry_run", **kwargs
 
     result = operation(*operation_args, operator=operator, mode=mode)
     return _operation_result_to_dict(result)
+
+
+def run_case_replay(case_id, operator, mode="dry_run", confirm_risk=False):
+    try:
+        from pipeline.contrib.diagnostics.recovery import replay_case
+    except ImportError as err:
+        return _blocked("pipeline diagnostics is unavailable: {}".format(err))
+
+    return _operation_result_to_dict(replay_case(case_id, operator, mode=mode, confirm_risk=confirm_risk))

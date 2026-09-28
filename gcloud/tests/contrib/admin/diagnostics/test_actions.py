@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import mock
 from collections import namedtuple
 
+import mock
 from django.test import SimpleTestCase
 
-from gcloud.contrib.admin.diagnostics.actions import run_task_action
-
+from gcloud.contrib.admin.diagnostics.actions import run_case_replay, run_task_action
 
 OperationResult = namedtuple("OperationResult", ["result", "message", "data", "blockers"])
 
@@ -47,3 +46,19 @@ class TaskDiagnosticActionsTestCase(SimpleTestCase):
 
         operation.assert_called_once_with("root-1", "node-1", operator="admin", mode="dry_run")
         self.assertEqual(result, {"result": True, "message": "", "data": {"ready": True}, "blockers": []})
+
+    def test_case_replay_delegates_to_engine(self):
+        replay = mock.MagicMock(return_value=OperationResult(True, "replay preview", {"case_id": 7}, []))
+
+        with mock.patch("pipeline.contrib.diagnostics.recovery.replay_case", replay):
+            result = run_case_replay(7, "admin", mode="apply", confirm_risk=True)
+
+        replay.assert_called_once_with(7, "admin", mode="apply", confirm_risk=True)
+        self.assertEqual(result, {"result": True, "message": "replay preview", "data": {"case_id": 7}, "blockers": []})
+
+    def test_case_replay_degrades_on_old_engine(self):
+        with mock.patch.dict("sys.modules", {"pipeline.contrib.diagnostics.recovery": None}):
+            result = run_case_replay(7, "admin")
+
+        self.assertFalse(result["result"])
+        self.assertIn("pipeline diagnostics is unavailable", result["message"])
