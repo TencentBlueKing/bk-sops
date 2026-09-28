@@ -248,3 +248,41 @@ M1 规则产出的案例（如 `stalled_no_progress`）在 root 恢复进展、�
 需要真实补扫一段历史区间时，去掉 `--dry-run`、保留 `--start-seconds`：照常立案，但既不读也不写定时扫描的水位，不会让定时扫描跳过任何区间。
 
 回滚：把开关关掉即可；水位表里的记录无害，重新打开时从上次水位继续。
+
+## 三期引擎门禁（P3-2）
+
+需要 `bamboo-pipeline>=3.24.21`（依赖 `bamboo-engine==2.6.9`）。门禁让引擎在执行、调度入口识别并丢弃过期或重复的消息：正常派发的消息在 `headers["fence"]` 里附带令牌，入口按令牌做条件抢占，不符就丢弃。两个开关默认全关，全关时与 3.24.20 行为一致。
+
+| 消息 | 令牌 | 入口校验 |
+| --- | --- | --- |
+| 调度完成后执行下一节点、唤醒父进程、启动子进程 | `from_node`、`from_version` | 进程仍睡在 `from_node`，且该节点的状态版本没变 |
+| 首次轮询、轮询续派 | `schedule_times` | 调度次数没变；锁被占用时沿用原有处理 |
+
+API 触发的执行（启动、继续、重试、跳过等）、回调触发的调度、诊断里的重放动作都不带令牌，按原逻辑执行。
+
+### env 开关速查（P3-2）
+
+| 环境变量 | 默认 | 作用 |
+| --- | --- | --- |
+| `BKAPP_PIPELINE_FENCE_EMIT_ENABLED` | `0` | 正常派发点附带令牌 |
+| `BKAPP_PIPELINE_FENCE_ENFORCE` | `0` | 令牌不符时丢弃消息；关闭时只记日志和指标，照常执行 |
+
+### 上线步骤（P3-2）
+
+1. 发版，两个开关保持关闭。确认**所有**消费引擎队列的 worker 进程都已经是 3.24.21：旧 worker 会把收到的令牌原样传给下一条消息，新旧混跑时会给无关的消息带上错误令牌。
+2. 打开 `BKAPP_PIPELINE_FENCE_EMIT_ENABLED=1`，`ENFORCE` 保持关闭，观察 1～2 周：
+   - 指标 `engine_fence_drop_total{enforced="false"}`，按 `kind`（`execute` / `schedule`）和 `reason`（`version_mismatch` / `process_moved` / `schedule_times_mismatch`）看；
+   - 日志关键字 `[fence]`、`would be dropped`，日志里带 `root_pipeline_id`、`process_id` 或 `schedule_id`、`node_id` 和令牌内容，逐条确认是真的重复或过期消息（同一节点已有另一条消息生效）。
+   - 正常情况下只有 broker 重复投递会命中。出现解释不了的命中时不要进入下一步。
+   - 日志 `[fence] build fence for process(...) failed, dispatch without fence` 表示唤醒父进程前读库生成令牌失败，这条消息退回不带令牌、照常唤醒，不影响推进；频繁出现时先排查数据库。
+3. 打开 `BKAPP_PIPELINE_FENCE_ENFORCE=1`。之后命中的日志变为 `dropped`，指标标签变为 `enforced="true"`。
+4. 对比开关前后 `engine_execute_pre_process_duration`、`engine_schedule_pre_process_duration` 的 p99，确认入口耗时的增加可以接受。
+
+### 回滚（P3-2）
+
+先关 `ENFORCE`，立即恢复为只记录、不丢弃；需要时再关 `EMIT`，新消息不再带令牌。需要降级到 3.24.20 时先关两个开关；降级期间旧 worker 会把已经发出的令牌继续往下传，所以之后重新升级要从上线步骤 1 重来，在观察模式下至少跑满一个最长的轮询周期再打开 `ENFORCE`。
+
+### 已知限制（P3-2）
+
+- 引擎 celery 任务目前不开 `acks_late`，消息在执行前确认。将来如果开启，worker 崩溃后重投的消息会被当作重复丢弃，而进程已被第一次投递抢占，会留下"已唤醒但没人推进"的进程；开启前必须重新评估门禁。
+- 进程抢占的条件更新已经提交、随后数据库连接才报错时，断点恢复会把同一条消息当作重复丢弃，同样留下已唤醒的空闲进程。这种情况极少见，由三期的静默窗口扫描发现。
