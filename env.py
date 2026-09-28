@@ -178,6 +178,8 @@ PIPELINE_FENCE_ENFORCE = os.getenv("BKAPP_PIPELINE_FENCE_ENFORCE", "0").lower() 
 # （默认每分钟）复核到期的台账记录并预演，不重放。控制台人工重放需要 BKAPP_DIAGNOSTICS_APPLY_ENABLED，执行类和轮询类重放
 # 还要求 BKAPP_PIPELINE_FENCE_ENFORCE 已打开，EMIT 未开时控制台要求确认风险。
 # APPLY、EMIT、ENFORCE 三个开关和 BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS 要在 default 和 pipeline 模块设成一样。
+# RECOVERY_ENABLED 只在 pipeline 模块（task_data_clean worker）生效，RECOVERY_CRON 只在 default 模块（celery beat）生效，
+# 两者都设成应用级环境变量。
 DIAGNOSTICS_RECOVERY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_RECOVERY_SETTLE_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS", 180))
 DIAGNOSTICS_RECOVERY_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_CRON", "* * * * *").split())

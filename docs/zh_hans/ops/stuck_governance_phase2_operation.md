@@ -340,7 +340,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 | `BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS` | `180` | 派发后多久复核；要长于执行、调度消息正常排队和处理的时长 |
 | `BKAPP_DIAGNOSTICS_RECOVERY_CRON` | `* * * * *` | 恢复任务周期 |
 
-`BKAPP_PIPELINE_FENCE_EMIT_ENABLED`、`BKAPP_PIPELINE_FENCE_ENFORCE`、`BKAPP_DIAGNOSTICS_APPLY_ENABLED`、`BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS` 要在 `default` 和 `pipeline` 模块设成一样的值（或者直接设成应用级环境变量）：人工重放在 `default` 模块的 web 进程里检查这些开关和收敛窗口，令牌却由 `pipeline` 模块的引擎 worker 校验，恢复任务也跑在 `pipeline` 模块。
+`BKAPP_PIPELINE_FENCE_EMIT_ENABLED`、`BKAPP_PIPELINE_FENCE_ENFORCE`、`BKAPP_DIAGNOSTICS_APPLY_ENABLED`、`BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS` 要在 `default` 和 `pipeline` 模块设成一样的值（或者直接设成应用级环境变量）：人工重放在 `default` 模块的 web 进程里检查这些开关和收敛窗口，令牌却由 `pipeline` 模块的引擎 worker 校验，恢复任务也跑在 `pipeline` 模块。恢复任务自己的两个变量则各只在一个模块生效：`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 由 `pipeline` 模块消费 `task_data_clean` 队列的 worker 在任务运行时读取，`BKAPP_DIAGNOSTICS_RECOVERY_CRON` 由 `default` 模块的 celery beat 在加载任务时读取、用来排周期；只设在另一个模块上不会报错，但也不会生效，所以这两个也直接设成应用级环境变量。
 
 ### 上线步骤（P3-3）
 
