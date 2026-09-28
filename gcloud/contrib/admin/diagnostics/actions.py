@@ -3,6 +3,10 @@
 Task-level action orchestration for the generic pipeline diagnostics operations.
 """
 
+import logging
+
+logger = logging.getLogger("root")
+
 ACTION_OPERATION_NAMES = {
     "inspect_ack_converge": "inspect_ack_converge",
     "inspect_node_runtime_readiness": "inspect_node_runtime_readiness",
@@ -71,4 +75,9 @@ def run_case_replay(case_id, operator, mode="dry_run", confirm_risk=False):
     except ImportError as err:
         return _blocked("pipeline diagnostics is unavailable: {}".format(err))
 
-    return _operation_result_to_dict(replay_case(case_id, operator, mode=mode, confirm_risk=confirm_risk))
+    try:
+        result = replay_case(case_id, operator, mode=mode, confirm_risk=confirm_risk)
+    except Exception as err:
+        logger.exception("[diagnostics] replay_case raised: case=%s mode=%s", case_id, mode)
+        return _blocked("replay_case raised, check recovery history before retrying: {}".format(err))
+    return _operation_result_to_dict(result)

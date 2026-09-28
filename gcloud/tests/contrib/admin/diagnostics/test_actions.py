@@ -62,3 +62,14 @@ class TaskDiagnosticActionsTestCase(SimpleTestCase):
 
         self.assertFalse(result["result"])
         self.assertIn("pipeline diagnostics is unavailable", result["message"])
+
+    def test_case_replay_reports_engine_exception(self):
+        replay = mock.MagicMock(side_effect=RuntimeError("boom"))
+
+        with mock.patch("pipeline.contrib.diagnostics.recovery.replay_case", replay):
+            result = run_case_replay(1, "admin", mode="apply")
+
+        self.assertFalse(result["result"])
+        [blocker] = result["blockers"]
+        self.assertTrue(blocker.startswith("replay_case raised"))
+        self.assertIn("boom", blocker)

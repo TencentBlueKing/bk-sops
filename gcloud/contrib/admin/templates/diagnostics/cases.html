@@ -236,6 +236,10 @@
       }
       document.getElementById('result-box').innerHTML =
         '<p><b>replay_case (' + esc(mode) + ') 结果:</b></p><pre>' + esc(JSON.stringify(body, null, 2)) + '</pre>';
+    }).catch(function (err) {
+      document.getElementById('result-box').innerHTML =
+        '<p><b>replay_case (' + esc(mode) + ') 结果:</b></p><pre>'
+        + esc('重放请求失败，请先查看重放记录再决定是否重试：' + String(err)) + '</pre>';
     });
   }
 
