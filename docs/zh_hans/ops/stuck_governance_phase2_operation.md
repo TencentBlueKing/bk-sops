@@ -273,7 +273,8 @@ API 触发的执行（启动、继续、重试、跳过等）、回调触发的�
 2. 打开 `BKAPP_PIPELINE_FENCE_EMIT_ENABLED=1`，`ENFORCE` 保持关闭，观察 1～2 周：
    - 指标 `engine_fence_drop_total{enforced="false"}`，按 `kind`（`execute` / `schedule`）和 `reason`（`version_mismatch` / `process_moved` / `schedule_times_mismatch`）看；
    - 日志关键字 `[fence]`、`would be dropped`，日志里带 `root_pipeline_id`、`process_id` 或 `schedule_id`、`node_id` 和令牌内容，逐条确认是真的重复或过期消息（同一节点已有另一条消息生效）。
-   - 正常情况下只有 broker 重复投递会命中。出现解释不了的命中时不要进入下一步。
+   - 预期会命中的来源：broker 重复投递；运行时派发消息第一次报错后重发一次（`_retry_once`），而第一次其实已经发出；抢占提交后连接报错、从 `ENTRY` 恢复的消息（记为 `process_moved`）；诊断重放（如 `resend_schedule`）推进轮询节点后，队列里原来那条轮询消息（记为 `schedule_times_mismatch`）。逐条对上这些来源，出现解释不了的命中时不要进入下一步。
+   - 同时到达的重复轮询消息走锁被占用的原有处理，只记诊断事件 `schedule_lock_conflict`，不计入 `engine_fence_drop_total`。
    - 日志 `[fence] build fence for process(...) failed, dispatch without fence` 表示唤醒父进程前读库生成令牌失败，这条消息退回不带令牌、照常唤醒，不影响推进；频繁出现时先排查数据库。
 3. 打开 `BKAPP_PIPELINE_FENCE_ENFORCE=1`。之后命中的日志变为 `dropped`，指标标签变为 `enforced="true"`。
 4. 对比开关前后 `engine_execute_pre_process_duration`、`engine_schedule_pre_process_duration` 的 p99，确认入口耗时的增加可以接受。
