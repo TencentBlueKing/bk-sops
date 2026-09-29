@@ -83,7 +83,7 @@ def _serialize_audit(audit):
 
 
 def _recovery_support():
-    """(DiagnosticRecovery, 可重放类型)；bamboo-pipeline<3.24.22 没有恢复台账时返回 (None, ())。"""
+    """(DiagnosticRecovery, 可重放类型)；bamboo-pipeline<3.24.21 没有恢复台账时返回 (None, ())。"""
     try:
         from pipeline.contrib.diagnostics.case_types import REPLAYABLE_CASE_TYPES
         from pipeline.contrib.diagnostics.models import DiagnosticRecovery

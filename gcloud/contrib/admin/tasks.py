@@ -34,7 +34,7 @@ try:
 except ImportError:  # pragma: no cover - depends on engine version
     scan_callbacks = scan_signatures = scan_silence_windows = None
 
-# 恢复任务随 bamboo-pipeline>=3.24.22 提供；旧版本下为 no-op。
+# 恢复任务随 bamboo-pipeline>=3.24.21 提供；旧版本下为 no-op。
 try:
     from pipeline.contrib.diagnostics.recovery_runner import run_recovery
 except ImportError:  # pragma: no cover - depends on engine version

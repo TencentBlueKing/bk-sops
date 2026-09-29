@@ -208,7 +208,7 @@ python manage.py close_recovered_diagnostic_cases
 | `parent_wakeup_lost` | 并行分支全部结束，父进程没被唤醒 | `child_process_id`、`converge_gateway_id` |
 | `child_start_lost` | 子进程已创建，启动消息没被消费 | `parent_process_id` |
 
-`derived_message` 是推导出的"应该被消费却丢失的那条消息"。3.24.22 起可以在控制台对这些案例预览重放、人工重放（见"三期恢复台账与人工重放"）；更早的版本只能按证据定位后人工处置：已有的 `replay_callback_data`、`resend_schedule` 动作在 `apply` 模式下只做预检，不会派发消息。
+`derived_message` 是推导出的"应该被消费却丢失的那条消息"。3.24.21 起可以在控制台对这些案例预览重放、人工重放（见"三期恢复台账与人工重放"）；更早的版本只能按证据定位后人工处置：已有的 `replay_callback_data`、`resend_schedule` 动作在 `apply` 模式下只做预检，不会派发消息。
 
 这些案例由各自的扫描器逐条复核：进程往前走了，或者任务被撤销了，下一轮就会关成 `resolved`，不参与按 root 进展关闭。
 
@@ -290,7 +290,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 
 ## 三期恢复台账与人工重放（P3-3）
 
-需要 `bamboo-pipeline>=3.24.22`（依赖 `bamboo-engine==2.6.9`），新增迁移 `pipeline_diagnostics.0003`（恢复台账表）。
+需要 `bamboo-pipeline>=3.24.21`（依赖 `bamboo-engine==2.6.9`），新增迁移 `pipeline_diagnostics.0003`（恢复台账表）。
 
 重放针对形态快检和回调水位扫描立的案例：按库内当前状态重新判定形态，推导出丢失的那条消息，附带门禁令牌交给运行时派发。原消息如果只是迟到，两条消息谁先到谁生效，后到的被 P3-2 门禁丢弃。形态已不成立时不重放。
 
@@ -361,7 +361,7 @@ API 触发的执行（启动、继续、重试、跳过等）和回调触发的�
 
 ## 三期自动重放灰度（P3-4）
 
-需要 `bamboo-pipeline>=3.24.23`（依赖 `bamboo-engine==2.6.9`），没有新迁移。
+需要 `bamboo-pipeline>=3.24.21`（依赖 `bamboo-engine==2.6.9`），P3-4 本身没有新迁移。
 
 恢复任务在 P3-3 的基础上按开关自动重放，所以恢复任务本身要先打开（`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED=1`）。在此基础上，以下三个条件同时满足才自动重放，否则仍然只预演：
 

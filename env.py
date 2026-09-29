@@ -174,7 +174,7 @@ DIAGNOSTICS_CALLBACK_SCAN_INTERVAL = int(os.getenv("BKAPP_DIAGNOSTICS_CALLBACK_S
 # 所有引擎 worker 都升级后才能打开 EMIT；EMIT 打开并观察 1～2 周没有误丢后再打开 ENFORCE；回滚时先关 ENFORCE。
 PIPELINE_FENCE_EMIT_ENABLED = os.getenv("BKAPP_PIPELINE_FENCE_EMIT_ENABLED", "0").lower() in _DIAG_TRUE
 PIPELINE_FENCE_ENFORCE = os.getenv("BKAPP_PIPELINE_FENCE_ENFORCE", "0").lower() in _DIAG_TRUE
-# 流程卡住治理三期 P3-3（恢复台账，需 bamboo-pipeline>=3.24.22）：恢复任务默认关闭；打开后按 BKAPP_DIAGNOSTICS_RECOVERY_CRON
+# 流程卡住治理三期 P3-3（恢复台账，需 bamboo-pipeline>=3.24.21）：恢复任务默认关闭；打开后按 BKAPP_DIAGNOSTICS_RECOVERY_CRON
 # （默认每分钟）复核到期的台账记录并预演，不重放。控制台人工重放需要 BKAPP_DIAGNOSTICS_APPLY_ENABLED，执行类和轮询类重放
 # 还要求 BKAPP_PIPELINE_FENCE_ENFORCE 已打开，EMIT 未开时控制台要求确认风险。
 # APPLY、EMIT、ENFORCE 三个开关和 BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS 要在 default 和 pipeline 模块设成一样。
@@ -183,7 +183,7 @@ PIPELINE_FENCE_ENFORCE = os.getenv("BKAPP_PIPELINE_FENCE_ENFORCE", "0").lower() 
 DIAGNOSTICS_RECOVERY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_RECOVERY_SETTLE_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS", 180))
 DIAGNOSTICS_RECOVERY_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_CRON", "* * * * *").split())
-# 流程卡住治理三期 P3-4（自动重放，需 bamboo-pipeline>=3.24.23）：默认只预演。RECOVERY_MODE=apply 时，只对 AUTO_REPLAY_TYPES
+# 流程卡住治理三期 P3-4（自动重放，需 bamboo-pipeline>=3.24.21）：默认只预演。RECOVERY_MODE=apply 时，只对 AUTO_REPLAY_TYPES
 # 里的类型、且根流程所属项目在 RECOVERY_PROJECT_IDS 里的案例自动重放（项目 ID 逗号分隔，空表示不放开，* 表示全部）。
 # 这三个变量只在 pipeline 模块（task_data_clean worker）生效，设成应用级环境变量。
 DIAGNOSTICS_RECOVERY_MODE = os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_MODE", "preview").strip().lower()
