@@ -12,12 +12,32 @@
 
 **Internal Overlay Subplan:** `docs/plans/2026-09-04-bk-sops-internal-overlay-py311-migration.md`
 
-**TAPD:** [标准运维内部环境多租户版本平滑迁移](https://tapd.woa.com/10131351/prong/stories/view/1010131351137932246)
+**TAPD:** 标准运维内部环境多租户版本平滑迁移（Story `137932246`）
+
+## 实施进度（2026-09-29）
+
+| 范围 | 状态 | 说明 |
+|---|---|---|
+| Internal Overlay Task 1-2（清单、目标分支） | 已提交，待合并 | 工蜂 MR !1992 |
+| Bridge Task 1-2 | 本地已提交，未推送 | `feat/sops-multi-tenant-migration-bridge`；模型仍含 `callback_route_token_hash`，需按本次修订删除后再推送 |
+| Target Task 3 | 未提交的开发中改动 | `TaskCreateRequest` 目前放在 `taskflow3`，需按本次修订迁到独立应用 |
+| Internal Overlay Task 4（内部认证与 ESB 适配） | 部分完成，未提交 | ieod 环境配置、内部 ESB 客户端和身份中间件 |
+| Target Task 4 及之后、Bridge Task 5-15、Internal Overlay Task 3、5-9 | 未开始 | |
 
 ## Global Constraints
 
 - 灰度维度固定为 `bk_biz_id`，不得按 `tenant_id`、用户或逐请求随机比例灰度。
-- 迁移前任务无路由记录时默认为旧版；`pending/creating/unknown` 不得默认为旧版。
+- 已有任务按路由记录、子任务根任务、默认旧版的顺序解析通道；`pending/creating/unknown`
+  不得默认为旧版。
+- 灰度期共享状态只有一个写入方（Spec §4.6）：新版模块发布钩子不执行 `migrate`、
+  `update_component_models`、`update_variable_models`、`sync_saas_apigw`、
+  `register_bksops_notice`、`sync_webhook_events`，`BKAPP_AUTO_UPDATE_*` 保持 `0`，
+  Django 数据库缓存使用独立表名。
+- 旧版现有应用不改模型、不增加 migration；Bridge 只在独立的 `migration_bridge` 应用中建表。
+- 共享 MySQL 的 `sql_mode` 不是 strict，缺少数据库默认值的字段会被旧版静默写成空串；
+  所有租户与 Schema 校验都要同时检查空值和空串。
+- `api-inner` 已基本废弃，不纳入 Bridge 路由和目标模块。
+- 新版模块的独立访问地址不作为用户入口；新版内部 API 只接受 Bridge 服务签名。
 - 旧版继续使用现有 `/bk_sops`、队列、RabbitMQ 账号、Redis 和进程配置，禁止改名或迁移。
 - 新版使用新增 `/bk_sops_mt`、专用 RabbitMQ 账号和独立 Redis 空间。
 - Bridge 与新版只能通过版本化内部 HTTP API 交互，禁止跨版本发布 Celery 消息。
@@ -29,7 +49,7 @@
 - Target 必须从工蜂多租户集成主线发布；开源 `dev_multi_tenant` 只能作为代码基线，禁止直接部署。
 - 禁止将工蜂 `V3.6.X` 整体合入 Target；内部代码必须按清单逐项移植并完成 Python 3.11 验证。
 - 业务进入灰度前，其流程引用的内部插件、API、周期任务和回调必须全部通过 Target 能力准入。
-- 实施前必须取得用户确认的 TAPD Story ID，并设置 `BK_SOPS_MIGRATION_TAPD_STORY`；每个 commit 都要附带 `--story=${BK_SOPS_MIGRATION_TAPD_STORY}`。
+- TAPD Story ID 为 `137932246`，执行时设置 `BK_SOPS_MIGRATION_TAPD_STORY=137932246`；每个 commit 都要附带 `--story=${BK_SOPS_MIGRATION_TAPD_STORY}`。
 - Bridge 和目标版本必须在独立 worktree、独立分支实现；执行前使用 `superpowers:using-git-worktrees`。
 
 ---
@@ -48,7 +68,9 @@
 - 代码基线：执行时重新获取并确认 `upstream/dev_multi_tenant` 的精确 SHA。
 - 发布基线：先按内部代码迁移子计划建立并验收工蜂多租户集成主线；后续 Target 功能分支从该主线创建。
 - 分支：`feat/sops-multi-tenant-internal-api`。
-- 新包：`gcloud/taskflow3/internal_api/`，只放长期可保留的内部接口适配。
+- 新应用：`gcloud/internal_api/`（独立 Django app），放内部任务接口、`TaskCreateRequest`、
+  只属于目标版本的 migration 和迁移检查命令。不在 `taskflow3`、`core` 等上游应用中增加
+  migration，避免与开源多租户分支后续 migration 编号冲突。
 - 幂等记录使用业务中性的 `TaskCreateRequest`，不依赖 Bridge 路由表。
 
 ### 共享与运维文件
@@ -98,11 +120,21 @@ Expected: Python `3.11.10`、Django `4.2.30`、Celery `5.2.7`。
 
 - [ ] **Step 4: 验证全部目标模块制品来源一致**
 
-对 Web、API Server、Pipeline Worker、Callback、Cleaner、API Inner 和 Open Plugin
+对 Web、API Server、Pipeline Worker、Callback、Cleaner 和 Open Plugin
 逐一读取构建元数据，确认均来自同一个已验收的工蜂多租户集成 SHA；任何模块使用
-GitHub 原始分支、工蜂 `V3.6.X` 或其他 SHA 时失败。
+GitHub 原始分支、工蜂 `V3.6.X` 或其他 SHA 时失败。`api-inner` 已废弃，不建设目标模块。
 
-- [ ] **Step 5: 验证首批业务能力准入**
+- [ ] **Step 5: 验证开源功能对齐和依赖版本**
+
+Run in the Gongfeng Target worktree:
+`git log --oneline --no-merges --cherry-pick --right-only "${TARGET_BASE_SHA}...${LEGACY_MASTER_SYNC_SHA}" -- . ':!docs'`
+
+`LEGACY_MASTER_SYNC_SHA` 为 `V3.6.X` 最近一次同步的 GitHub `master` 提交。
+
+Expected: 每个提交都在清单中记录为已等价实现、已移植或明确不需要；
+`requirements.txt` 不含预发布版本（例如 `blueapps` 的 rc 版本）。
+
+- [ ] **Step 6: 验证首批业务能力准入**
 
 Run:
 `python scripts/migration/check_business_target_capabilities.py --bk-biz-id "${BK_SOPS_GRAY_BIZ_ID}" --strict`
@@ -182,7 +214,6 @@ class MigrationTaskRoute(models.Model):
     bk_biz_id = models.IntegerField(db_index=True)
     runtime_lane = models.CharField(max_length=16)
     task_id = models.BigIntegerField(null=True, blank=True, unique=True)
-    callback_route_token_hash = models.CharField(max_length=64, null=True, blank=True, unique=True)
     route_state = models.CharField(max_length=16, default=RouteState.PENDING, db_index=True)
     error_code = models.CharField(max_length=64, blank=True)
     error_message = models.TextField(blank=True)
@@ -194,7 +225,9 @@ class MigrationTaskRoute(models.Model):
 
 Run: `python manage.py makemigrations migration_bridge`
 
-Expected: 只创建灰度业务表和任务路由表，不修改现有业务表。
+Expected: 只创建灰度业务表和任务路由表，不修改现有业务表。路由表不包含回调令牌字段；
+本地已提交版本如果仍含 `callback_route_token_hash`，在推送前修改 `0001_initial.py`，
+不要追加删除字段的 migration。
 
 - [ ] **Step 5: 运行模型测试**
 
@@ -243,6 +276,11 @@ def test_existing_task_route_wins_over_current_biz_setting(db):
         route_state=RouteState.READY,
     )
     assert MigrationRoutingService().route_existing_task(20001) == RuntimeLane.MT
+
+
+def test_independent_subprocess_child_follows_root_route(db, mt_route):
+    TaskFlowRelation.objects.create(task_id=20002, parent_task_id=mt_route.task_id, root_task_id=mt_route.task_id)
+    assert MigrationRoutingService().route_existing_task(20002) == RuntimeLane.MT
 ```
 
 - [ ] **Step 2: 运行测试并确认失败**
@@ -260,14 +298,18 @@ class MigrationRoutingService:
         return RuntimeLane.MT if enabled else RuntimeLane.LEGACY
 
     def route_existing_task(self, task_id):
+        if not MigrationTaskRoute.objects.filter(task_id=task_id).exists():
+            relation = TaskFlowRelation.objects.filter(task_id=task_id).only("root_task_id").first()
+            if relation is not None and relation.root_task_id != task_id:
+                task_id = relation.root_task_id
         return MigrationTaskRoute.objects.resolve_task_lane(task_id)
 ```
 
 命令接口固定为：
 
 ```bash
-python manage.py set_migration_gray_business --bk-biz-id 2 --enable --operator dannydeng
-python manage.py set_migration_gray_business --bk-biz-id 2 --disable --operator dannydeng
+python manage.py set_migration_gray_business --bk-biz-id 2 --enable --operator "${OPERATOR}"
+python manage.py set_migration_gray_business --bk-biz-id 2 --disable --operator "${OPERATOR}"
 ```
 
 - [ ] **Step 4: 运行测试**
@@ -286,10 +328,16 @@ git commit -m "feat: 增加按业务灰度的任务路由服务 --story=${BK_SOP
 ### Task 3: 在目标版本实现通用幂等建单记录
 
 **Files:**
-- Modify: `gcloud/taskflow3/models.py`
-- Create: `gcloud/taskflow3/migrations/0026_task_create_request.py`
-- Create: `gcloud/taskflow3/services/idempotent_task_create.py`
-- Create: `gcloud/tests/taskflow3/services/test_idempotent_task_create.py`
+- Create: `gcloud/internal_api/__init__.py`
+- Create: `gcloud/internal_api/apps.py`
+- Create: `gcloud/internal_api/models.py`
+- Create: `gcloud/internal_api/migrations/0001_initial.py`
+- Create: `gcloud/internal_api/services/idempotent_task_create.py`
+- Create: `gcloud/tests/internal_api/services/test_idempotent_task_create.py`
+- Modify: `config/default.py`
+
+已有开发中改动把 `TaskCreateRequest` 放在 `gcloud/taskflow3/models.py` 并新增
+`taskflow3/0026` migration，提交前迁到上述独立应用。
 
 **Interfaces:**
 - Produces: `TaskCreateRequest(idempotency_key, request_hash, state, task_id, error_code, created_at, updated_at)`。
@@ -314,7 +362,7 @@ def test_same_key_with_different_payload_is_rejected(db):
 
 - [ ] **Step 2: 运行测试并确认失败**
 
-Run: `pytest gcloud/tests/taskflow3/services/test_idempotent_task_create.py -q`
+Run: `pytest gcloud/tests/internal_api/services/test_idempotent_task_create.py -q`
 
 Expected: FAIL，提示幂等服务不存在。
 
@@ -331,31 +379,32 @@ def canonical_request_hash(payload):
 
 - [ ] **Step 4: 生成 migration 并运行测试**
 
-Run: `python manage.py makemigrations taskflow3`
+Run: `python manage.py makemigrations internal_api`
 
-Expected: 创建 `0026_task_create_request.py`；若执行时目标分支已有新的 `0026`，使用当时的下一个连续编号并更新依赖。
+Expected: 只创建 `internal_api/0001_initial.py`；`python manage.py makemigrations --check --dry-run`
+对 `taskflow3`、`core` 等上游应用输出 `No changes detected`。
 
-Run: `pytest gcloud/tests/taskflow3/services/test_idempotent_task_create.py -q`
+Run: `pytest gcloud/tests/internal_api/services/test_idempotent_task_create.py -q`
 
-Expected: PASS，包括两个并发请求只创建一个任务。
+Expected: PASS，包括两个并发请求只创建一个任务。并发用例必须在 MySQL 上执行，
+SQLite 结果不作为通过证据。
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add gcloud/taskflow3/models.py gcloud/taskflow3/migrations/0026_task_create_request.py gcloud/taskflow3/services/idempotent_task_create.py gcloud/tests/taskflow3/services/test_idempotent_task_create.py
+git add config/default.py gcloud/internal_api/__init__.py gcloud/internal_api/apps.py gcloud/internal_api/models.py gcloud/internal_api/migrations/0001_initial.py gcloud/internal_api/services/idempotent_task_create.py gcloud/tests/internal_api/services/test_idempotent_task_create.py
 git commit -m "feat: 增加幂等任务创建能力 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
 ### Task 4: 在目标版本实现版本化内部任务 API
 
 **Files:**
-- Create: `gcloud/taskflow3/internal_api/__init__.py`
-- Create: `gcloud/taskflow3/internal_api/authentication.py`
-- Create: `gcloud/taskflow3/internal_api/urls.py`
-- Create: `gcloud/taskflow3/internal_api/views.py`
-- Create: `gcloud/taskflow3/internal_api/serializers.py`
-- Create: `gcloud/tests/taskflow3/internal_api/test_authentication.py`
-- Create: `gcloud/tests/taskflow3/internal_api/test_tasks.py`
+- Create: `gcloud/internal_api/authentication.py`
+- Create: `gcloud/internal_api/urls.py`
+- Create: `gcloud/internal_api/views.py`
+- Create: `gcloud/internal_api/serializers.py`
+- Create: `gcloud/tests/internal_api/test_authentication.py`
+- Create: `gcloud/tests/internal_api/test_tasks.py`
 - Modify: `config/urls_custom.py`
 - Modify: `config/default.py`
 
@@ -366,12 +415,18 @@ git commit -m "feat: 增加幂等任务创建能力 --story=${BK_SOPS_MIGRATION_
 - Produces: `POST /internal/v1/tasks/<task_id>/start/`。
 - Produces: `POST /internal/v1/tasks/<task_id>/operations/`。
 - Produces: `POST /internal/v1/tasks/<task_id>/callbacks/`。
+- Produces: `GET /internal/v1/tasks/?created_after=ISO8601&created_before=ISO8601`，返回新版创建的任务 ID，供 Bridge 对账。
 
 - [ ] **Step 1: 写鉴权和建单不启动测试**
 
 ```python
 def test_unsigned_internal_request_is_rejected(client):
     response = client.post("/internal/v1/tasks/prepare/", data={}, content_type="application/json")
+    assert response.status_code == 401
+
+
+def test_browser_session_without_signature_is_rejected(logged_in_client):
+    response = logged_in_client.post("/internal/v1/tasks/prepare/", data={}, content_type="application/json")
     assert response.status_code == 401
 
 
@@ -385,7 +440,7 @@ def test_prepare_creates_task_without_publishing_celery(client, signed_headers, 
 
 - [ ] **Step 2: 运行测试并确认失败**
 
-Run: `pytest gcloud/tests/taskflow3/internal_api -q`
+Run: `pytest gcloud/tests/internal_api -q`
 
 Expected: FAIL，接口返回 404。
 
@@ -403,19 +458,21 @@ HTTP_METHOD + "\n" + PATH + "\n" + UNIX_TIMESTAMP + "\n" + NONCE + "\n" + SHA256
 - [ ] **Step 4: 实现 prepare、lookup、start 和 operation API**
 
 `prepare` 复用目标版本现有创建逻辑，但不执行
-`prepare_and_start_task.apply_async()`。`start` 使用数据库行锁保证只发布一次，并向新版
-自身配置的 broker 发布。
+`prepare_and_start_task.apply_async()`。`TaskFlowInstance` 保存时投递的统计类消息允许
+保留，但只能投递到新版 broker。`start` 使用数据库行锁保证只发布一次：发布前先把请求
+记录置为 `starting` 并提交，发布成功后置为 `started`；进程在两步之间中断时，由重复
+start 请求按任务真实状态修复，不重复发布。
 
 - [ ] **Step 5: 运行接口测试**
 
-Run: `pytest gcloud/tests/taskflow3/internal_api gcloud/tests/taskflow3/services/test_idempotent_task_create.py -q`
+Run: `pytest gcloud/tests/internal_api -q`
 
 Expected: PASS，重复 prepare/start 不产生重复 TaskFlowInstance 或 Celery 消息。
 
 - [ ] **Step 6: 提交**
 
 ```bash
-git add config/default.py config/urls_custom.py gcloud/taskflow3/internal_api/__init__.py gcloud/taskflow3/internal_api/authentication.py gcloud/taskflow3/internal_api/urls.py gcloud/taskflow3/internal_api/views.py gcloud/taskflow3/internal_api/serializers.py gcloud/tests/taskflow3/internal_api/test_authentication.py gcloud/tests/taskflow3/internal_api/test_tasks.py
+git add config/default.py config/urls_custom.py gcloud/internal_api/authentication.py gcloud/internal_api/urls.py gcloud/internal_api/views.py gcloud/internal_api/serializers.py gcloud/tests/internal_api/test_authentication.py gcloud/tests/internal_api/test_tasks.py
 git commit -m "feat: 增加版本化内部任务接口 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
@@ -433,6 +490,7 @@ git commit -m "feat: 增加版本化内部任务接口 --story=${BK_SOPS_MIGRATI
 - Produces: `MigrationTargetClient.get_task_request(idempotency_key: str) -> TaskRequestStatus`。
 - Produces: `MigrationTargetClient.start_task(task_id: int, idempotency_key: str) -> StartResult`。
 - Produces: `MigrationTargetClient.operate_task(task_id: int, operation: str, payload: dict) -> dict`。
+- Produces: `MigrationTargetClient.list_created_task_ids(created_after: datetime, created_before: datetime) -> list[int]`。
 
 - [ ] **Step 1: 写签名、超时和脱敏测试**
 
@@ -540,13 +598,14 @@ git commit -m "feat: 增加跨版本幂等建单协调 --story=${BK_SOPS_MIGRATI
 - Modify: `gcloud/apigw/views/create_task.py`
 - Modify: `gcloud/apigw/views/create_and_start_task.py`
 - Modify: `gcloud/apigw/views/fast_create_task.py`
-- Modify: `gcloud/apigw/views/start_task.py`
 - Modify: `gcloud/core/apis/drf/viewsets/taskflow.py`
+- Modify: `gcloud/taskflow3/apis/django/api.py`（`task_clone`）
 - Create: `gcloud/tests/apigw/views/test_fast_create_task.py`
 - Modify: `gcloud/tests/apigw/views/test_create_task.py`
 - Modify: `gcloud/tests/apigw/views/test_create_and_start_task.py`
-- Modify: `gcloud/tests/apigw/views/test_start_task.py`
 - Modify: `gcloud/tests/core/apis/drf/views_set/test_task_instance_view.py`
+
+`start_task` 操作的是已有任务，按 `task_id` 路由，放在 Task 8。
 
 **Interfaces:**
 - Consumes: Task 2、Task 6。
@@ -578,44 +637,72 @@ Expected: FAIL，入口适配不存在。
 
 - [ ] **Step 4: 实现统一入口适配并接入五类建单路径**
 
+五类为 APIGW `create_task`、`create_and_start_task`、`fast_create_task`，页面 DRF 建单和
+页面克隆任务。Task 8 的 URL 清单如果发现其他建单入口，回到本任务补齐。
+
 只在现有参数校验、IAM 鉴权和项目解析完成后进行路由；非灰度业务调用原函数，确保
 返回结构、日志和 Celery 投递完全不变。灰度业务构造稳定的内部请求 DTO 并调用 Task 6。
 
 - [ ] **Step 5: 运行建单回归测试**
 
-Run: `pytest gcloud/tests/apigw/views/test_create_task.py gcloud/tests/apigw/views/test_create_and_start_task.py gcloud/tests/apigw/views/test_start_task.py gcloud/tests/core/apis/drf/views_set/test_task_instance_view.py -q`
+Run: `pytest gcloud/tests/apigw/views/test_create_task.py gcloud/tests/apigw/views/test_create_and_start_task.py gcloud/tests/apigw/views/test_fast_create_task.py gcloud/tests/core/apis/drf/views_set/test_task_instance_view.py -q`
 
 Expected: PASS；现有用例不改语义，新增用例覆盖灰度路径。
 
 - [ ] **Step 6: 提交**
 
 ```bash
-git add gcloud/migration_bridge/integrations/task_create.py gcloud/tests/migration_bridge/integrations/test_task_create.py gcloud/apigw/views/create_task.py gcloud/apigw/views/create_and_start_task.py gcloud/apigw/views/fast_create_task.py gcloud/apigw/views/start_task.py gcloud/core/apis/drf/viewsets/taskflow.py gcloud/tests/apigw/views/test_create_task.py gcloud/tests/apigw/views/test_create_and_start_task.py gcloud/tests/apigw/views/test_fast_create_task.py gcloud/tests/apigw/views/test_start_task.py gcloud/tests/core/apis/drf/views_set/test_task_instance_view.py
+git add gcloud/migration_bridge/integrations/task_create.py gcloud/tests/migration_bridge/integrations/test_task_create.py gcloud/apigw/views/create_task.py gcloud/apigw/views/create_and_start_task.py gcloud/apigw/views/fast_create_task.py gcloud/core/apis/drf/viewsets/taskflow.py gcloud/taskflow3/apis/django/api.py gcloud/tests/apigw/views/test_create_task.py gcloud/tests/apigw/views/test_create_and_start_task.py gcloud/tests/apigw/views/test_fast_create_task.py gcloud/tests/core/apis/drf/views_set/test_task_instance_view.py
 git commit -m "feat: 接入按业务灰度的建单入口 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
 ### Task 8: 接入已有任务操作、查询与回调路由
 
 **Files:**
+- Create: `gcloud/migration_bridge/route_inventory.yaml`
 - Create: `gcloud/migration_bridge/integrations/task_operation.py`
 - Create: `gcloud/migration_bridge/integrations/callback.py`
+- Create: `gcloud/migration_bridge/integrations/page_proxy.py`
+- Create: `gcloud/tests/migration_bridge/test_route_inventory.py`
+- Create: `gcloud/tests/migration_bridge/integrations/test_page_proxy.py`
 - Create: `gcloud/tests/migration_bridge/integrations/test_task_operation.py`
 - Create: `gcloud/tests/migration_bridge/integrations/test_callback.py`
+- Modify: `gcloud/apigw/views/start_task.py`
 - Modify: `gcloud/apigw/views/operate_task.py`
 - Modify: `gcloud/apigw/views/operate_node.py`
 - Modify: `gcloud/apigw/views/get_task_detail.py`
 - Modify: `gcloud/apigw/views/get_task_status.py`
+- Modify: `gcloud/apigw/views/get_tasks_status.py`
 - Modify: `gcloud/apigw/views/get_task_node_detail.py`
 - Modify: `gcloud/apigw/views/node_callback.py`
+- Modify: `gcloud/taskflow3/apis/django/api.py`
 - Modify: `gcloud/taskflow3/apis/django/v4/node_callback.py`
 - Modify: `gcloud/core/apis/drf/viewsets/taskflow.py`
+- Modify: 清单中标记为“已路由”的其余 APIGW 任务类视图
 
 **Interfaces:**
 - Consumes: `MigrationRoutingService.route_existing_task()`、`MigrationTargetClient.operate_task()`。
 - Produces: `dispatch_existing_task(task_id, legacy_callable, target_callable)`。
-- Produces: `dispatch_callback(route_key, payload)`。
+- Produces: `dispatch_batch(task_ids, legacy_callable, target_callable) -> list`，按通道拆分后按原顺序合并。
+- Produces: `dispatch_callback(task_id, payload)`。
 
-- [ ] **Step 1: 写任务归属优先于当前业务灰度状态的测试**
+- [ ] **Step 0: 生成并固定任务入口清单**
+
+遍历 `django.urls.get_resolver()` 导出全部 URL，写入 `route_inventory.yaml`。每项记录视图
+路径、任务标识来源（URL 参数、查询参数、请求体或无）和处理方式（`routed`、
+`shared_read`、`not_applicable`）。页面接口 `taskflow/api/status/`、`batch_status/`、
+`action/`、`nodes/action/`、`nodes/data/`、`nodes/detail/`、`nodes/log/`、`flow/claim/`、
+`nodes/spec/timer/reset/`、`render_current_constants/`、`update_task_constants/` 和
+`api/v4/` 下的接口都必须出现在清单中。
+
+```python
+def test_route_inventory_matches_urlconf():
+    assert set(load_inventory()) == set(iter_url_views(get_resolver()))
+
+
+def test_routed_views_call_dispatch(routed_view):
+    assert view_uses_dispatch(routed_view)
+```
 
 ```python
 def test_mt_task_stays_on_target_after_biz_gray_disabled(mt_route, disable_gray_biz):
@@ -635,23 +722,47 @@ def test_historical_task_without_route_calls_legacy():
 def test_pending_route_returns_retryable_error(pending_route):
     with pytest.raises(RouteNotReadyError):
         dispatch_existing_task(pending_route.task_id, legacy, target)
+
+
+def test_batch_status_splits_by_lane_and_keeps_order(mt_route):
+    result = dispatch_batch([1, mt_route.task_id, 2], legacy_batch, target_batch)
+    assert [item["task_id"] for item in result] == [1, mt_route.task_id, 2]
+
+
+def test_misrouted_v4_callback_decrypts_root_pipeline_and_routes_to_target(mt_task_token):
+    dispatch_v4_callback(mt_task_token, payload)
+    target.callback.assert_called_once()
 ```
 
 - [ ] **Step 3: 实现查询、操作与回调分发**
 
-回调请求没有 task_id 时，Bridge 使用生成任务时保存的 `callback_route_token`；令牌使用
-至少 128 bit 随机值，只记录摘要，不在日志中打印原值。
+新版任务的节点回调地址由新版生成并直达新版 callback 模块，Bridge 不生成回调令牌。
+Bridge 只处理两类回调：APIGW `node_callback` 按 `task_id` 路由；误投到旧版
+`nodes/callback/<token>` 或 `v4` 回调地址的请求，用 `CALLBACK_KEY` 解密得到
+`root_pipeline_id`，查到对应 `TaskFlowInstance` 后按其路由转发。令牌不含
+`root_pipeline_id` 时，用 `node_id` 查询 `eri` 的 `State.root_id`。解密失败或查不到任务时
+按旧版原逻辑处理。
+
+`page_proxy` 按 Spec §12 实现阶段 A 的新版页面代理：灰度业务的页面入口和新版静态资源
+前缀转发到新版页面模块；切换到不同版本的业务时返回整页跳转；页面 API 复用本任务的
+`dispatch_existing_task` 和 Task 7 的建单协调，不另开直连新版的通道。
+
+```python
+def test_switching_to_non_gray_project_redirects_to_legacy_page(gray_biz, non_gray_project):
+    response = page_proxy(request_for(project=non_gray_project, from_version="mt"))
+    assert response.status_code == 302
+```
 
 - [ ] **Step 4: 运行任务操作和回调测试**
 
-Run: `pytest gcloud/tests/migration_bridge/integrations gcloud/tests/apigw/views/test_operate_task.py gcloud/tests/apigw/views/test_node_callback.py gcloud/tests/taskflow3/test_node_callback_v4.py -q`
+Run: `pytest gcloud/tests/migration_bridge gcloud/tests/apigw/views/test_start_task.py gcloud/tests/apigw/views/test_operate_task.py gcloud/tests/apigw/views/test_get_tasks_status.py gcloud/tests/apigw/views/test_node_callback.py gcloud/tests/taskflow3/test_node_callback_v4.py -q`
 
 Expected: PASS。
 
 - [ ] **Step 5: 提交**
 
 ```bash
-git add gcloud/migration_bridge/integrations/task_operation.py gcloud/migration_bridge/integrations/callback.py gcloud/tests/migration_bridge/integrations/test_task_operation.py gcloud/tests/migration_bridge/integrations/test_callback.py gcloud/apigw/views/operate_task.py gcloud/apigw/views/operate_node.py gcloud/apigw/views/get_task_detail.py gcloud/apigw/views/get_task_status.py gcloud/apigw/views/get_task_node_detail.py gcloud/apigw/views/node_callback.py gcloud/taskflow3/apis/django/v4/node_callback.py gcloud/core/apis/drf/viewsets/taskflow.py gcloud/tests/apigw/views/test_operate_task.py gcloud/tests/apigw/views/test_operate_node.py gcloud/tests/apigw/views/test_get_task_detail.py gcloud/tests/apigw/views/test_get_task_status.py gcloud/tests/apigw/views/test_get_task_node_detail.py gcloud/tests/apigw/views/test_node_callback.py gcloud/tests/taskflow3/test_node_callback_v4.py gcloud/tests/core/apis/drf/views_set/test_task_instance_view.py
+git add gcloud/migration_bridge/route_inventory.yaml gcloud/migration_bridge/integrations/task_operation.py gcloud/migration_bridge/integrations/callback.py gcloud/migration_bridge/integrations/page_proxy.py gcloud/tests/migration_bridge/integrations/test_page_proxy.py gcloud/tests/migration_bridge/test_route_inventory.py gcloud/tests/migration_bridge/integrations/test_task_operation.py gcloud/tests/migration_bridge/integrations/test_callback.py gcloud/apigw/views/start_task.py gcloud/apigw/views/operate_task.py gcloud/apigw/views/operate_node.py gcloud/apigw/views/get_task_detail.py gcloud/apigw/views/get_task_status.py gcloud/apigw/views/get_tasks_status.py gcloud/apigw/views/get_task_node_detail.py gcloud/apigw/views/node_callback.py gcloud/taskflow3/apis/django/api.py gcloud/taskflow3/apis/django/v4/node_callback.py gcloud/core/apis/drf/viewsets/taskflow.py gcloud/tests/apigw/views/test_start_task.py gcloud/tests/apigw/views/test_get_tasks_status.py gcloud/tests/apigw/views/test_operate_task.py gcloud/tests/apigw/views/test_operate_node.py gcloud/tests/apigw/views/test_get_task_detail.py gcloud/tests/apigw/views/test_get_task_status.py gcloud/tests/apigw/views/test_get_task_node_detail.py gcloud/tests/apigw/views/test_node_callback.py gcloud/tests/taskflow3/test_node_callback_v4.py gcloud/tests/core/apis/drf/views_set/test_task_instance_view.py
 git commit -m "feat: 接入任务操作和回调固定路由 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
@@ -659,8 +770,10 @@ git commit -m "feat: 接入任务操作和回调固定路由 --story=${BK_SOPS_M
 
 **Files:**
 - Create: `gcloud/migration_bridge/services/background_jobs.py`
+- Create: `gcloud/migration_bridge/periodic_entry.py`
 - Create: `gcloud/tests/migration_bridge/test_background_jobs.py`
-- Modify: `gcloud/periodictask/models.py`
+- Create: `gcloud/tests/migration_bridge/test_periodic_entry.py`
+- Modify: `gcloud/migration_bridge/apps.py`
 - Modify: `gcloud/clocked_task/tasks.py`
 - Modify: `gcloud/contrib/cleaner/tasks.py`
 - Modify: `gcloud/contrib/cleaner/pipeline/bamboo_engine_tasks.py`
@@ -671,15 +784,22 @@ git commit -m "feat: 接入任务操作和回调固定路由 --story=${BK_SOPS_M
 
 **Interfaces:**
 - Consumes: Task 2、Task 5、Task 8。
-- Produces: `dispatch_scheduled_create(bk_biz_id, schedule_id, scheduled_at, payload)`。
+- Produces: `dispatch_scheduled_create(bk_biz_id, schedule_kind, schedule_id, celery_task_id, payload)`。
+- Produces: `install_periodic_entry_wrappers()`，在 `MigrationBridgeConfig.ready()` 中调用。
 - Produces: `partition_maintenance_task_ids(task_ids: list[int]) -> tuple[list[int], list[int]]`。
 
-- [ ] **Step 1: 写周期任务稳定幂等键测试**
+- [ ] **Step 1: 写周期任务入口拦截和幂等键测试**
 
 ```python
-def test_periodic_run_uses_stable_idempotency_key():
-    key = build_periodic_idempotency_key(periodic_task_id=7, scheduled_at="2026-09-04T01:00:00Z")
-    assert key == build_periodic_idempotency_key(7, "2026-09-04T01:00:00Z")
+def test_gray_periodic_run_does_not_create_legacy_instance(gray_periodic_task, target_client):
+    bamboo_engine_periodic_task_start.apply(kwargs={"period_task_id": gray_periodic_task.task.id}, task_id="msg-1")
+    assert not PipelineInstance.objects.filter(template=gray_periodic_task.task.template).exists()
+    target_client.prepare_task.assert_called_once()
+
+
+def test_redelivered_message_reuses_idempotency_key():
+    key = build_scheduled_idempotency_key("periodic", schedule_id=7, celery_task_id="msg-1")
+    assert key == build_scheduled_idempotency_key("periodic", 7, "msg-1")
 ```
 
 - [ ] **Step 2: 写 Cleaner 不处理 mt 任务测试**
@@ -693,7 +813,19 @@ def test_cleaner_partitions_target_tasks(mt_route):
 
 - [ ] **Step 3: 实现周期建单和维护任务分区**
 
-旧 Beat 的启动命令、broker 和 schedule 表保持不变。灰度周期任务通过 HTTP 交给新版；
+旧 Beat 的启动命令、broker 和 schedule 表保持不变，Beat 条目中的任务名也不修改。
+
+周期任务的 Celery 任务 `pipeline.contrib.periodic_task.tasks.periodic_task_start` 和
+`bamboo_engine_periodic_task_start` 定义在第三方包中，任务体先创建 `PipelineInstance`、
+再发 `pre_periodic_task_start` 信号、随后直接启动旧引擎，因此不能用信号拦截。
+`install_periodic_entry_wrappers()` 在应用初始化时包装这两个已注册任务的执行函数：
+按 `period_task_id` 找到 gcloud 周期任务和项目的 `bk_biz_id`，非灰度业务调用原函数，
+灰度业务调用 `dispatch_scheduled_create()`，并保持周期任务运行次数和历史记录语义。
+计划任务在 `gcloud.clocked_task.tasks.clocked_task_start` 中直接接入。
+
+幂等键为 `schedule_kind + schedule_id + Celery 消息 ID`，消息重投时复用同一个键。
+该方案依赖灰度期只有一个 Beat 进程。
+
 Cleaner 对旧任务执行原逻辑，对 mt task_id 调用新版维护 API。
 
 - [ ] **Step 4: 运行后台任务测试**
@@ -705,30 +837,42 @@ Expected: PASS；同一周期触发不会在两边重复建单。
 - [ ] **Step 5: 提交**
 
 ```bash
-git add gcloud/migration_bridge/services/background_jobs.py gcloud/tests/migration_bridge/test_background_jobs.py gcloud/periodictask/models.py gcloud/clocked_task/tasks.py gcloud/contrib/cleaner/tasks.py gcloud/contrib/cleaner/pipeline/bamboo_engine_tasks.py gcloud/core/tasks.py gcloud/tests/periodictask/models/test_periodic_task.py gcloud/tests/clocked_task/test_tasks.py gcloud/tests/contrib/cleaner/test_migration_partition.py
+git add gcloud/migration_bridge/services/background_jobs.py gcloud/migration_bridge/periodic_entry.py gcloud/migration_bridge/apps.py gcloud/tests/migration_bridge/test_background_jobs.py gcloud/tests/migration_bridge/test_periodic_entry.py gcloud/clocked_task/tasks.py gcloud/contrib/cleaner/tasks.py gcloud/contrib/cleaner/pipeline/bamboo_engine_tasks.py gcloud/core/tasks.py gcloud/tests/periodictask/models/test_periodic_task.py gcloud/tests/clocked_task/test_tasks.py gcloud/tests/contrib/cleaner/test_migration_partition.py
 git commit -m "feat: 接入周期和维护任务灰度委派 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
-### Task 10A: 对齐共享租户 Schema 并让 Bridge 写入目标字段
+### Task 10A: 共享 Schema 差异门禁与租户字段数据库默认值
 
 **Files:**
-- Modify in both worktrees: `config/default.py`
-- Modify in both worktrees: `gcloud/core/models.py`
-- Modify in both worktrees: `gcloud/common_template/models.py`
-- Modify in both worktrees: `gcloud/external_plugins/models/cache.py`
-- Modify in both worktrees: `gcloud/external_plugins/models/origin.py`
-- Modify in both worktrees: `gcloud/external_plugins/models/sync.py`
-- Synchronize in both worktrees: `gcloud/core/migrations/0026_business_tenant_id_project_tenant_id.py`
-- Synchronize in both worktrees: `gcloud/common_template/migrations/0009_commontemplate_tenant_id.py`
-- Synchronize in both worktrees: `gcloud/external_plugins/migrations/0007_cachepackagesource_tenant_id_and_more.py`
-- Create: `gcloud/tests/core/test_tenant_bridge_schema.py`
-- Create: `gcloud/tests/common_template/test_tenant_bridge_schema.py`
-- Create: `gcloud/tests/external_plugins/test_tenant_bridge_schema.py`
+- Create in Target: `gcloud/internal_api/management/commands/check_shared_schema_plan.py`
+- Create in Target: `gcloud/internal_api/migrations/0002_tenant_column_defaults.py`
+- Create in Target: `gcloud/tests/internal_api/test_check_shared_schema_plan.py`
+- Create in Target: `gcloud/tests/internal_api/test_tenant_column_defaults.py`
+
+Bridge 和旧版现有应用不修改模型，也不同步开源多租户分支的 migration。
 
 **Interfaces:**
-- Produces: 旧 Bridge 和目标版本完全一致的过渡期 tenant 字段定义。
-- Produces: 旧写入缺少 tenant 参数时仍由数据库填充 `default` 的安全网。
+- Produces: `check_shared_schema_plan --applied-file PATH --json`，列出线上未执行的目标 migration 及风险标记。
+- Produces: 旧版插入缺少租户字段时由数据库填充 `default` 的兜底。
 - Consumes: 环境配置中的 `DEFAULT_TENANT_ID`，内部单租户环境固定为 `default`。
+
+- [ ] **Step 0: 导出线上已执行 migration 并生成差异报告**
+
+在线上旧版制品中导出 `django_migrations` 的 `(app, name)` 列表到本地安全文件，然后在
+Target worktree 运行：
+
+```bash
+python manage.py check_shared_schema_plan --applied-file /secure/path/applied_migrations.txt --json
+```
+
+命令基于 Django migration loader 计算待执行 migration，并对以下操作打风险标记：
+非空 `AddField`（执行后数据库默认值会被删除）、`RemoveField`、`RenameField`、
+`AlterField`、唯一约束变更、`DeleteModel` 和 `RunPython`/`RunSQL`。
+
+Expected: 报告至少包含三组租户字段 migration、`clocked_task` 的 `timezone` 字段、
+`plugin_gateway` 删除调度条目的数据迁移、`django_celery_results` 0009–0011 和
+`django_celery_beat` 0016–0019。每一项在 Runbook 中记录审阅结论和执行窗口，任一项
+无结论时停止灰度。
 
 - [ ] **Step 1: 核对线上 migration 前置状态**
 
@@ -743,7 +887,7 @@ Expected: `core.0026_business_tenant_id_project_tenant_id`、
 `external_plugins.0007_cachepackagesource_tenant_id_and_more` 均未执行。任一已执行时停止该
 任务，禁止 `--fake` 或修改已执行 migration，改为基于实际叶子节点新增 reconciliation migration。
 
-- [ ] **Step 2: 写过渡 Schema 失败测试**
+- [ ] **Step 2: 写数据库默认值失败测试**
 
 ```python
 def test_old_style_project_insert_gets_database_default_tenant(db, django_db_connection):
@@ -752,95 +896,58 @@ def test_old_style_project_insert_gets_database_default_tenant(db, django_db_con
             "INSERT INTO core_project "
             "(name, time_zone, creator, `desc`, create_at, bk_biz_id, from_cmdb, is_disable) "
             "VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP, %s, %s, %s)",
-            ["bridge-project", "Asia/Shanghai", "tester", "", 2, False, False],
+            ["legacy-project", "Asia/Shanghai", "tester", "", 2, False, False],
         )
         project_id = cursor.lastrowid
     assert Project.objects.get(pk=project_id).tenant_id == "default"
-
-
-def test_bridge_manager_writes_default_tenant(db):
-    project = Project.objects.create(name="bridge", bk_biz_id=2)
-    assert project.tenant_id == "default"
 ```
+
+该插入语句模拟旧版模型的列集合，不包含 `tenant_id`。测试必须在 MySQL 上执行。
 
 - [ ] **Step 3: 运行测试并确认失败**
 
-Run: `pytest gcloud/tests/core/test_tenant_bridge_schema.py gcloud/tests/common_template/test_tenant_bridge_schema.py gcloud/tests/external_plugins/test_tenant_bridge_schema.py -q`
+Run: `pytest gcloud/tests/internal_api/test_tenant_column_defaults.py -q`
 
-Expected: FAIL，旧基线缺少 tenant 字段或数据库默认值。
+Expected: FAIL，上游 migration 执行后 `tenant_id` 没有数据库默认值。
 
-- [ ] **Step 4: 将三组 Expand migration 同步到两个分支**
+- [ ] **Step 4: 增加只属于目标版本的默认值 migration**
 
-三个 migration 先增加可空字段，并使用 `RunSQL` 在 MySQL 上保留
-`DEFAULT 'default'`；不要在本阶段增加 `NOT NULL`。Bridge 和 Target 分支中的 migration
-文件内容及校验和必须完全一致，避免共享数据库出现两套 migration 历史。
-
-示例字段状态：
-
-```python
-tenant_id = models.CharField(
-    "租户ID",
-    max_length=64,
-    default="default",
-    null=True,
-    db_index=True,
-)
-```
-
-每个 AddField 后增加对应的数据库默认值操作：
+`internal_api/0002_tenant_column_defaults.py` 依赖三组上游租户 migration，用 `RunPython`
+遍历 Business、Project、CommonTemplate 以及外部插件的四类包源和同步任务模型，从
+`_meta.db_table` 取表名，
+经 `schema_editor.quote_name()` 执行：
 
 ```sql
-ALTER TABLE core_business ALTER COLUMN tenant_id SET DEFAULT 'default';
-ALTER TABLE core_project ALTER COLUMN tenant_id SET DEFAULT 'default';
-ALTER TABLE template_commontemplate ALTER COLUMN tenant_id SET DEFAULT 'default';
-ALTER TABLE external_plugins_cachepackagesource ALTER COLUMN tenant_id SET DEFAULT 'default';
-ALTER TABLE external_plugins_filesystemoriginalsource ALTER COLUMN tenant_id SET DEFAULT 'default';
-ALTER TABLE external_plugins_gitrepooriginalsource ALTER COLUMN tenant_id SET DEFAULT 'default';
-ALTER TABLE external_plugins_s3originalsource ALTER COLUMN tenant_id SET DEFAULT 'default';
-ALTER TABLE external_plugins_synctask ALTER COLUMN tenant_id SET DEFAULT 'default';
+ALTER TABLE <table> ALTER COLUMN tenant_id SET DEFAULT 'default';
 ```
 
-在 migration 中为每条 SQL 提供 `DROP DEFAULT` 的 `reverse_sql`，但生产回退流程不执行
-逆向 DDL。
+反向操作为 `DROP DEFAULT`，但生产回退流程不执行逆向 DDL。上游 migration 本身不修改。
 
-- [ ] **Step 5: 在 Bridge 写入路径显式设置默认租户**
+- [ ] **Step 5: 确定生产执行窗口**
 
-更新 Business、Project、CommonTemplate 和外部插件来源的 manager/create/import 路径，
-统一调用：
-
-```python
-def bridge_default_tenant_id():
-    return getattr(settings, "DEFAULT_TENANT_ID", "default")
-```
-
-业务代码显式写入 tenant；数据库默认值只保护尚未覆盖到的旧 SQL 或第三方写入。
+上游租户 migration 执行后到本 migration 执行前，旧版插入的行会写入空串。Schema 变更在
+低峰期由人工步骤执行，两者在同一次 `migrate` 中连续完成，之后立即运行 Task 10 的回填
+和校验。
 
 - [ ] **Step 6: 运行 Schema 和 migration 检查**
 
-Run in both worktrees:
+Run in the Target worktree:
 
 ```bash
-pytest gcloud/tests/core/test_tenant_bridge_schema.py gcloud/tests/common_template/test_tenant_bridge_schema.py gcloud/tests/external_plugins/test_tenant_bridge_schema.py -q
+pytest gcloud/tests/internal_api/test_tenant_column_defaults.py gcloud/tests/internal_api/test_check_shared_schema_plan.py -q
 python manage.py makemigrations --check --dry-run
-python manage.py showmigrations core common_template external_plugins
+python manage.py sqlmigrate internal_api 0002
 ```
 
-Expected: 测试 PASS；无未生成 migration；两边三个 migration 的依赖和名称一致。
+Run in the Bridge worktree: `python manage.py makemigrations --check --dry-run`
 
-- [ ] **Step 7: 分别提交两个分支**
+Expected: 测试 PASS；两边均无未生成 migration；Bridge 只有 `migration_bridge` 应用的 migration。
 
-Bridge worktree:
-
-```bash
-git add config/default.py gcloud/core/models.py gcloud/common_template/models.py gcloud/external_plugins/models/cache.py gcloud/external_plugins/models/origin.py gcloud/external_plugins/models/sync.py gcloud/core/migrations/0026_business_tenant_id_project_tenant_id.py gcloud/common_template/migrations/0009_commontemplate_tenant_id.py gcloud/external_plugins/migrations/0007_cachepackagesource_tenant_id_and_more.py gcloud/tests/core/test_tenant_bridge_schema.py gcloud/tests/common_template/test_tenant_bridge_schema.py gcloud/tests/external_plugins/test_tenant_bridge_schema.py
-git commit -m "feat: 兼容多租户过渡数据结构 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
-```
-
-Target worktree:
+- [ ] **Step 7: 提交 Target 分支**
 
 ```bash
-git add config/default.py gcloud/core/models.py gcloud/common_template/models.py gcloud/external_plugins/models/cache.py gcloud/external_plugins/models/origin.py gcloud/external_plugins/models/sync.py gcloud/core/migrations/0026_business_tenant_id_project_tenant_id.py gcloud/common_template/migrations/0009_commontemplate_tenant_id.py gcloud/external_plugins/migrations/0007_cachepackagesource_tenant_id_and_more.py gcloud/tests/core/test_tenant_bridge_schema.py gcloud/tests/common_template/test_tenant_bridge_schema.py gcloud/tests/external_plugins/test_tenant_bridge_schema.py
-git commit -m "feat: 对齐多租户过渡数据结构 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
+git add gcloud/internal_api/management/commands/check_shared_schema_plan.py gcloud/internal_api/migrations/0002_tenant_column_defaults.py gcloud/tests/internal_api/test_check_shared_schema_plan.py gcloud/tests/internal_api/test_tenant_column_defaults.py
+git commit -m "feat: 增加共享数据库兼容检查和租户字段默认值 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
 ### Task 10: 将租户回填改为分批、可恢复执行
@@ -894,9 +1001,13 @@ while True:
 每个模型输出扫描、更新、跳过、失败和最后主键；异常立即以非零状态退出，不吞掉错误
 继续声称完成。
 
+回填把空值和空串都改为 `DEFAULT_TENANT_ID`。`verify_tenant_sync` 同时检查空值、空串，
+以及 `information_schema.COLUMNS` 中租户列的默认值是否为 `default`。非 strict
+`sql_mode` 下该校验在灰度期定时执行，而不是只在放量前执行一次。
+
 - [ ] **Step 4: 增加 migration 图和数据库默认值检查**
 
-Run: `python manage.py showmigrations core common_template external_plugins taskflow3`
+Run: `python manage.py showmigrations core common_template external_plugins internal_api`
 
 Expected: 新增 migration 节点只有一条可执行叶子链；线上已执行 migration 不被修改。
 
@@ -927,7 +1038,9 @@ git commit -m "fix: 支持租户数据分批回填和严格校验 --story=${BK_S
 
 **Interfaces:**
 - Produces: `reconcile_migration_routes --older-than-seconds 60 --repair-ready`。
+- Produces: `reconcile_migration_routes --check-target-tasks --since ISO8601`，比对新版新建任务与路由表。
 - Produces: `check_legacy_drain --json --fail-if-active`。
+- Produces: `check_legacy_drain --long-tail-report`，按 Spec §14 的类别输出长尾任务。
 - Produces: 以 `bk_biz_id/runtime_lane/module/release_version` 为标签的低基数指标。
 
 - [ ] **Step 1: 写 unknown 对账和排空失败测试**
@@ -951,10 +1064,18 @@ def test_drain_check_fails_when_legacy_task_active(active_legacy_task):
 只允许自动执行可证明安全的 `unknown -> ready` 或 `creating -> ready` 修复；目标明确返回
 不存在时才能改为 `failed`。命令不得自动重新建单。
 
+`--check-target-tasks` 通过 `list_created_task_ids()` 拉取新版新建任务，既无路由记录、
+又不能通过 `TaskFlowRelation` 归属到 mt 根任务的任务 ID 输出为异常并以非零退出，
+用于发现绕过 Bridge 的建单。
+
 - [ ] **Step 3: 实现排空检查**
 
 检查任务状态、engine Process/State、Celery ETA/retry、回调、补偿、Redis 节点池、锁、
 周期计划和 Cleaner 待处理记录。输出机器可读 JSON；任一项非零时退出码为 1。
+
+`--long-tail-report` 把 legacy 活跃任务分为运行中、暂停或等待人工、节点失败无人处理、
+僵尸状态四类，输出任务 ID、业务、执行人和停留时长，供 Runbook 的长尾处理步骤使用。
+命令只读，不自动撤销任务。
 
 - [ ] **Step 4: 运行测试**
 
@@ -969,10 +1090,48 @@ git add gcloud/migration_bridge/metrics.py gcloud/migration_bridge/management/co
 git commit -m "feat: 增加迁移对账和旧任务排空检查 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
+### Task 11A: 后台切换时的 Beat 与共享状态交接
+
+**Files:**
+- Create in Target: `gcloud/internal_api/management/commands/check_beat_entries.py`
+- Create in Target: `gcloud/tests/internal_api/test_check_beat_entries.py`
+
+**Interfaces:**
+- Produces: `check_beat_entries --json`，列出 `django_celery_beat` 中新版未注册的任务名。
+- Consumes: Task 11 的 `check_legacy_drain`。
+
+- [ ] **Step 1: 写调度条目检查测试**
+
+```python
+def test_unregistered_task_name_is_reported(db):
+    PeriodicTask.objects.create(name="legacy-only", task="gcloud.legacy_only.tasks.job", interval=interval)
+    report = call_command("check_beat_entries", json=True)
+    assert "gcloud.legacy_only.tasks.job" in report
+```
+
+- [ ] **Step 2: 实现检查命令并运行测试**
+
+Run: `pytest gcloud/tests/internal_api/test_check_beat_entries.py -q`
+
+Expected: PASS；业务周期计划使用的任务名均在新版注册，旧版独有条目被列出。
+
+- [ ] **Step 3: 提交 Target 分支**
+
+```bash
+git add gcloud/internal_api/management/commands/check_beat_entries.py gcloud/tests/internal_api/test_check_beat_entries.py
+git commit -m "feat: 增加周期调度条目交接检查 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
+```
+
+Task 14 的 Runbook 按 Spec §12 阶段 C 写入交接步骤：停止旧 Beat 并记录 `last_run_at`
+水位；按 `check_beat_entries` 报告清理旧版独有条目；启用新版 Beat 并观察一个最短调度
+周期；新版接管插件与变量注册表刷新、APIGW 同步、通知和 Webhook 注册，删除
+`bin/pre_release_mt` 中的灰度期限制。
+
 ### Task 12: 配置新版 Add-only 运行资源
 
 **Files:**
 - Modify: `app_desc.yaml` on target branch only
+- Create: `bin/pre_release_mt`
 - Modify: `config/prod.py`
 - Modify: `config/default.py`
 - Create: `scripts/migration/verify_runtime_isolation.py`
@@ -983,7 +1142,8 @@ git commit -m "feat: 增加迁移对账和旧任务排空检查 --story=${BK_SOP
 **Interfaces:**
 - Produces: 新版 broker 配置 `BKAPP_SOPS_BROKER_URL` 指向 `/bk_sops_mt`。
 - Produces: 新版 Redis 独立连接和 `EXECUTING_NODE_POOL`。
-- Produces: `verify_runtime_isolation.py --legacy-env PATH --target-env PATH`。
+- Produces: 新版 Django 数据库缓存表 `django_cache_mt`、`account_cache_mt`。
+- Produces: `verify_runtime_isolation.py --legacy-env PATH --target-env PATH --target-app-desc PATH`。
 
 - [ ] **Step 1: 写配置隔离测试**
 
@@ -994,7 +1154,21 @@ def test_target_broker_is_not_legacy_vhost(settings):
 
 def test_target_timeout_pool_is_namespaced(settings):
     assert settings.EXECUTING_NODE_POOL.startswith("sops_mt_")
+
+
+def test_target_database_cache_tables_are_isolated(settings):
+    tables = {cache["LOCATION"] for cache in settings.CACHES.values() if cache["BACKEND"].endswith("DatabaseCache")}
+    assert tables.isdisjoint({"django_cache", "account_cache"})
+
+
+def test_target_pre_release_does_not_touch_shared_state():
+    script = Path("bin/pre_release_mt").read_text()
+    for command in FORBIDDEN_GRAY_COMMANDS:
+        assert command not in script
 ```
+
+`FORBIDDEN_GRAY_COMMANDS` 为 `migrate`、`update_component_models`、`update_variable_models`、
+`sync_saas_apigw`、`register_bksops_notice` 和 `sync_webhook_events`。
 
 - [ ] **Step 2: 运行测试并确认失败**
 
@@ -1005,8 +1179,23 @@ Expected: FAIL，新版隔离配置尚未绑定。
 - [ ] **Step 3: 只新增新版模块和变量**
 
 只新增 `default-mt`、`api-server-mt`、`pipeline-worker-mt`、`callback-server-mt`、
-`api-inner-mt`、`open-plugin-mt` 和 `celery-exporter-mt` 模块。`default-mt` 的全局 Beat
-进程默认不启动；旧模块、`/bk_sops`、原队列和原凭证不做任何修改。
+`open-plugin-mt` 和 `celery-exporter-mt` 模块，不新增 `api-inner-mt`。`default-mt` 的
+全局 Beat 进程默认不启动；旧模块、`/bk_sops`、原队列和原凭证不做任何修改。
+
+每个 mt 模块：
+
+- `pre_release_hook` 指向 `bin/pre_release_mt`，灰度期只执行
+  `createcachetable django_cache_mt account_cache_mt`；
+- `BKAPP_AUTO_UPDATE_COMPONENT_MODELS`、`BKAPP_AUTO_UPDATE_VARIABLE_MODELS` 设为 `0`；
+- `BKAPP_INNER_CALLBACK_ENTRY` 指向 `callback-server-mt` 的内部地址；
+- 与旧版使用相同的 `CALLBACK_KEY`，以保留 Bridge 的误投回调兜底。
+
+`bin/post_compile` 只对名为 `default` 的模块执行，mt 模块名不同，不会触发；仍需在测试中
+断言这一点，防止模块改名后误触发。
+
+`V3.6.X` 的 `app_desc.yaml` 没有 `pre_release_hook`，也没有设置 `BKAPP_AUTO_UPDATE_*`
+（代码默认值为 `1`），说明内部环境的部署前置命令和部分环境变量配置在开发者中心。
+mt 模块上线前要同时核对开发者中心配置，不能只检查 `app_desc.yaml`。
 
 - [ ] **Step 4: 实现静态隔离检查脚本**
 
@@ -1018,6 +1207,10 @@ target broker path == /bk_sops_mt
 legacy and target broker usernames differ
 legacy and target Redis logical locations differ
 target app_desc does not bind global beat by default
+target modules use bin/pre_release_mt without forbidden commands
+target BKAPP_AUTO_UPDATE_* == 0
+target database cache tables differ from legacy
+target BKAPP_INNER_CALLBACK_ENTRY points to callback-server-mt
 ```
 
 任何不满足项退出码为 1，输出中对密码和完整 URL 脱敏。
@@ -1026,14 +1219,14 @@ target app_desc does not bind global beat by default
 
 Run: `pytest gcloud/tests/test_migration_runtime_config.py -q`
 
-Run: `python scripts/migration/verify_runtime_isolation.py --legacy-env scripts/migration/tests/fixtures/legacy.env.example --target-env scripts/migration/tests/fixtures/target.env.example`
+Run: `python scripts/migration/verify_runtime_isolation.py --legacy-env scripts/migration/tests/fixtures/legacy.env.example --target-env scripts/migration/tests/fixtures/target.env.example --target-app-desc app_desc.yaml`
 
-Expected: 测试 PASS；检查脚本输出五项 PASS。执行时使用运维提供的本地安全文件，不提交环境文件。
+Expected: 测试 PASS；检查脚本输出九项 PASS。执行时使用运维提供的本地安全文件，不提交环境文件。
 
 - [ ] **Step 6: 提交**
 
 ```bash
-git add app_desc.yaml config/default.py config/prod.py scripts/migration/verify_runtime_isolation.py scripts/migration/tests/fixtures/legacy.env.example scripts/migration/tests/fixtures/target.env.example gcloud/tests/test_migration_runtime_config.py
+git add app_desc.yaml bin/pre_release_mt config/default.py config/prod.py scripts/migration/verify_runtime_isolation.py scripts/migration/tests/fixtures/legacy.env.example scripts/migration/tests/fixtures/target.env.example gcloud/tests/test_migration_runtime_config.py
 git commit -m "feat: 增加多租户运行资源隔离配置 --story=${BK_SOPS_MIGRATION_TAPD_STORY}"
 ```
 
@@ -1050,6 +1243,10 @@ git commit -m "feat: 增加多租户运行资源隔离配置 --story=${BK_SOPS_M
 **Interfaces:**
 - Produces: `/api/legacy-ui/v1/` 下旧页面观察期所需接口。
 - Consumes: 新版正式 application service；不得调用旧模型或旧 Celery task。
+
+阶段 A 新页面经 Bridge 代理访问（Spec §12），本任务只服务阶段 C 之后的旧页面观察期。
+阶段 A 的页面代理（静态资源前缀转发、跨版本项目切换跳转）在 Bridge Task 8 中按 URL
+清单一并实现。
 
 - [ ] **Step 1: 从旧页面网络请求生成固定契约夹具**
 
@@ -1127,17 +1324,24 @@ Runbook 固定包含以下可勾选章节：
 
 ```text
 部署前版本与 migration 核对
+api-inner 残余调用确认
+共享 Schema 差异报告审阅
 Bridge 默认关闭上线
-Schema Expand 与分批回填
+Schema Expand、数据库默认值与分批回填
 新版新增资源和权限验证
+新版部署后共享状态无变化检查
 内部测试业务灰度
 逐批业务扩量
 全量新版建单
-legacy 排空检查
+legacy 排空检查与长尾处理
+Beat 与共享状态写入方交接
 后台权威入口切换
 旧页面观察与下线
 Schema Contract 和临时代码删除
 ```
+
+“新版部署后共享状态无变化检查”比对部署前后的 `django_migrations`、插件与变量注册表
+启用状态、旧版缓存表行数、APIGW 资源版本和 Beat 条目，任一变化即停止放量。
 
 每个阶段写明进入条件、执行命令、观察指标、停止条件和恢复操作。回退不得包含将 mt
 任务转交旧引擎或对 Expand DDL 做逆向删除。
@@ -1146,7 +1350,9 @@ Schema Contract 和临时代码删除
 
 Run: `pytest gcloud/tests/integration/test_multi_tenant_migration_handoff.py -q`
 
-Run: `pytest gcloud/tests/migration_bridge gcloud/tests/taskflow3/internal_api gcloud/tests/core/commands gcloud/tests/core/apis/legacy_ui -q`
+Run in the Bridge worktree: `pytest gcloud/tests/migration_bridge -q`
+
+Run in the Target worktree: `pytest gcloud/tests/internal_api gcloud/tests/core/commands gcloud/tests/core/apis/legacy_ui -q`
 
 Expected: 全部 PASS，无重复任务、跨版本投递或未知路由残留。
 
@@ -1201,12 +1407,12 @@ Expected: PASS；内部代码迁移清单无未决项，灰度业务没有引用
 
 Run: `python manage.py makemigrations --check --dry-run`
 
-Run in the Bridge worktree: `python manage.py showmigrations core common_template external_plugins taskflow3 migration_bridge`
+Run in the Bridge worktree: `git diff --name-only "${BRIDGE_BASE_SHA}..HEAD" -- '*/migrations/*.py'`
 
-Run in the Target worktree: `python manage.py showmigrations core common_template external_plugins taskflow3`
+Run in the Target worktree: `python manage.py check_shared_schema_plan --applied-file /secure/path/applied_migrations.txt --json`
 
-Expected: 两边均无未生成 migration；各自 migration 图无冲突叶子，共享 tenant migration
-的名称、依赖和文件校验和一致。
+Expected: 两边均无未生成 migration；Bridge 新增的 migration 只在 `migration_bridge` 应用中；
+Target 差异报告中每一项都有审阅结论。
 
 - [ ] **Step 4: 验证代码边界**
 
@@ -1222,6 +1428,9 @@ Expected: Bridge 包没有向新版 broker 直接发布消息的代码；仅旧�
 
 按 Runbook 完成：Bridge 默认关闭、单个测试业务灰度、故障注入、停止放量、mt 任务完成、
 legacy 排空检查演练。保存每个门禁的指标截图和命令输出，不包含敏感配置。
+
+预发布环境的 MySQL 版本必须与线上一致。演练同时覆盖：部署一次全部 mt 模块后共享状态
+无变化；抽样历史任务（旧引擎任务、子流程、周期任务）能在新版读取和展示；Beat 交接。
 
 - [ ] **Step 6: 请求代码审查**
 
@@ -1239,7 +1448,7 @@ flowchart TD
     T4["Target Task 4<br/>版本化内部 API"]
     T12["Task 12<br/>新版 Add-only 运行资源"]
 
-    T10A["Data Task 10A<br/>共享租户 Schema"]
+    T10A["Data Task 10A<br/>Schema 差异门禁与数据库默认值"]
     T10["Data Task 10<br/>分批可恢复回填"]
     T13["Task 13<br/>旧页面到新版后台适配"]
 
@@ -1251,15 +1460,17 @@ flowchart TD
     T8["Bridge Task 8<br/>操作、查询与回调"]
     T9["Bridge Task 9<br/>周期任务与全局委派"]
     T11["Bridge Task 11<br/>对账、排空与指标"]
+    T11A["Task 11A<br/>Beat 与共享状态交接"]
 
     T14["Task 14<br/>上线 Runbook 与端到端演练"]
     T15["Task 15<br/>发布前联合验收"]
 
     T0 --> T3 --> T4 --> T12
     T0 --> T10A --> T10 --> T13
-    T1 --> T2 --> T5 --> T6 --> T7 --> T8 --> T9 --> T11
+    T3 --> T10A
+    T1 --> T2 --> T5 --> T6 --> T7 --> T8 --> T9 --> T11 --> T11A
     T4 --> T5
-    T11 --> T14
+    T11A --> T14
     T12 --> T14
     T13 --> T14
     T14 --> T15

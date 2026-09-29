@@ -6,11 +6,11 @@
 
 **Architecture:** 工蜂 `V3.6.X` 保持 Python 3.6 并继续承载 legacy 和 Bridge。新的工蜂 `dev_multi_tenant` 以锁定的开源 `upstream/dev_multi_tenant` SHA 为基线，只逐项移植清单中确认需要长期保留的内部代码；所有目标模块从同一个验收 SHA 构建，并由业务能力检查阻止使用未完成改造的内部插件或接口。
 
-**Tech Stack:** Python 3.11.10、Django 4.2.30、Celery 5.2.7、bamboo-pipeline 4.0.4、bamboo-engine 3.0.5、MySQL、RabbitMQ、Redis、pytest、工蜂 CI/CD
+**Tech Stack:** Python 3.11.10、Django 4.2.30、Celery 5.2.7、bamboo-pipeline 4.0.5、bamboo-engine 3.0.5、MySQL、RabbitMQ、Redis、pytest、工蜂 CI/CD
 
 **Spec:** `docs/specs/2026-09-04-multi-tenant-gray-migration-design.md`
 
-**TAPD:** [标准运维内部环境多租户版本平滑迁移](https://tapd.woa.com/10131351/prong/stories/view/1010131351137932246)
+**TAPD:** 标准运维内部环境多租户版本平滑迁移（Story `137932246`）
 
 ## Global Constraints
 
@@ -19,9 +19,13 @@
 - 禁止将工蜂 `V3.6.X` 整体 merge 到目标主线；每项内部差异必须有明确处理结论和验证证据。
 - Bridge 临时路由、旧模型兼容、旧 Celery 签名和旧引擎状态机只能存在于工蜂旧版分支。
 - 工蜂目标主线只包含长期内部能力、正式对接适配和多租户目标实现。
-- Web、API Server、Pipeline Worker、Callback、Cleaner、API Inner 和 Open Plugin 必须从同一目标 SHA 构建。
+- Web、API Server、Pipeline Worker、Callback、Cleaner 和 Open Plugin 必须从同一目标 SHA 构建；`api-inner` 已基本废弃，不建设目标模块。
 - 一个业务只有在其流程引用的全部内部能力都标记为 `ready` 后才能进入 mt 灰度。
-- 实施前设置 `BK_SOPS_MIGRATION_TAPD_STORY`；所有提交消息追加 `--story=${BK_SOPS_MIGRATION_TAPD_STORY}`。
+- 目标模块的发布钩子和启动配置遵守主计划的共享状态约束（主 Spec §4.6、主计划 Task 12）。
+- 工蜂目标主线的 CI 必须执行清单校验、目标测试集和前端构建；只有 CodeCC 扫描不算门禁。
+- 目标依赖不得使用预发布版本；`blueapps` 等 rc 版本需在灰度前换为正式版本或记录例外评审。
+- 实施前设置 `BK_SOPS_MIGRATION_TAPD_STORY=137932246`；所有提交消息追加 `--story=${BK_SOPS_MIGRATION_TAPD_STORY}`。
+- 实施进度见主计划“实施进度”一节：Task 1-2 在工蜂 MR !1992 待合并，Task 4 部分完成未提交，其余未开始。
 - 所有工作在独立 worktree 中执行；主工作区已有改动不得暂存、清理或覆盖。
 
 ---
@@ -60,8 +64,9 @@
 
 **Interfaces:**
 - Consumes: 刷新后的 `upstream/dev_multi_tenant`、`upstream/master` 和 `woa/V3.6.X`。
-- Produces: 清单字段 `source_path`、`source_commit`、`category`、`action`、`status`、`owner`、`target_paths`、`target_version`、`modules`、`test_command`、`evidence`。
+- Produces: 清单字段 `source_path`、`source_commit`、`category`、`action`、`status`、`owner`、`target_paths`、`target_version`、`modules`、`test_command`、`evidence`，插件和对接类条目另有 `capabilities`。
 - Produces: `validate_internal_overlay_manifest.py --fail-on pending,unknown`，成功返回 0，清单不完整返回 1。
+- Produces: `validate_internal_overlay_manifest.py --check-coverage --legacy-ref REF --base-ref REF`，重新计算差异文件并确认每个文件都被清单条目覆盖。
 
 - [ ] **Step 1: 写清单校验失败测试**
 
@@ -116,6 +121,20 @@ items:
 校验器必须拒绝：缺字段、未知枚举、`ported/reimplemented` 没有测试命令或证据、
 `dropped/legacy_only` 没有原因，以及 `source_commit` 不是 40 位 SHA 的条目。
 
+目录级条目（例如 `pipeline_plugins/`、`tencentcloud/`）粒度太粗，无法直接用于业务准入。
+插件和对接类条目需要用 `capabilities` 列出能力粒度的状态，业务准入检查只读这一层：
+
+```yaml
+    capabilities:
+      - kind: component
+        code: job_execute_task
+        version: legacy
+        status: ported
+```
+
+`--check-coverage` 用于发现基线漂移：`V3.6.X` 或目标基线前进后，新增或变更的差异文件
+没有被任何条目覆盖时返回 1。
+
 - [ ] **Step 4: 生成并人工归类工蜂差异**
 
 Run:
@@ -129,7 +148,9 @@ Run:
 
 Run: `python scripts/migration/validate_internal_overlay_manifest.py --fail-on unknown`
 
-Expected: exit code 0；允许待实施的 `pending`，不允许未归类的 `unknown`。
+Run: `python scripts/migration/validate_internal_overlay_manifest.py --check-coverage --legacy-ref woa/V3.6.X --base-ref "$(git merge-base upstream/master woa/V3.6.X)"`
+
+Expected: exit code 0；允许待实施的 `pending`，不允许未归类的 `unknown`，也不允许未覆盖的差异文件。
 
 - [ ] **Step 6: 提交**
 
@@ -390,7 +411,7 @@ git commit -m "feat: 迁移内部插件到 Python 3.11 --story=${BK_SOPS_MIGRATI
 
 **Interfaces:**
 - Consumes: 已移植的目标内部 API 和插件。
-- Produces: Web、API Server、Pipeline Worker、Callback、Cleaner、API Inner、Open Plugin 的构建定义。
+- Produces: Web、API Server、Pipeline Worker、Callback、Cleaner、Open Plugin 的构建定义。
 - Produces: `verify_internal_artifact_source.py --expected-sha SHA METADATA_FILE...`。
 
 - [ ] **Step 1: 写制品来源失败测试**
@@ -413,6 +434,10 @@ Expected: FAIL，提示校验器尚不存在。
 所有 Worker 必须使用目标 Celery 5 启动方式和 `/bk_sops_mt`；Web/API/Callback 使用目标
 Django 4 配置。每个构建写入相同的 `source_sha` 和 `release_version`。
 
+目标分支现有 `bin/pre_release` 会执行 `migrate`、`update_component_models`、
+`update_variable_models`、`sync_saas_apigw` 等改写共享状态的命令，灰度期 mt 模块不得
+使用它，按主计划 Task 12 改用 `bin/pre_release_mt`、独立缓存表和 `BKAPP_AUTO_UPDATE_*=0`。
+
 - [ ] **Step 4: 构建前端并运行后端配置检查**
 
 Run: `npm ci && npm run build`
@@ -426,7 +451,7 @@ Expected: PASS，无缺失内部路由、静态资源或 Django 配置错误。
 Run:
 `python scripts/migration/verify_internal_artifact_source.py --expected-sha "$(git rev-parse HEAD)" build-metadata/*.json`
 
-Expected: exit code 0；七类目标模块元数据中的 `source_sha` 完全相同。
+Expected: exit code 0；六类目标模块元数据中的 `source_sha` 完全相同。
 
 - [ ] **Step 6: 提交**
 
@@ -468,8 +493,9 @@ Expected: FAIL，提示准入检查尚不存在。
 
 - [ ] **Step 3: 实现业务引用扫描**
 
-扫描业务流程模板、公共流程引用、周期任务和 clocked task，提取组件 code/version、内部
-API、回调和调度能力。任一能力缺失、`pending`、`legacy_only` 或证据对应其他目标 SHA
+扫描业务流程模板、公共流程引用、子流程引用、周期任务和 clocked task，提取组件
+code/version、自定义变量类型、第三方插件、内部 API、回调和调度能力，并与清单
+`capabilities` 逐项匹配。任一能力缺失、`pending`、`legacy_only` 或证据对应其他目标 SHA
 时，`eligible=false`；不得在运行到具体节点时再回退旧引擎。
 
 - [ ] **Step 4: 运行测试并生成首批业务报告**
@@ -495,7 +521,7 @@ git commit -m "feat: 增加业务灰度能力准入检查 --story=${BK_SOPS_MIGR
 **Files:**
 - Review: `scripts/migration/internal_overlay_manifest.yaml`
 - Review: `docs/zh_hans/ops/internal_overlay_py311_matrix.md`
-- Review: 工蜂七类模块构建元数据
+- Review: 工蜂六类模块构建元数据
 - Update: `docs/zh_hans/ops/internal_overlay_py311_matrix.md`
 
 **Interfaces:**
@@ -518,9 +544,9 @@ Expected: PASS；任何环境缺失必须单独标记为验收阻塞，不能记
 
 - [ ] **Step 3: 部署无业务流量的目标模块**
 
-从同一工蜂目标 SHA 构建并部署 Web、API Server、Pipeline Worker、Callback、Cleaner、
-API Inner 和 Open Plugin；Target 使用新增 `/bk_sops_mt` 和独立 Redis，Bridge 灰度白名单
-保持为空。
+从同一工蜂目标 SHA 构建并部署 Web、API Server、Pipeline Worker、Callback、Cleaner
+和 Open Plugin；Target 使用新增 `/bk_sops_mt` 和独立 Redis，Bridge 灰度白名单
+保持为空。部署前后按主计划 Runbook 比对共享状态，任何变化都记为 No-Go。
 
 - [ ] **Step 4: 验证资源隔离和模块健康**
 
@@ -534,8 +560,10 @@ API Inner 和 Open Plugin；Target 使用新增 `/bk_sops_mt` 和独立 Redis，
 
 - [ ] **Step 6: 形成验收结论**
 
-只有满足以下条件才标记 Go：清单无未决项、完整回归通过、七类模块同 SHA、资源隔离通过、
-内部测试任务成功、首批业务能力报告 `eligible=true`。否则保持 No-Go，不得开启业务白名单。
+只有满足以下条件才标记 Go：清单无未决项、完整回归通过、六类模块同 SHA、资源隔离通过、
+部署后共享状态无变化、开源功能对齐清单关闭、依赖无预发布版本、影子环境 MySQL 版本与
+线上一致、内部测试任务成功、首批业务能力报告 `eligible=true`。否则保持 No-Go，不得开启
+业务白名单。
 
 ---
 
@@ -563,8 +591,9 @@ def test_sync_gate_rejects_removed_ready_capability():
 
 - [ ] **Step 2: 实现同步回归检查**
 
-比较同步前后的内部能力清单、组件注册、API 路由、目标依赖和七类模块构建配置。删除
-`ready` 能力、重新引入禁用旧依赖或改变组件 code/version 时失败。
+比较同步前后的内部能力清单、组件注册、API 路由、目标依赖和六类模块构建配置。删除
+`ready` 能力、重新引入禁用旧依赖或改变组件 code/version 时失败。同时运行
+`validate_internal_overlay_manifest.py --check-coverage`，发现 `V3.6.X` 新增的内部差异。
 
 - [ ] **Step 3: 编写同步运行手册**
 
@@ -572,13 +601,18 @@ def test_sync_gate_rejects_removed_ready_capability():
 内部回归、通过 MR 合入 `woa/dev_multi_tenant`、从合入 SHA 生成各模块制品。禁止把
 `woa/V3.6.X` 作为同步来源。
 
+每次同步还要核对开源功能对齐：`V3.6.X` 已同步、但目标基线尚未包含的开源 `master`
+提交逐个记录处理结论（主计划 Task 0 Step 5）。灰度期 `V3.6.X` 仍会继续同步 `master`，
+这项核对在每次旧版发布后重复执行。
+
 - [ ] **Step 4: 接入工蜂 CI 并验证失败/成功样例**
 
 Run: `pytest gcloud/tests/migration/test_internal_overlay_regression.py -q`
 
 Run: `python scripts/migration/check_internal_overlay_regression.py --base HEAD^ --head HEAD`
 
-Expected: 测试 PASS；故意删除一个 ready 能力时 CI 失败，恢复后 CI 通过。
+Expected: 测试 PASS；故意删除一个 ready 能力时 CI 失败，恢复后 CI 通过。工蜂 CI 除
+CodeCC 外至少包含清单校验、目标测试集和前端构建三个阶段。
 
 - [ ] **Step 5: 提交**
 
