@@ -422,6 +422,82 @@
     .custom-header-sub-title {
         padding: 0 50px 15px;
     }
+    .delete-variable-tips {
+        text-align: center;
+    }
+    // 删除变量二次确认弹窗中的引用范围提示
+    .variable-cited-confirm {
+        max-height: 320px;
+        margin-top: 10px;
+        overflow-y: auto;
+        text-align: left;
+        font-size: 12px;
+        line-height: 20px;
+        color: #63656e;
+        .cited-confirm-item:not(:last-child) {
+            margin-bottom: 10px;
+        }
+        .cited-confirm-key {
+            margin-bottom: 4px;
+            color: #313238;
+        }
+        .cited-danger {
+            color: #ea3636;
+            font-weight: bold;
+        }
+        .cited-confirm-empty {
+            color: #979ba5;
+        }
+        .cited-group {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #f5f7fa;
+            border-radius: 2px;
+        }
+        .cited-group-title {
+            color: #313238;
+        }
+        .cited-group-list {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .cited-group-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 50%;
+            height: 24px;
+            padding-left: 12px;
+            color: #ea3636;
+            cursor: pointer;
+            &::before {
+                content: '';
+                position: absolute;
+                top: 10px;
+                left: 0;
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                background: currentColor;
+            }
+            .cited-group-name {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+                &.name-empty {
+                    color: #979ba5;
+                }
+            }
+            i {
+                padding-left: 5px;
+                font-size: 12px;
+                color: currentColor;
+            }
+            &:hover {
+                color: #3a84ff;
+            }
+        }
+    }
     .bk-dialog-footer {
         padding-top: 6px !important;
     }
