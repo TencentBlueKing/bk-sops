@@ -135,6 +135,7 @@
     import { mapState } from 'vuex'
     import VariableCitedList from './VariableCitedList.vue'
     import VariablePreviewValue from './VariablePreviewValue.vue'
+    import variableDeleteConfirm from './variableDeleteConfirm.js'
 
     export default {
         name: 'VariableItem',
@@ -142,6 +143,7 @@
             VariableCitedList,
             VariablePreviewValue
         },
+        mixins: [variableDeleteConfirm],
         props: {
             outputed: Boolean,
             variableData: Object,
@@ -303,30 +305,8 @@
             },
             onDeleteVariable () {
                 if (this.isComponentInputs) return
-                const h = this.$createElement
-                this.$bkInfo({
-                    subHeader: h('div', { class: 'custom-header' }, [
-                        h('div', {
-                            class: 'custom-header-title',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [i18n.t('确认删除') + i18n.t('全局变量') + `【${this.variableData.key}】?`]),
-                        h('div', {
-                            class: 'custom-header-sub-title bk-dialog-header-inner',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [i18n.t('删除变量将导致所有变量引用失效，请及时检查并更新节点配置')])
-                    ]),
-                    extCls: 'dialog-custom-header-title',
-                    maskClose: false,
-                    width: 450,
-                    confirmLoading: true,
-                    cancelText: this.$t('取消'),
-                    confirmFn: () => {
-                        this.$emit('onDeleteVariable', this.variableData.key)
-                    }
+                this.openDeleteVariableConfirm([this.variableData], () => {
+                    this.$emit('onDeleteVariable', this.variableData.key)
                 })
             },
             onEditVariable (key, index) {

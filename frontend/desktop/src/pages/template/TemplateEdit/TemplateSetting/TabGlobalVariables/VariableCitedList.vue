@@ -32,28 +32,11 @@
 </template>
 <script>
     import { mapState } from 'vuex'
+    import { getCitedGroups } from './citedUtils.js'
     export default {
         name: 'VariableCitedList',
         props: {
             citedList: Object
-        },
-        data () {
-            return {
-                groups: [
-                    {
-                        id: 'activities',
-                        name: '任务节点'
-                    },
-                    {
-                        id: 'conditions',
-                        name: '分支条件'
-                    },
-                    {
-                        id: 'constants',
-                        name: '全局变量'
-                    }
-                ]
-            }
         },
         computed: {
             ...mapState({
@@ -67,22 +50,11 @@
                 return { ...this.internalVariable, ...this.constants }
             },
             list () { // 变量被引用数据
-                return this.groups.map(group => {
-                    const key = group.id
-                    const data = this.citedList[key].map(item => {
-                        const id = item
-                        let name = ''
-                        if (key === 'activities') {
-                            name = this.activities[item].name
-                        } else if (key === 'conditions') {
-                            const nodeId = this.lines.find(line => line.id === item).source.id
-                            name = this.gateways[nodeId].conditions[id].name
-                        } else {
-                            name = this.variableList[item].name
-                        }
-                        return { id, name }
-                    })
-                    return { title: group.name, key, data }
+                return getCitedGroups(this.citedList, {
+                    activities: this.activities,
+                    lines: this.lines,
+                    gateways: this.gateways,
+                    variableList: this.variableList
                 })
             }
         },

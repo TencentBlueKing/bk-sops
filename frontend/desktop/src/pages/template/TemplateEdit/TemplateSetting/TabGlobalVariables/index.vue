@@ -236,6 +236,7 @@
     import TheadPopover from './TheadPopover.vue'
     import QuickOperateVariable from '../../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import variableDeleteConfirm from './variableDeleteConfirm.js'
 
     export default {
         name: 'TabGlobalVariables',
@@ -248,6 +249,7 @@
             NoData,
             QuickOperateVariable
         },
+        mixins: [variableDeleteConfirm],
         props: {
             common: [String, Number],
             isViewMode: {
@@ -567,6 +569,10 @@
                     this.$emit('onCitedNodeClick', data)
                 }
             },
+            // 删除确认弹窗中的引用详情点击，复用变量列表的跳转逻辑
+            handleCitedNodeClick (data) {
+                this.onCitedNodeClick(data)
+            },
             /**
              * 变量显示勾选
              */
@@ -618,41 +624,13 @@
                 }
             },
             onDeleteVarList () {
-                let title = ''
-                if (this.deleteVarListLen === 1) {
-                    title = i18n.t('确认删除') + i18n.t('全局变量') + `【${this.deleteVarList[0].key}】?`
-                } else {
-                    title = i18n.t('确认删除所选的x个变量？', { num: this.deleteVarListLen })
-                }
-                const h = this.$createElement
-                this.$bkInfo({
-                    subHeader: h('div', { class: 'custom-header' }, [
-                        h('div', {
-                            class: 'custom-header-title',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [title]),
-                        h('div', {
-                            class: 'custom-header-sub-title bk-dialog-header-inner',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [i18n.t('删除变量将导致所有变量引用失效，请及时检查并更新节点配置')])
-                    ]),
-                    extCls: 'dialog-custom-header-title',
-                    maskClose: false,
-                    width: 450,
-                    confirmLoading: true,
-                    cancelText: this.$t('取消'),
-                    confirmFn: async () => {
-                        await this.getVariableCitedData() // 删除变量后更新引用数据
-                        this.deleteVarList.forEach(variableData => {
-                            this.deleteVariable(variableData.key)
-                        })
-                        this.deleteVarList = []
-                        this.$emit('templateDataChanged')
-                    }
+                this.openDeleteVariableConfirm(this.deleteVarList, async () => {
+                    await this.getVariableCitedData() // 删除变量后更新引用数据
+                    this.deleteVarList.forEach(variableData => {
+                        this.deleteVariable(variableData.key)
+                    })
+                    this.deleteVarList = []
+                    this.$emit('templateDataChanged')
                 })
             },
             // 编辑变量后点击保存
