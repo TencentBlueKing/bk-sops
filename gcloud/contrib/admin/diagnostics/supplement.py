@@ -224,8 +224,7 @@ def _close(cases, status, now):
 def close_recovered_cases(batch=None, max_running_seconds=None, now=None):
     """随补充检测同轮收敛，返回 (resolved 数, ignored 数)。
 
-    引擎侧 close_stale_cases 以 heartbeat 恢复为判据，覆盖不到本检测（这里的 root 根本没有进程），
-    且它被 Layer0 扫描开关挡住，因此单独实现。
+    引擎侧 close_stale_cases 只关闭引擎规则产出的类型，不处理本检测的案例，因此单独实现。
     """
     batch = batch if batch is not None else _setting("DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH", DEFAULT_CLOSE_BATCH)
     now = now or timezone.now()
