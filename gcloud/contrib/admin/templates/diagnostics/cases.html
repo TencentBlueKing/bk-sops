@@ -170,6 +170,14 @@
       'expire_stale_schedule', 'replay_callback_data'].map(function (act) {
       return '<button onclick="runAction(' + d.id + ',\'' + act + '\',\'dry_run\')">' + act + ' (dry-run)</button>';
     }).join(' ');
+    var recoveries = (d.recovery_history || []).map(function (r) {
+      return '<li>' + esc(r.created_at) + ' · ' + esc(r.trigger) + '/' + esc(r.mode) + ' · ' + esc(r.status)
+        + (r.operator ? ' · ' + esc(r.operator) : '') + '</li>';
+    }).join('');
+    var replayBtns = d.replayable
+      ? '<p><b>重放:</b> <button onclick="replayCase(' + d.id + ',\'dry_run\')">预览重放</button> '
+        + '<button onclick="replayCase(' + d.id + ',\'apply\')">重放</button></p>'
+      : '';
 
     document.getElementById('drawer-body').innerHTML =
       '<h2>病历 #' + d.id + '</h2>' +
@@ -184,8 +192,10 @@
       '<button onclick="setStatus(' + d.id + ',\'resolved\')">标记已解决</button> ' +
       '<button onclick="setStatus(' + d.id + ',\'ignored\')">标记已忽略</button> ' +
       '<button onclick="setStatus(' + d.id + ',\'open\')">重开</button></p>' +
+      replayBtns +
       '<p><b>诊断/恢复(dry-run):</b><br>' + actionBtns + '</p>' +
       '<div id="result-box"></div>' +
+      '<hr><p><b>重放记录:</b></p><ul>' + (recoveries || '<li class="muted">无</li>') + '</ul>' +
       '<hr><p><b>操作审计:</b></p><ul>' + (audits || '<li class="muted">无</li>') + '</ul>';
   }
 
@@ -211,6 +221,25 @@
     post(SITE_URL + 'admin/diagnostics/cases/action/', { case_id: caseId, action: action, mode: mode }).then(function (body) {
       document.getElementById('result-box').innerHTML =
         '<p><b>' + esc(action) + ' 结果:</b></p><pre>' + esc(JSON.stringify(body, null, 2)) + '</pre>';
+    });
+  }
+
+  function replayCase(caseId, mode, confirmRisk) {
+    if (mode === 'apply' && !confirmRisk && !confirm('确认向引擎重放病历 #' + caseId + ' 推导出的消息?')) return;
+    var payload = { case_id: caseId, action: 'replay_case', mode: mode, confirm_risk: !!confirmRisk };
+    post(SITE_URL + 'admin/diagnostics/cases/action/', payload).then(function (body) {
+      var needConfirm = mode === 'apply' && !confirmRisk && body.data && body.data.requires_risk_confirm;
+      if (needConfirm && confirm('原消息不受门禁保护（引擎门禁 EMIT 未打开，或节点、条件并行网关是被跳过的）：'
+          + '原消息如果只是延迟、之后又到达，会和重放各执行一次。确认已排除队列积压后继续?')) {
+        replayCase(caseId, mode, true);
+        return;
+      }
+      document.getElementById('result-box').innerHTML =
+        '<p><b>replay_case (' + esc(mode) + ') 结果:</b></p><pre>' + esc(JSON.stringify(body, null, 2)) + '</pre>';
+    }).catch(function (err) {
+      document.getElementById('result-box').innerHTML =
+        '<p><b>replay_case (' + esc(mode) + ') 结果:</b></p><pre>'
+        + esc('重放请求失败，请先查看重放记录再决定是否重试：' + String(err)) + '</pre>';
     });
   }
 

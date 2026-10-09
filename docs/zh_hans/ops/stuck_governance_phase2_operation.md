@@ -208,7 +208,7 @@ python manage.py close_recovered_diagnostic_cases
 | `parent_wakeup_lost` | 并行分支全部结束，父进程没被唤醒 | `child_process_id`、`converge_gateway_id` |
 | `child_start_lost` | 子进程已创建，启动消息没被消费 | `parent_process_id` |
 
-`derived_message` 是推导出的"应该被消费却丢失的那条消息"，三期重放单元上线后按它补发。在那之前按现有流程人工处理：`callback_dispatch_lost` 可以用已有的回调重放动作（仍受 `APPLY_ENABLED` 控制），其余类型按证据定位后人工处置。
+`derived_message` 是推导出的"应该被消费却丢失的那条消息"。3.24.21 起可以在控制台对这些案例预览重放、人工重放（见"三期恢复台账与人工重放"）；更早的版本只能按证据定位后人工处置：已有的 `replay_callback_data`、`resend_schedule` 动作在 `apply` 模式下只做预检，不会派发消息。
 
 这些案例由各自的扫描器逐条复核：进程往前走了，或者任务被撤销了，下一轮就会关成 `resolved`，不参与按 root 进展关闭。
 
@@ -248,3 +248,189 @@ M1 规则产出的案例（如 `stalled_no_progress`）在 root 恢复进展、�
 需要真实补扫一段历史区间时，去掉 `--dry-run`、保留 `--start-seconds`：照常立案，但既不读也不写定时扫描的水位，不会让定时扫描跳过任何区间。
 
 回滚：把开关关掉即可；水位表里的记录无害，重新打开时从上次水位继续。
+
+## 三期引擎门禁（P3-2）
+
+需要 `bamboo-pipeline>=3.24.21`（依赖 `bamboo-engine==2.6.9`）。门禁让引擎在执行、调度入口识别并丢弃过期或重复的消息：正常派发的消息在 `headers["fence"]` 里附带令牌，入口按令牌做条件抢占，不符就丢弃。两个开关默认全关，全关时与 3.24.20 行为一致。
+
+| 消息 | 令牌 | 入口校验 |
+| --- | --- | --- |
+| 调度完成后执行下一节点、唤醒父进程、启动子进程 | `from_node`、`from_version` | 进程仍睡在 `from_node`，且该节点的状态版本没变 |
+| 首次轮询、轮询续派 | `schedule_times` | 调度次数没变；锁被占用时沿用原有处理 |
+
+API 触发的执行（启动、继续、重试、跳过等）和回调触发的调度都不带令牌，按原逻辑执行；诊断里原有的 `resend_schedule`、`replay_callback_data` 动作只做预检，不派发消息。P3-3 的案例重放对执行类、轮询类消息附带令牌。
+
+### env 开关速查（P3-2）
+
+| 环境变量 | 默认 | 作用 |
+| --- | --- | --- |
+| `BKAPP_PIPELINE_FENCE_EMIT_ENABLED` | `0` | 正常派发点附带令牌 |
+| `BKAPP_PIPELINE_FENCE_ENFORCE` | `0` | 令牌不符时丢弃消息；关闭时只记日志和指标，照常执行 |
+
+### 上线步骤（P3-2）
+
+1. 发版，两个开关保持关闭。确认**所有**消费引擎队列的 worker 进程都已经是 3.24.21：旧 worker 会把收到的令牌原样传给下一条消息，新旧混跑时会给无关的消息带上错误令牌。
+2. 打开 `BKAPP_PIPELINE_FENCE_EMIT_ENABLED=1`，`ENFORCE` 保持关闭，观察 1～2 周：
+   - 指标 `engine_fence_drop_total{enforced="false"}`，按 `kind`（`execute` / `schedule`）和 `reason`（`version_mismatch` / `process_moved` / `schedule_times_mismatch`）看；
+   - 日志关键字 `[fence]`、`would be dropped`，日志里带 `root_pipeline_id`、`process_id` 或 `schedule_id`、`node_id` 和令牌内容，逐条确认是真的重复或过期消息（同一节点已有另一条消息生效）。
+   - 预期会命中的来源：broker 重复投递；运行时派发消息第一次报错后重发一次（`_retry_once`），而第一次其实已经发出；抢占提交后连接报错、从 `ENTRY` 恢复的消息（记为 `process_moved`）；对轮询节点调用回调接口后，回调触发的调度会增加调度次数，队列里原来那条轮询消息记为 `schedule_times_mismatch`。逐条对上这些来源，出现解释不了的命中时不要进入下一步。
+   - 同时到达的重复轮询消息走锁被占用的原有处理，只记诊断事件 `schedule_lock_conflict`，不计入 `engine_fence_drop_total`。
+   - 日志 `[fence] build fence for process(...) failed, dispatch without fence` 表示唤醒父进程前读库生成令牌失败，这条消息退回不带令牌、照常唤醒，不影响推进；频繁出现时先排查数据库。
+3. 打开 `BKAPP_PIPELINE_FENCE_ENFORCE=1`。之后命中的日志变为 `dropped`，指标标签变为 `enforced="true"`。
+4. 对比开关前后 `engine_execute_pre_process_duration`、`engine_schedule_pre_process_duration` 的 p99，确认入口耗时的增加可以接受。
+
+### 回滚（P3-2）
+
+先关 `ENFORCE`，立即恢复为只记录、不丢弃；需要时再关 `EMIT`，新消息不再带令牌。需要降级到 3.24.20 时先关两个开关；降级期间旧 worker 会把已经发出的令牌继续往下传，所以之后重新升级要从上线步骤 1 重来，在观察模式下至少跑满一个最长的轮询周期再打开 `ENFORCE`。
+
+### 已知限制（P3-2）
+
+- 引擎 celery 任务目前不开 `acks_late`，消息在执行前确认。将来如果开启，worker 崩溃后重投的消息会被当作重复丢弃，而进程已被第一次投递抢占，会留下"已唤醒但没人推进"的进程；开启前必须重新评估门禁。
+- 进程抢占的条件更新已经提交、随后数据库连接才报错时，断点恢复会把同一条消息当作重复丢弃，同样留下已唤醒的空闲进程。这种情况极少见，由三期的静默窗口扫描发现。
+
+## 三期恢复台账与人工重放（P3-3）
+
+需要 `bamboo-pipeline>=3.24.21`（依赖 `bamboo-engine==2.6.9`），新增迁移 `pipeline_diagnostics.0003`（恢复台账表）。
+
+重放针对形态快检和回调水位扫描立的案例：按库内当前状态重新判定形态，推导出丢失的那条消息，附带门禁令牌交给运行时派发。原消息如果只是迟到，两条消息谁先到谁生效，后到的被 P3-2 门禁丢弃。形态已不成立时不重放。
+
+| 类型 | 重放的消息 | 令牌 |
+| --- | --- | --- |
+| `execute_dispatch_lost` | 执行唯一的后继节点 | 已完成节点和它的状态版本 |
+| `parent_wakeup_lost` | 父进程执行汇聚网关 | 父进程当前节点和状态版本 |
+| `child_start_lost` | 子进程执行分支首节点 | 首节点和状态版本（还没有状态时为空） |
+| `poll_dispatch_lost` | 轮询当前调度 | 当前调度次数 |
+| `callback_dispatch_lost` | 按回调数据调度 | 不带，依靠调度入口原有的检查（调度已完成、版本不符、调度锁） |
+
+以下情况不重放，结果里的 `blockers` 给出原因：
+
+| 原因 | 含义 / 处理 |
+| --- | --- |
+| `fence enforce is off` | 执行类、轮询类重放要求 `BKAPP_PIPELINE_FENCE_ENFORCE=1`，否则迟到的原消息会和重放各执行一次 |
+| `fence emit is off, confirm the risk to replay` | `EMIT` 未开时正常派发不带令牌，迟到的原消息会无条件执行；控制台会弹出二次确认，确认已排除队列积压后再重放 |
+| `fence emit is off` | 恢复任务自动预演时 `EMIT` 未开的阻断原因；自动预演没有确认风险这一步，控制台人工重放遇到同样情况给出的是 `fence emit is off, confirm the risk to replay` |
+| `message came from a skip and carries no fence token, confirm the risk to replay` | `execute_dispatch_lost` 的节点、或 `child_start_lost` 父进程所在的条件并行网关是被跳过的（人工跳过，或节点超时策略"强制失败并跳过"）：跳过接口派发的消息不带令牌，即使开了 `ENFORCE`，迟到的原消息也会无条件执行；控制台会弹出二次确认，确认已排除队列积压后再重放 |
+| `message came from a skip and carries no fence token` | 恢复任务自动预演时遇到跳过产生的消息的阻断原因；自动预演没有确认风险这一步，控制台人工重放遇到同样情况给出的是 `message came from a skip and carries no fence token, confirm the risk to replay` |
+| `successor node is not unique` | 后继不唯一，按证据人工处置 |
+| `callback schedule is running` | 回调对应的调度正在进行，继续观察 |
+| `more than one callback was lost on this node` | 同一节点丢失过不止一条回调（按案例命中次数判断，命中超过一次即阻断），按证据人工处置 |
+| `a replay is waiting to settle` | 同一案例的同一消息已派发，距今还不到 `BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS`（默认 180 秒）；过了这个时间不再阻断 |
+| `apply disabled` | 人工重放还受 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 约束 |
+| `dispatch failed` | 运行时派发报错；台账记一行 `blocked`，报错信息在 `detail.error`。先排查报错原因，再决定是否重放 |
+| `shape no longer holds` | 形态已不成立，无需重放 |
+
+### 控制台
+
+案例详情展示最近 20 条重放记录。可重放的类型多出"预览重放""重放"两个按钮：预览只返回推导出的消息和阻断原因，不派发；重放派发后在台账记一行 `dispatched`。两者都写操作审计（案例不存在时不写），类型 `replay_case`。重放遇到需要确认风险的阻断（`EMIT` 未开，或节点、条件并行网关是被跳过的）时，控制台弹出二次确认，确认已排除队列积压后才带上确认重新提交。已有的 `replay_callback_data`、`resend_schedule` 等动作保持原样。
+
+控制台返回 `replay_case raised, check recovery history before retrying: …`，或者显示"重放请求失败，请先查看重放记录再决定是否重试："时，重放结果未知：消息可能已经派发，台账或操作审计里却可能没有对应记录。重试前先看案例的重放记录，再看节点是否已经往前走；标准运维日志关键字 `[diagnostics] replay_case raised`。
+
+### 恢复任务
+
+恢复任务每分钟一轮（redis 单例锁，队列 `task_data_clean`），P3-3 只预演、不重放：
+
+1. 复核到期的记录：记录满 `BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS`（默认 180 秒）后再判定一次形态，`dispatched` 改为 `applied`（形态已解除、根流程仍在运行）、`obsolete`（形态已解除，但根流程已结束、撤销或暂停；或者案例已被删除）或 `ineffective`（形态仍成立，轮询类还要求调度次数没变；回调类在回调仍待消费或调度仍在进行时都算仍卡着）；预演和阻断记录只把形态是否仍成立写进 `detail.settled_holds`，案例已被删除的不写。复核只由恢复任务做，人工重放的记录也一样：`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 关闭时，人工重放的记录会一直停在 `dispatched`。
+2. 检查未关闭的可重放案例（每轮最多 200 个，先看最新的）：同一案例同一消息只记一行 `previewed`（可以重放，没有阻断）或 `blocked`（带阻断原因）；形态已不成立的只计数。
+
+台账与操作审计的保留期相同（365 天），由已有的 `cleanup_diagnostics` 周期任务清理。
+
+### env 开关速查（P3-3）
+
+| 环境变量 | 默认 | 作用 |
+| --- | --- | --- |
+| `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` | `0` | 恢复任务（复核与预演） |
+| `BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS` | `180` | 派发后多久复核；要长于执行、调度消息正常排队和处理的时长 |
+| `BKAPP_DIAGNOSTICS_RECOVERY_CRON` | `* * * * *` | 恢复任务周期 |
+
+`BKAPP_PIPELINE_FENCE_EMIT_ENABLED`、`BKAPP_PIPELINE_FENCE_ENFORCE`、`BKAPP_DIAGNOSTICS_APPLY_ENABLED`、`BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS` 要在 `default` 和 `pipeline` 模块设成一样的值（或者直接设成应用级环境变量）：人工重放在 `default` 模块的 web 进程里检查这些开关和收敛窗口，令牌却由 `pipeline` 模块的引擎 worker 校验，恢复任务也跑在 `pipeline` 模块。恢复任务自己的两个变量则各只在一个模块生效：`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 由 `pipeline` 模块消费 `task_data_clean` 队列的 worker 在任务运行时读取，`BKAPP_DIAGNOSTICS_RECOVERY_CRON` 由 `default` 模块的 celery beat 在加载任务时读取、用来排周期；只设在另一个模块上不会报错，但也不会生效，所以这两个也直接设成应用级环境变量。
+
+### 上线步骤（P3-3）
+
+1. 发版并执行迁移，开关保持关闭。
+2. 打开 `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED=1`，观察几天。日志关键字 `[pipeline_diagnostics_recovery]`；在 webconsole 查看预演报告（只读）：
+
+   ```bash
+   python manage.py diagnostics_recovery_report --hours 24
+   ```
+
+   输出的 `types` 下按类型分组：`preview` 是预演结果分布，`blockers` 是阻断原因分布，`settled.healed` / `settled.holds` 是预演后不重放也自愈 / 仍然卡住的条数，`self_heal_ratio` 是自愈比例，`apply` 是人工重放记录的状态分布。`settled` 和 `self_heal_ratio` 只统计推导出了消息、复核时案例还在的预演记录；同一案例同一消息只在第一次看到时记一行，所以 `blockers` 反映的是第一次看到时的阻断原因；预演记录复核前被人工重放修好的也算自愈，开始人工重放后自愈比例只是上限。自愈比例高的类型说明检测阈值偏短，先调对应的检测阈值，再考虑自动重放：`execute_dispatch_lost`、`parent_wakeup_lost`、`child_start_lost` 和 `signature=S2` 的 `poll_dispatch_lost` 看 `BKAPP_DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS`，`signature=S3` 的看 `BKAPP_DIAGNOSTICS_SIGNATURE_SLOW_THRESHOLD_SECONDS`，`callback_dispatch_lost` 看 `BKAPP_DIAGNOSTICS_CALLBACK_CONFIRM_SECONDS`。
+3. 超管在控制台对个别案例先"预览重放"，核对推导出的消息与证据一致后再"重放"。复核后看记录状态：`applied` 表示已恢复推进；`ineffective` 表示重放后仍卡住，按证据人工处置。`BKAPP_DIAGNOSTICS_APPLY_ENABLED` 同时放开控制台其他写动作的 `apply` 模式，打开前确认操作人范围，或只在需要时临时打开。
+4. 指标 `pipeline_diagnostics_recovery_total{stuck_type, trigger, result, hostname}`：`result` 为 `dispatched`、`blocked`（派发报错）、`applied`、`obsolete`、`ineffective`。
+
+回滚：关掉 `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 即停止复核和预演，之后人工重放的记录也不再复核、停在 `dispatched`；人工重放由 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 控制。台账记录无害，可以保留。
+
+## 三期自动重放灰度（P3-4）
+
+需要 `bamboo-pipeline>=3.24.21`（依赖 `bamboo-engine==2.6.9`），P3-4 本身没有新迁移。
+
+恢复任务在 P3-3 的基础上按开关自动重放，所以恢复任务本身要先打开（`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED=1`）。在此基础上，以下三个条件同时满足才自动重放，否则仍然只预演：
+
+1. `BKAPP_DIAGNOSTICS_RECOVERY_MODE=apply`；
+2. 案例类型在 `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` 里；
+3. 根流程所属项目在 `BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS` 里（逗号分隔的项目 ID，空表示不放开，`*` 表示全部；查不到对应任务、任务已删除或任务没有所属项目的根流程不放开）。
+
+自动重放推导消息、其余阻断条件都与人工重放相同，只有两处不同：一是人工重放可以确认风险后继续的情况，自动重放一律阻断，在台账记一行 `blocked`：执行类、轮询类要求 `BKAPP_PIPELINE_FENCE_EMIT_ENABLED=1` 与 `BKAPP_PIPELINE_FENCE_ENFORCE=1` 都已打开，否则原因为 `fence emit is off` 或 `fence enforce is off`（`ENFORCE` 未开时人工重放同样不能继续）；节点或条件并行网关是被跳过的，原因为 `message came from a skip and carries no fence token`。二是不受 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 约束，也不写操作审计，台账记录的 `trigger` 为 `auto`。回调类不依赖门禁。
+
+分两级放开：
+
+| 级别 | `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` |
+| --- | --- |
+| 确定性形态 | `execute_dispatch_lost,parent_wakeup_lost,child_start_lost,callback_dispatch_lost` |
+| 追加轮询 | 上面四个加 `poll_dispatch_lost` |
+
+### 限次、每轮上限与熔断
+
+- **限次**：同一案例同一消息（同一指纹）最多自动重放 3 次，派发报错的那次也算一次；两次之间至少隔一个收敛窗口（`BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS`）。第 3 次派发满一个收敛窗口后（第 3 次派发报错时是紧接着的下一轮），恢复任务如果仍推导出同一条消息、案例仍在自动重放范围内（模式为 `apply`、类型已放开、项目在白名单内，本轮也没有熔断或因 `auto replay skipped` 只预演），且没有其他阻断，就记一行 `manual_required`，打告警日志 `[pipeline_diagnostics_alert] type=recovery_manual_required`，之后不再自动重放这条消息，转人工处置；控制台人工重放不受次数限制，也不计入次数。轮询每推进一次就是新的指纹，次数重新计算。
+- **每轮上限**：每轮最多自动重放 20 个，其余留到下一轮。
+- **熔断**：最近 5 分钟新立案的可重放案例超过 50 个时，本轮只预演，打告警日志 `[pipeline_diagnostics_alert] type=recovery_breaker_open`，指标 `pipeline_diagnostics_recovery_breaker_open_total{hostname}` 加一。这种突增通常说明 MQ 大面积丢消息，先排查 MQ，再在控制台人工重放；熔断不影响人工重放。
+
+两种告警日志都受 `BKAPP_DIAGNOSTICS_ALERT_ENABLED` 控制（默认关闭，要在 `pipeline` 模块打开）；关闭时，转人工和熔断仍会体现在指标 `pipeline_diagnostics_recovery_total{result="manual_required"}`、`pipeline_diagnostics_recovery_breaker_open_total` 和下面恢复任务日志里的计数上，转人工还会出现在预演报告 `auto_apply` 的 `manual_required` 里。
+
+这几个上限使用引擎默认值（Django 配置 `PIPELINE_DIAGNOSTICS_RECOVERY_MAX_ATTEMPTS`、`PIPELINE_DIAGNOSTICS_RECOVERY_MAX_PER_ROUND`、`PIPELINE_DIAGNOSTICS_RECOVERY_BREAKER_WINDOW_SECONDS`、`PIPELINE_DIAGNOSTICS_RECOVERY_BREAKER_THRESHOLD`），bk-sops 不单独提供 env。
+
+恢复任务日志 `[pipeline_diagnostics_recovery] cases=... outcomes=...` 中与自动重放有关的计数：
+
+| 计数 | 含义 |
+| --- | --- |
+| `auto_dispatched` | 已派发 |
+| `auto_failed` | 派发报错（台账记一行 `blocked`，也算一次重放） |
+| `auto_waiting` | 上一次重放还在等复核，或距上一次不到一个收敛窗口 |
+| `auto_deferred` | 超出每轮上限，留到下一轮 |
+| `manual_required` | 本轮用尽次数、转人工 |
+| `auto_exhausted` | 之前已转人工，跳过 |
+| `breaker_open` | 本轮熔断，只预演 |
+
+开关都配了却没有案例被自动重放时，先看恢复任务日志的计数里有没有 `breaker_open`（本轮熔断，只预演），再查日志 `[pipeline_diagnostics_recovery] auto replay skipped`：后面跟 `scope resolver is not configured`（没有配置范围判定函数）、`cannot import <路径>`（范围判定函数导入失败）或 `scope setup failed`（准备本轮范围时出错，例如熔断计数查询失败），出现这些日志的轮次只预演。某个根流程的范围判定报错时日志为 `[pipeline_diagnostics_recovery] scope resolver failed: <root_pipeline_id>`，这个根流程本轮按范围外处理。案例在范围内但被阻断时，台账记一行 `blocked`，原因在台账记录的 `detail.blockers` 和预演报告的 `blockers` 里；放开初期常见的是 `fence emit is off`、`fence enforce is off`（`pipeline` 模块的门禁开关没打开）和 `message came from a skip and carries no fence token`（节点或条件并行网关是被跳过的）。都没有时，核对三个开关是否在 `pipeline` 模块生效、类型名是否拼对（写错的类型名被忽略，不报错）。
+
+预演报告 `diagnostics_recovery_report` 的 `apply` 是人工和自动重放的结果合计，`auto_apply` 是其中自动重放的部分。
+
+### env 开关速查（P3-4）
+
+| 环境变量 | 默认 | 作用 |
+| --- | --- | --- |
+| `BKAPP_DIAGNOSTICS_RECOVERY_MODE` | `preview` | `apply` 时按下面两个开关自动重放 |
+| `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` | 空 | 允许自动重放的类型，逗号分隔 |
+| `BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS` | 空 | 允许自动重放的项目 ID，逗号分隔；`*` 表示全部 |
+
+这三个变量只由 `pipeline` 模块消费 `task_data_clean` 队列的 worker 在恢复任务运行时读取，项目白名单也由这个 worker 里运行的范围判定函数读取，`default` 模块不读取；只设在 `default` 模块上不会报错，但也不会生效，所以直接设成应用级环境变量。
+
+### 上线步骤（P3-4）
+
+1. 前提：P3-3 已只预演观察过，各类型的阻断原因都能解释；门禁 `EMIT`、`ENFORCE` 都已打开；转人工和熔断的告警已接好：在 `pipeline` 模块打开 `BKAPP_DIAGNOSTICS_ALERT_ENABLED`（同时会打开引擎调度锁冲突的告警日志 `type=schedule_lock_conflict`），或者对指标 `pipeline_diagnostics_recovery_total{result="manual_required"}`、`pipeline_diagnostics_recovery_breaker_open_total` 配监控告警。新立案数一直超过熔断阈值时，每轮都会再打一次熔断告警日志、指标也每轮加一，告警规则要去重。
+2. 选一两个项目：`BKAPP_DIAGNOSTICS_RECOVERY_MODE=apply`，`BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` 配确定性形态的四个类型，`BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS` 配这些项目的 ID。
+3. 每天看 `python manage.py diagnostics_recovery_report --hours 24` 的 `auto_apply`：绝大多数应为 `applied`；出现 `ineffective`、`manual_required` 时按证据查原因。同时关注转人工与熔断：告警日志 `type=recovery_manual_required`、`type=recovery_breaker_open`（打开告警时），或上面的指标。
+4. 稳定后逐步扩大项目范围，最后配 `*`。
+5. 轮询阈值和排除列表确认后，在 `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` 追加 `poll_dispatch_lost`。
+
+指标 `pipeline_diagnostics_recovery_total{stuck_type, trigger, result, hostname}` 的 `result` 新增 `manual_required`。
+
+回滚：设 `BKAPP_DIAGNOSTICS_RECOVERY_MODE=preview`（清空 `BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES` 效果相同），恢复任务回到只预演；只要恢复任务保持打开（`BKAPP_DIAGNOSTICS_RECOVERY_ENABLED=1`），已派发的重放照常复核。只清空 `BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS` 也会停止自动重放，但熔断仍每轮计算：新立案数超过阈值时仍累加熔断指标，打开告警时还会打 `recovery_breaker_open` 告警日志，所以不建议用它回滚。直接关掉 `BKAPP_DIAGNOSTICS_RECOVERY_ENABLED` 也会停止自动重放，但同时停止复核，已派发的记录停在 `dispatched`。
+
+### 已知限制（P3-4）
+
+- 范围内的案例派发时不写预演记录，但以下情况仍会在同一案例同一消息第一次看到时记一行预演：熔断或出现 `auto replay skipped` 日志的轮次、范围判定对该根流程报错时、有其他阻断时，以及放开之前。这些预演记录复核前如果已被自动重放修好，也算自愈。所以放开后预演报告的 `self_heal_ratio` 主要反映范围外的案例，而且偏高，只作参考。
+- 熔断按所有项目、所有可重放类型的新立案数计算，不区分是否在白名单内。
+- 范围内但有阻断原因（如后继不唯一、同一节点丢失多条回调）的案例只在台账记一行 `blocked`，不单独告警，需要在控制台或报告的 `blockers` 里查看。
+- 每轮先处理最新发现的案例；可派发的超过 20 个时，较早的案例顺延到下一轮。
+- `execute_dispatch_lost` 的节点、或 `child_start_lost` 父进程所在的条件并行网关是被跳过的（人工跳过，或节点超时策略"强制失败并跳过"），这类案例不自动重放：跳过接口派发的消息不带令牌，原消息晚到时会绕过门禁再执行一次。它们在台账记一行 `blocked`，原因 `message came from a skip and carries no fence token`；确认已排除队列积压后，在控制台人工重放（需要确认风险）。
+- 并行分支结束时如果生成唤醒父进程的令牌失败（引擎日志 `[fence] build fence for process(...) failed, dispatch without fence`），这条唤醒消息不带令牌；原消息如果只是延迟，之后对这个 `parent_wakeup_lost` 案例的自动重放会和它各执行一次。这种情况很少见，出现时按这个日志关键字排查。

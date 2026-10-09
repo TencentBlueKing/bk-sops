@@ -10,7 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_GET, require_POST
 
-from gcloud.contrib.admin.diagnostics.actions import run_task_action
+from gcloud.contrib.admin.diagnostics.actions import REPLAY_CASE_ACTION, run_case_replay, run_task_action
 from gcloud.contrib.admin.diagnostics.context import get_task_context
 from gcloud.contrib.admin.diagnostics.task_mapping import (
     resolve_node_name,
@@ -79,6 +79,35 @@ def _serialize_audit(audit):
         "risk_level": audit.risk_level,
         "result": audit.result,
         "created_at": audit.created_at.strftime("%Y-%m-%d %H:%M:%S") if audit.created_at else None,
+    }
+
+
+def _recovery_support():
+    """(DiagnosticRecovery, 可重放类型)；bamboo-pipeline<3.24.21 没有恢复台账时返回 (None, ())。"""
+    try:
+        from pipeline.contrib.diagnostics.case_types import REPLAYABLE_CASE_TYPES
+        from pipeline.contrib.diagnostics.models import DiagnosticRecovery
+
+        return DiagnosticRecovery, REPLAYABLE_CASE_TYPES
+    except ImportError:
+        return None, ()
+
+
+def _format_time(value):
+    return value.strftime("%Y-%m-%d %H:%M:%S") if value else None
+
+
+def _serialize_recovery(recovery):
+    return {
+        "id": recovery.id,
+        "trigger": recovery.trigger,
+        "mode": recovery.mode,
+        "status": recovery.status,
+        "operator": recovery.operator,
+        "message": recovery.message,
+        "detail": recovery.detail,
+        "created_at": _format_time(recovery.created_at),
+        "settled_at": _format_time(recovery.settled_at),
     }
 
 
@@ -226,6 +255,13 @@ def diagnostic_case_detail(request):
         detail["audit_history"] = [_serialize_audit(a) for a in audits]
     else:
         detail["audit_history"] = []
+    recovery_model, replayable_types = _recovery_support()
+    detail["replayable"] = case.stuck_type in replayable_types
+    if recovery_model is not None:
+        recoveries = recovery_model.objects.filter(case_id=case.id).order_by("-id")[:20]
+        detail["recovery_history"] = [_serialize_recovery(r) for r in recoveries]
+    else:
+        detail["recovery_history"] = []
     return JsonResponse({"result": True, "data": detail})
 
 
@@ -270,6 +306,10 @@ def diagnostic_case_action(request):
     case = model.objects.filter(id=case_id).first()
     if case is None:
         return JsonResponse({"result": False, "message": "case not found"})
+
+    if action == REPLAY_CASE_ACTION:
+        confirm_risk = body.get("confirm_risk") is True
+        return JsonResponse(run_case_replay(case.id, request.user.username, mode=mode, confirm_risk=confirm_risk))
 
     evidence = case.evidence or {}
     related = case.related_objects or {}

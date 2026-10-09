@@ -100,6 +100,44 @@ class CaseDetailEnrichmentTest(TestCase):
         self.assertEqual(data["node_name"], "HTTP 请求")
         self.assertEqual(len(data["audit_history"]), 1)
         self.assertEqual(data["audit_history"][0]["operation_type"], "set_status:resolved")
+        self.assertFalse(data["replayable"])
+        self.assertEqual(data["recovery_history"], [])
+
+    def test_detail_lists_recoveries_of_replayable_case(self):
+        from pipeline.contrib.diagnostics.models import DiagnosticRecovery
+
+        from gcloud.contrib.admin.views import diagnostics
+
+        case = self.DiagnosticCase.objects.create(
+            root_pipeline_id="root-1", node_id="n2", stuck_type="execute_dispatch_lost", evidence={}
+        )
+        DiagnosticRecovery.objects.create(
+            case=case,
+            root_pipeline_id="root-1",
+            node_id="n2",
+            stuck_type="execute_dispatch_lost",
+            fingerprint="execute_dispatch_lost:1:n2:v1",
+            message={"kind": "execute"},
+            trigger="manual",
+            mode="apply",
+            status="dispatched",
+            operator="admin",
+        )
+        with mock.patch(_VIEW_INTERCEPTOR), mock.patch(
+            "gcloud.contrib.admin.views.diagnostics.resolve_task_summary", return_value=None
+        ), mock.patch("gcloud.contrib.admin.views.diagnostics.resolve_node_name", return_value=""):
+            resp = diagnostics.diagnostic_case_detail(
+                _superuser_get("/admin/diagnostics/cases/detail/", case_id=case.id)
+            )
+
+        data = json.loads(resp.content)["data"]
+        self.assertTrue(data["replayable"])
+        [recovery] = data["recovery_history"]
+        self.assertEqual(
+            (recovery["trigger"], recovery["mode"], recovery["status"], recovery["operator"]),
+            ("manual", "apply", "dispatched", "admin"),
+        )
+        self.assertIsNone(recovery["settled_at"])
 
 
 @skipUnless(DIAGNOSTICS_AVAILABLE, "pipeline.contrib.diagnostics unavailable (requires bamboo-pipeline>=3.24.13)")
@@ -145,6 +183,38 @@ class CaseActionViewTest(TestCase):
         self.assertEqual(captured["schedule_id"], 555)
         self.assertEqual(captured["root_pipeline_id"], "root-1")
 
+    def test_replay_case_routes_to_case_replay(self):
+        from gcloud.contrib.admin.views import diagnostics
+
+        with mock.patch(_EDIT_INTERCEPTOR), mock.patch(
+            "gcloud.contrib.admin.views.diagnostics.run_case_replay", return_value={"result": True}
+        ) as m_replay, mock.patch("gcloud.contrib.admin.views.diagnostics.run_task_action") as m_task:
+            resp = diagnostics.diagnostic_case_action(
+                _superuser_post(
+                    "/admin/diagnostics/cases/action/",
+                    {"case_id": self.case.id, "action": "replay_case", "mode": "apply", "confirm_risk": True},
+                )
+            )
+
+        self.assertTrue(json.loads(resp.content)["result"])
+        m_replay.assert_called_once_with(self.case.id, "admin", mode="apply", confirm_risk=True)
+        m_task.assert_not_called()
+
+    def test_replay_case_reaches_engine(self):
+        from pipeline.contrib.diagnostics.models import DiagnosticOperationAudit
+
+        from gcloud.contrib.admin.views import diagnostics
+
+        with mock.patch(_EDIT_INTERCEPTOR):
+            resp = diagnostics.diagnostic_case_action(
+                _superuser_post("/admin/diagnostics/cases/action/", {"case_id": self.case.id, "action": "replay_case"})
+            )
+
+        body = json.loads(resp.content)
+        self.assertEqual((body["result"], body["blockers"]), (False, ["stuck type is not replayable"]))
+        audit = DiagnosticOperationAudit.objects.get(case_id=self.case.id)
+        self.assertEqual((audit.operation_type, audit.mode), ("replay_case", "dry_run"))
+
     def test_action_missing_case(self):
         from gcloud.contrib.admin.views import diagnostics
 
@@ -174,6 +244,7 @@ class DiagnosticBoardViewTest(TestCase):
             resp = diagnostics.diagnostic_board(_superuser_get("/admin/diagnostics/board/"))
         self.assertEqual(resp.status_code, 200)
         self.assertIn(b"diagnostics-board", resp.content)
+        self.assertIn(b"replayCase", resp.content)
 
     def test_board_forbidden_for_non_superuser(self):
         from gcloud.contrib.admin.views import diagnostics

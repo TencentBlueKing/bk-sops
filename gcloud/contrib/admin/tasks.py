@@ -34,10 +34,17 @@ try:
 except ImportError:  # pragma: no cover - depends on engine version
     scan_callbacks = scan_signatures = scan_silence_windows = None
 
+# 恢复任务随 bamboo-pipeline>=3.24.21 提供；旧版本下为 no-op。
+try:
+    from pipeline.contrib.diagnostics.recovery_runner import run_recovery
+except ImportError:  # pragma: no cover - depends on engine version
+    run_recovery = None
+
 _SCAN_LOCK_KEY = "diagnostics_scan_lock"
 _SCAN_LOCK_EXPIRE = 30 * 60
 _SIGNATURE_LOCK_KEY = "diagnostics_signature_scan_lock"
 _CALLBACK_LOCK_KEY = "diagnostics_callback_scan_lock"
+_RECOVERY_LOCK_KEY = "diagnostics_recovery_lock"
 _FAST_SCAN_LOCK_EXPIRE = 5 * 60
 
 
@@ -148,9 +155,20 @@ def scan_stuck_callbacks():
     )
 
 
+@periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_RECOVERY_CRON)), ignore_result=True, queue="task_data_clean")
+def run_stuck_recovery():
+    """复核已派发的重放，按开关自动重放范围内的可重放案例，其余只预演。"""
+    _run_singleflight(
+        "run_stuck_recovery",
+        _RECOVERY_LOCK_KEY,
+        settings.PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED,
+        run_recovery,
+    )
+
+
 @periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_CLEANUP_CRON)), ignore_result=True, queue="task_data_clean")
 def cleanup_diagnostics():
-    """按保留期清理诊断事件/案例/审计（复用引擎侧 cleanup_diagnostics 命令）。"""
+    """按保留期清理诊断事件/案例/审计/恢复台账（复用引擎侧 cleanup_diagnostics 命令）。"""
     if scan_stalled_roots is None:
         return
 

@@ -3,6 +3,10 @@
 Task-level action orchestration for the generic pipeline diagnostics operations.
 """
 
+import logging
+
+logger = logging.getLogger("root")
+
 ACTION_OPERATION_NAMES = {
     "inspect_ack_converge": "inspect_ack_converge",
     "inspect_node_runtime_readiness": "inspect_node_runtime_readiness",
@@ -13,6 +17,7 @@ ACTION_OPERATION_NAMES = {
 
 SCHEDULE_ACTIONS = {"resend_schedule", "expire_stale_schedule"}
 INSPECT_ACTIONS = {"inspect_ack_converge", "inspect_node_runtime_readiness"}
+REPLAY_CASE_ACTION = "replay_case"
 
 
 def _blocked(message):
@@ -61,4 +66,18 @@ def run_task_action(task_id, node_id, action, operator, mode="dry_run", **kwargs
         return _blocked("pipeline diagnostics is unavailable: {}".format(err))
 
     result = operation(*operation_args, operator=operator, mode=mode)
+    return _operation_result_to_dict(result)
+
+
+def run_case_replay(case_id, operator, mode="dry_run", confirm_risk=False):
+    try:
+        from pipeline.contrib.diagnostics.recovery import replay_case
+    except ImportError as err:
+        return _blocked("pipeline diagnostics is unavailable: {}".format(err))
+
+    try:
+        result = replay_case(case_id, operator, mode=mode, confirm_risk=confirm_risk)
+    except Exception as err:
+        logger.exception("[diagnostics] replay_case raised: case=%s mode=%s", case_id, mode)
+        return _blocked("replay_case raised, check recovery history before retrying: {}".format(err))
     return _operation_result_to_dict(result)

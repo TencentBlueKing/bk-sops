@@ -197,3 +197,40 @@ class CallbackTaskTest(TestCase):
         ) as m_lock:
             tasks.scan_stuck_callbacks()
         m_lock.assert_not_called()
+
+
+class RecoveryTaskTest(TestCase):
+    @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED=True)
+    def test_runs_when_enabled(self):
+        from django.conf import settings
+
+        with mock.patch.object(tasks, "run_recovery", return_value=None) as m_run:
+            tasks.run_stuck_recovery()
+        self.assertTrue(m_run.called)
+        self.assertIsNone(settings.redis_inst.get(tasks._RECOVERY_LOCK_KEY))
+
+    @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED=False)
+    def test_noop_when_disabled(self):
+        with mock.patch.object(tasks, "run_recovery") as m_run, mock.patch.object(
+            tasks, "_acquire_singleflight"
+        ) as m_lock:
+            tasks.run_stuck_recovery()
+        self.assertFalse(m_run.called)
+        m_lock.assert_not_called()
+
+    @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED=True)
+    def test_skips_when_lock_busy(self):
+        from django.conf import settings
+
+        settings.redis_inst.set(name=tasks._RECOVERY_LOCK_KEY, value="other", nx=True, ex=60)
+        with mock.patch.object(tasks, "run_recovery") as m_run:
+            tasks.run_stuck_recovery()
+        self.assertFalse(m_run.called)
+
+    @override_settings(PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED=True)
+    def test_noop_on_old_engine(self):
+        with mock.patch.object(tasks, "run_recovery", None), mock.patch.object(
+            tasks, "_acquire_singleflight"
+        ) as m_lock:
+            tasks.run_stuck_recovery()
+        m_lock.assert_not_called()
