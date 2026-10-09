@@ -1,29 +1,28 @@
 from rest_framework import serializers
 
-from gcloud.iam_auth.api_v4.serializers import StrictSerializer
 from gcloud.iam_auth.conf import RESOURCE_TYPE_IDS
 
 
-class ParentSerializer(StrictSerializer):
+class ParentSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=["project"])
     id = serializers.CharField(allow_blank=False)
 
 
-class ListFilterSerializer(StrictSerializer):
+class ListFilterSerializer(serializers.Serializer):
     parent = ParentSerializer(required=False)
     keyword = serializers.CharField(required=False, allow_blank=True, max_length=128)
 
 
-class FetchFilterSerializer(StrictSerializer):
+class FetchFilterSerializer(serializers.Serializer):
     ids = serializers.ListField(child=serializers.CharField(allow_blank=False), allow_empty=False, max_length=1000)
 
 
-class PageSerializer(StrictSerializer):
+class PageSerializer(serializers.Serializer):
     page = serializers.IntegerField(min_value=1)
     page_size = serializers.IntegerField(min_value=1, max_value=1000)
 
 
-class CallbackRequestSerializer(StrictSerializer):
+class CallbackRequestSerializer(serializers.Serializer):
     type = serializers.ChoiceField(choices=RESOURCE_TYPE_IDS)
     method = serializers.ChoiceField(choices=["list_instance", "fetch_instance_info"])
     filter = serializers.DictField(required=False)
