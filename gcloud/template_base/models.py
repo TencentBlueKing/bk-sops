@@ -85,7 +85,8 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         except SubprocessExpiredError as e:
             raise FlowExportError(str(e))
 
-        all_template_ids = set(pipeline_temp_data["template"].keys())
+        # 同一流程模板可能因为引用了多个版本而以不同的导出键存在，这里需要取回其原始模板 ID
+        all_template_ids = {template_info["template_id"] for template_info in pipeline_temp_data["template"].values()}
         additional_template_id = all_template_ids - set(pipeline_template_id_list)
         subprocess_temp_list = list(
             self.filter(pipeline_template_id__in=additional_template_id).select_related("pipeline_template").values()
