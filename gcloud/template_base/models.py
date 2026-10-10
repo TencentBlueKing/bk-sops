@@ -10,7 +10,9 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import copy
 import json
+import logging
 from collections import defaultdict
 
 from django.apps import apps
@@ -33,6 +35,9 @@ from pipeline_web.core.abstract import NodeAttr
 from pipeline_web.core.models import NodeInTemplate
 from pipeline_web.parser.clean import PipelineWebTreeCleaner
 from pipeline_web.wrapper import PipelineTemplateWebWrapper
+
+
+logger = logging.getLogger("root")
 
 
 class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin):
@@ -85,7 +90,8 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         except SubprocessExpiredError as e:
             raise FlowExportError(str(e))
 
-        all_template_ids = set(pipeline_temp_data["template"].keys())
+        # 同一流程模板可能因为引用了多个版本而以不同的导出键存在，这里需要取回其原始模板 ID
+        all_template_ids = {template_info["template_id"] for template_info in pipeline_temp_data["template"].values()}
         additional_template_id = all_template_ids - set(pipeline_template_id_list)
         subprocess_temp_list = list(
             self.filter(pipeline_template_id__in=additional_template_id).select_related("pipeline_template").values()
@@ -191,13 +197,53 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
         )
         old_id_to_new_id = id_map[PipelineTemplateWebWrapper.ID_MAP_KEY]
 
+        # 多版本子流程兼容：同一子流程被多个父流程按不同版本引用时，pipeline 层会为其生成两个导出键
+        # （原始 template_id 与版本专属 uniqid），但业务层按 template_id 去重只会生成一条业务记录，
+        # 导致其中一个版本的 PipelineTemplate 在导入后成为孤儿（无对应业务记录），
+        # 后续展示/创建任务走 replace_template_id(reverse=True) 时会 .get() 抛 DoesNotExist 而 500。
+        # 这里为孤儿 PipelineTemplate 补齐对应的业务记录（拷贝同原始 template_id 的兄弟业务记录）。
+        pipeline_export_keys = set(template_data["pipeline_template_data"]["template"].keys())
+        business_export_keys = {td["pipeline_template_str_id"] for td in template.values()}
+        orphan_export_keys = pipeline_export_keys - business_export_keys
+        if orphan_export_keys:
+            source_by_original_id = {}
+            for td in template.values():
+                source_by_original_id.setdefault(td["pipeline_template_id"], td)
+            for orphan_key in orphan_export_keys:
+                pipeline_info = template_data["pipeline_template_data"]["template"][orphan_key]
+                source = source_by_original_id.get(pipeline_info["template_id"])
+                if source is None:
+                    # 正常情况下孤儿导出键必然能通过 template_id 找到同源的兄弟业务记录；找不到说明导出数据
+                    # 不完整或已损坏。此处不做静默跳过（会得到不完整的导入结果，后续展示/执行时再报 500），
+                    # 直接返回明确错误给前端，便于定位问题。
+                    message = _(
+                        "流程导入失败: 导出数据中的子流程(export_key={export_key}, template_id={template_id})"
+                        "找不到对应的原始业务记录, 导出文件可能已损坏或不完整 | _perform_import"
+                    ).format(export_key=orphan_key, template_id=pipeline_info["template_id"])
+                    logger.error(message)
+                    return {
+                        "result": False,
+                        "message": message,
+                        "data": None,
+                        "code": err_code.UNKNOWN_ERROR.code,
+                    }
+                orphan_dict = copy.deepcopy(source)
+                orphan_dict["pipeline_template_str_id"] = orphan_key
+                template[orphan_key] = orphan_dict
+                # 让导入确认/结果展示也能感知到这条新流程
+                check_info["new_template"].append(
+                    {"id": orphan_key, "name": pipeline_info.get("name", source.get("name", ""))}
+                )
+
         new_objects = []
         new_objects_template_ids = set()
 
         # find templates which had been deleted
         if override:
+            # template 的键可能包含非数字的导出键（多版本子流程孤儿），过滤掉避免 id__in 查询报错
+            numeric_keys = [k for k in template.keys() if str(k).isdigit()]
             new_objects_template_ids = set(
-                self.model.objects.filter(id__in=list(template.keys()), is_deleted=True).values_list(
+                self.model.objects.filter(id__in=numeric_keys, is_deleted=True).values_list(
                     "pipeline_template_id", flat=True
                 )
             )
@@ -209,13 +255,18 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             template_dict["pipeline_template_id"] = new_pipeline_template_id
             defaults = defaults_getter(template_dict)
             # use update or create to avoid id conflict
-            if override:
+            # 孤儿导出键为非数字，无法作为业务主键复用，覆盖模式下也无既有业务记录可复用，直接新建
+            if override and str(tid).isdigit():
                 obj, created = self.update_or_create(id=tid, defaults=defaults)
                 if created:
                     new_objects_template_ids.add(template_dict["pipeline_template_id"])
             else:
-                new_objects.append(self.model(**defaults))
-                new_objects_template_ids.add(template_dict["pipeline_template_id"])
+                if override:
+                    self.model.objects.create(**defaults)
+                    new_objects_template_ids.add(template_dict["pipeline_template_id"])
+                else:
+                    new_objects.append(self.model(**defaults))
+                    new_objects_template_ids.add(template_dict["pipeline_template_id"])
 
         # update creator when templates are created
         PipelineTemplate.objects.filter(template_id__in=new_objects_template_ids).update(creator=operator)

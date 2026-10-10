@@ -27,7 +27,16 @@ class MockArgs(object):
     def __init__(self):
         self.template_data = {
             "exporter_version": 1,
-            "pipeline_template_data": {},
+            # 真实导出数据中 pipeline_template_data 一定包含 template（导出键 -> 模板信息），
+            # 普通场景下导出键即模板原始 pipeline_template_id，与业务记录一一对应，不存在孤儿记录
+            "pipeline_template_data": {
+                "template": {
+                    "nb35afe8b9f335cb9f36f6c55906fcd9": {
+                        "template_id": "nb35afe8b9f335cb9f36f6c55906fcd9",
+                        "name": "定时器1",
+                    }
+                }
+            },
             "template": {
                 "3": {
                     "category": "Default",
