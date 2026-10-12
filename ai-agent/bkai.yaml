@@ -11,5 +11,4 @@ resources:
   - skills/bk-sops-analyze-task-error
   - skills/bk-sops-script-audit
   - skills/bk-sops-summarize-task
-  - knowledgebases/bk_sops_faq
-  - knowledgebases/bk_sops_product
+  # knowledgebases/ 仅保留参考文档，不参与自动同步，避免镜像导入覆盖已有线上文档。
