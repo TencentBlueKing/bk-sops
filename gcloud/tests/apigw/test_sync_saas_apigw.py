@@ -50,6 +50,7 @@ class SyncSaasApigwTest(unittest.TestCase):
                 "sync_resource_docs_by_archive",
                 "create_version_and_release_apigw",
                 "grant_apigw_permissions",
+                "sync_apigw_stage_mcp_servers",
                 "fetch_apigw_public_key",
             ],
         )
@@ -84,12 +85,12 @@ class SyncSaasApigwTest(unittest.TestCase):
     def test_required_gateway_key_failure_still_stops_sync(self):
         for error in (SystemExit(1), CommandError("public key missing"), RuntimeError("request failed")):
             with self.subTest(error=type(error).__name__):
-                with patch.object(sync_saas_apigw, "call_command", side_effect=[None] * 6 + [error]) as call_command:
+                with patch.object(sync_saas_apigw, "call_command", side_effect=[None] * 7 + [error]) as call_command:
                     with self.assertRaises(type(error)) as raised:
                         self.command.handle()
                 self.assertIs(raised.exception, error)
                 self.assertEqual(call_command.call_args.args[0], "fetch_apigw_public_key")
-                self.assertEqual(call_command.call_count, 7)
+                self.assertEqual(call_command.call_count, 8)
 
     @patch("gcloud.conf.settings.ESB_GET_CLIENT_BY_USER")
     def test_application_startup_does_not_fetch_esb_public_key(self, esb_client):
@@ -109,6 +110,7 @@ class PreReleaseTest(unittest.TestCase):
         "sync_saas_apigw",
         "register_bksops_notice",
         "sync_webhook_events",
+        "sync_agent",
     ]
 
     def run_pre_release(self, fail_command=""):
