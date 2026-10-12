@@ -23,6 +23,7 @@ from gcloud.iam_auth.exceptions import IAMPermissionDenied, IAMResourceNotFound
 from gcloud.iam_auth.resource_api_v4.providers.project import ProjectResourceProvider
 from gcloud.iam_auth.scope_resolver import ScopeResolver
 from gcloud.iam_auth.types import AuthorizedScope
+from gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view import FunctionViewInterceptor
 from gcloud.iam_auth.view_interceptors.taskflow import BatchStatusViewInterceptor
 from gcloud.taskflow3.models import TaskFlowInstance
 
@@ -108,6 +109,75 @@ class TenantBoundaryDatabaseTest(TestCase):
         view.request = request_for("t1")
         self.assertEqual(list(view.get_queryset().values_list("id", flat=True)), [own.id])
 
+    def test_f07_function_task_exact_filter_limits_scope_candidates(self):
+        task = TaskFlowInstance.objects.create(project=self.project_t1, current_flow="func_claim")
+        FunctionTask.objects.create(task=task, creator="alice")
+        other_task = TaskFlowInstance.objects.create(project=self.project_t2, current_flow="func_claim")
+        FunctionTask.objects.create(task=other_task, creator="bob")
+        view = FunctionTaskViewSet()
+        view.action = "list"
+        view.request = request_for("t1")
+        view.request.query_params = {"task_id": str(task.id), "task__project__id": str(self.project_t1.id)}
+        scopes = {
+            IAMMeta.FUNCTION_TASK_VIEW_ACTION: AuthorizedScope(
+                values={IAMMeta.PROJECT_RESOURCE: {str(self.project_t1.id)}}
+            ),
+            IAMMeta.TASK_VIEW_ACTION: AuthorizedScope(values={IAMMeta.TASK_RESOURCE: {str(task.id)}}),
+        }
+        with mock.patch(
+            "gcloud.core.apis.drf.viewsets.function_task.ScopeResolver.authorized_scope",
+            side_effect=lambda username, tenant_id, action_id, **kwargs: scopes[action_id],
+        ) as authorize:
+            self.assertEqual(list(view.get_queryset().values_list("task_id", flat=True)), [task.id])
+
+        task_call = authorize.call_args_list[1]
+        self.assertEqual(task_call.kwargs["project_id"], str(self.project_t1.id))
+        self.assertEqual(list(task_call.kwargs["resource_ids"]), [task.id])
+
+    def test_f07_gateway_list_passes_validated_project_and_task_candidates(self):
+        request = request_for("t1")
+        request.is_trust = False
+        request.GET = {"project_id": str(self.project_t1.id), "task_id_in": "11,12"}
+        scopes = {
+            IAMMeta.FUNCTION_TASK_VIEW_ACTION: AuthorizedScope(
+                values={IAMMeta.PROJECT_RESOURCE: {str(self.project_t1.id)}}
+            ),
+            IAMMeta.TASK_VIEW_ACTION: AuthorizedScope(values={IAMMeta.TASK_RESOURCE: {"11"}}),
+        }
+        with mock.patch(
+            "gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view.ScopeResolver.authorized_scope",
+            side_effect=lambda username, tenant_id, action_id, **kwargs: scopes[action_id],
+        ) as authorize:
+            FunctionViewInterceptor().process(request)
+
+        self.assertEqual(request._function_task_ids, frozenset({"11"}))
+        self.assertEqual(
+            authorize.call_args_list[1].kwargs,
+            {"project_id": self.project_t1.id, "resource_ids": ["11", "12"]},
+        )
+
+    def test_f07_gateway_function_task_ids_only_probe_tenant_local_tasks(self):
+        task = TaskFlowInstance.objects.create(project=self.project_t1, current_flow="func_claim")
+        selected = FunctionTask.objects.create(task=task, creator="alice")
+        foreign_task = TaskFlowInstance.objects.create(project=self.project_t2, current_flow="func_claim")
+        foreign = FunctionTask.objects.create(task=foreign_task, creator="bob")
+        request = request_for("t1")
+        request.is_trust = False
+        request.GET = {"id_in": "{},{}".format(selected.id, foreign.id)}
+        scopes = {
+            IAMMeta.FUNCTION_TASK_VIEW_ACTION: AuthorizedScope(
+                values={IAMMeta.PROJECT_RESOURCE: {str(self.project_t1.id)}}
+            ),
+            IAMMeta.TASK_VIEW_ACTION: AuthorizedScope(values={IAMMeta.TASK_RESOURCE: {str(task.id)}}),
+        }
+        with mock.patch(
+            "gcloud.iam_auth.view_interceptors.apigw.functionalization_task_view.ScopeResolver.authorized_scope",
+            side_effect=lambda username, tenant_id, action_id, **kwargs: scopes[action_id],
+        ) as authorize:
+            FunctionViewInterceptor().process(request)
+
+        self.assertEqual(list(authorize.call_args_list[1].kwargs["resource_ids"]), [task.id])
+
     def test_f07_function_task_list_intersects_project_task_and_tenant_scopes(self):
         task_t1 = TaskFlowInstance.objects.create(project=self.project_t1, current_flow="func_claim")
         task_t2 = TaskFlowInstance.objects.create(project=self.project_t2, current_flow="func_claim")
@@ -177,8 +247,46 @@ class TenantBoundaryDatabaseTest(TestCase):
             for resource in call.args[3]:
                 self.assertNotEqual(resource.attribute["_bk_iam_path_"], "/project,{}/".format(self.project_t2.id))
 
+    def test_child_scope_limits_iam_checks_to_requested_candidates(self):
+        another_project = Project.objects.create(name="tenant-one-b", creator="bob", bk_biz_id=91003, tenant_id="t1")
+        selected = TaskFlowInstance.objects.create(project=self.project_t1, current_flow="execute_task")
+        other = TaskFlowInstance.objects.create(project=another_project, current_flow="execute_task")
+        foreign = TaskFlowInstance.objects.create(project=self.project_t2, current_flow="execute_task")
+        probe_id = "__sops_project_scope_{}__".format(self.project_t1.id)
+        client = mock.Mock()
+        grant_id = probe_id
+        client.direct_auth_by_resources.side_effect = lambda tenant_id, subject, action_id, resources: {
+            resource.id: resource.id == grant_id for resource in resources
+        }
+
+        scope = ScopeResolver(client).authorized_scope(
+            "alice", "t1", IAMMeta.TASK_VIEW_ACTION, include_creator=False, project_id=self.project_t1.id
+        )
+        self.assertEqual(list(scope.queryset(IAMMeta.TASK_RESOURCE).values_list("id", flat=True)), [selected.id])
+        self.assertEqual(client.direct_auth_by_resources.call_count, 1)
+        self.assertEqual([item.id for item in client.direct_auth_by_resources.call_args.args[3]], [probe_id])
+
+        client.reset_mock()
+        grant_id = str(selected.id)
+        scope = ScopeResolver(client).authorized_scope(
+            "alice", "t1", IAMMeta.TASK_VIEW_ACTION, include_creator=False, resource_ids=[selected.id]
+        )
+        self.assertEqual(list(scope.queryset(IAMMeta.TASK_RESOURCE).values_list("id", flat=True)), [selected.id])
+        checked_ids = [item.id for call in client.direct_auth_by_resources.call_args_list for item in call.args[3]]
+        self.assertEqual(checked_ids, [str(selected.id)])
+        self.assertNotIn(str(other.id), checked_ids)
+        self.assertNotIn(str(foreign.id), checked_ids)
+
+        client.reset_mock()
+        scope = ScopeResolver(client).authorized_scope(
+            "alice", "t1", IAMMeta.TASK_VIEW_ACTION, include_creator=False, resource_ids=[foreign.id]
+        )
+        self.assertIsNone(scope.queryset(IAMMeta.TASK_RESOURCE))
+        client.direct_auth_by_resources.assert_not_called()
+
     @mock.patch("gcloud.iam_auth.scope_resolver.IAMV4Client")
     def test_appmaker_capabilities_accept_project_scoped_child_actions(self, client_class):
+        Project.objects.create(name="tenant-one-b", creator="bob", bk_biz_id=91003, tenant_id="t1")
         client = client_class.return_value
         client.direct_auth_by_resources.side_effect = lambda tenant_id, subject, action_id, resources: {
             resource.id: True for resource in resources

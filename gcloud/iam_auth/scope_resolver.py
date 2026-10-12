@@ -18,7 +18,9 @@ class ScopeResolver:
     def __init__(self, client=None):
         self.client = client or IAMV4Client()
 
-    def authorized_scope(self, username, tenant_id, action_id, include_creator=True):
+    def authorized_scope(
+        self, username, tenant_id, action_id, include_creator=True, project_id=None, resource_ids=None
+    ):
         validate_identity(username, tenant_id)
         if action_id not in ACTION_RESOURCE_TYPES:
             raise IAMV4ProtocolError("unknown action id")
@@ -26,7 +28,11 @@ class ScopeResolver:
         if target_type is None:
             raise IAMV4ProtocolError("authorized scope requires a resource action")
         if RESOURCES_BY_ID[target_type]["parent_id"] == "project":
-            return self._project_child_scope(username, tenant_id, action_id, target_type, include_creator)
+            return self._project_child_scope(
+                username, tenant_id, action_id, target_type, include_creator, project_id, resource_ids
+            )
+        if project_id is not None or resource_ids is not None:
+            raise IAMV4ProtocolError("candidate filters require a project child-resource action")
 
         rows = self.client.list_authorized_resources(tenant_id, Subject("user", username), action_id)
         clauses = {}
@@ -52,15 +58,27 @@ class ScopeResolver:
             querysets[resource_type] = queryset.distinct()
         return AuthorizedScope(values={}, querysets=querysets)
 
-    def _project_child_scope(self, username, tenant_id, action_id, target_type, include_creator):
+    def _project_child_scope(
+        self, username, tenant_id, action_id, target_type, include_creator, project_id, resource_ids
+    ):
         """Resolve child permissions through supported batch authorization calls.
 
         IAM V4 rejects relation/authorized-resources for child-resource actions.
         Probe each project ancestor first, then only check children outside the
-        authorized projects. All candidates are confined to the current tenant.
+        authorized projects. Exact child IDs are checked directly with their
+        project path. All candidates are confined to the current tenant.
         """
         subject = Subject("user", username)
-        project_ids = list(local_resource_queryset("project", tenant_id).values_list("id", flat=True))
+        project_queryset = local_resource_queryset("project", tenant_id)
+        child_queryset = local_resource_queryset(target_type, tenant_id)
+        if project_id is not None:
+            project_queryset = project_queryset.filter(id=project_id)
+            child_queryset = child_queryset.filter(project_id=project_id)
+        if resource_ids is not None:
+            child_queryset = child_queryset.filter(id__in=resource_ids)
+            project_ids = []
+        else:
+            project_ids = list(project_queryset.values_list("id", flat=True))
         # IAM accepts any non-empty child ID for an ancestor-scope check. Use
         # distinct IDs because auth-by-resources returns decisions keyed by ID.
         project_probes = [
@@ -89,16 +107,18 @@ class ScopeResolver:
 
         # A user may also be authorized for individual children outside their
         # project-wide grants. Check those before returning a list/count scope.
-        child_queryset = local_resource_queryset(target_type, tenant_id).exclude(project_id__in=authorized_project_ids)
+        child_queryset_to_check = child_queryset.exclude(project_id__in=authorized_project_ids)
         authorized_child_ids = []
         batch = []
-        for resource_id, project_id in child_queryset.values_list("id", "project_id").iterator(chunk_size=1000):
+        for resource_id, child_project_id in child_queryset_to_check.values_list("id", "project_id").iterator(
+            chunk_size=1000
+        ):
             batch.append(
                 Resource(
                     SYSTEM_ID,
                     target_type,
                     str(resource_id),
-                    {"_bk_iam_path_": project_path(project_id)},
+                    {"_bk_iam_path_": project_path(child_project_id)},
                 )
             )
             if len(batch) == 20:
@@ -114,7 +134,5 @@ class ScopeResolver:
             creator_queryset = creator_local_queryset(target_type, username, tenant_id)
             clauses.append(Q(id__in=creator_queryset.values("id")))
         if clauses:
-            querysets[target_type] = (
-                local_resource_queryset(target_type, tenant_id).filter(reduce(or_, clauses)).distinct()
-            )
+            querysets[target_type] = child_queryset.filter(reduce(or_, clauses)).distinct()
         return AuthorizedScope(values={}, querysets=querysets)

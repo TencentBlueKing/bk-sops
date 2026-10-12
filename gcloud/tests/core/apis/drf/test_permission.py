@@ -188,14 +188,17 @@ class AppmakerPermissionTestCase(SimpleTestCase):
         )
         view = AppmakerListViewSet()
         view.action = "list"
-        view.request = SimpleNamespace(user=SimpleNamespace(username="alice", tenant_id="tenant-a"))
+        view.request = SimpleNamespace(
+            user=SimpleNamespace(username="alice", tenant_id="tenant-a"),
+            query_params={"project__id": "10"},
+        )
 
         result = view.get_queryset()
 
         self.assertEqual(result, queryset.filter.return_value)
         queryset.filter.assert_called_once_with(id__in={"1", "2"})
         scope_resolver.return_value.authorized_scope.assert_called_once_with(
-            "alice", "tenant-a", IAMMeta.MINI_APP_VIEW_ACTION
+            "alice", "tenant-a", IAMMeta.MINI_APP_VIEW_ACTION, project_id="10"
         )
 
     @patch("gcloud.core.apis.drf.viewsets.appmaker.TaskTemplate.objects.filter")
@@ -217,6 +220,11 @@ class AppmakerPermissionTestCase(SimpleTestCase):
         response = AppmakerListViewSet().capabilities(request)
 
         self.assertEqual(response.data, {"can_view": True, "can_create": False})
+        self.assertEqual(
+            [call.kwargs for call in scope_resolver.return_value.authorized_scope.call_args_list],
+            [{"project_id": "10"}, {"project_id": "10"}],
+        )
+
         appmaker_filter.assert_called_once_with(project_id="10", project__tenant_id="tenant-a", is_deleted=False)
         appmaker_filter.return_value.filter.assert_called_once_with(id__in={"21"})
         task_template_filter.assert_called_once_with(project_id="10", project__tenant_id="tenant-a", is_deleted=False)
