@@ -1,0 +1,12 @@
+# 对外文档清单；格式标识为占位值，不可直接当作平台导入配置。
+apiVersion: bkai.tencent.com/v1
+kind: KnowledgeBase
+metadata:
+  code: bk_sops_product
+  name: 标准运维公开基础说明
+  description: 经公开来源核验并重新编写的基础内容
+spec:
+  generate_type: space
+  is_public: false
+  config: {}
+  tag_names: []
