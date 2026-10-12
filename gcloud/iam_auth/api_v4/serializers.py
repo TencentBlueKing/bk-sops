@@ -19,6 +19,7 @@ class SubjectSerializer(StrictSerializer):
 
 class AuthResourceSerializer(StrictSerializer):
     id = serializers.CharField(allow_blank=False)
+    attributes = serializers.DictField(required=False)
 
 
 class DirectAuthRequestSerializer(StrictSerializer):

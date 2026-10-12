@@ -39,7 +39,11 @@ from requests import HTTPError
 from gcloud.core.api_adapter.user_role import is_user_functor
 from gcloud.iam_auth import api as iam_api
 from gcloud.iam_auth.api_v4.resources import DirectAuthResource
-from gcloud.iam_auth.api_v4.serializers import DirectAuthRequestSerializer
+from gcloud.iam_auth.api_v4.serializers import (
+    DirectAuthByActionsRequestSerializer,
+    DirectAuthByResourcesRequestSerializer,
+    DirectAuthRequestSerializer,
+)
 from gcloud.iam_auth.apply_service import ApplyService, checks_from_permission_payload, checks_from_simple_payload
 from gcloud.iam_auth.apps import validate_settings
 from gcloud.iam_auth.client import (
@@ -194,9 +198,41 @@ class SerializerAndPayloadTest(unittest.TestCase):
 
     def test_auth_and_apply_payloads_have_distinct_topology_fields(self):
         item = resource()
-        self.assertEqual(resource_to_v4_auth(item), {"id": "1"})
+        self.assertEqual(
+            resource_to_v4_auth(item),
+            {"id": "1", "attributes": {"_bk_iam_path_": "/project,2/"}},
+        )
         self.assertEqual(resource_to_v4_apply(item)["ancestors"], [{"type": "project", "id": "2"}])
-        self.assertNotIn("attributes", resource_to_v4_auth(item))
+        self.assertNotIn("name", resource_to_v4_auth(item)["attributes"])
+
+    def test_auth_payload_omits_topology_for_top_level_resources(self):
+        self.assertEqual(resource_to_v4_auth(Resource("bk_sops", "project", "2")), {"id": "2"})
+        common_flow = Resource("bk_sops", "common_flow", "3", {"_bk_iam_path_": "/project,2/"})
+        self.assertEqual(resource_to_v4_auth(common_flow), {"id": "3"})
+
+    def test_auth_payload_rejects_missing_or_invalid_child_topology(self):
+        for attributes in ({}, {"_bk_iam_path_": "project,2"}, {"_bk_iam_path_": "/task,2/"}):
+            with self.subTest(attributes=attributes), self.assertRaises(IAMV4ProtocolError):
+                resource_to_v4_auth(Resource("bk_sops", "flow", "1", attributes))
+
+    def test_auth_serializers_preserve_topology_in_single_and_batch_requests(self):
+        base = {
+            "tenant_id": "t1",
+            "system_id": "bk_sops",
+            "subject": {"type": "user", "id": "alice"},
+        }
+        child = {"id": "37", "attributes": {"_bk_iam_path_": "/project,1/"}}
+        cases = (
+            (DirectAuthRequestSerializer, {"action_id": "flow_view", "resource": child}, "resource"),
+            (DirectAuthByActionsRequestSerializer, {"action_ids": ["flow_view"], "resource": child}, "resource"),
+            (DirectAuthByResourcesRequestSerializer, {"action_id": "flow_view", "resources": [child]}, "resources"),
+        )
+        for serializer_class, fields, resource_key in cases:
+            with self.subTest(serializer=serializer_class.__name__):
+                serializer = serializer_class(data={**base, **fields})
+                self.assertTrue(serializer.is_valid(), serializer.errors)
+                expected = [child] if resource_key == "resources" else child
+                self.assertEqual(serializer.validated_data[resource_key], expected)
 
     def test_invalid_path_is_rejected(self):
         with self.assertRaises(IAMV4ProtocolError):
@@ -275,6 +311,8 @@ class ClientAndResourceTest(unittest.TestCase):
         )
         self.assertEqual(list(result), ["flow_view", "flow_edit", "flow_delete"])
         self.assertEqual(api_request.call_count, 2)
+        for call in api_request.call_args_list:
+            self.assertEqual(call.args[1]["resource"], {"id": "1", "attributes": {"_bk_iam_path_": "/project,2/"}})
 
     def test_resource_header_contains_tenant_and_never_body_tenant(self):
         api = DirectAuthResource()
@@ -548,7 +586,7 @@ class ServiceAndApplyTest(unittest.TestCase):
 
     @mock.patch("gcloud.iam_auth.scope_resolver.ScopeResolver.authorized_scope")
     @mock.patch("gcloud.iam_auth.service.validate_local_resources")
-    def test_project_role_scope_recovers_detail_permission_when_direct_auth_misses(self, unused, authorized_scope):
+    def test_child_detail_does_not_use_unsupported_scope_endpoint(self, unused, authorized_scope):
         client = mock.Mock()
         client.direct_auth.return_value = False
         authorized_scope.return_value = AuthorizedScope(values={"flow": {"1"}})
@@ -557,12 +595,12 @@ class ServiceAndApplyTest(unittest.TestCase):
             "alice", "t1", PermissionCheck("flow_view", resource("flow", "1", project_id="2"))
         )
 
-        self.assertTrue(allowed)
-        authorized_scope.assert_called_once_with("alice", "t1", "flow_view", include_creator=False)
+        self.assertFalse(allowed)
+        authorized_scope.assert_not_called()
 
     @mock.patch("gcloud.iam_auth.scope_resolver.ScopeResolver.authorized_scope")
     @mock.patch("gcloud.iam_auth.service.validate_local_resources")
-    def test_project_role_scope_recovers_batch_resource_permissions(self, unused, authorized_scope):
+    def test_child_batch_does_not_use_unsupported_scope_endpoint(self, unused, authorized_scope):
         resources = [resource("flow", "1"), resource("flow", "2")]
         client = mock.Mock()
         client.direct_auth_by_resources.return_value = {"1": False, "2": False}
@@ -570,7 +608,8 @@ class ServiceAndApplyTest(unittest.TestCase):
 
         decisions = PermissionService(client).allowed_resources("alice", "t1", "flow_view", resources)
 
-        self.assertEqual(decisions, {"1": True, "2": True})
+        self.assertEqual(decisions, {"1": False, "2": False})
+        authorized_scope.assert_not_called()
 
     @mock.patch("gcloud.iam_auth.service.validate_local_resources")
     def test_action_permission_only_sends_non_creator_actions_to_gateway(self, unused):
@@ -621,7 +660,7 @@ class ServiceAndApplyTest(unittest.TestCase):
 
     @mock.patch("gcloud.iam_auth.scope_resolver.ScopeResolver.authorized_scope")
     @mock.patch("gcloud.iam_auth.service.validate_local_resources")
-    def test_project_role_scope_recovers_list_row_action_matrix(self, unused, authorized_scope):
+    def test_child_action_matrix_does_not_use_unsupported_scope_endpoint(self, unused, authorized_scope):
         resources = [resource("flow", "1"), resource("flow", "2")]
         client = mock.Mock()
         client.direct_auth_by_resources.side_effect = [
@@ -640,10 +679,11 @@ class ServiceAndApplyTest(unittest.TestCase):
         self.assertEqual(
             decisions,
             {
-                "1": {"flow_view": True, "flow_edit": False},
-                "2": {"flow_view": True, "flow_edit": False},
+                "1": {"flow_view": False, "flow_edit": False},
+                "2": {"flow_view": False, "flow_edit": False},
             },
         )
+        authorized_scope.assert_not_called()
 
     @mock.patch("gcloud.iam_auth.apply_service.validate_local_resource")
     def test_apply_service_deduplicates_and_uses_server_resource_path(self, unused):
@@ -693,24 +733,67 @@ class ServiceAndApplyTest(unittest.TestCase):
 
     @mock.patch("gcloud.iam_auth.scope_resolver.creator_local_queryset")
     @mock.patch("gcloud.iam_auth.scope_resolver.local_resource_queryset")
-    def test_project_scope_is_built_lazily_without_materializing_descendant_ids(self, local_queryset, creator_queryset):
+    def test_child_scope_checks_project_path_without_unsupported_list_endpoint(self, local_queryset, creator_queryset):
         project_queryset = mock.MagicMock(name="project_queryset")
         task_queryset = mock.MagicMock(name="task_queryset")
         local_queryset.side_effect = lambda resource_type, tenant_id: {
             "project": project_queryset,
             "task": task_queryset,
         }[resource_type]
+        project_queryset.values_list.return_value = [2]
+        task_queryset.exclude.return_value.values_list.return_value.iterator.return_value = iter([])
         creator_queryset.return_value = mock.MagicMock(name="creator_queryset")
         client = mock.Mock()
-        client.list_authorized_resources.return_value = [{"type": "project", "ids": ["2"]}]
+        client.direct_auth_by_resources.return_value = {"__sops_project_scope_2__": True}
 
         scope = ScopeResolver(client).authorized_scope("alice", "t1", "task_view")
 
         self.assertIsNotNone(scope.queryset("project"))
         self.assertIsNotNone(scope.queryset("task"))
-        project_queryset.values_list.assert_not_called()
-        task_queryset.values_list.assert_not_called()
+        client.list_authorized_resources.assert_not_called()
+        self.assertEqual(client.direct_auth_by_resources.call_count, 1)
+        probe = client.direct_auth_by_resources.call_args.args[3][0]
+        self.assertEqual(probe.id, "__sops_project_scope_2__")
+        self.assertEqual(probe.attribute["_bk_iam_path_"], "/project,2/")
         creator_queryset.assert_called_once_with("task", "alice", "t1")
+
+    @mock.patch("gcloud.iam_auth.scope_resolver.local_resource_queryset")
+    def test_flow_create_mini_app_scope_batches_granular_resources(self, local_queryset):
+        project_queryset = mock.MagicMock(name="project_queryset")
+        flow_queryset = mock.MagicMock(name="flow_queryset")
+        local_queryset.side_effect = lambda resource_type, tenant_id: {
+            "project": project_queryset,
+            "flow": flow_queryset,
+        }[resource_type]
+        project_queryset.values_list.return_value = [2]
+        flow_queryset.exclude.return_value.values_list.return_value.iterator.return_value = iter(
+            (resource_id, 2) for resource_id in range(1, 26)
+        )
+        client = mock.Mock()
+        client.direct_auth_by_resources.side_effect = lambda tenant_id, subject, action_id, resources: {
+            item.id: item.id == "7" for item in resources
+        }
+
+        scope = ScopeResolver(client).authorized_scope("alice", "t1", "flow_create_mini_app", include_creator=False)
+
+        self.assertIsNotNone(scope.queryset("flow"))
+        self.assertIsNone(scope.queryset("project"))
+        client.list_authorized_resources.assert_not_called()
+        self.assertEqual([len(call.args[3]) for call in client.direct_auth_by_resources.call_args_list], [1, 20, 5])
+        for call in client.direct_auth_by_resources.call_args_list:
+            self.assertEqual(call.args[2], "flow_create_mini_app")
+            self.assertTrue(all(item.attribute["_bk_iam_path_"] == "/project,2/" for item in call.args[3]))
+
+    @mock.patch("gcloud.iam_auth.scope_resolver.local_resource_queryset")
+    def test_child_scope_propagates_iam_failure_instead_of_granting_access(self, local_queryset):
+        local_queryset.return_value.values_list.return_value = [2]
+        client = mock.Mock()
+        client.direct_auth_by_resources.side_effect = IAMV4Unavailable()
+
+        with self.assertRaises(IAMV4Unavailable):
+            ScopeResolver(client).authorized_scope("alice", "t1", "flow_view")
+
+        client.list_authorized_resources.assert_not_called()
 
     @mock.patch("gcloud.iam_auth.scope_resolver.creator_local_queryset")
     def test_scope_does_not_add_creator_resources_for_unconfigured_action(self, creator_queryset):

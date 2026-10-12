@@ -28,6 +28,7 @@ class CallbackRequestSerializer(serializers.Serializer):
     filter = serializers.DictField(required=False)
     page = PageSerializer(required=False)
     requires = serializers.ListField(child=serializers.CharField(allow_blank=False), required=False)
+    ancestors = ParentSerializer(many=True, required=False)
 
     def validate(self, attrs):
         method = attrs["method"]
@@ -42,6 +43,9 @@ class CallbackRequestSerializer(serializers.Serializer):
             child = FetchFilterSerializer(data=filter_data)
         child.is_valid(raise_exception=True)
         attrs["filter"] = child.validated_data
+        ancestors = attrs.get("ancestors", [])
+        if method == "list_instance" and ancestors and "parent" not in attrs["filter"]:
+            attrs["filter"]["parent"] = ancestors[-1]
         requires = attrs.get("requires", [])
         if len(requires) != len(set(requires)):
             raise serializers.ValidationError({"requires": "duplicate field"})

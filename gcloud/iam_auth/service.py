@@ -1,5 +1,5 @@
 from gcloud.iam_auth.client import IAMV4Client
-from gcloud.iam_auth.conf import ACTION_RESOURCE_TYPES
+from gcloud.iam_auth.conf import ACTION_RESOURCE_TYPES, RESOURCES_BY_ID
 from gcloud.iam_auth.creator import creator_action_allowed
 from gcloud.iam_auth.exceptions import IAMPermissionDenied, IAMResourceNotFound, IAMV4ProtocolError
 from gcloud.iam_auth.models import Subject
@@ -82,7 +82,7 @@ class PermissionService:
         )
 
     def _scope_allowed_resource_ids(self, username, tenant_id, action_id, resources):
-        """Resolve ancestor-bound role grants when point authorization misses them."""
+        """Resolve supported top-level scopes when point authorization misses them."""
 
         from gcloud.iam_auth.scope_resolver import ScopeResolver
 
@@ -90,6 +90,11 @@ class PermissionService:
         if not resources:
             return set()
         resource_type = ACTION_RESOURCE_TYPES[action_id]
+        if RESOURCES_BY_ID[resource_type]["parent_id"] is not None:
+            # V4 relation/authorized-resources rejects child-resource actions.
+            # The auth/ endpoint infers resource type from action_id; passing a
+            # parent ID would check a different child object. Fail closed.
+            return set()
         resource_ids = {str(resource.id) for resource in resources}
         scope = ScopeResolver(self.client).authorized_scope(username, tenant_id, action_id, include_creator=False)
         queryset = scope.queryset(resource_type)
