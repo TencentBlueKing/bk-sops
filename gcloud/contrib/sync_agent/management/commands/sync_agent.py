@@ -15,8 +15,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-        # 环境变量开关：默认不开启；未设置或非真值时跳过同步
-        sync_switch = os.environ.get("BKAI_SYNC_ENABLED", False)
+        # 仅显式真值开启同步，避免字符串 "0" / "false" 被当成开启。
+        sync_switch = os.environ.get("BKAI_SYNC_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}
         if not sync_switch:
             self.stdout.write(self.style.WARNING("已跳过 AIDEV 智能体同步：如需执行请配置环境变量 BKAI_SYNC_ENABLED"))
             return

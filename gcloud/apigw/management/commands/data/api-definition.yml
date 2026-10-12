@@ -20,7 +20,7 @@ stages:
     backends:
       - name: default
         config:
-          timeout: 60
+          timeout: 120
           loadbalance: roundrobin
           hosts:
             - host: http://{{ settings.BK_APIGW_API_SERVER_HOST }}
@@ -211,4 +211,3 @@ grant_permissions:
       - system_start_task
       - system_get_task_status
       - system_get_task_node_detail
-  
