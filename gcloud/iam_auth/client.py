@@ -204,8 +204,12 @@ class IAMV4Client:
 
     def list_authorized_resources(self, tenant_id, subject, action_id):
         expected_resource_type = ACTION_RESOURCE_TYPES.get(action_id)
-        if action_id not in ACTION_RESOURCE_TYPES or expected_resource_type is None:
-            raise IAMV4ProtocolError("authorized scope requires a resource action")
+        if (
+            action_id not in ACTION_RESOURCE_TYPES
+            or expected_resource_type is None
+            or RESOURCES_BY_ID[expected_resource_type]["parent_id"]
+        ):
+            raise IAMV4ProtocolError("authorized scope requires a top-level resource action")
         data = _api_request(
             ListAuthorizedResourceResource(),
             {

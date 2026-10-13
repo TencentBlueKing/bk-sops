@@ -21,8 +21,9 @@ const init = (el, binding) => {
     el.mouseEnterHandler = function () {
         const element = document.createElement('div')
         element.id = 'directive-ele'
-        element.style.position = 'absolute'
+        element.style.position = 'fixed'
         element.style.zIndex = '2501'
+        element.style.pointerEvents = 'none'
         el.element = element
         document.body.appendChild(element)
 
@@ -30,9 +31,9 @@ const init = (el, binding) => {
         el.addEventListener('mousemove', el.mouseMoveHandler)
     }
     el.mouseMoveHandler = function (event) {
-        const { pageX, pageY } = event
-        const elLeft = pageX + DEFAULT_OPTIONS.offset[0]
-        const elTop = pageY + DEFAULT_OPTIONS.offset[1]
+        const { clientX, clientY } = event
+        const elLeft = clientX + DEFAULT_OPTIONS.offset[0]
+        const elTop = clientY + DEFAULT_OPTIONS.offset[1]
         el.element.style.left = elLeft + 'px'
         el.element.style.top = elTop + 'px'
     }

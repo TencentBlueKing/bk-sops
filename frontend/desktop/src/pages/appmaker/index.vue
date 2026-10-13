@@ -19,8 +19,8 @@
                         style="min-width: 120px;"
                         data-test-id="appmaker_form_creatApp"
                         :loading="capabilityLoading"
-                        :class="{ 'btn-permission-disable': !capabilityLoading && !canCreateApp }"
-                        v-cursor="{ active: !capabilityLoading && !canCreateApp }"
+                        :class="{ 'btn-permission-disable': !capabilityLoading && !capabilityFailed && !canCreateApp }"
+                        v-cursor="{ active: !capabilityLoading && !capabilityFailed && !canCreateApp }"
                         @click="onCreateApp">
                         {{$t('新建')}}
                     </bk-button>
@@ -131,6 +131,7 @@
             return {
                 firstLoading: true,
                 capabilityLoading: true,
+                capabilityFailed: false,
                 canViewApp: false,
                 canCreateApp: false,
                 loading: false,
@@ -187,8 +188,10 @@
                 'appmakerDelete'
             ]),
             async loadCapabilities () {
+                this.capabilityLoading = true
                 try {
                     const data = await this.loadAppmakerCapabilities(this.project_id)
+                    this.capabilityFailed = false
                     this.canViewApp = data.can_view
                     this.canCreateApp = data.can_create
                     if (!this.canViewApp && !this.canCreateApp) {
@@ -197,6 +200,7 @@
                     }
                     return true
                 } catch (e) {
+                    this.capabilityFailed = true
                     console.log(e)
                     return false
                 } finally {
@@ -275,8 +279,11 @@
                     this.contentWidth = 790
                 }
             },
-            onCreateApp () {
+            async onCreateApp () {
                 if (this.capabilityLoading) {
+                    return
+                }
+                if (this.capabilityFailed && !(await this.loadCapabilities())) {
                     return
                 }
                 if (!this.canCreateApp) {

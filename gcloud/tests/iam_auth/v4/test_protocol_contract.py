@@ -155,7 +155,7 @@ class ClientProtocolContractTest(SimpleTestCase):
         self.assertEqual(payload["tenant_id"], "tenant-a")
         self.assertEqual(payload["subject"], {"type": "user", "id": "alice"})
         self.assertEqual(payload["action_id"], "flow_view")
-        self.assertEqual(payload["resource"], {"id": "1"})
+        self.assertEqual(payload["resource"], {"id": "1", "attributes": {"_bk_iam_path_": "/project,2/"}})
 
     @mock.patch("gcloud.iam_auth.client._api_request")
     def test_auth_by_resources_chunks_and_merges_decisions_by_resource_id(self, api_request):
@@ -168,13 +168,21 @@ class ClientProtocolContractTest(SimpleTestCase):
         )
         self.assertEqual(result, {"1": True, "2": False, "3": True})
         self.assertEqual(api_request.call_count, 2)
+        for call in api_request.call_args_list:
+            for item in call.args[1]["resources"]:
+                self.assertEqual(item["attributes"], {"_bk_iam_path_": "/project,2/"})
 
     @mock.patch("gcloud.iam_auth.client._api_request")
     def test_authorized_resources_and_callback_token_are_strictly_parsed(self, api_request):
         client = IAMV4Client()
         api_request.return_value = [{"type": "project", "ids": ["2"]}]
-        scope = client.list_authorized_resources("tenant-a", SimpleNamespace(type="user", id="alice"), "flow_view")
+        scope = client.list_authorized_resources("tenant-a", SimpleNamespace(type="user", id="alice"), "project_view")
         self.assertEqual(scope, [{"type": "project", "ids": ["2"]}])
+
+        api_request.reset_mock()
+        with self.assertRaises(IAMV4ProtocolError):
+            client.list_authorized_resources("tenant-a", SimpleNamespace(type="user", id="alice"), "flow_view")
+        api_request.assert_not_called()
 
         api_request.return_value = {"auth_token": "callback-token"}
         self.assertEqual(client.retrieve_callback_token("tenant-a"), "callback-token")
@@ -260,6 +268,27 @@ class CallbackEndToEndUnitTest(SimpleTestCase):
         self.assertEqual(response["X-Request-Id"], "request-list")
         self.assertEqual(json.loads(response.content)["data"]["count"], 1)
         provider.list_instance.assert_called_once_with("tenant-a", parent=None, keyword="P", page=2, page_size=20)
+
+    @mock.patch("gcloud.iam_auth.resource_api_v4.dispatcher.authenticate_callback", return_value="tenant-a")
+    def test_list_instance_uses_ancestors_as_parent_filter(self, unused):
+        provider = mock.Mock()
+        provider.list_instance.return_value = {"count": 1, "results": [{"id": "1", "display_name": "F"}]}
+        request = self.callback_request(
+            {
+                "type": "flow",
+                "method": "list_instance",
+                "filter": {},
+                "ancestors": [{"type": "project", "id": "2"}],
+                "page": {"page": 1, "page_size": 20},
+            }
+        )
+        with mock.patch.dict(PROVIDERS, {"flow": provider}):
+            response = resource_callback(request)
+
+        self.assertEqual(response.status_code, 200)
+        provider.list_instance.assert_called_once_with(
+            "tenant-a", parent={"type": "project", "id": "2"}, keyword="", page=1, page_size=20
+        )
 
     @mock.patch("gcloud.iam_auth.resource_api_v4.dispatcher.authenticate_callback", return_value="tenant-a")
     def test_fetch_instance_info_dispatches_ids_and_requires(self, unused):

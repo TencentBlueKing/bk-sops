@@ -60,6 +60,7 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
             self.request.user.username,
             self.request.user.tenant_id,
             IAMMeta.MINI_APP_VIEW_ACTION,
+            project_id=self.request.query_params.get("project__id"),
         )
         authorized_queryset = mini_app_scope.queryset(IAMMeta.MINI_APP_RESOURCE)
         if authorized_queryset is None:
@@ -74,11 +75,13 @@ class AppmakerListViewSet(GcloudReadOnlyViewSet, mixins.DestroyModelMixin):
             request.user.username,
             request.user.tenant_id,
             IAMMeta.MINI_APP_VIEW_ACTION,
+            project_id=project_id,
         )
         flow_scope = resolver.authorized_scope(
             request.user.username,
             request.user.tenant_id,
             IAMMeta.FLOW_CREATE_MINI_APP_ACTION,
+            project_id=project_id,
         )
         project_id = str(project_id)
         can_view = mini_app_scope.contains(IAMMeta.PROJECT_RESOURCE, project_id) or self._scope_has_resource(
