@@ -132,7 +132,7 @@
             if (this.isSubCanvas) {
                 this.loadRootTaskState()
             }
-            
+
             /* 暂不进行变量是否被使用判断 */
             // 先获取被使用过的变量
             // this.constantLoading = true
@@ -193,8 +193,8 @@
                         const cnt = pipelineData.constants[key]
                         if (cnt.show_type === 'show') {
                             if (!has_key || keys_in_constants_parameter.includes(key)) {
-                                // api调用时不做校验
-                                cnt.validation = ''
+                                // 修改入参是人工操作，为防人工填参出错，无论任务由页面还是 API / MCP 等方式创建，
+                                // 一律保留全局变量的正则校验（不再按任务创建方式清空 validation）
                                 constants[key] = cnt
                             }
                         }
