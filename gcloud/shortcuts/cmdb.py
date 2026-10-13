@@ -50,7 +50,8 @@ def get_business_group_members(bk_biz_id, groups):
         if members:
             group_members.extend(members.split(","))
 
-    return list(set(group_members))
+    # 保持配置平台(CMDB)接口返回的人员顺序，不再使用 set 去重，避免通知接收人(如语音通知)顺序错乱；
+    return group_members
 
 
 def get_business_attrinfo(attrs: list) -> list:
