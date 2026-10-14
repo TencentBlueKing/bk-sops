@@ -236,6 +236,7 @@
     import TheadPopover from './TheadPopover.vue'
     import QuickOperateVariable from '../../../common/QuickOperateVariable.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import variableDeleteConfirm from './variableDeleteConfirm.js'
 
     export default {
         name: 'TabGlobalVariables',
@@ -247,6 +248,13 @@
             draggable,
             NoData,
             QuickOperateVariable
+        },
+        mixins: [variableDeleteConfirm],
+        provide () {
+            return {
+                // 供 VariableItem 等子组件打开删除弹窗前等待引用查询完成
+                ensureVariableCitedData: () => this.ensureVariableCitedData()
+            }
         },
         props: {
             common: [String, Number],
@@ -302,6 +310,8 @@
                 variableData: null, // 编辑中的变量
                 deleteVarKey: '',
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
+                variableCitedLoaded: false, // 引用信息是否查询成功
+                variableCitedPending: null, // 进行中的引用查询，用于并发去重
                 deleteVarList: [], // 批量删除变量
                 quickOperateVariableVisable: false,
                 isVarCloneDialogShow: false,
@@ -359,10 +369,32 @@
                     const resp = await this.getVariableCite(data)
                     if (resp.result) {
                         this.variableCited = resp.data.defined
+                        this.variableCitedLoaded = true
+                        return true
                     }
+                    return false
                 } catch (e) {
                     console.log(e)
+                    return false
                 }
+            },
+            /**
+             * 确保引用信息查询成功后再执行删除弹窗等操作
+             * 已加载成功直接返回；否则发起查询（并发时复用同一个请求），返回是否查询成功
+             */
+            async ensureVariableCitedData () {
+                if (this.variableCitedLoaded) {
+                    return true
+                }
+                if (!this.variableCitedPending) {
+                    this.variableCitedPending = this.getVariableCitedData()
+                    try {
+                        return await this.variableCitedPending
+                    } finally {
+                        this.variableCitedPending = null
+                    }
+                }
+                return this.variableCitedPending
             },
             async setVariableList () {
                 try {
@@ -567,6 +599,10 @@
                     this.$emit('onCitedNodeClick', data)
                 }
             },
+            // 删除确认弹窗中的引用详情点击，复用变量列表的跳转逻辑
+            handleCitedNodeClick (data) {
+                this.onCitedNodeClick(data)
+            },
             /**
              * 变量显示勾选
              */
@@ -618,41 +654,13 @@
                 }
             },
             onDeleteVarList () {
-                let title = ''
-                if (this.deleteVarListLen === 1) {
-                    title = i18n.t('确认删除') + i18n.t('全局变量') + `【${this.deleteVarList[0].key}】?`
-                } else {
-                    title = i18n.t('确认删除所选的x个变量？', { num: this.deleteVarListLen })
-                }
-                const h = this.$createElement
-                this.$bkInfo({
-                    subHeader: h('div', { class: 'custom-header' }, [
-                        h('div', {
-                            class: 'custom-header-title',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [title]),
-                        h('div', {
-                            class: 'custom-header-sub-title bk-dialog-header-inner',
-                            directives: [{
-                                name: 'bk-overflow-tips'
-                            }]
-                        }, [i18n.t('删除变量将导致所有变量引用失效，请及时检查并更新节点配置')])
-                    ]),
-                    extCls: 'dialog-custom-header-title',
-                    maskClose: false,
-                    width: 450,
-                    confirmLoading: true,
-                    cancelText: this.$t('取消'),
-                    confirmFn: async () => {
-                        await this.getVariableCitedData() // 删除变量后更新引用数据
-                        this.deleteVarList.forEach(variableData => {
-                            this.deleteVariable(variableData.key)
-                        })
-                        this.deleteVarList = []
-                        this.$emit('templateDataChanged')
-                    }
+                this.openDeleteVariableConfirm(this.deleteVarList, async () => {
+                    await this.getVariableCitedData() // 删除变量后更新引用数据
+                    this.deleteVarList.forEach(variableData => {
+                        this.deleteVariable(variableData.key)
+                    })
+                    this.deleteVarList = []
+                    this.$emit('templateDataChanged')
                 })
             },
             // 编辑变量后点击保存
