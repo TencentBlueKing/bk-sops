@@ -36,14 +36,25 @@ class VarCmdbIpSelectorTestCase(TestCase):
                 {"ip": "4.4.4.4", "alive": 0, "cloud_area": {"id": 2, "ip": "3.3.3.3"}},
             ],
         }
-        mock_project_obj = MagicMock()
-        mock_project_obj.from_cmdb = True
-        mock_project_obj.bk_biz_id = 1
+        self.project_obj = MagicMock()
+        self.project_obj.from_cmdb = True
+        self.project_obj.bk_biz_id = 1
+        mock_project_obj = self.project_obj
         mock_project = MagicMock()
         mock_project.objects.get = MagicMock(return_value=mock_project_obj)
 
         client = MagicMock()
         client.api.ipchooser_host_details = MagicMock(return_value=get_agent_status_result)
+        self.nodemgr = MagicMock()
+        nodemgr_client = self.nodemgr
+        nodemgr_client.host_agent_status = MagicMock(
+            return_value={
+                "0:1.1.1.1": {"ip": "1.1.1.1", "bk_cloud_id": 0, "bk_agent_alive": 1},
+                "0:2.2.2.2": {"ip": "2.2.2.2", "bk_cloud_id": 0, "bk_agent_alive": 0},
+                "1:3.3.3.3": {"ip": "3.3.3.3", "bk_cloud_id": 1, "bk_agent_alive": 1},
+                "2:4.4.4.4": {"ip": "4.4.4.4", "bk_cloud_id": 2, "bk_agent_alive": 0},
+            }
+        )
 
         # Mock cc_get_host_by_innerip_with_ipv6 to return host information
         mock_host_result = {
@@ -87,6 +98,10 @@ class VarCmdbIpSelectorTestCase(TestCase):
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.get_client_by_username",
             MagicMock(return_value=client),
         )
+        self.nodemgr_client = patch(
+            "pipeline_plugins.variables.collections.sites.open.ip_filter_base.BKNodemgrClient",
+            MagicMock(return_value=nodemgr_client),
+        )
         self.cc_get_host_patcher = patch(
             "pipeline_plugins.variables.collections.sites.open.ip_filter_base.cc_get_host_by_innerip_with_ipv6",
             MagicMock(return_value=mock_host_result),
@@ -106,12 +121,14 @@ class VarCmdbIpSelectorTestCase(TestCase):
 
         self.project_patcher.start()
         self.client.start()
+        self.nodemgr_client.start()
         self.cc_get_host_patcher.start()
         self.gse_agent_status_patcher.start()
 
     def tearDown(self):
         self.project_patcher.stop()
         self.client.stop()
+        self.nodemgr_client.stop()
         self.cc_get_host_patcher.stop()
         self.gse_agent_status_patcher.stop()
 
@@ -119,6 +136,13 @@ class VarCmdbIpSelectorTestCase(TestCase):
         ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
         match_ip = ip_filters.get_value()
         self.assertEqual(match_ip, "0:1.1.1.1,1:3.3.3.3")
+
+    def test_non_cmdb_project_passes_empty_biz_id(self):
+        self.project_obj.from_cmdb = False
+        with patch("pipeline_plugins.variables.collections.sites.open.ip_filter_base.env.BK_NODEMGR_ENABLE", True):
+            ip_filters = VarCmdbIpFilter(self.name, self.value, self.context, self.pipeline_data)
+            ip_filters.get_value()
+        self.assertEqual(self.nodemgr.host_agent_status.call_args.kwargs["biz_id"], "")
 
     def test_get_value_gse_agent_offline(self):
         self.value = {

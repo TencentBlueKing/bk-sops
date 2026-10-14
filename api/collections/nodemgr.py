@@ -10,11 +10,30 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import ipaddress
+
 from django.conf import settings
 from django.utils import translation
+from django.utils.translation import gettext_lazy as _
 
 import env
+from gcloud.exceptions import ApiRequestError
+from gcloud.utils.handlers import handle_api_error
 from packages.bkapi.bk_nodemgr.client import Client as BKNodemgrApiClient
+
+# nodemgr 节点状态(node_status) -> nodeman agent 在线状态(bk_agent_alive) 映射
+# bk_agent_alive: 1 在线 / 0 离线 / -1 未知
+NODE_STATUS_AGENT_ALIVE_MAP = {
+    "running": 1,
+    "busy": 1,
+    "starting": 1,
+    "upgrade": 1,
+    "init": 0,
+    "uninit": 0,
+    "damaged": 0,
+    "stopping": 0,
+    "unknown": -1,
+}
 
 
 class BKNodemgrClient(BKNodemgrApiClient):
@@ -98,6 +117,76 @@ class BKNodemgrClient(BKNodemgrApiClient):
                 },
             },
         )
+
+    def host_agent_status(self, biz_id, host_id_list=None, networkarea_ip_map=None):
+        """查询主机 agent 在线状态，替代 nodeman 的 ipchooser_host_details。
+
+        返回与 format_agent_data 输出一致的映射：
+        {f"{networkarea_id}:{ip}": {"ip": ip, "bk_cloud_id": networkarea_id, "bk_agent_alive": alive}}
+
+        :param biz_id: 业务 ID，为空时不按业务过滤（跨业务场景）
+        :param host_id_list: 按主机 ID 精确查询
+        :param networkarea_ip_map: 按 {网络区域ID: [ip, ...]} 精确查询
+        """
+        exact_conditions = {}
+        if biz_id:
+            exact_conditions["bk_biz_id"] = [biz_id]
+        if host_id_list:
+            exact_conditions["bk_host_id"] = list(host_id_list)
+        if networkarea_ip_map:
+            ipv4_list = []
+            ipv6_list = []
+            for ip_list in networkarea_ip_map.values():
+                for ip in ip_list:
+                    try:
+                        if ipaddress.ip_address(ip).version == 6:
+                            ipv6_list.append(ip)
+                        else:
+                            ipv4_list.append(ip)
+                    except ValueError:
+                        continue
+            exact_conditions["bk_networkarea_id"] = list(networkarea_ip_map.keys())
+            if ipv4_list:
+                exact_conditions["bk_host_innerip"] = ipv4_list
+            if ipv6_list:
+                exact_conditions["bk_host_innerip_v6"] = ipv6_list
+
+        hosts = []
+        offset = 0
+        limit = 1000
+        while True:
+            response = self.api.host_list(
+                data={
+                    "page": {"offset": offset, "limit": limit},
+                    "exact_include_conditions": exact_conditions,
+                }
+            )
+            if response.get("code") != 0:
+                message = handle_api_error(_("节点管理(NODEMGR)"), "nodemgr.host_list", exact_conditions, response)
+                raise ApiRequestError(message)
+
+            items = response.get("data", {}).get("items") or []
+            hosts.extend(items)
+            if len(items) < limit:
+                break
+            offset += limit
+
+        result = {}
+        for host in hosts:
+            info = host.get("info") or {}
+            state = host.get("state") or {}
+            networkarea_id = info.get("bk_networkarea_id")
+            if networkarea_id is None:
+                continue
+            alive = NODE_STATUS_AGENT_ALIVE_MAP.get(state.get("node_status"), -1)
+            for ip in (info.get("bk_host_innerip_list") or []) + (info.get("bk_host_innerip_v6_list") or []):
+                if ip:
+                    result[f"{networkarea_id}:{ip}"] = {
+                        "ip": ip,
+                        "bk_cloud_id": networkarea_id,
+                        "bk_agent_alive": alive,
+                    }
+        return result
 
     def package_list(self, node_role="agent", offset=0, limit=1000, plugin_pkg_name=None):
         return self.api.package_list(
