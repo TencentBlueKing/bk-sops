@@ -4521,3 +4521,101 @@ paths:
         authConfig:
           userVerifiedRequired: true
         disabledStages: []
+  /create_template_scheme/{bk_biz_id}/{template_id}/:
+    post:
+      operationId: create_template_scheme
+      description: 创建流程模板的执行方案
+      tags:
+      - 通用接口
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    description: 错误码，0 表示成功
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        description: 执行方案ID
+                      unique_id:
+                        type: string
+                        description: 执行方案唯一ID
+                      name:
+                        type: string
+                        description: 执行方案名称
+                      data:
+                        type: string
+                        description: 执行方案中包含的节点ID列表（JSON字符串）
+                    description: result=true 时返回数据，详情见下面说明
+                  result:
+                    type: boolean
+                    description: true/false 操作是否成功
+                  message:
+                    type: string
+                    description: result=false 时错误信息
+                  trace_id:
+                    type: string
+                    description: open telemetry trace_id
+          description: ''
+      parameters:
+      - in: path
+        name: bk_biz_id
+        schema:
+          type: string
+        required: true
+        description: 项目唯一 ID，项目 ID 或 CMDB 业务 ID
+      - in: path
+        name: template_id
+        schema:
+          type: string
+        required: true
+        description: 模板ID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - name
+              - data
+              properties:
+                name:
+                  type: string
+                  maxLength: 64
+                  description: 执行方案名称
+                data:
+                  oneOf:
+                  - type: string
+                    minLength: 1
+                  - type: array
+                    items:
+                      type: string
+                  description: 执行方案包含的节点ID列表，支持 JSON 字符串或字符串列表，节点必须为该流程 pipeline_tree
+                    中真实存在且为可选（optional=true）的节点
+                scope:
+                  type: string
+                  default: cmdb_biz
+                  description: 唯一 ID 的范围，取值为 cmdb_biz 或 project，为 cmdb_biz 时 bk_biz_id 代表业务 ID，反之代表项目 ID，不传时默认为 cmdb_biz
+        required: true
+        description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          type: HTTP
+          method: post
+          path: /{env.api_sub_path}apigw/create_template_scheme/{bk_biz_id}/{template_id}/
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          userVerifiedRequired: true
+        disabledStages: []
