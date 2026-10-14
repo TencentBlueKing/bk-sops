@@ -179,7 +179,7 @@ def cmdb_search_host(request, bk_biz_id):
                     try:
                         client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
                         agent_data = client.host_agent_status(
-                            biz_id=bk_biz_id, host_id_list=[host["bk_host_id"] for host in data]
+                            biz_id=int(bk_biz_id), host_id_list=[host["bk_host_id"] for host in data]
                         )
                     except ApiRequestError as e:
                         result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": str(e)}

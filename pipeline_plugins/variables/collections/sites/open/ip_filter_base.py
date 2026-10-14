@@ -115,7 +115,10 @@ class GseAgentStatusIpFilter(IpFilterBase):
                 for host in origin_ip_list:
                     networkarea_ip_map.setdefault(host["bk_cloud_id"], []).append(host["ip"])
                 client = BKNodemgrClient(username=username, tenant_id=self.tenant_id)
-                agent_data = client.host_agent_status(biz_id=bk_biz_id, networkarea_ip_map=networkarea_ip_map)
+                agent_data = client.host_agent_status(
+                    biz_id=int(bk_biz_id) if bk_biz_id else "",
+                    networkarea_ip_map=networkarea_ip_map,
+                )
             else:
                 client = get_client_by_username(username=username)
                 host_list = chunk_data(origin_ip_list, 1000, self.format_origin_ip, bk_biz_id=bk_biz_id)

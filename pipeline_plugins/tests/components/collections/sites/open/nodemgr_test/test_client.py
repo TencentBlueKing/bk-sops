@@ -175,6 +175,7 @@ class BKNodemgrClientMethodsTestCase(TestCase):
                 "bk_host_innerip_v6": ["fe80::1"],
             },
         )
+        self.assertNotIn("fuzzy_include_conditions", kwargs["data"])
         self.assertEqual(
             result,
             {"3:fe80::1": {"ip": "fe80::1", "bk_cloud_id": 3, "bk_agent_alive": -1}},
