@@ -453,6 +453,11 @@ class PipelineTemplateWebWrapper(object):
                 pipeline_web_tree.clean()
                 origin_data[tid] = pipeline_web_tree.origin_data
 
+            # 同一子流程模板可能按不同版本被导出为不同的导出键（tid），各版本的执行方案在导出时均复制自
+            # 同一份 TemplateScheme 记录（旧方案 ID 相同）。若只按旧方案 ID 建立一份全局映射，后导入的版本会
+            # 覆盖先导入版本的映射，导致引用前一版本的父节点被错误替换为后一版本新建的方案。
+            # 这里改为按「子流程导出键 + 旧方案 ID」建立映射，replace 时按父节点实际引用的导出键取值。
+            scheme_id_old_to_new_by_tid = {}
             scheme_id_old_to_new = {}
             tid_order = cls._update_order_from_refs(refs, temp_id_old_to_new)
             tid_order_set = set(tid_order)
@@ -462,11 +467,12 @@ class PipelineTemplateWebWrapper(object):
             for tid in list(single_temp_ids) + tid_order:
                 template_dict = template[tid]
 
-                # 替换执行方案 ID
+                # 替换执行方案 ID，按父节点实际引用的子流程导出键（版本）取对应映射，避免跨版本串用
                 for act_id, act in list(template_dict["tree"][PWE.activities].items()):
                     if act[PWE.type] == PWE.SubProcess and act.get("scheme_id_list"):
+                        subprocess_scheme_map = scheme_id_old_to_new_by_tid.get(act["template_id"], {})
                         act["scheme_id_list"] = [
-                            scheme_id_old_to_new.get(old_scheme_id, old_scheme_id)
+                            subprocess_scheme_map.get(old_scheme_id, old_scheme_id)
                             for old_scheme_id in act["scheme_id_list"]
                         ]
 
@@ -512,11 +518,15 @@ class PipelineTemplateWebWrapper(object):
 
                 if scheme_objs_to_be_created:
                     TemplateScheme.objects.bulk_create(scheme_objs_to_be_created, batch_size=5000)
-                    # 反查出新创建的执行方案，并建立新老 ID 的映射关系
+                    # 反查出新创建的执行方案，并建立新老 ID 的映射关系；同时按当前导出键（tid）维护一份独立
+                    # 映射，避免同一旧方案 ID 在不同版本子流程间互相覆盖
+                    tid_scheme_map = scheme_id_old_to_new_by_tid.setdefault(tid, {})
                     for scheme_data in TemplateScheme.objects.filter(
                         unique_id__in=unique_id__old_scheme_id_map.keys()
                     ).values("unique_id", "id"):
                         old_scheme_id = unique_id__old_scheme_id_map[scheme_data["unique_id"]]
+                        tid_scheme_map[old_scheme_id] = scheme_data["id"]
+                        # 全局映射保留给外部调用方（如定时任务、轻应用）在非多版本场景下使用
                         scheme_id_old_to_new[old_scheme_id] = scheme_data["id"]
         else:
 

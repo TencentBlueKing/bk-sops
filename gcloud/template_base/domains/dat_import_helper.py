@@ -293,9 +293,12 @@ def save_resource_mapping(
     :param id_map:
     :return:
     """
+    # 多版本子流程补齐的孤儿业务记录没有原始数字业务 ID，其 key 是版本导出键（非数字），这里没有「旧 ID」可
+    # 迁移，因此跳过，避免 int() 转换抛 ValueError 导致整个资源映射保存失败
     tid_old_to_new: typing.Dict[int, int] = {
         int(old_tid): int(template_create_info["id"])
         for old_tid, template_create_info in id_map["template_recreated_info"].get(template_source_type, {}).items()
+        if str(old_tid).isdigit()
     }
     db_helper.insert_resource_mapping(
         table_name=table_name,

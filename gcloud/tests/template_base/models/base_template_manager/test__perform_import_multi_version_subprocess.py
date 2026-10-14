@@ -63,6 +63,8 @@ def build_template_data(with_orphan):
 
 
 # pipeline 层导出键 -> 导入后新 PipelineTemplate id
+# 注意：orphan_key("sub_uniq") 对应的新 pipeline_template_id 固定为 "new_sub_uniq"，
+# 用于模拟同一份导出文件重复覆盖导入时，pipeline 层复用同一个 PipelineTemplate(template_id 不变)
 MOCK_ID_MAP = {
     PipelineTemplateWebWrapper.ID_MAP_KEY: {
         "parent_a": "new_parent_a",
@@ -85,13 +87,45 @@ class MockTemplateModel(object):
         if not hasattr(self, "name"):
             self.name = "name"
 
+    def save(self):
+        return True
+
     @classmethod
     def create(cls, **kwargs):
         return cls(**kwargs)
 
 
+class MockQuerySet(object):
+    def __init__(self, objs):
+        self._objs = objs
+
+    def first(self):
+        return self._objs[0] if self._objs else None
+
+
 class MockObjects(object):
-    def filter(self, id__in=None, is_deleted=None, pipeline_template_id__in=None, template_id__in=None):
+    def __init__(self):
+        # 模拟持久化存储：记录所有通过 create() 新建的业务记录，用于验证「孤儿业务记录是否被复用」
+        self.created_records = []
+
+    def reset(self):
+        self.created_records = []
+
+    def filter(
+        self,
+        id__in=None,
+        is_deleted=None,
+        pipeline_template_id__in=None,
+        template_id__in=None,
+        pipeline_template_id=None,
+    ):
+        if pipeline_template_id is not None:
+            matched = [
+                obj
+                for obj in self.created_records
+                if getattr(obj, "pipeline_template_id", None) == pipeline_template_id
+            ]
+            return MockQuerySet(matched)
         if pipeline_template_id__in is not None:
             return [
                 MockTemplateModel(pipeline_template_id=pid, id=abs(hash(pid)) % 100000, name="n")
@@ -112,7 +146,9 @@ class MockObjects(object):
         return True
 
     def create(self, **kwargs):
-        return MockTemplateModel(**kwargs)
+        obj = MockTemplateModel(**kwargs)
+        self.created_records.append(obj)
+        return obj
 
 
 MockTemplateModel.objects = MockObjects()
@@ -123,7 +159,10 @@ MockTemplateModel.__name__ = "TaskTemplate"
 
 
 class MultiVersionSubprocessImportTest(TestCase):
-    def _run(self, with_orphan, override):
+    def _run(self, with_orphan, override, reset_store=True):
+        if reset_store:
+            MockTemplateModel.objects.reset()
+
         base_template_manager = BaseTemplateManager()
         base_template_manager.model = MockTemplateModel
         base_template_manager.update_or_create = lambda id, defaults: (MockTemplateModel(**defaults), True)
@@ -189,3 +228,35 @@ class MultiVersionSubprocessImportTest(TestCase):
         self.assertEqual(result["data"]["count"], 4)
         orphan_info = result["id_map"]["template_recreated_info"]["project"]["sub_uniq"]
         self.assertEqual(orphan_info["import_data"]["pipeline_template_id"], "new_sub_uniq")
+
+        # 版本导出键（非数字）不应混入 flows：下游 audit_imported_templates() 会对 flows 的键执行
+        # int() 转换，非数字键会抛异常导致本次导入的整批审计事件都不产生
+        self.assertNotIn("sub_uniq", result["data"]["flows"])
+        # flows 改为使用真实创建的业务 ID 作为键
+        real_new_id = abs(hash("new_sub_uniq")) % 100000
+        self.assertIn(real_new_id, result["data"]["flows"])
+
+    def test_override_multi_version_subprocess_repeat_import_reuses_orphan_record(self):
+        """多版本子流程、覆盖导入、重复执行同一份导出文件：孤儿业务记录应被复用，而不是每次都新建一条。
+
+        模拟场景：同一份 .dat 文件被反复覆盖导入；pipeline 层对版本专属导出键（非数字）复用同一个
+        PipelineTemplate（template_id 不变），因此业务层也应按 pipeline_template_id 查找并复用已存在的
+        业务记录，否则同一个 pipeline_template_id 会堆积出多条业务记录，后续按
+        pipeline_template__template_id 反查时会因 MultipleObjectsReturned 而 500。
+        """
+        MockTemplateModel.objects.reset()
+
+        result1 = self._run(with_orphan=True, override=True, reset_store=False)
+        result2 = self._run(with_orphan=True, override=True, reset_store=False)
+
+        self.assertTrue(result1["result"])
+        self.assertTrue(result2["result"])
+
+        orphan_pipeline_template_id = "new_sub_uniq"
+        matched = [
+            obj
+            for obj in MockTemplateModel.objects.created_records
+            if getattr(obj, "pipeline_template_id", None) == orphan_pipeline_template_id
+        ]
+        # 两次覆盖导入后，孤儿业务记录只应存在一条（第二次应复用第一次创建的记录，而非新建）
+        self.assertEqual(len(matched), 1)

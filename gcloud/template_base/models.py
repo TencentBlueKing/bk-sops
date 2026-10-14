@@ -255,15 +255,28 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             template_dict["pipeline_template_id"] = new_pipeline_template_id
             defaults = defaults_getter(template_dict)
             # use update or create to avoid id conflict
-            # 孤儿导出键为非数字，无法作为业务主键复用，覆盖模式下也无既有业务记录可复用，直接新建
             if override and str(tid).isdigit():
                 obj, created = self.update_or_create(id=tid, defaults=defaults)
                 if created:
                     new_objects_template_ids.add(template_dict["pipeline_template_id"])
             else:
                 if override:
-                    self.model.objects.create(**defaults)
-                    new_objects_template_ids.add(template_dict["pipeline_template_id"])
+                    # 孤儿导出键（多版本子流程新增记录）没有原始数字业务 ID 可按 id 复用，但 Pipeline 层对应的
+                    # 导出键是稳定的：同一份导出文件重复覆盖导入时，PipelineTemplateWebWrapper.import_templates
+                    # 会复用同一个 PipelineTemplate（template_id 不变），因此这里改为按 pipeline_template_id
+                    # 查找是否已存在对应业务记录并复用；否则会在每次覆盖导入时都新建一条业务记录，
+                    # 导致同一个 pipeline_template_id 对应多条业务记录，后续按 pipeline_template__template_id
+                    # 反查（如 replace_template_id(reverse=True)）会因 MultipleObjectsReturned 而 500。
+                    existing_obj = self.model.objects.filter(
+                        pipeline_template_id=template_dict["pipeline_template_id"]
+                    ).first()
+                    if existing_obj:
+                        for field_name, field_value in defaults.items():
+                            setattr(existing_obj, field_name, field_value)
+                        existing_obj.save()
+                    else:
+                        self.model.objects.create(**defaults)
+                        new_objects_template_ids.add(template_dict["pipeline_template_id"])
                 else:
                     new_objects.append(self.model(**defaults))
                     new_objects_template_ids.add(template_dict["pipeline_template_id"])
@@ -308,6 +321,16 @@ class BaseTemplateManager(models.Manager, managermixins.ClassificationCountMixin
             }
 
         id_map["template_recreated_info"] = template_recreated_info
+
+        if override:
+            # 孤儿业务记录（多版本子流程新增记录）没有原始数字业务 ID，check_info["new_template"] 中记录的
+            # "id" 是非数字的版本导出键（orphan_key）。flows 的键会被 audit_imported_templates() 等下游接口
+            # 执行 int() 转换，非数字键会直接抛异常并导致本次导入的整批审计事件都不产生。
+            # 这里改用真实创建/复用的业务 ID 替换，版本导出键不再混入 flows。
+            for old_tid, recreated_info in template_recreated_info.get(template_source_type, {}).items():
+                if not str(old_tid).isdigit():
+                    flows.pop(old_tid, None)
+                    flows[recreated_info["id"]] = recreated_info["import_data"]["name"]
 
         return {
             "result": True,
