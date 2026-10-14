@@ -144,6 +144,10 @@
             VariablePreviewValue
         },
         mixins: [variableDeleteConfirm],
+        inject: {
+            // 引用查询由父组件 TabGlobalVariables 维护，未注入时 mixin 会跳过等待
+            ensureVariableCitedData: { default: null }
+        },
         props: {
             outputed: Boolean,
             variableData: Object,

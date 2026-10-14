@@ -98,12 +98,24 @@ export default {
         },
         /**
          * 打开删除变量的二次确认弹窗
+         * 引用信息未加载成功时先等待本次查询完成，避免把「未加载」兜底成「暂未被引用」；
+         * 查询失败时不打开弹窗，提示用户稍后重试
          * @param {Array} variables 待删除的变量列表
          * @param {Function} confirmHandler 确认删除后的回调函数
          */
-        openDeleteVariableConfirm (variables = [], confirmHandler) {
+        async openDeleteVariableConfirm (variables = [], confirmHandler) {
             if (!variables.length) {
                 return
+            }
+            if (typeof this.ensureVariableCitedData === 'function') {
+                const loaded = await this.ensureVariableCitedData()
+                if (!loaded) {
+                    this.$bkMessage({
+                        theme: 'error',
+                        message: i18n.t('变量引用信息查询失败，请稍后重试')
+                    })
+                    return
+                }
             }
             const h = this.$createElement
             const title = variables.length === 1

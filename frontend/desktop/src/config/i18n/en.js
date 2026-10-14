@@ -1646,6 +1646,7 @@ const en = {
     '该变量被引用': 'The variable is referenced ',
     '处，删除后将导致以下引用失效：': ' place(s), and the following references will become invalid:',
     '该变量暂未被引用': 'The variable is not referenced yet',
+    '变量引用信息查询失败，请稍后重试': 'Failed to query variable references, please try again later',
     '此流程无执行方案，无需选择': 'No node-group',
     '最近 x 次成功执行耗时': 'Time Cost for the last {num} successful records',
     '暂无成功执行历史': 'No Records',

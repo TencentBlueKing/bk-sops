@@ -250,6 +250,12 @@
             QuickOperateVariable
         },
         mixins: [variableDeleteConfirm],
+        provide () {
+            return {
+                // 供 VariableItem 等子组件打开删除弹窗前等待引用查询完成
+                ensureVariableCitedData: () => this.ensureVariableCitedData()
+            }
+        },
         props: {
             common: [String, Number],
             isViewMode: {
@@ -304,6 +310,8 @@
                 variableData: null, // 编辑中的变量
                 deleteVarKey: '',
                 variableCited: {}, // 全局变量被任务节点、网关节点以及其他全局变量引用情况
+                variableCitedLoaded: false, // 引用信息是否查询成功
+                variableCitedPending: null, // 进行中的引用查询，用于并发去重
                 deleteVarList: [], // 批量删除变量
                 quickOperateVariableVisable: false,
                 isVarCloneDialogShow: false,
@@ -361,10 +369,32 @@
                     const resp = await this.getVariableCite(data)
                     if (resp.result) {
                         this.variableCited = resp.data.defined
+                        this.variableCitedLoaded = true
+                        return true
                     }
+                    return false
                 } catch (e) {
                     console.log(e)
+                    return false
                 }
+            },
+            /**
+             * 确保引用信息查询成功后再执行删除弹窗等操作
+             * 已加载成功直接返回；否则发起查询（并发时复用同一个请求），返回是否查询成功
+             */
+            async ensureVariableCitedData () {
+                if (this.variableCitedLoaded) {
+                    return true
+                }
+                if (!this.variableCitedPending) {
+                    this.variableCitedPending = this.getVariableCitedData()
+                    try {
+                        return await this.variableCitedPending
+                    } finally {
+                        this.variableCitedPending = null
+                    }
+                }
+                return this.variableCitedPending
             },
             async setVariableList () {
                 try {
