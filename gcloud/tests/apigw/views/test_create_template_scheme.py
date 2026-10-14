@@ -73,13 +73,18 @@ class CreateTemplateSchemeAPITest(APITest):
     def url(self):
         return "/apigw/create_template_scheme/{project_id}/{template_id}/"
 
-    def post(self, payload, content_type="application/json"):
+    def post(self, payload, content_type="application/json", extra_headers=None):
+        headers = {
+            "HTTP_BK_APP_CODE": TEST_APP_CODE,
+            "HTTP_BK_USERNAME": TEST_USERNAME,
+        }
+        if extra_headers:
+            headers.update(extra_headers)
         return self.client.post(
             path=self.url().format(project_id=TEST_PROJECT_ID, template_id=TEST_TEMPLATE_ID),
             data=payload,
             content_type=content_type,
-            HTTP_BK_APP_CODE=TEST_APP_CODE,
-            HTTP_BK_USERNAME=TEST_USERNAME,
+            **headers,
         )
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=mock_project()))
@@ -182,6 +187,59 @@ class CreateTemplateSchemeAPITest(APITest):
         data = json.loads(response.content)
         self.assertFalse(data["result"])
         self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code)
+        mock_scheme_create.assert_not_called()
+
+    @mock.patch(PROJECT_GET, MagicMock(return_value=mock_project()))
+    @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=mock_template()))
+    @mock.patch(TEMPLATESCHEME_CREATE)
+    def test_create_template_scheme__invalid_node_id_type(self, mock_scheme_create):
+        # data 列表中含非字符串元素（数字/null/字典/嵌套列表/空字符串）应返回参数错误，而不是 500
+        for invalid_data in ([123], [None], [{}], [[TEST_SCHEME_NODE_ID]], [""]):
+            response = self.post(json.dumps({"name": TEST_SCHEME_NAME, "data": invalid_data}))
+
+            data = json.loads(response.content)
+            self.assertFalse(data["result"], msg=(invalid_data, data))
+            self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code, msg=(invalid_data, data))
+            self.assertIn("node id", data["message"], msg=(invalid_data, data))
+        mock_scheme_create.assert_not_called()
+
+    @mock.patch(PROJECT_GET, MagicMock(return_value=mock_project()))
+    @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=mock_template()))
+    @mock.patch(TEMPLATESCHEME_CREATE)
+    def test_create_template_scheme__mcp_request(self, mock_scheme_create):
+        # 作为 MCP 工具被调用时（携带网关 MCP Server ID 请求头），行为与普通 API 调用一致
+        mock_scheme_create.return_value = build_scheme_mock()
+
+        response = self.post(
+            json.dumps({"name": TEST_SCHEME_NAME, "data": [TEST_SCHEME_NODE_ID]}),
+            extra_headers={"HTTP_X_BKAPI_MCP_SERVER_ID": "bk-sops-mcp-server"},
+        )
+
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.SUCCESS.code)
+        self.assertEqual(data["data"]["name"], TEST_SCHEME_NAME)
+        mock_scheme_create.assert_called_once_with(
+            template_id=TEST_PIPELINE_TEMPLATE_ID,
+            unique_id="{}-{}".format(TEST_TEMPLATE_ID, TEST_SCHEME_NAME),
+            name=TEST_SCHEME_NAME,
+            data=TEST_SCHEME_DATA,
+        )
+
+    @mock.patch(PROJECT_GET, MagicMock(return_value=mock_project()))
+    @mock.patch(TASKTEMPLATE_GET, MagicMock(return_value=mock_template()))
+    @mock.patch(TEMPLATESCHEME_CREATE)
+    def test_create_template_scheme__mcp_request_invalid_data(self, mock_scheme_create):
+        # MCP 请求下参数异常也应返回可读的参数错误，而不是 500
+        response = self.post(
+            json.dumps({"name": TEST_SCHEME_NAME, "data": [123]}),
+            extra_headers={"HTTP_X_BKAPI_MCP_SERVER_ID": "bk-sops-mcp-server"},
+        )
+
+        data = json.loads(response.content)
+        self.assertFalse(data["result"], msg=data)
+        self.assertEqual(data["code"], err_code.REQUEST_PARAM_INVALID.code)
+        self.assertIn("node id", data["message"])
         mock_scheme_create.assert_not_called()
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=mock_project()))

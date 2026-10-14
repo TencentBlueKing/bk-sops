@@ -22,6 +22,7 @@ from pipeline.models import TemplateScheme
 from gcloud import err_code
 from gcloud.apigw.decorators import mark_request_whether_is_trust, project_inject, return_json_response
 from gcloud.apigw.views.utils import logger
+from gcloud.core.trace import CallFrom, trace_view
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TemplateEditInterceptor
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -56,6 +57,7 @@ def validate_scheme_nodes(pipeline_tree, node_ids):
 @mark_request_whether_is_trust
 @return_json_response
 @project_inject
+@trace_view(attr_keys=["project_id", "template_id"], call_from=CallFrom.APIGW.value)
 @iam_intercept(TemplateEditInterceptor())
 def create_template_scheme(request, project_id, template_id):
     try:
@@ -80,6 +82,9 @@ def create_template_scheme(request, project_id, template_id):
                 "code": err_code.REQUEST_PARAM_INVALID.code}
     if not isinstance(node_ids, list) or not node_ids:
         return {"result": False, "message": "data must be a non-empty list of node ids",
+                "code": err_code.REQUEST_PARAM_INVALID.code}
+    if not all(isinstance(node_id, str) and node_id.strip() for node_id in node_ids):
+        return {"result": False, "message": "data must be a list of non-empty node id strings",
                 "code": err_code.REQUEST_PARAM_INVALID.code}
 
     try:
