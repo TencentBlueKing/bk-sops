@@ -15,12 +15,13 @@ import copy
 import datetime
 import hashlib
 import logging
+from typing import Dict, Set, Tuple
 
 import ujson as json
 from django.apps import apps
 from django.conf import settings
 from django.db.models import Q
-from pipeline.exceptions import PipelineException, SubprocessExpiredError
+from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineTemplate, Snapshot, TemplateScheme
 from pipeline.parser.utils import replace_all_id
 from pipeline.utils.uniqid import uniqid
@@ -37,6 +38,41 @@ from pipeline_web.preview_base import PipelineTemplateWebPreviewer
 WEB_TREE_FIELDS = {"location", "line"}
 
 logger = logging.getLogger("root")
+
+
+class _ExportKeys(object):
+    """管理一次流程导出中「模板 + 版本」到「导出键」的映射
+
+    同一个子流程模板可能被不同的父流程引用到不同版本，导出时需要把这些版本当作互不相同的子流程分别导出，
+    否则内容会相互覆盖导致版本丢失。为保证与历史导出数据的兼容，模板首次出现的版本沿用模板 ID 作为导出键，
+    其余版本使用新生成的唯一键，导入时会被当作一个新的子流程处理。
+
+    @note 导出键会作为导入时的 template_id 使用，长度不能超过 PipelineTemplate.template_id 的 32 个字符限制
+    """
+
+    def __init__(self):
+        self._version__key: Dict[Tuple[str, str], str] = {}
+        self._used_keys: Set[str] = set()
+
+    def get(self, template_id: str, version: str) -> str:
+        """
+        获取模板指定版本在本次导出中的唯一键
+        @param template_id: 模板 ID
+        @param version: 需要导出的模板版本
+        @return: 导出键
+        """
+        version_key = (template_id, version)
+        if version_key in self._version__key:
+            return self._version__key[version_key]
+
+        export_key = template_id
+        # 模板 ID 已被同模板的其他版本占用时，生成新的唯一键
+        while export_key in self._used_keys:
+            export_key = uniqid()
+
+        self._version__key[version_key] = export_key
+        self._used_keys.add(export_key)
+        return export_key
 
 
 class PipelineTemplateWebWrapper(object):
@@ -172,20 +208,37 @@ class PipelineTemplateWebWrapper(object):
             raise
 
     @classmethod
-    def _export_template(cls, template_obj, subprocess, refs, template_versions, root=True):
+    def _export_template(cls, template_obj, subprocess, refs, template_versions, export_keys, version=None):
         """
         导出模板 wrapper 函数
         @param template_obj: 需要导出的模板
-        @param subprocess: 子流程记录字典
+        @param subprocess: 子流程记录字典，键为流程在本次导出中的唯一键
         @param refs: 引用关系记录字典: 被引用模板 -> 引用模板 -> 引用节点
-        @param root: 是否是根模板
-        @return: 模板数据，模板引用的子流程数据，引用关系
+        @param template_versions: 导出键 -> (模板 ID, 实际导出使用的版本)，用于导出后获取对应版本的节点属性
+        @param export_keys: 本次导出使用的导出键管理器
+        @param version: 需要导出的模板版本，为空时导出最新版本；导出子流程时使用父流程节点中记录的版本
+        @return: 该模板在本次导出中的唯一键
         """
-        template_versions[template_obj.template_id] = template_obj.version
-        if template_obj.subprocess_has_update:
-            raise SubprocessExpiredError(
-                "template %s has expired subprocess, please update it before exporting." % template_obj.name
-            )
+        if version:
+            snapshot = Snapshot.objects.filter(md5sum=version).order_by("-id").first()
+            if snapshot is not None:
+                tree = snapshot.data
+            else:
+                # 兼容历史脏数据：指定版本的快照不存在时回退到最新版本，避免阻塞导出
+                logger.warning(
+                    "[_export_template] template %s version %s snapshot not found, fallback to latest version.",
+                    template_obj.template_id,
+                    version,
+                )
+                version = None
+        if not version:
+            version = template_obj.version
+            tree = template_obj.data
+
+        # 同一子流程模板可能被引用到多个版本，使用不同的导出键区分，避免内容相互覆盖
+        export_key = export_keys.get(template_obj.template_id, version)
+        # 记录导出数据实际使用的版本，用于导出后获取对应版本的节点属性
+        template_versions[export_key] = (template_obj.template_id, version)
         template = {
             "id": template_obj.id,
             "create_time": template_obj.create_time.strftime(cls.SERIALIZE_DATE_FORMAT),
@@ -203,25 +256,28 @@ class PipelineTemplateWebWrapper(object):
                 )
             ),
         }
-        tree = template_obj.data
+        # 提前写入导出数据，保证导出顺序中父流程位于其子流程之前（与历史导出数据顺序保持一致）
+        subprocess[export_key] = template
 
         for act_id, act in list(tree[PWE.activities].items()):
             if act[PWE.type] == PWE.SubProcess:
+                subprocess_obj = PipelineTemplate.objects.get(template_id=act["template_id"])
+                # 子流程节点勾选「总是使用最新版本」时导出最新版本，否则按父流程节点中记录的子流程版本导出
+                subprocess_version = None if act.get("always_use_latest") else act.get("version")
+                subprocess_key = cls._export_template(
+                    subprocess_obj, subprocess, refs, template_versions, export_keys, version=subprocess_version
+                )
                 # record referencer id
                 # referenced template -> referencer -> reference act
-                refs.setdefault(act["template_id"], {}).setdefault(template["template_id"], set()).add(act_id)
+                refs.setdefault(subprocess_key, {}).setdefault(export_key, set()).add(act_id)
+                # 父流程节点指向子流程的导出键，导入时据此还原引用关系
+                act["template_id"] = subprocess_key
                 # 因为只会导入同一业务下，所以导出时抹去原环境子流程的类型信息
                 if "template_source" in act:
                     act.pop("template_source")
-                subprocess_obj = PipelineTemplate.objects.get(template_id=act["template_id"])
-                cls._export_template(subprocess_obj, subprocess, refs, template_versions, False)
 
         template["tree"] = tree
-        if not root:
-            subprocess[template["template_id"]] = template
-            return
-
-        return template, subprocess, refs
+        return export_key
 
     @classmethod
     def export_templates(cls, template_id_list):
@@ -231,26 +287,40 @@ class PipelineTemplateWebWrapper(object):
         @return: 模板数据
         """
         data = {"template": {}, "refs": {}}
-        template_objs = PipelineTemplate.objects.filter(template_id__in=template_id_list).select_related("snapshot")
+        template_objs = list(
+            PipelineTemplate.objects.filter(template_id__in=template_id_list).select_related("snapshot")
+        )
         template_versions = {}
-        templates = []
+        export_keys = _ExportKeys()
+
+        # 为所有显式选中的流程预留「当前版本」的原模板 ID。
+        # 若递归导出子流程时先一步占用了原 ID（子流程被父流程以历史版本引用），
+        # 显式选中的流程（其当前版本）会被分配新 ID，覆盖导入后原 ID 对应的数据实际是历史版本，
+        # 导致当前版本被当成另一条新流程，原子流程被回退到历史版本。
         for template_obj in template_objs:
-            template, subprocess, refs = cls._export_template(template_obj, {}, {}, template_versions)
-            templates.append(template)
-            templates += subprocess.values()
-            data["template"][template["template_id"]] = template
-            data["template"].update(subprocess)
-            for be_ref, ref_info in list(refs.items()):
-                for tmp_key, nodes in list(ref_info.items()):
-                    data["refs"].setdefault(be_ref, ref_info).setdefault(tmp_key, nodes).update(nodes)
+            export_keys.get(template_obj.template_id, template_obj.version)
+
+        for template_obj in template_objs:
+            cls._export_template(template_obj, data["template"], data["refs"], template_versions, export_keys)
 
         # add nodes attr
-        node_conditions = Q()
-        for template_id, template_version in template_versions.items():
-            node_conditions = node_conditions | (Q(template_id=template_id) & Q(version=template_version))
-        nodes = NodeInTemplate.objects.filter(node_conditions)
-        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
-        for template in templates:
+        # 同一模板的不同版本可能保留相同的 node_id，按「模板 ID + 版本」分别查询、分别恢复节点属性，
+        # 避免不同版本的节点属性（如标签）互相覆盖
+        template_id_version_pairs = set(template_versions.values())
+        nodes_attr_by_version = {}
+        if template_id_version_pairs:
+            node_conditions = Q()
+            for template_id, template_version in template_id_version_pairs:
+                node_conditions = node_conditions | (Q(template_id=template_id) & Q(version=template_version))
+            nodes = NodeInTemplate.objects.filter(node_conditions)
+            # 统一批量查询节点属性（标签等），避免逐版本重复查询
+            NodeAttr.get_nodes_attr(nodes, "template")
+            for node in nodes:
+                nodes_attr_by_version.setdefault((node.template_id, node.version), {})[node.node_id] = node.attrs
+
+        for export_key, template in data["template"].items():
+            template_id, template_version = template_versions[export_key]
+            nodes_attr = nodes_attr_by_version.get((template_id, template_version), {})
             pipeline_web_clean = PipelineWebTreeCleaner(template["tree"])
             pipeline_web_clean.to_web(nodes_attr)
 
@@ -365,7 +435,8 @@ class PipelineTemplateWebWrapper(object):
             # 2nd round: replace all node id
             for tid in template_id_list:
                 temp = template[tid]
-                new_id = temp_id_old_to_new[temp["template_id"]]
+                # 模板数据的键为导出键，同一模板的不同版本导出键不同，需要按导出键取新模板 ID
+                new_id = temp_id_old_to_new[tid]
                 temp["template_id"] = new_id
                 node_id_maps = replace_all_id(temp["tree"])
                 template_node_id_old_to_new[new_id] = node_id_maps
@@ -403,6 +474,11 @@ class PipelineTemplateWebWrapper(object):
                 pipeline_web_tree.clean()
                 origin_data[tid] = pipeline_web_tree.origin_data
 
+            # 同一子流程模板可能按不同版本被导出为不同的导出键（tid），各版本的执行方案在导出时均复制自
+            # 同一份 TemplateScheme 记录（旧方案 ID 相同）。若只按旧方案 ID 建立一份全局映射，后导入的版本会
+            # 覆盖先导入版本的映射，导致引用前一版本的父节点被错误替换为后一版本新建的方案。
+            # 这里改为按「子流程导出键 + 旧方案 ID」建立映射，replace 时按父节点实际引用的导出键取值。
+            scheme_id_old_to_new_by_tid = {}
             scheme_id_old_to_new = {}
             tid_order = cls._update_order_from_refs(refs, temp_id_old_to_new)
             tid_order_set = set(tid_order)
@@ -412,11 +488,12 @@ class PipelineTemplateWebWrapper(object):
             for tid in list(single_temp_ids) + tid_order:
                 template_dict = template[tid]
 
-                # 替换执行方案 ID
+                # 替换执行方案 ID，按父节点实际引用的子流程导出键（版本）取对应映射，避免跨版本串用
                 for act_id, act in list(template_dict["tree"][PWE.activities].items()):
                     if act[PWE.type] == PWE.SubProcess and act.get("scheme_id_list"):
+                        subprocess_scheme_map = scheme_id_old_to_new_by_tid.get(act["template_id"], {})
                         act["scheme_id_list"] = [
-                            scheme_id_old_to_new.get(old_scheme_id, old_scheme_id)
+                            subprocess_scheme_map.get(old_scheme_id, old_scheme_id)
                             for old_scheme_id in act["scheme_id_list"]
                         ]
 
@@ -462,11 +539,15 @@ class PipelineTemplateWebWrapper(object):
 
                 if scheme_objs_to_be_created:
                     TemplateScheme.objects.bulk_create(scheme_objs_to_be_created, batch_size=5000)
-                    # 反查出新创建的执行方案，并建立新老 ID 的映射关系
+                    # 反查出新创建的执行方案，并建立新老 ID 的映射关系；同时按当前导出键（tid）维护一份独立
+                    # 映射，避免同一旧方案 ID 在不同版本子流程间互相覆盖
+                    tid_scheme_map = scheme_id_old_to_new_by_tid.setdefault(tid, {})
                     for scheme_data in TemplateScheme.objects.filter(
                         unique_id__in=unique_id__old_scheme_id_map.keys()
                     ).values("unique_id", "id"):
                         old_scheme_id = unique_id__old_scheme_id_map[scheme_data["unique_id"]]
+                        tid_scheme_map[old_scheme_id] = scheme_data["id"]
+                        # 全局映射保留给外部调用方（如定时任务、轻应用）在非多版本场景下使用
                         scheme_id_old_to_new[old_scheme_id] = scheme_data["id"]
         else:
 
