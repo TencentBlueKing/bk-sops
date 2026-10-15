@@ -152,3 +152,94 @@ class ExportTemplatesTestCase(TestCase):
         self.assertEqual(list(data["template"].keys()), ["root_a", "subproc"])
         self.assertDictEqual(data["template"]["subproc"]["tree"], self.subprocess_tree_v2)
         self.assertEqual(data["template"]["root_a"]["tree"]["activities"]["node_1"]["template_id"], "subproc")
+
+    def test_export_reserves_original_id_for_explicit_current_version(self):
+        """同时显式导出父流程与子流程时，子流程当前版本应保留原模板 ID，不能被先遍历到的历史版本抢占
+
+        复现场景：父流程 root_r 固定引用子流程 subproc 的历史版本 v1，子流程 subproc 当前为 v2 且被显式
+        选中导出。若先递归导出 root_r，v1 会先占用 subproc 的原 ID，导致当前版本 v2 被分配新 ID；覆盖导入
+        后，原 ID 对应的数据实际是历史版本 v1，当前版本则被当成另一条新流程。
+        """
+        root_r = FakePipelineTemplate(
+            "root_r", "R", "root_r_version", subprocess_tree("node_1", "subproc", "subprocess_version_v1")
+        )
+
+        # 顺序为 [root_r, subproc]，确保递归导出会先于显式子流程遍历到历史版本
+        data = self._export([root_r, self.subprocess])
+        templates = data["template"]
+
+        # 当前版本（显式选中）保留原始模板 ID
+        self.assertDictEqual(templates["subproc"]["tree"], self.subprocess_tree_v2)
+        self.assertEqual(templates["subproc"]["template_id"], "subproc")
+
+        # 历史版本被分配新的导出键，不占用原 ID
+        historical_keys = [key for key in templates if key not in ("root_r", "subproc")]
+        self.assertEqual(len(historical_keys), 1)
+        historical_key = historical_keys[0]
+        self.assertDictEqual(templates[historical_key]["tree"], self.subprocess_tree_v1)
+        self.assertEqual(templates[historical_key]["template_id"], "subproc")
+
+        # 父流程节点指向历史版本的导出键
+        self.assertEqual(templates["root_r"]["tree"]["activities"]["node_1"]["template_id"], historical_key)
+
+    def test_export_restores_node_attr_per_version(self):
+        """同一模板的不同版本保留相同 node_id 时，节点属性（如标签）需按「模板 ID + 版本」分别恢复
+
+        复现场景：查询同时包含多个版本的节点，但按 node_id 建立的全局字典会被后一个版本覆盖，
+        导致多个版本最终都使用了同一份（错误的）节点属性。
+        """
+        root_r = FakePipelineTemplate(
+            "root_r", "R", "root_r_version", subprocess_tree("node_1", "subproc", "subprocess_version_v1")
+        )
+
+        node_v1 = MagicMock(
+            template_id="subproc", version="subprocess_version_v1", node_id="shared_node", attrs={"labels": ["v1"]}
+        )
+        node_v2 = MagicMock(
+            template_id="subproc", version="subprocess_version_v2", node_id="shared_node", attrs={"labels": ["v2"]}
+        )
+
+        snapshots = {
+            "subprocess_version_v1": MagicMock(data=self.subprocess_tree_v1),
+            "subprocess_version_v2": MagicMock(data=self.subprocess_tree_v2),
+        }
+
+        def snapshot_filter(md5sum=None, **kwargs):
+            chain = MagicMock()
+            chain.order_by.return_value.first.return_value = snapshots.get(md5sum)
+            return chain
+
+        snapshot_mock = MagicMock()
+        snapshot_mock.objects.filter = MagicMock(side_effect=snapshot_filter)
+
+        pipeline_template_mock = MagicMock()
+        pipeline_template_mock.objects.filter.return_value.select_related.return_value = [root_r, self.subprocess]
+        pipeline_template_mock.objects.get = MagicMock(return_value=self.subprocess)
+
+        node_in_template_mock = MagicMock()
+        node_in_template_mock.objects.filter.return_value = [node_v1, node_v2]
+
+        cleaner_mock = MagicMock()
+
+        with patch.multiple(
+            "pipeline_web.wrapper",
+            PipelineWebTreeCleaner=cleaner_mock,
+            NodeAttr=MagicMock(get_nodes_attr=MagicMock(return_value={})),
+            NodeInTemplate=node_in_template_mock,
+            TemplateScheme=MagicMock(),
+            Snapshot=snapshot_mock,
+            PipelineTemplate=pipeline_template_mock,
+        ):
+            PipelineTemplateWebWrapper.export_templates(["root_r", "subproc"])
+
+        # 三份模板（root_r、subproc 当前版本、subproc 历史版本）各自恢复节点属性，互不覆盖
+        # 注意：项目锁定的 mock==2.0.0 版本中 _Call 对象不支持 .args/.kwargs 属性（该属性是
+        # Python 3.8 / mock 3.0+ 才新增的），直接用 call.args 取值在旧版本下不会报错但会取到
+        # 错误的内容，因此这里改用「call 对象可解包为 (args, kwargs) 二元组」这一在所有 mock
+        # 版本下都兼容的方式取值。
+        to_web_calls = cleaner_mock.return_value.to_web.call_args_list
+        self.assertEqual(len(to_web_calls), 3)
+        nodes_attr_list = [args[0] for args, kwargs in to_web_calls]
+        self.assertIn({"shared_node": {"labels": ["v1"]}}, nodes_attr_list)
+        self.assertIn({"shared_node": {"labels": ["v2"]}}, nodes_attr_list)
+        self.assertIn({}, nodes_attr_list)

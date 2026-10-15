@@ -287,19 +287,40 @@ class PipelineTemplateWebWrapper(object):
         @return: 模板数据
         """
         data = {"template": {}, "refs": {}}
-        template_objs = PipelineTemplate.objects.filter(template_id__in=template_id_list).select_related("snapshot")
+        template_objs = list(
+            PipelineTemplate.objects.filter(template_id__in=template_id_list).select_related("snapshot")
+        )
         template_versions = {}
         export_keys = _ExportKeys()
+
+        # 为所有显式选中的流程预留「当前版本」的原模板 ID。
+        # 若递归导出子流程时先一步占用了原 ID（子流程被父流程以历史版本引用），
+        # 显式选中的流程（其当前版本）会被分配新 ID，覆盖导入后原 ID 对应的数据实际是历史版本，
+        # 导致当前版本被当成另一条新流程，原子流程被回退到历史版本。
+        for template_obj in template_objs:
+            export_keys.get(template_obj.template_id, template_obj.version)
+
         for template_obj in template_objs:
             cls._export_template(template_obj, data["template"], data["refs"], template_versions, export_keys)
 
         # add nodes attr
-        node_conditions = Q()
-        for template_id, template_version in template_versions.values():
-            node_conditions = node_conditions | (Q(template_id=template_id) & Q(version=template_version))
-        nodes = NodeInTemplate.objects.filter(node_conditions)
-        nodes_attr = NodeAttr.get_nodes_attr(nodes, "template")
-        for template in data["template"].values():
+        # 同一模板的不同版本可能保留相同的 node_id，按「模板 ID + 版本」分别查询、分别恢复节点属性，
+        # 避免不同版本的节点属性（如标签）互相覆盖
+        template_id_version_pairs = set(template_versions.values())
+        nodes_attr_by_version = {}
+        if template_id_version_pairs:
+            node_conditions = Q()
+            for template_id, template_version in template_id_version_pairs:
+                node_conditions = node_conditions | (Q(template_id=template_id) & Q(version=template_version))
+            nodes = NodeInTemplate.objects.filter(node_conditions)
+            # 统一批量查询节点属性（标签等），避免逐版本重复查询
+            NodeAttr.get_nodes_attr(nodes, "template")
+            for node in nodes:
+                nodes_attr_by_version.setdefault((node.template_id, node.version), {})[node.node_id] = node.attrs
+
+        for export_key, template in data["template"].items():
+            template_id, template_version = template_versions[export_key]
+            nodes_attr = nodes_attr_by_version.get((template_id, template_version), {})
             pipeline_web_clean = PipelineWebTreeCleaner(template["tree"])
             pipeline_web_clean.to_web(nodes_attr)
 
