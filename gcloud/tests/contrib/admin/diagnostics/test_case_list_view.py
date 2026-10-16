@@ -54,7 +54,8 @@ class DiagnosticCaseViewTest(TestCase):
             status=DiagnosticCase.STATUS_RESOLVED,
         )
 
-    def test_case_list_returns_paginated_json(self):
+    def test_case_list_defaults_to_open_only(self):
+        """终态案例收敛时会刷新 last_seen_at，列表按它倒序，默认带上就会整批顶到首页当成新问题。"""
         from gcloud.contrib.admin.views import diagnostics
 
         with mock.patch(_INTERCEPTOR):
@@ -62,8 +63,31 @@ class DiagnosticCaseViewTest(TestCase):
 
         body = json.loads(resp.content)
         self.assertTrue(body["result"])
+        self.assertEqual(body["data"]["total"], 1)
+        self.assertEqual(body["data"]["status"], "open")
+        self.assertEqual(body["data"]["hidden_by_status"], 1)
+        self.assertEqual(body["data"]["items"][0]["root_pipeline_id"], "root-open")
+
+    def test_case_list_status_all_returns_every_status(self):
+        from gcloud.contrib.admin.views import diagnostics
+
+        with mock.patch(_INTERCEPTOR):
+            resp = diagnostics.diagnostic_case_list(_superuser_request("/admin/diagnostics/cases/", status="all"))
+
+        body = json.loads(resp.content)
         self.assertEqual(body["data"]["total"], 2)
+        self.assertEqual(body["data"]["hidden_by_status"], 0)
         self.assertEqual(len(body["data"]["items"]), 2)
+
+    def test_case_list_filter_by_terminal_status(self):
+        from gcloud.contrib.admin.views import diagnostics
+
+        with mock.patch(_INTERCEPTOR):
+            resp = diagnostics.diagnostic_case_list(_superuser_request("/admin/diagnostics/cases/", status="resolved"))
+
+        body = json.loads(resp.content)
+        self.assertEqual(body["data"]["total"], 1)
+        self.assertEqual(body["data"]["items"][0]["root_pipeline_id"], "root-resolved")
 
     def test_case_list_filter_by_status(self):
         from gcloud.contrib.admin.views import diagnostics
