@@ -103,6 +103,65 @@ def checks_from_permission_payload(application, tenant_id):
     return checks
 
 
+# JOB actions may reference these CMDB-owned resource types.
+JOB_CMDB_RESOURCE_TYPES = frozenset({"biz", "business_set", "tenant_set", "host", "biz_custom_query"})
+
+
+def permissions_from_external_payload(application):
+    """Convert another system's IAM application data to the V4 URL protocol."""
+    if not isinstance(application, dict) or not isinstance(application.get("actions"), list):
+        raise IAMV4ProtocolError("permission payload is invalid")
+    system_id = application.get("system_id")
+    if system_id != "bk_job":
+        raise IAMV4ProtocolError("external permission system is invalid")
+
+    permissions = OrderedDict()
+    for action in application["actions"]:
+        if not isinstance(action, dict) or not isinstance(action.get("id"), str) or not action["id"]:
+            raise IAMV4ProtocolError("permission action is invalid")
+        item = permissions.setdefault(action["id"], {"action_id": action["id"]})
+        related_types = action.get("related_resource_types", [])
+        if not isinstance(related_types, list):
+            raise IAMV4ProtocolError("related resource types must be a list")
+        for related in related_types:
+            if not isinstance(related, dict):
+                raise IAMV4ProtocolError("permission resource type is invalid")
+            resource_type = related.get("type")
+            resource_system_id = related.get("system_id")
+            # JOB uses CMDB-owned resources for several actions (for example,
+            # access_business uses biz and quick_execute_script uses host).
+            is_job_cmdb_resource = (
+                system_id == "bk_job" and resource_system_id == "bk_cmdb" and resource_type in JOB_CMDB_RESOURCE_TYPES
+            )
+            if resource_system_id != system_id and not is_job_cmdb_resource:
+                raise IAMV4ProtocolError("permission resource system mismatch")
+            instances = related.get("instances", [])
+            if not isinstance(resource_type, str) or not resource_type or not isinstance(instances, list):
+                raise IAMV4ProtocolError("permission resource type is invalid")
+            for chain in instances:
+                if (
+                    not isinstance(chain, list)
+                    or not chain
+                    or not all(
+                        isinstance(node, dict)
+                        and isinstance(node.get("type"), str)
+                        and node["type"]
+                        and node.get("id") is not None
+                        and str(node["id"])
+                        for node in chain
+                    )
+                    or chain[-1]["type"] != resource_type
+                ):
+                    raise IAMV4ProtocolError("permission resource instance chain is invalid")
+                resource = {"type": resource_type, "id": str(chain[-1]["id"])}
+                if len(chain) > 1:
+                    resource["ancestors"] = [{"type": node["type"], "id": str(node["id"])} for node in chain[:-1]]
+                item.setdefault("resources", []).append(resource)
+    if not permissions:
+        raise IAMV4ProtocolError("permission payload is empty")
+    return system_id, list(permissions.values())
+
+
 class ApplyService:
     def build_permissions(self, checks, tenant_id):
         grouped = OrderedDict()
@@ -133,6 +192,18 @@ class ApplyService:
         if not permissions:
             raise IAMV4ProtocolError("at least one permission is required")
         return permissions
+
+    def generate_external_url(self, tenant_id, application):
+        validate_identity("apply-url", tenant_id)
+        system_id, permissions = permissions_from_external_payload(application)
+        data = _api_request(
+            GenerateApplyURLResource(),
+            {"tenant_id": tenant_id, "system_id": system_id, "permissions": permissions},
+        )
+        url = data.get("url") if isinstance(data, dict) else None
+        if not isinstance(url, str) or not url:
+            raise IAMV4ProtocolError("apply URL response missing data.url")
+        return url
 
     def generate_url(self, tenant_id, checks):
         validate_identity("apply-url", tenant_id)

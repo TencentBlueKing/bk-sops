@@ -54,12 +54,12 @@ class ListAuthorizedResourceRequestSerializer(StrictSerializer):
 
 
 class ApplyAncestorSerializer(StrictSerializer):
-    type = serializers.ChoiceField(choices=RESOURCE_TYPE_IDS)
+    type = serializers.CharField(allow_blank=False)
     id = serializers.CharField(allow_blank=False)
 
 
 class ApplyResourceSerializer(StrictSerializer):
-    type = serializers.ChoiceField(choices=RESOURCE_TYPE_IDS)
+    type = serializers.CharField(allow_blank=False)
     id = serializers.CharField(allow_blank=False)
     ancestors = ApplyAncestorSerializer(many=True, required=False)
 

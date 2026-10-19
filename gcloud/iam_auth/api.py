@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import ujson as json
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from drf_yasg.utils import swagger_auto_schema
@@ -37,8 +38,11 @@ def apply_perms_url(request):
     application = json.loads(request.body)
     tenant_id = request.user.tenant_id
     try:
-        checks = checks_from_permission_payload(application, tenant_id)
-        url = ApplyService().generate_url(tenant_id, checks)
+        if isinstance(application, dict) and application.get("system_id") not in (None, settings.BK_IAM_SYSTEM_ID):
+            url = ApplyService().generate_external_url(tenant_id, application)
+        else:
+            checks = checks_from_permission_payload(application, tenant_id)
+            url = ApplyService().generate_url(tenant_id, checks)
     except (KeyError, TypeError, ValueError, IAMResourceNotFound, IAMV4ProtocolError) as error:
         return standard_response(False, str(error), {"url": None})
     return standard_response(True, "success", {"url": url})

@@ -162,9 +162,12 @@ def check_project_or_admin_view_action_for_user(project_id, username, tenant_id)
 
 
 def check_and_raise_raw_auth_fail_exception(result: dict, message=None):
-    if result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE:
+    permission = result.get("permission")
+    # An upstream gateway may preserve the IAM payload while changing the error code.
+    has_permission = isinstance(permission, dict) and bool(permission.get("actions"))
+    if result.get("code", 0) == HTTP_AUTH_FORBIDDEN_CODE or (result.get("result") is False and has_permission):
         logger.warning(message or result.get("message", "[check_and_raise_raw_auth_fail_exception]"))
-        raise RawAuthFailedException(permissions=result.get("permission", {}))
+        raise RawAuthFailedException(permissions=permission or {})
 
 
 def get_common_flow_allowed_actions_for_user_and_project(username, actions, common_flow_id_list, project_id, tenant_id):
