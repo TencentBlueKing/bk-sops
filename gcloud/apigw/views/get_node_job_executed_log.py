@@ -17,10 +17,9 @@ from apigw_manager.apigw.decorators import apigw_require
 from bamboo_engine import exceptions as bamboo_exceptions
 from blueapps.account.decorators import login_exempt
 from pipeline.eri.runtime import BambooDjangoRuntime
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.views.decorators.http import require_GET
 
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.log_auth import get_execution_data_for_node, get_taskflow_for_log, validate_task_node
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
@@ -108,9 +107,10 @@ def fetch_node_job_executed_log(
 
 
 @login_exempt
-@api_view(["GET"])
+@require_GET
 @apigw_require
 @mcp_apigw()
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())
@@ -130,4 +130,4 @@ def get_node_job_executed_log(request, task_id, project_id):
     if error_response is not None:
         return error_response
 
-    return Response(fetch_node_job_executed_log(node_id, project.bk_biz_id, target_ip, execution_data=execution_data))
+    return fetch_node_job_executed_log(node_id, project.bk_biz_id, target_ip, execution_data=execution_data)
