@@ -1,3 +1,47 @@
+export const mergeIamPermissionData = (current, incoming) => {
+    if (!current || !incoming || current.system_id !== incoming.system_id) {
+        return current
+    }
+    const actions = (current.actions || []).map(action => ({
+        ...action,
+        related_resource_types: (action.related_resource_types || []).map(resource => ({
+            ...resource,
+            instances: [...(resource.instances || [])]
+        }))
+    }))
+    let changed = false
+    for (const incomingAction of incoming.actions || []) {
+        const action = actions.find(item => item.id === incomingAction.id)
+        if (!action) {
+            actions.push(incomingAction)
+            changed = true
+            continue
+        }
+        for (const incomingResource of incomingAction.related_resource_types || []) {
+            const resource = action.related_resource_types.find(item => (
+                item.system_id === incomingResource.system_id && item.type === incomingResource.type
+            ))
+            if (!resource) {
+                action.related_resource_types.push(incomingResource)
+                changed = true
+                continue
+            }
+            const existing = new Set(resource.instances.map(chain => JSON.stringify(
+                chain.map(item => [item.type, String(item.id)])
+            )))
+            for (const chain of incomingResource.instances || []) {
+                const key = JSON.stringify(chain.map(item => [item.type, String(item.id)]))
+                if (!existing.has(key)) {
+                    resource.instances.push(chain)
+                    existing.add(key)
+                    changed = true
+                }
+            }
+        }
+    }
+    return changed ? { ...current, actions } : current
+}
+
 export const isValidIamApplyUrl = (url) => {
     if (typeof url !== 'string') {
         return false

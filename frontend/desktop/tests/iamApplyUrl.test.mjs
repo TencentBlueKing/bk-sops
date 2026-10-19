@@ -6,6 +6,7 @@ const source = await readFile(new URL('../src/utils/iamApplyUrl.js', import.meta
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`
 const {
     isValidIamApplyUrl,
+    mergeIamPermissionData,
     normalizeIamApplyUrlError,
     normalizeIamApplyUrlResponse,
     openIamApplyUrl
@@ -48,4 +49,38 @@ test('opens only HTTP(S) URLs', () => {
     assert.equal(openIamApplyUrl('about:blank'), false)
     assert.equal(openIamApplyUrl('https://iam.example.com/apply'), true)
     assert.deepEqual(calls, [['https://iam.example.com/apply', '_blank', 'noopener']])
+})
+
+test('merges distinct JOB actions and resource instances without mutating the current popup', () => {
+    const current = {
+        system_id: 'bk_job',
+        actions: [{ id: 'access_business', related_resource_types: [{
+            system_id: 'bk_cmdb', type: 'biz',
+            instances: [[{ type: 'biz', id: '9' }]]
+        }] }]
+    }
+    const incoming = {
+        system_id: 'bk_job',
+        actions: [
+            { id: 'access_business', related_resource_types: [{
+                system_id: 'bk_cmdb', type: 'biz',
+                instances: [[{ type: 'biz', id: '9' }], [{ type: 'biz', id: '10' }]]
+            }] },
+            { id: 'manage_script', related_resource_types: [{
+                system_id: 'bk_job', type: 'script',
+                instances: [[{ type: 'biz', id: '9' }, { type: 'script', id: '123' }]]
+            }] }
+        ]
+    }
+
+    const merged = mergeIamPermissionData(current, incoming)
+    assert.deepEqual(merged.actions.map(action => action.id), ['access_business', 'manage_script'])
+    assert.equal(merged.actions[0].related_resource_types[0].instances.length, 2)
+    assert.equal(current.actions[0].related_resource_types[0].instances.length, 1)
+    assert.equal(mergeIamPermissionData(merged, incoming), merged)
+})
+
+test('keeps unrelated systems out of the current permission popup', () => {
+    const current = { system_id: 'bk_job', actions: [] }
+    assert.equal(mergeIamPermissionData(current, { system_id: 'bk_sops', actions: [] }), current)
 })

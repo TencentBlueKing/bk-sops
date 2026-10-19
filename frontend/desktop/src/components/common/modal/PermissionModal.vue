@@ -44,7 +44,7 @@
                                 <td width="50%">
                                     <p
                                         class="resource-type-item"
-                                        v-for="(reItem, reIndex) in getResource(action.related_resource_types)"
+                                        v-for="(reItem, reIndex) in getResource(action.related_resource_types || [])"
                                         :key="reIndex">
                                         {{reItem}}
                                     </p>
@@ -78,6 +78,7 @@
     import {
         normalizeIamApplyUrlError,
         normalizeIamApplyUrlResponse,
+        mergeIamPermissionData,
         openIamApplyUrl
     } from '@/utils/iamApplyUrl.js'
     export default {
@@ -92,7 +93,8 @@
                 lock: require('../../../assets/images/lock-radius.svg'),
                 hasAbnormalReturn: false, // 接口是否返回异常
                 errorMessage: '',
-                url: ''
+                url: '',
+                applyUrlRequestId: 0
             }
         },
         watch: {
@@ -110,9 +112,13 @@
                 if (this.hasAbnormalReturn || !this.permissionData.actions || !this.permissionData.actions.length) {
                     return
                 }
+                const requestId = ++this.applyUrlRequestId
                 try {
                     this.loading = true
                     const res = await this.getIamUrl(this.permissionData)
+                    if (requestId !== this.applyUrlRequestId) {
+                        return
+                    }
                     const result = normalizeIamApplyUrlResponse(res, this.$t('获取权限申请链接失败'))
                     this.url = result.url
                     if (result.error) {
@@ -120,13 +126,35 @@
                         this.errorMessage = result.error
                     }
                 } catch (e) {
+                    if (requestId !== this.applyUrlRequestId) {
+                        return
+                    }
                     this.hasAbnormalReturn = true
                     this.errorMessage = normalizeIamApplyUrlError(e, this.$t('获取权限申请链接失败'))
                 } finally {
-                    this.loading = false
+                    if (requestId === this.applyUrlRequestId) {
+                        this.loading = false
+                    }
                 }
             },
             show (data) {
+                if (this.isModalShow) {
+                    if (this.permissionData.system_id === 'bk_job' && data && data.system_id === 'bk_job') {
+                        const merged = mergeIamPermissionData(this.permissionData, data)
+                        if (merged !== this.permissionData) {
+                            const shouldReload = this.loading || this.url || this.hasAbnormalReturn
+                            this.permissionData = merged
+                            this.url = ''
+                            this.errorMessage = ''
+                            this.hasAbnormalReturn = false
+                            this.hasClicked = false
+                            if (shouldReload) {
+                                this.loadPermissionUrl()
+                            }
+                        }
+                    }
+                    return
+                }
                 this.hasClicked = false
                 this.permissionData = data
                 this.url = ''
@@ -146,7 +174,7 @@
 
                 const data = []
                 resources.forEach(resource => {
-                    if (resource.instances.length > 0) {
+                    if (Array.isArray(resource.instances) && resource.instances.length > 0) {
                         resource.instances.forEach(instanceItem => {
                             instanceItem.forEach(item => {
                                 data.push(`${item.type_name}：${item.name}`)
@@ -154,7 +182,7 @@
                         })
                     }
                 })
-                return data
+                return data.length ? data : ['--']
             },
             goToApply () {
                 if (this.loading) {
@@ -171,7 +199,9 @@
                 }
             },
             onCloseDialog () {
+                this.applyUrlRequestId++
                 this.isModalShow = false
+                this.loading = false
                 this.hasAbnormalReturn = false
             }
         }

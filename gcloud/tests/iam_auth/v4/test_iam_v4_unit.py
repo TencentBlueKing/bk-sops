@@ -817,6 +817,171 @@ class ServiceAndApplyTest(unittest.TestCase):
             load_resource_for_request(request, "task", "1")
 
 
+class ExternalPermissionApplyTest(unittest.TestCase):
+    def test_upstream_permission_payload_raises_even_with_non_499_code(self):
+        from gcloud.iam_auth.exceptions import RawAuthFailedException
+        from gcloud.iam_auth.utils import check_and_raise_raw_auth_fail_exception
+
+        permission = {"system_id": "bk_job", "actions": [{"id": "view_business"}]}
+        with self.assertRaises(RawAuthFailedException) as raised:
+            check_and_raise_raw_auth_fail_exception(
+                {"result": False, "code": 403, "permission": permission, "message": "permission denied"}
+            )
+        self.assertEqual(raised.exception.perms_apply_data(), permission)
+
+    @mock.patch("gcloud.iam_auth.apply_service._api_request")
+    def test_external_permission_apply_url_keeps_job_system_and_business(self, api_request):
+        api_request.return_value = {"url": "https://iam.example.test/apply"}
+        payload = {
+            "system_id": "bk_job",
+            "system_name": "作业平台",
+            "actions": [
+                {
+                    "id": "access_business",
+                    "name": "业务访问",
+                    "related_resource_types": [
+                        {
+                            "system_id": "bk_cmdb",
+                            "system_name": "配置平台",
+                            "type": "biz",
+                            "type_name": "业务",
+                            "instances": [[{"type": "biz", "id": "9", "name": "test", "type_name": "业务"}]],
+                        }
+                    ],
+                }
+            ],
+        }
+
+        url = ApplyService().generate_external_url("t1", payload)
+
+        self.assertEqual(url, "https://iam.example.test/apply")
+        request_payload = api_request.call_args.args[1]
+        self.assertEqual(
+            request_payload,
+            {
+                "tenant_id": "t1",
+                "system_id": "bk_job",
+                "permissions": [{"action_id": "access_business", "resources": [{"type": "biz", "id": "9"}]}],
+            },
+        )
+        from gcloud.iam_auth.api_v4.serializers import GenerateApplyURLRequestSerializer
+
+        self.assertTrue(GenerateApplyURLRequestSerializer(data=request_payload).is_valid())
+
+        request = RequestFactory().post(
+            "/iam/api/apply_perms_url/", data=json.dumps(payload), content_type="application/json"
+        )
+        request.user = SimpleNamespace(tenant_id="t1")
+        response = iam_api.apply_perms_url(request)
+        self.assertTrue(json.loads(response.content)["result"])
+
+    @mock.patch("gcloud.iam_auth.apply_service._api_request")
+    def test_other_job_permissions_keep_their_actions_and_resources(self, api_request):
+        api_request.return_value = {"url": "https://iam.example.test/apply"}
+        payload = {
+            "system_id": "bk_job",
+            "actions": [
+                {
+                    "id": "quick_execute_script",
+                    "related_resource_types": [
+                        {
+                            "system_id": "bk_cmdb",
+                            "type": "host",
+                            "instances": [[{"type": "biz", "id": "9"}, {"type": "host", "id": "123"}]],
+                        }
+                    ],
+                },
+                {
+                    "id": "manage_script",
+                    "related_resource_types": [
+                        {
+                            "system_id": "bk_job",
+                            "type": "script",
+                            "instances": [[{"type": "biz", "id": "9"}, {"type": "script", "id": "456"}]],
+                        }
+                    ],
+                },
+            ],
+        }
+
+        ApplyService().generate_external_url("t1", payload)
+
+        self.assertEqual(
+            api_request.call_args.args[1]["permissions"],
+            [
+                {
+                    "action_id": "quick_execute_script",
+                    "resources": [
+                        {
+                            "type": "host",
+                            "id": "123",
+                            "ancestors": [{"type": "biz", "id": "9"}],
+                        }
+                    ],
+                },
+                {
+                    "action_id": "manage_script",
+                    "resources": [
+                        {
+                            "type": "script",
+                            "id": "456",
+                            "ancestors": [{"type": "biz", "id": "9"}],
+                        }
+                    ],
+                },
+            ],
+        )
+
+    @mock.patch("gcloud.iam_auth.apply_service._api_request")
+    def test_external_permission_rejects_mixed_systems(self, api_request):
+        payload = {
+            "system_id": "bk_job",
+            "actions": [
+                {
+                    "id": "view_business",
+                    "related_resource_types": [
+                        {
+                            "system_id": "bk_sops",
+                            "type": "biz",
+                            "instances": [],
+                        }
+                    ],
+                }
+            ],
+        }
+        with self.assertRaises(IAMV4ProtocolError):
+            ApplyService().generate_external_url("t1", payload)
+        api_request.assert_not_called()
+
+    @mock.patch("gcloud.iam_auth.apply_service._api_request")
+    def test_external_permission_rejects_other_systems(self, api_request):
+        payload = {"system_id": "bk_cmdb", "actions": [{"id": "view_business"}]}
+        with self.assertRaises(IAMV4ProtocolError):
+            ApplyService().generate_external_url("t1", payload)
+        api_request.assert_not_called()
+
+    @mock.patch("gcloud.iam_auth.apply_service._api_request")
+    def test_external_permission_rejects_unknown_job_resource_owner(self, api_request):
+        payload = {
+            "system_id": "bk_job",
+            "actions": [
+                {
+                    "id": "use_account",
+                    "related_resource_types": [
+                        {
+                            "system_id": "bk_cmdb",
+                            "type": "account",
+                            "instances": [],
+                        }
+                    ],
+                }
+            ],
+        }
+        with self.assertRaises(IAMV4ProtocolError):
+            ApplyService().generate_external_url("t1", payload)
+        api_request.assert_not_called()
+
+
 class CallbackSecurityTest(unittest.TestCase):
     def request(self, token="token", tenant="t1"):
         encoded = base64.b64encode("bk_iam:{}".format(token).encode()).decode()
