@@ -13,15 +13,13 @@ specific language governing permissions and limitations under the License.
 
 import logging
 
-from rest_framework.response import Response
-
 from gcloud import err_code
 
 logger = logging.getLogger("root")
 
 
 def _build_error_response(message, code):
-    return Response({"result": False, "message": message, "code": code})
+    return {"result": False, "message": message, "code": code}
 
 
 def get_taskflow_for_log(api_name, task_id, project):

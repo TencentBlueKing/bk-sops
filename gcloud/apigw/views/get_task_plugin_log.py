@@ -13,10 +13,9 @@ specific language governing permissions and limitations under the License.
 
 from apigw_manager.apigw.decorators import apigw_require
 from blueapps.account.decorators import login_exempt
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.views.decorators.http import require_GET
 
-from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject
+from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, project_inject, return_json_response
 from gcloud.apigw.log_auth import get_taskflow_for_log, validate_node_plugin_trace, validate_task_node
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
@@ -37,9 +36,10 @@ def fetch_task_plugin_log(plugin_code, trace_id, scroll_id=None):
 
 
 @login_exempt
-@api_view(["GET"])
+@require_GET
 @apigw_require
 @mcp_apigw()
+@return_json_response
 @mark_request_whether_is_trust
 @project_inject
 @iam_intercept(TaskViewInterceptor())
@@ -61,4 +61,4 @@ def get_task_plugin_log(request, task_id, project_id):
     if error_response is not None:
         return error_response
 
-    return Response(fetch_task_plugin_log(plugin_code, trace_id, scroll_id))
+    return fetch_task_plugin_log(plugin_code, trace_id, scroll_id)
