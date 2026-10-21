@@ -25,11 +25,19 @@ from gcloud.iam_auth.constants import HTTP_AUTH_FORBIDDEN_CODE
 logger = logging.getLogger("root")
 
 
+def _api_result_error_text(result):
+    """优先使用 message，配置平台等组件把错误放在 bk_error_msg。"""
+
+    return result.get("message") or result.get("bk_error_msg") or ""
+
+
 def handle_api_error(system, api_name, params, result):
     request_id = result.get("request_id", "")
+    error_text = _api_result_error_text(result)
+    error_code = result.get("code", result.get("bk_error_code"))
     tenant_id = get_current_tenant_id()
     iam = get_iam_client(tenant_id)
-    if result.get("code") == HTTP_AUTH_FORBIDDEN_CODE:
+    if error_code == HTTP_AUTH_FORBIDDEN_CODE:
         permission = result.get("permission", {})
 
         if not permission:
@@ -52,7 +60,7 @@ def handle_api_error(system, api_name, params, result):
                     system=system, api_name=api_name, url=url
                 )
                 message = "{prefix}\n details: error={error}, params={params}".format(
-                    prefix=message, params=json.dumps(params), error=result.get("message", "")
+                    prefix=message, params=json.dumps(params), error=error_text
                 )
                 if request_id:
                     message = "{}, request_id={}".format(message, request_id)
@@ -65,7 +73,7 @@ def handle_api_error(system, api_name, params, result):
 
     else:
         message = _("调用{system}接口{api_name}返回失败, error={error}, params={params}").format(
-            system=system, api_name=api_name, error=result.get("message", ""), params=json.dumps(params)
+            system=system, api_name=api_name, error=error_text, params=json.dumps(params)
         )
         if request_id:
             message = "{}, request_id={}".format(message, request_id)
