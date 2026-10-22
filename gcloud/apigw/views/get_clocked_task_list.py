@@ -19,12 +19,12 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust, project_injec
 from gcloud.apigw.views.utils import paginate_list_data
 from gcloud.clocked_task.models import ClockedTask
 from gcloud.clocked_task.serializer import ClockedTaskSerializer
-from gcloud.constants import CLOCKED_TASK_STATE
+from gcloud.constants import CLOCKED_TASK_STATE, COMMON, PROJECT
 from gcloud.core.apis.drf.viewsets import IAMMixin
 from gcloud.iam_auth import IAMMeta, get_iam_client
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.resource_helpers.clocked_task import ClockedTaskResourceHelper
-from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
+from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw.clocked_task_view import ProjectAndTaskViewInterceptor
 from gcloud.utils.dates import format_datetime  # 导入format_datetime函数
 
@@ -132,14 +132,23 @@ def get_clocked_task_list(request, project_id):
     deserialized_instances = inject_timezone_for_time_fields(deserialized_instances, paginated_queryset, tz)
 
     auth_actions = clocked_task_viewset.iam_get_instances_auth_actions(request, paginated_queryset) or {}
-    template_view_actions = get_flow_allowed_actions_for_user(
-        request.user.username, [IAMMeta.FLOW_VIEW_ACTION], [inst.template_id for inst in paginated_queryset]
-    )
+    project_template_ids = [inst.template_id for inst in paginated_queryset if inst.template_source == PROJECT]
+    common_template_ids = [inst.template_id for inst in paginated_queryset if inst.template_source == COMMON]
+    template_view_actions = {
+        PROJECT: get_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.FLOW_VIEW_ACTION], project_template_ids, request.user.tenant_id
+        ),
+        COMMON: get_common_flow_allowed_actions_for_user(
+            request.user.username, [IAMMeta.COMMON_FLOW_VIEW_ACTION], common_template_ids, request.user.tenant_id
+        ),
+    }
     for deserialized_instance in deserialized_instances:
-        deserialized_instance["auth_actions"] = auth_actions.get(deserialized_instance["id"], [])
-        tmpl_id = str(deserialized_instance["template_id"])
-        if tmpl_id in template_view_actions and template_view_actions[tmpl_id][IAMMeta.FLOW_VIEW_ACTION]:
-            deserialized_instance["auth_actions"].append(IAMMeta.FLOW_VIEW_ACTION)
+        deserialized_instance["auth_actions"] = list(auth_actions.get(deserialized_instance["id"], []))
+        template_source = deserialized_instance["template_source"]
+        template_id = str(deserialized_instance["template_id"])
+        view_action = IAMMeta.FLOW_VIEW_ACTION if template_source == PROJECT else IAMMeta.COMMON_FLOW_VIEW_ACTION
+        if template_view_actions.get(template_source, {}).get(template_id, {}).get(view_action):
+            deserialized_instance["auth_actions"].append(view_action)
 
     response = {
         "result": True,

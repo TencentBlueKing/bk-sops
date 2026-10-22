@@ -19,7 +19,7 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust, return_json_r
 from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_list_data
 from gcloud.common_template.models import CommonTemplate
-from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS
+from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS, IAMMeta
 from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user
 
 
@@ -47,7 +47,7 @@ def get_common_template_list(request):
     # 注入用户有权限的actions
     common_templates_allowed_actions = get_common_flow_allowed_actions_for_user(
         request.user.username,
-        COMMON_FLOW_ACTIONS,
+        [action for action in COMMON_FLOW_ACTIONS if action != IAMMeta.COMMON_FLOW_CREATE_ACTION],
         common_templates_id_list,
         tenant_id=request.user.tenant_id,
     )

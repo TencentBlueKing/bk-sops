@@ -80,6 +80,9 @@ class MockQuerySet:
 CLOCKED_TASK_FILTER = "gcloud.clocked_task.models.ClockedTask.objects.filter"
 
 MOCK_GET_FLOW_ALLOWED_ACTIONS = "gcloud.apigw.views.get_clocked_task_list.get_flow_allowed_actions_for_user"
+MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS = (
+    "gcloud.apigw.views.get_clocked_task_list.get_common_flow_allowed_actions_for_user"
+)
 
 TEST_PROJECT_ID = "123"
 TEST_PROJECT_NAME = "biz name"
@@ -178,7 +181,7 @@ class GetClockedTaskListAPITest(APITest):
                 "template_name": task["template_name"],
                 "template_source": task["template_source"],
                 "clocked_task_id": task["clocked_task_id"],
-                "auth_actions": TEST_AUTH_ACTIONS[task["id"]],
+                "auth_actions": TEST_AUTH_ACTIONS[task["id"]] + ([IAMMeta.FLOW_VIEW_ACTION] if task["id"] == 1 else []),
             }
             for task in TEST_CLOCKED_TASK_LIST
         ]
@@ -188,17 +191,65 @@ class GetClockedTaskListAPITest(APITest):
                 "gcloud.apigw.views.get_clocked_task_list.clocked_task_viewset.iam_get_instances_auth_actions",
                 MagicMock(return_value=TEST_AUTH_ACTIONS),
             ):
-                with mock.patch(MOCK_GET_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_TEMPLATE_VIEW_ACTIONS)):
+                with mock.patch(
+                    MOCK_GET_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_TEMPLATE_VIEW_ACTIONS)
+                ) as get_flow_actions:
                     response = self.client.get(
                         path=self.url().format(project_id=TEST_PROJECT_ID),
                         HTTP_BK_APP_CODE=TEST_APP_CODE,
                         HTTP_BK_USERNAME=TEST_USERNAME,
                     )
 
+                    get_flow_actions.assert_called_once_with(
+                        TEST_USERNAME, [IAMMeta.FLOW_VIEW_ACTION], [1, 2], "system"
+                    )
                     data = json.loads(response.content)
                     self.assertTrue(data["result"])
                     self.assertEqual(data["data"], assert_data)
                     self.assertEqual(data["count"], 2)
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID,
+                name=TEST_PROJECT_NAME,
+                bk_biz_id=TEST_BIZ_CC_ID,
+                from_cmdb=True,
+            )
+        ),
+    )
+    def test_get_clocked_task_list__mixed_template_sources(self):
+        project_task = MockClockedTask(**TEST_CLOCKED_TASK_LIST[0])
+        common_task_data = {**TEST_CLOCKED_TASK_LIST[1], "template_source": "common", "template_id": 1}
+        common_task = MockClockedTask(**common_task_data)
+        clocked_tasks = MockQuerySet([project_task, common_task])
+
+        with mock.patch(CLOCKED_TASK_FILTER, MagicMock(return_value=clocked_tasks)), mock.patch(
+            "gcloud.apigw.views.get_clocked_task_list.clocked_task_viewset.iam_get_instances_auth_actions",
+            MagicMock(return_value=TEST_AUTH_ACTIONS),
+        ), mock.patch(
+            MOCK_GET_FLOW_ALLOWED_ACTIONS, MagicMock(return_value={"1": {IAMMeta.FLOW_VIEW_ACTION: True}})
+        ) as get_flow_actions, mock.patch(
+            MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS,
+            MagicMock(return_value={"1": {IAMMeta.COMMON_FLOW_VIEW_ACTION: True}}),
+        ) as get_common_actions:
+            response = self.client.get(
+                path=self.url().format(project_id=TEST_PROJECT_ID),
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+                HTTP_BK_USERNAME=TEST_USERNAME,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data["result"], msg=data)
+        self.assertIn(IAMMeta.FLOW_VIEW_ACTION, data["data"][0]["auth_actions"])
+        self.assertIn(IAMMeta.COMMON_FLOW_VIEW_ACTION, data["data"][1]["auth_actions"])
+        self.assertNotIn(IAMMeta.FLOW_VIEW_ACTION, data["data"][1]["auth_actions"])
+        self.assertEqual(TEST_AUTH_ACTIONS[1], [IAMMeta.CLOCKED_TASK_VIEW_ACTION, IAMMeta.CLOCKED_TASK_EDIT_ACTION])
+        self.assertEqual(TEST_AUTH_ACTIONS[2], [IAMMeta.CLOCKED_TASK_VIEW_ACTION])
+        get_flow_actions.assert_called_once_with(TEST_USERNAME, [IAMMeta.FLOW_VIEW_ACTION], [1], "system")
+        get_common_actions.assert_called_once_with(TEST_USERNAME, [IAMMeta.COMMON_FLOW_VIEW_ACTION], [1], "system")
 
     @mock.patch(
         PROJECT_GET,

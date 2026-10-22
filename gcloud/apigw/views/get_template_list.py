@@ -26,9 +26,9 @@ from gcloud.apigw.serializers import IncludeTemplateSerializer
 from gcloud.apigw.views.utils import format_template_list_data, logger
 from gcloud.common_template.models import CommonTemplate
 from gcloud.constants import NON_COMMON_TEMPLATE_TYPES, PROJECT
-from gcloud.iam_auth.conf import FLOW_ACTIONS
+from gcloud.iam_auth.conf import COMMON_FLOW_ACTIONS, FLOW_ACTIONS, IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.utils import get_flow_allowed_actions_for_user
+from gcloud.iam_auth.utils import get_common_flow_allowed_actions_for_user, get_flow_allowed_actions_for_user
 from gcloud.iam_auth.view_interceptors.apigw import ProjectViewInterceptor
 from gcloud.label.models import TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -88,9 +88,20 @@ def get_template_list(request, project_id):
     if include_labels:
         template_labels = TemplateLabelRelation.objects.fetch_templates_labels(template_id_list)
     # 注入用户有权限的actions
-    flow_allowed_actions = get_flow_allowed_actions_for_user(
-        request.user.username, FLOW_ACTIONS, template_id_list, tenant_id
-    )
+    if template_source in NON_COMMON_TEMPLATE_TYPES:
+        flow_allowed_actions = get_flow_allowed_actions_for_user(
+            request.user.username,
+            [action for action in FLOW_ACTIONS if action != IAMMeta.FLOW_CREATE_ACTION],
+            template_id_list,
+            tenant_id,
+        )
+    else:
+        flow_allowed_actions = get_common_flow_allowed_actions_for_user(
+            request.user.username,
+            [action for action in COMMON_FLOW_ACTIONS if action != IAMMeta.COMMON_FLOW_CREATE_ACTION],
+            template_id_list,
+            tenant_id,
+        )
     for template_info in template_list:
         template_id = template_info["id"]
         template_info.setdefault("auth_actions", [])
