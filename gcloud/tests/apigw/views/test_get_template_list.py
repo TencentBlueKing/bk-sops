@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 
 import ujson as json
 
+from gcloud.iam_auth.conf import ACTION_RESOURCE_TYPES, COMMON_FLOW_ACTIONS, FLOW_ACTIONS, IAMMeta
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 from gcloud.utils.dates import format_datetime
@@ -21,6 +22,7 @@ from gcloud.utils.dates import format_datetime
 from .utils import TEST_USERNAME, APITest
 
 MOCK_GET_FLOW_ALLOWED_ACTIONS = "gcloud.apigw.views.get_template_list.get_flow_allowed_actions_for_user"
+MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS = "gcloud.apigw.views.get_template_list.get_common_flow_allowed_actions_for_user"
 
 
 TEST_PROJECT_ID = "123"
@@ -36,6 +38,24 @@ TEST_ALLOWED_ACTIONS = {
 
 
 class GetTemplateListAPITest(APITest):
+    def test_action_lists_match_template_resources(self):
+        self.assertEqual(ACTION_RESOURCE_TYPES[IAMMeta.FLOW_CREATE_ACTION], "project")
+        self.assertIsNone(ACTION_RESOURCE_TYPES[IAMMeta.COMMON_FLOW_CREATE_ACTION])
+        self.assertTrue(
+            all(
+                ACTION_RESOURCE_TYPES[action] == "flow"
+                for action in FLOW_ACTIONS
+                if action != IAMMeta.FLOW_CREATE_ACTION
+            )
+        )
+        self.assertTrue(
+            all(
+                ACTION_RESOURCE_TYPES[action] == "common_flow"
+                for action in COMMON_FLOW_ACTIONS
+                if action != IAMMeta.COMMON_FLOW_CREATE_ACTION
+            )
+        )
+
     def url(self):
         return "/apigw/get_template_list/{project_id}/"
 
@@ -63,7 +83,7 @@ class GetTemplateListAPITest(APITest):
             TASKTEMPLATE_SELECT_RELATE,
             MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ):
-            with patch(MOCK_GET_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_ALLOWED_ACTIONS)):
+            with patch(MOCK_GET_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_ALLOWED_ACTIONS)) as get_actions:
                 assert_data = [
                     {
                         "id": tmpl.id,
@@ -90,6 +110,12 @@ class GetTemplateListAPITest(APITest):
                 )
 
                 self.assertEqual(response.status_code, 200)
+                get_actions.assert_called_once_with(
+                    TEST_USERNAME,
+                    [action for action in FLOW_ACTIONS if action != IAMMeta.FLOW_CREATE_ACTION],
+                    TEST_TASK_ID_LIST,
+                    "system",
+                )
 
                 data = json.loads(response.content)
 
@@ -136,7 +162,11 @@ class GetTemplateListAPITest(APITest):
         with patch(
             COMMONTEMPLATE_SELECT_RELATE,
             MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
-        ):
+        ), patch(
+            MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_ALLOWED_ACTIONS)
+        ) as get_actions, patch(
+            MOCK_GET_FLOW_ALLOWED_ACTIONS
+        ) as get_project_actions:
             assert_data = [
                 {
                     "id": tmpl.id,
@@ -150,7 +180,7 @@ class GetTemplateListAPITest(APITest):
                     "project_name": TEST_PROJECT_NAME,
                     "bk_biz_id": TEST_PROJECT_ID,
                     "bk_biz_name": TEST_PROJECT_NAME,
-                    "auth_actions": [],
+                    "auth_actions": ["TEST_ACTION"],
                     "description": tmpl.pipeline_template.description,
                 }
                 for tmpl in task_templates
@@ -164,6 +194,13 @@ class GetTemplateListAPITest(APITest):
             )
 
             self.assertEqual(response.status_code, 200)
+            get_actions.assert_called_once_with(
+                TEST_USERNAME,
+                [action for action in COMMON_FLOW_ACTIONS if action != IAMMeta.COMMON_FLOW_CREATE_ACTION],
+                TEST_TASK_ID_LIST,
+                "system",
+            )
+            get_project_actions.assert_not_called()
 
             data = json.loads(response.content)
 

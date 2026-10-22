@@ -15,6 +15,7 @@ specific language governing permissions and limitations under the License.
 import ujson as json
 
 from gcloud.apigw.views.get_common_template_list import COMMON_FLOW_ACTIONS
+from gcloud.iam_auth.conf import IAMMeta
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 from gcloud.utils.dates import format_datetime
@@ -77,7 +78,10 @@ class GetCommontemplateListAPITest(APITest):
                     headers={"X-Bk-Tenant-Id": "system"},
                 )
                 mock_get_actions.assert_called_once_with(
-                    TEST_USERNAME, COMMON_FLOW_ACTIONS, TEST_ID_LIST, tenant_id="system"
+                    TEST_USERNAME,
+                    [action for action in COMMON_FLOW_ACTIONS if action != IAMMeta.COMMON_FLOW_CREATE_ACTION],
+                    TEST_ID_LIST,
+                    tenant_id="system",
                 )
                 self.assertEqual(response.status_code, 200)
 
