@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">=22.23.4 <23"
+  },
   "scripts": {
     "dev": "cross-env NODE_ENV=development webpack-dev-server --progress --config ./builds/webpack.dev.config.js",
     "build": "cross-env NODE_ENV=production webpack --config ./builds/webpack.prod.config.js"
