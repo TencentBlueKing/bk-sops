@@ -37,10 +37,10 @@
 
   <div class="filters">
     <select id="f-status">
-      <option value="">全部状态</option>
-      <option value="open">待治理</option>
+      <option value="open" selected>待治理</option>
       <option value="resolved">已解决</option>
       <option value="ignored">已忽略</option>
+      <option value="all">全部状态</option>
     </select>
     <input id="f-stuck_type" placeholder="stuck_type">
     <select id="f-severity">
@@ -110,8 +110,12 @@
         state.total = body.data.total;
         renderList(body.data.items);
         var hidden = body.data.hidden_failed_parked || 0;
+        var hiddenByStatus = body.data.hidden_by_status || 0;
+        var notes = [];
+        if (hiddenByStatus) notes.push('其他状态 ' + hiddenByStatus + ' 条未列出');
+        if (hidden) notes.push('已隐藏 ' + hidden + ' 条失败等人工');
         document.getElementById('total').textContent =
-          '共 ' + body.data.total + ' 条' + (hidden ? ' (已隐藏 ' + hidden + ' 条失败等人工)' : '');
+          '共 ' + body.data.total + ' 条' + (notes.length ? ' (' + notes.join('，') + ')' : '');
         document.getElementById('page-info').textContent = '第 ' + state.page + ' 页';
       });
   }
