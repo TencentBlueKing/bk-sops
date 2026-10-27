@@ -26,6 +26,7 @@ from gcloud.constants import JobBizScopeType
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
+from pipeline_plugins.components.utils import has_biz_set
 
 node_logger = logging.getLogger("root")
 
@@ -44,13 +45,29 @@ JOB_INST_ID_IN_LIST_MAP = {
     "all_biz_job_fast_push_file": "业务集快速分发文件",
 }
 
+# 业务集(all_biz_*)插件下发的作业实例挂在 biz_set 维度，查询日志须用 biz_set scope
+JOB_BIZ_SET_COMPONENT_CODES = {
+    "all_biz_job_fast_execute_script",
+    "all_biz_execute_job_plan",
+    "all_biz_job_fast_push_file",
+}
+
+
+def _get_component_all_biz_cc_id(inputs):
+    """从业务集插件节点输入中获取业务集 ID，兼容 all_biz_job_config 嵌套结构"""
+    if not inputs:
+        return None
+    all_biz_cc_id = inputs.get("all_biz_cc_id")
+    if all_biz_cc_id:
+        return all_biz_cc_id
+    job_config = inputs.get("all_biz_job_config") or {}
+    return job_config.get("all_biz_cc_id")
+
 
 def fetch_node_job_executed_log(
     node_id, bk_biz_id, target_ip=None, component_code=None, job_scope_type=None, execution_data=None
 ):
     """获取节点JOB执行日志的核心逻辑，供内外接口共用"""
-    if job_scope_type is None:
-        job_scope_type = JobBizScopeType.BIZ.value
     client = settings.ESB_GET_CLIENT_BY_USER(settings.SYSTEM_USE_API_ACCOUNT)
     if execution_data is None:
         runtime = BambooDjangoRuntime()
@@ -64,8 +81,30 @@ def fetch_node_job_executed_log(
                 "logs": "",
             }
 
+    inputs = getattr(execution_data, "inputs", {}) or {}
+
+    if component_code in JOB_BIZ_SET_COMPONENT_CODES:
+        # 业务集插件的作业实例挂在节点实际选择的业务集维度下，需用该业务集 ID 及对应 scope 查询
+        all_biz_cc_id = _get_component_all_biz_cc_id(inputs)
+        if all_biz_cc_id:
+            bk_biz_id = all_biz_cc_id
+            if job_scope_type is None:
+                # 与组件执行逻辑保持一致：是业务集用 biz_set，否则降级为 biz
+                job_scope_type = (
+                    JobBizScopeType.BIZ_SET.value
+                    if has_biz_set(int(all_biz_cc_id))
+                    else JobBizScopeType.BIZ.value
+                )
+    else:
+        # 普通 JOB 插件优先使用节点输入中的 biz_cc_id，与组件执行时的取值保持一致
+        node_biz_cc_id = inputs.get("biz_cc_id")
+        if node_biz_cc_id:
+            bk_biz_id = node_biz_cc_id
+    if job_scope_type is None:
+        job_scope_type = JobBizScopeType.BIZ.value
+
     if component_code and component_code in JOB_INST_ID_IN_LIST_MAP:
-        job_instance_id_list = execution_data.outputs.get("job_inst_id_list") or []
+        job_instance_id_list = execution_data.outputs.get("job_instance_id_list") or []
         log_content_list = []
         for job_instance_id in job_instance_id_list:
             log_result = get_job_instance_log(
@@ -122,6 +161,7 @@ def get_node_job_executed_log(request, task_id, project_id):
 
     node_id = request.GET.get("node_id")
     target_ip = request.GET.get("target_ip")
+    component_code = request.GET.get("component_code")
     error_response = validate_task_node("get_node_job_executed_log", taskflow, node_id)
     if error_response is not None:
         return error_response
@@ -130,4 +170,6 @@ def get_node_job_executed_log(request, task_id, project_id):
     if error_response is not None:
         return error_response
 
-    return fetch_node_job_executed_log(node_id, project.bk_biz_id, target_ip, execution_data=execution_data)
+    return fetch_node_job_executed_log(
+        node_id, project.bk_biz_id, target_ip, component_code=component_code, execution_data=execution_data
+    )

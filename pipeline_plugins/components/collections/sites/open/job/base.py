@@ -177,13 +177,23 @@ def get_job_instance_log(
                 if ip_result["ip"] == target_ip:
                     step_ip_result = ip_result
             if step_ip_result is None:
-                message = _(
-                    f"执行历史请求失败: IP:[{target_ip}], 不属于IP列表: "
-                    f"[{','.join([instance['ip'] for instance in step_instance['step_ip_result_list']])}]"
-                    f" | get_job_instance_log"
-                )
-                service_logger.error(message)
-                return {"result": False, "message": message}
+                if job_scope_type == JobBizScopeType.BIZ_SET.value:
+                    # 业务集作业实例分布在多个业务/大量 IP，target_ip 未必命中每个步骤，
+                    # 未命中的步骤跳过，避免整体查询失败
+                    service_logger.warning(
+                        "target_ip [%s] 不在步骤 [%s] 的 IP 列表中，跳过该步骤日志 | get_job_instance_log",
+                        target_ip,
+                        step_instance.get("step_instance_id"),
+                    )
+                    continue
+                return {
+                    "result": False,
+                    "message": "执行历史请求失败: IP:[%s], 不属于IP列表: [%s] | get_job_instance_log"
+                    % (
+                        target_ip,
+                        ",".join([ip_result["ip"] for ip_result in step_instance["step_ip_result_list"]]),
+                    ),
+                }
         else:
             step_ip_result = step_instance["step_ip_result_list"][0]
         get_job_instance_ip_log_kwargs = {
@@ -211,7 +221,15 @@ def get_job_instance_log(
             )
             service_logger.warning(message)
             return {"result": False, "message": message}
-        log_content = get_job_instance_ip_log_kwargs_return["data"]["log_content"]
+        ip_log_data = get_job_instance_ip_log_kwargs_return.get("data") or {}
+        log_content = ip_log_data.get("log_content")
+        if not log_content:
+            # 文件分发类步骤(log_type=2)的日志在 file_logs 中，此时 log_content 为空，且 file_logs 可能有多条
+            log_content = "\n".join(
+                str(file_log["log_content"])
+                for file_log in ip_log_data.get("file_logs") or []
+                if file_log.get("log_content")
+            )
         if log_content:
             log_list.append(str(log_content))
     log_text = "\n".join(log_list)
