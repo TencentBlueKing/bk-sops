@@ -2,6 +2,8 @@
 
 Get the JOB platform execution log of a task node
 
+It supports plugins that submit only one JOB instance (such as fast execute script and execute job), and also plugins that submit multiple JOB instances (such as fast push file and push local files), in which case the logs of all JOB instances are combined (requires component_code to be passed).
+
 #### Interface Parameters
 
 | Field          | Type       | Required | Description             |
@@ -10,6 +12,7 @@ Get the JOB platform execution log of a task node
 | task_id        | string     | YES      | the task ID |
 | node_id        | string     | YES      | the node ID |
 | target_ip      | string     | NO       | target IP, used to filter logs of a specific host |
+| component_code | string     | NO       | the plugin code of the node. For plugins that submit only one JOB instance (e.g. job_fast_execute_script, job_execute_task), it can be omitted. For plugins that submit multiple JOB instances (e.g. job_fast_push_file, job_push_local_files, all_biz_job_fast_push_file), it MUST be specified, otherwise the API only handles a single JOB instance (job_inst_id) and cannot aggregate logs from multiple instances |
 | scope          | string     | NO       | bk_biz_id scope. default is cmdb_biz, and bk_biz_id means bindded CMDB business ID of a project; when set to project, bk_biz_id means the project ID |
 
 ### Request Parameters Example
@@ -24,6 +27,7 @@ Get the JOB platform execution log of a task node
     "task_id": "10",
     "node_id": "node0df0431f8f553925af01a94854bd",
     "target_ip": "127.0.0.1",
+    "component_code": "job_fast_push_file",
     "scope": "cmdb_biz"
 }
 ```
