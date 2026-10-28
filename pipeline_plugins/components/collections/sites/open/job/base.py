@@ -167,6 +167,8 @@ def get_job_instance_log(
         return {"result": False, "message": message}
     # 根据每个步骤的IP（可能有多个），循环查询作业执行日志
     log_list = []
+    # 记录是否命中过 target_ip，供调用方区分“IP 不属于该任务”与“确实没有日志”
+    matched_target_ip = False
     for step_instance in get_job_instance_status_return["data"]["step_instance_list"]:
         if not step_instance.get("step_ip_result_list"):
             continue
@@ -176,6 +178,7 @@ def get_job_instance_log(
             for ip_result in step_instance["step_ip_result_list"]:
                 if ip_result["ip"] == target_ip:
                     step_ip_result = ip_result
+                    matched_target_ip = True
             if step_ip_result is None:
                 if job_scope_type == JobBizScopeType.BIZ_SET.value:
                     # 业务集作业实例分布在多个业务/大量 IP，target_ip 未必命中每个步骤，
@@ -233,7 +236,7 @@ def get_job_instance_log(
         if log_content:
             log_list.append(str(log_content))
     log_text = "\n".join(log_list)
-    return {"result": True, "data": log_text}
+    return {"result": True, "data": log_text, "matched_target_ip": matched_target_ip}
 
 
 def get_ip_from_step_ip_result(step_ip_result):

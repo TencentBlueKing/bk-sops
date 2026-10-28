@@ -23,6 +23,7 @@ from gcloud.apigw.decorators import mark_request_whether_is_trust, mcp_apigw, pr
 from gcloud.apigw.log_auth import get_execution_data_for_node, get_taskflow_for_log, validate_task_node
 from gcloud.conf import settings
 from gcloud.constants import JobBizScopeType
+from gcloud.exceptions import APIError
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw import TaskViewInterceptor
 from pipeline_plugins.components.collections.sites.open.job.base import get_job_instance_log
@@ -90,11 +91,19 @@ def fetch_node_job_executed_log(
             bk_biz_id = all_biz_cc_id
             if job_scope_type is None:
                 # 与组件执行逻辑保持一致：是业务集用 biz_set，否则降级为 biz
-                job_scope_type = (
-                    JobBizScopeType.BIZ_SET.value
-                    if has_biz_set(int(all_biz_cc_id))
-                    else JobBizScopeType.BIZ.value
-                )
+                try:
+                    is_biz_set = has_biz_set(int(all_biz_cc_id))
+                except APIError as e:
+                    # CC 查询失败时 has_biz_set 会抛出 APIError，转换为可识别的接口错误，避免日志查询直接异常终止
+                    node_logger.exception(
+                        "get biz set info failed, all_biz_cc_id: %s | get_node_job_executed_log", all_biz_cc_id
+                    )
+                    return {
+                        "result": False,
+                        "message": "get biz set info failed: {}".format(e.message or e),
+                        "logs": "",
+                    }
+                job_scope_type = JobBizScopeType.BIZ_SET.value if is_biz_set else JobBizScopeType.BIZ.value
     else:
         # 普通 JOB 插件优先使用节点输入中的 biz_cc_id，与组件执行时的取值保持一致
         node_biz_cc_id = inputs.get("biz_cc_id")
@@ -105,7 +114,18 @@ def fetch_node_job_executed_log(
 
     if component_code and component_code in JOB_INST_ID_IN_LIST_MAP:
         job_instance_id_list = execution_data.outputs.get("job_instance_id_list") or []
+        if not job_instance_id_list:
+            # 旧版本插件（legacy、v1.0）只输出 job_inst_id，兼容为单实例查询
+            job_inst_id = execution_data.outputs.get("job_inst_id")
+            if not job_inst_id:
+                return {
+                    "result": False,
+                    "message": "job instance not found in node outputs",
+                    "logs": "",
+                }
+            job_instance_id_list = [job_inst_id]
         log_content_list = []
+        matched_target_ip = False
         for job_instance_id in job_instance_id_list:
             log_result = get_job_instance_log(
                 client, node_logger, job_instance_id, bk_biz_id, target_ip, job_scope_type
@@ -116,7 +136,18 @@ def fetch_node_job_executed_log(
                     "message": log_result["message"],
                     "logs": "",
                 }
+            if log_result.get("matched_target_ip"):
+                matched_target_ip = True
             log_content_list.append(log_result["data"])
+        # 传了 target_ip 但所有作业实例都没有命中，说明 IP 不属于该任务
+        if target_ip and not matched_target_ip:
+            return {
+                "result": False,
+                "message": "执行历史请求失败: IP:[{}], 不属于该任务的作业实例 | get_node_job_executed_log".format(
+                    target_ip
+                ),
+                "logs": "",
+            }
         return {
             "result": True,
             "message": "success",
@@ -136,6 +167,13 @@ def fetch_node_job_executed_log(
         return {
             "result": False,
             "message": log_result["message"],
+            "logs": "",
+        }
+    # 传了 target_ip 但该作业实例没有命中，说明 IP 不属于该任务
+    if target_ip and not log_result.get("matched_target_ip"):
+        return {
+            "result": False,
+            "message": "执行历史请求失败: IP:[{}], 不属于该作业实例 | get_node_job_executed_log".format(target_ip),
             "logs": "",
         }
     return {

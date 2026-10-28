@@ -4673,7 +4673,9 @@ paths:
         required: false
         description: 节点对应的插件 code。普通单实例插件（如 job_fast_execute_script、job_execute_task）可不传；
           会提交多个 JOB 实例的插件（如 job_fast_push_file、job_push_local_files、all_biz_job_fast_push_file）必须传入，否则接口只按单个 job_inst_id 处理，无法汇总多实例日志；
-          业务集插件（all_biz_job_fast_execute_script、all_biz_execute_job_plan、all_biz_job_fast_push_file）也必须传入，接口据此改用业务集 scope 查询
+          业务集插件（all_biz_job_fast_execute_script、all_biz_execute_job_plan、all_biz_job_fast_push_file）也必须传入，接口据此改用业务集 scope 查询；
+          旧版本 job_fast_push_file（legacy、v1.0）只输出 job_inst_id，接口已兼容单实例输出；
+          传入 target_ip 时，若该 IP 不属于该任务的任何作业实例，接口会返回失败而不是空日志
       - in: query
         name: scope
         schema:
