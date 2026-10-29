@@ -28,6 +28,17 @@ class CoreConfig(AppConfig):
     verbose_name = "GcloudCore"
 
     def ready(self):
+
+        from bkcrypto.contrib.django.fields import SymmetricTextField
+
+        # bk-crypto-python-sdk>=4.1.0 的字段无法被 Django 默认的 Field.__copy__ 复制，sqlite 迁移重建表时会报错
+        def _copy_symmetric_field(field):
+            obj = object.__new__(field.__class__)
+            obj.__dict__ = field.__dict__.copy()
+            return obj
+
+        SymmetricTextField.__copy__ = _copy_symmetric_field
+
         from gcloud.core.signals.handlers import business_post_save_handler  # noqa
 
         if hasattr(settings, "REDIS"):
