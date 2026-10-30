@@ -15,6 +15,14 @@ import os
 import sys
 
 if __name__ == "__main__":
+    # ============ KMS解密：Django管理命令入口 ============
+    # 说明：当BKPAAS_KMS_ENABLED=true时，从/etc/secrets解密敏感配置
+    # 影响范围：default/beat, pipeline/node-timeout, bin/pre_release中的所有python manage.py命令
+    # 文档参考：Python SaaS 接入 KMS - blueapps多租户版(2.2节)
+    if os.getenv('BKPAAS_KMS_ENABLED', '').lower() == 'true':
+        from blueapps.contrib.encrypt import decrypt_encrypted_environment
+        decrypt_encrypted_environment()
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 
     from django.core.management import execute_from_command_line
