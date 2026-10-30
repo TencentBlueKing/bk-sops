@@ -101,6 +101,7 @@ class PreReleaseTest(unittest.TestCase):
         "register_bksops_notice",
         "sync_webhook_events",
         "sync_agent",
+        "init_tenant",
     ]
 
     def run_pre_release(self, fail_command=""):
