@@ -77,7 +77,7 @@ BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 
 # node_callback 相关安全配置
 # 用于 callback token 加解密的 Fernet 密钥（URL-safe base64 编码的 32 字节随机串）
-# 配置后将覆盖 ver_settings 中的默认 CALLBACK_KEY；未配置则沿用代码内置默认值（仅建议用于本地开发）
+# 生产与预发布必须配置。未配置时，本地开发和测试从 SECRET_KEY 派生。
 BKAPP_CALLBACK_KEY = os.getenv("BKAPP_CALLBACK_KEY", "")
 
 # 插件网关按业务 ID 自动解析项目的 scope_type 列表

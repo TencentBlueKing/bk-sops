@@ -21,6 +21,7 @@ from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.validate import DomainValidator
 
 
 class BaseTaskTemplateSerializer(BaseTemplateSerializer):
@@ -91,6 +92,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     def validate(self, attrs):
         pipeline_tree = json.loads(attrs["pipeline_tree"])
         project_id = attrs["project"].id
+        self._validate_ai_notify_group(attrs.get("ai_notify_group"))
 
         for activity in pipeline_tree.get("activities").values():
             if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
@@ -100,6 +102,20 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             if not result["result"]:
                 raise serializers.ValidationError(f"保存流程失败，{result['message']}")
         return attrs
+
+    @staticmethod
+    def _validate_ai_notify_group(ai_notify_group):
+        if not isinstance(ai_notify_group, dict):
+            return
+        for group_config in ai_notify_group.values():
+            if not isinstance(group_config, dict):
+                continue
+            webhook = group_config.get("web_hook")
+            if not webhook:
+                continue
+            valid_url, _allowed_domains = DomainValidator.validate(webhook)
+            if not valid_url:
+                raise serializers.ValidationError("AI notify webhook host is not allowed")
 
     class Meta:
         model = TaskTemplate

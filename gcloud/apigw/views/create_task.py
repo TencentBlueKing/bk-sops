@@ -11,7 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 import copy
-import re
 
 import jsonschema
 import ujson as json
@@ -48,6 +47,7 @@ from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, Timeou
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import standardize_pipeline_node_name
+from gcloud.utils.validate import DomainValidator
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 
@@ -75,13 +75,14 @@ def create_task(request, template_id, project_id):
     )
 
     callback_url = params.pop("callback_url", None)
-    CALLBACK_URL_PATTERN = r"^https?://\w.+$"
-    if callback_url and not (isinstance(callback_url, str) and re.match(CALLBACK_URL_PATTERN, callback_url)):
-        return {
-            "result": False,
-            "code": err_code.REQUEST_PARAM_INVALID.code,
-            "message": f"callback_url format error, must match {CALLBACK_URL_PATTERN}",
-        }
+    if callback_url:
+        valid_url, _allowed_domains = DomainValidator.validate(callback_url)
+        if not valid_url:
+            return {
+                "result": False,
+                "code": err_code.REQUEST_PARAM_INVALID.code,
+                "message": "callback_url host is not allowed",
+            }
     callback_version = params.get("callback_version", None)
 
     # 兼容老版本的接口调用

@@ -55,6 +55,7 @@ from gcloud.taskflow3.models import TaskConfig, TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
+from gcloud.utils.validate import DomainValidator
 from gcloud.utils.webhook import apply_webhook_configs, clear_scope_webhooks, get_webhook_configs
 
 logger = logging.getLogger("root")
@@ -483,12 +484,21 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         verify_data = serializer.validated_data.copy()
         verify_data.pop("project_id", None)
         verify_data["url"] = verify_data.pop("endpoint")
+        valid_url, _allowed_domains = DomainValidator.validate(verify_data["url"])
+        if not valid_url:
+            return Response(
+                {"detail": ErrorDetail("webhook host is not allowed", err_code.REQUEST_PARAM_INVALID.code)},
+                exception=True,
+            )
 
         try:
             verify_result = verify_webhook_endpoint(verify_data)
-        except Exception as e:
-            message = str(e)
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+        except Exception:
+            logger.exception("[verify_webhook_configuration] request failed")
+            return Response(
+                {"detail": ErrorDetail("webhook request failed", err_code.REQUEST_PARAM_INVALID.code)},
+                exception=True,
+            )
 
         if verify_result.exe_data:
             message = "HTTP请求处理失败：请求URL错误"
@@ -497,9 +507,11 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         if verify_result.ok:
             return Response(status=status.HTTP_200_OK)
         else:
-            verify_response = verify_result.json_response()
-            error_content = (
-                verify_response.get("message") if isinstance(verify_response, dict) else str(verify_response)
+            logger.warning(
+                "[verify_webhook_configuration] remote status=%s",
+                getattr(verify_result, "response_status_code", None),
             )
-            message = f"HTTP请求处理失败：status_code={verify_result.response_status_code}, content={error_content}"
-            return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)
+            return Response(
+                {"detail": ErrorDetail("webhook request failed", err_code.REQUEST_PARAM_INVALID.code)},
+                exception=True,
+            )

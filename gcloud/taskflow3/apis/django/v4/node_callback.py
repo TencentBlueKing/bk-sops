@@ -45,7 +45,7 @@ logger = logging.getLogger("root")
 def node_callback(request, token):
     try:
         f = Fernet(settings.CALLBACK_KEY)
-        back_load = f.decrypt(bytes(token, encoding="utf8")).decode().split(":")
+        back_load = f.decrypt(bytes(token, encoding="utf8"), ttl=settings.NODE_CALLBACK_TOKEN_TTL).decode().split(":")
 
         # 不带 root_pipeline_id 的回调 payload
         if len(back_load) == 3:

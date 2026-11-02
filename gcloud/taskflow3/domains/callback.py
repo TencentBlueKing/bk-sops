@@ -24,6 +24,7 @@ from requests import HTTPError
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowRelation
 from gcloud.utils.redis_lock import redis_lock
+from gcloud.utils.validate import DomainValidator
 
 logger = logging.getLogger("root")
 
@@ -97,13 +98,17 @@ class TaskCallBacker:
                 logger.error(f"[TaskCallBacker _url_callback] get lock error: {err}")
                 return None
             url = self.record.url
+            valid_url, _allowed_domains = DomainValidator.validate(url)
+            if not valid_url:
+                logger.error("[TaskCallBacker _url_callback] task_id=%s host is not allowed", self.task_id)
+                return False
             callback_version = self.record_extra_info.get("callback_version")
             response = None
             try:
                 if callback_version == TaskCallBackRecord.CALLBACK_VERSION_V2:
-                    response = requests.post(url, json=self.extra_info)
+                    response = requests.post(url, json=self.extra_info, timeout=10, allow_redirects=False)
                 else:
-                    response = requests.post(url, data=self.extra_info)
+                    response = requests.post(url, data=self.extra_info, timeout=10, allow_redirects=False)
                 response.raise_for_status()
             except HTTPError as e:
                 message = (
