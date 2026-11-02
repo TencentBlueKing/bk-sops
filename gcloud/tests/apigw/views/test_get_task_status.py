@@ -11,10 +11,6 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-
-import ujson as json
-
-
 from gcloud.tests.mock import *  # noqa
 from gcloud.tests.mock_settings import *  # noqa
 
@@ -47,6 +43,7 @@ class GetTaskStatusAPITest(APITest):
     def test_get_task_status__success(self):
         task = MagicMock()
         task.name = "task_name"
+        task.finish_time = None
         dispatcher = MagicMock()
         dispatcher.get_task_status = MagicMock(return_value=DISPATCHER_RETURN)
 
@@ -57,6 +54,51 @@ class GetTaskStatusAPITest(APITest):
                 data = json.loads(response.content)
                 self.assertTrue(data["result"], msg=data)
                 self.assertEqual(data["data"], {"name": task.name, "state": "CREATED"})
+
+    @mock.patch(
+        PROJECT_GET,
+        MagicMock(
+            return_value=MockProject(
+                project_id=TEST_PROJECT_ID, name=TEST_PROJECT_NAME, bk_biz_id=TEST_BIZ_CC_ID, from_cmdb=True,
+            )
+        ),
+    )
+    def test_get_task_status__finish_time_fallback(self):
+        task = MagicMock()
+        task.name = "task_name"
+        task.finish_time = datetime(2024, 1, 1, 0, 0, 0)
+        dispatcher = MagicMock()
+        dispatcher.get_task_status = MagicMock(
+            return_value={
+                "result": True,
+                "code": 0,
+                "data": {"state": "REVOKED", "id": "pipeline_id"},
+                "message": "",
+            }
+        )
+
+        with mock.patch(
+                "gcloud.apigw.views.get_task_status.format_datetime",
+                MagicMock(return_value="2024-01-01 08:00:00 +0800")
+        ):
+            with mock.patch(TASKINSTANCE_GET, MagicMock(return_value=task)):
+                with mock.patch(GET_TASK_STATUS_TASK_COMMAND_DISPATCHER, MagicMock(return_value=dispatcher)):
+                    # 使用不同的 task_id，避免 10s 缓存命中影响其他测试
+                    response = self.client.get(
+                        path=self.url().format(task_id="3", project_id=TEST_PROJECT_ID)
+                    )
+
+                    data = json.loads(response.content)
+                    self.assertTrue(data["result"], msg=data)
+                    self.assertEqual(
+                        data["data"],
+                        {
+                            "state": "REVOKED",
+                            "id": "pipeline_id",
+                            "name": "task_name",
+                            "finish_time": "2024-01-01 08:00:00 +0800",
+                        },
+                    )
 
     def test_get_task_status__raise(self):
         task = MockTaskFlowInstance(get_status_raise=Exception())
