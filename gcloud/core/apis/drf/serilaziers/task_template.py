@@ -21,7 +21,7 @@ from gcloud.core.apis.drf.serilaziers.project import ProjectSerializer
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.core.models import Project
 from gcloud.tasktmpl3.models import TaskTemplate
-from gcloud.utils.validate import DomainValidator
+from gcloud.utils.validate import OutboundCallbackValidator
 
 
 class BaseTaskTemplateSerializer(BaseTemplateSerializer):
@@ -113,7 +113,7 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
             webhook = group_config.get("web_hook")
             if not webhook:
                 continue
-            valid_url, _allowed_domains = DomainValidator.validate(webhook)
+            valid_url, _allowed_domains = OutboundCallbackValidator.validate_ai_notify_webhook(webhook)
             if not valid_url:
                 raise serializers.ValidationError("AI notify webhook host is not allowed")
 

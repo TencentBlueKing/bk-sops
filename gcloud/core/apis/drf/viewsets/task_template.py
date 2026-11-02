@@ -55,7 +55,7 @@ from gcloud.taskflow3.models import TaskConfig, TaskTemplate
 from gcloud.tasktmpl3.signals import post_template_save_commit
 from gcloud.template_base.domains.template_manager import TemplateManager
 from gcloud.user_custom_config.constants import TASKTMPL_ORDERBY_OPTIONS
-from gcloud.utils.validate import DomainValidator
+from gcloud.utils.validate import OutboundCallbackValidator
 from gcloud.utils.webhook import apply_webhook_configs, clear_scope_webhooks, get_webhook_configs
 
 logger = logging.getLogger("root")
@@ -484,7 +484,7 @@ class TaskTemplateViewSet(GcloudModelViewSet, GcloudCommonMixin):
         verify_data = serializer.validated_data.copy()
         verify_data.pop("project_id", None)
         verify_data["url"] = verify_data.pop("endpoint")
-        valid_url, _allowed_domains = DomainValidator.validate(verify_data["url"])
+        valid_url, _allowed_domains = OutboundCallbackValidator.validate(verify_data["url"])
         if not valid_url:
             return Response(
                 {"detail": ErrorDetail("webhook host is not allowed", err_code.REQUEST_PARAM_INVALID.code)},

@@ -290,6 +290,15 @@ BKPAAS_USER_URL = os.getenv("BKPAAS_USER_URL")
 ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = bool(int(os.getenv("ENABLE_HTTP_PLUGIN_DOMAINS_CHECK", 1)))
 ALLOWED_HTTP_PLUGIN_DOMAINS = os.getenv("ALLOWED_HTTP_PLUGIN_DOMAINS", "")
 
+# 任务回调、模板 webhook、AI 群通知的出站地址白名单，与 HTTP 插件白名单分开配置
+ENABLE_OUTBOUND_CALLBACK_DOMAINS_CHECK = bool(int(os.getenv("BKAPP_ENABLE_OUTBOUND_CALLBACK_DOMAINS_CHECK", 1)))
+# 逗号分隔，如 "example.com,*.example.org"；为空时只允许蓝鲸域名
+ALLOWED_OUTBOUND_CALLBACK_DOMAINS = os.getenv("BKAPP_ALLOWED_OUTBOUND_CALLBACK_DOMAINS", "")
+# 内网部署时白名单域名可能解析到内网地址，开启后允许内网地址，本机和链路本地地址仍会被拒绝
+ALLOW_OUTBOUND_CALLBACK_PRIVATE_IP = bool(int(os.getenv("BKAPP_ALLOW_OUTBOUND_CALLBACK_PRIVATE_IP", 0)))
+# AI 群通知额外允许的机器人域名
+ALLOWED_AI_NOTIFY_WEBHOOK_DOMAINS = os.getenv("BKAPP_ALLOWED_AI_NOTIFY_WEBHOOK_DOMAINS", "qyapi.weixin.qq.com")
+
 BK_DATA_REPORT_API_URL = os.getenv("BK_DATA_REPORT_API_URL", "")
 
 # webhook配置

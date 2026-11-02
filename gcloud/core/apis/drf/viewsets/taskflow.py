@@ -68,9 +68,6 @@ from gcloud.core.apis.drf.viewsets.base import GcloudReadOnlyViewSet
 from gcloud.core.models import EngineConfig, ProjectConfig
 from gcloud.iam_auth import IAMMeta, PermissionCheck, PermissionService, get_iam_client, res_factory
 from gcloud.iam_auth.conf import TASK_ACTIONS
-from gcloud.iam_auth.exceptions import AuthFailedException
-from gcloud.iam_auth.models import Action, Subject
-from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
 from gcloud.iam_auth.utils import (
     get_common_flow_allowed_actions_for_user_and_project,
     get_flow_allowed_actions_for_user,
@@ -787,51 +784,39 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
 
     @staticmethod
     def _ensure_taskflow_project_access(request, *task_ids):
-        """user_type 只证明请求者是自己，不能代替项目权限和任务归属。"""
-        project_id = request.query_params.get("project__id") or request.query_params.get("project_id")
-        if not project_id:
-            raise PermissionDenied(detail=ErrorDetail("project_id required", code="PROJECT_REQUIRED"))
-        user_type = request.query_params.get("user_type")
-        if user_type == "user":
-            normalized_ids = []
-            for task_id in task_ids:
-                if task_id in (None, ""):
-                    continue
-                try:
-                    normalized_ids.append(int(task_id))
-                except (TypeError, ValueError):
-                    raise PermissionDenied(detail=ErrorDetail("invalid task id", code="INVALID_TASK_ID"))
-            if not normalized_ids:
-                raise PermissionDenied(detail=ErrorDetail("task id required", code="TASK_REQUIRED"))
-            owned_count = (
-                TaskFlowInstance.objects.filter(
-                    id__in=normalized_ids,
-                    project_id=project_id,
-                    project__tenant_id=request.user.tenant_id,
-                )
-                .filter(
-                    Q(pipeline_instance__executor=request.user.username)
-                    | Q(pipeline_instance__creator=request.user.username)
-                )
-                .count()
-            )
-            if owned_count != len(set(normalized_ids)):
-                raise PermissionDenied(detail=ErrorDetail("task owner mismatch", code="TASK_OWNER_MISMATCH"))
-            return
+        """user_type=user 只证明请求者是自己，不能代替项目权限和任务归属。
 
-        resources = res_factory.resources_for_project(project_id, request.user.tenant_id)
-        if not resources:
-            raise AuthFailedException(
-                IAMMeta.SYSTEM_ID, Subject("user", request.user.username), Action(IAMMeta.PROJECT_VIEW_ACTION), []
+        未传 user_type 时由 IamUserTypeBasedValidator 校验项目查看权限，auditor 由审计角色校验，
+        这里只补上 user_type=user 时的任务归属校验。
+        """
+        if request.query_params.get("user_type") != "user":
+            return
+        project_id = request.query_params.get("project__id") or request.query_params.get("project_id")
+        normalized_ids = []
+        for task_id in task_ids:
+            if task_id in (None, ""):
+                continue
+            try:
+                normalized_ids.append(int(task_id))
+            except (TypeError, ValueError):
+                raise PermissionDenied(detail=ErrorDetail("invalid task id", code="INVALID_TASK_ID"))
+        # 没有项目或任务时，后续查询按 project_id=None / 空列表返回空结果，沿用原有行为
+        if not project_id or not normalized_ids:
+            return
+        owned_count = (
+            TaskFlowInstance.objects.filter(
+                id__in=normalized_ids,
+                project_id=project_id,
+                project__tenant_id=request.user.tenant_id,
             )
-        allow_or_raise_auth_failed(
-            iam=get_iam_client(request.user.tenant_id),
-            system=IAMMeta.SYSTEM_ID,
-            subject=Subject("user", request.user.username),
-            action=Action(IAMMeta.PROJECT_VIEW_ACTION),
-            resources=resources,
-            cache=True,
+            .filter(
+                Q(pipeline_instance__executor=request.user.username)
+                | Q(pipeline_instance__creator=request.user.username)
+            )
+            .count()
         )
+        if owned_count != len(set(normalized_ids)):
+            raise PermissionDenied(detail=ErrorDetail("task owner mismatch", code="TASK_OWNER_MISMATCH"))
 
     @swagger_auto_schema(
         methods=["GET"],

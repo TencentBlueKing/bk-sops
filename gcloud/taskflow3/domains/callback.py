@@ -17,14 +17,16 @@ import requests
 from bamboo_engine import states
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from pipeline.eri.models import Schedule as DBSchedule
 from pipeline.eri.runtime import BambooDjangoRuntime
 from requests import HTTPError
 
+from gcloud.constants import CallbackStatus
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher
 from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowRelation
 from gcloud.utils.redis_lock import redis_lock
-from gcloud.utils.validate import DomainValidator
+from gcloud.utils.validate import OutboundCallbackValidator
 
 logger = logging.getLogger("root")
 
@@ -98,10 +100,18 @@ class TaskCallBacker:
                 logger.error(f"[TaskCallBacker _url_callback] get lock error: {err}")
                 return None
             url = self.record.url
-            valid_url, _allowed_domains = DomainValidator.validate(url)
+            valid_url, _allowed_domains = OutboundCallbackValidator.validate(url)
             if not valid_url:
+                # 白名单拦截是确定结果，重试不会成功：直接记为失败并写明原因，返回 None 停止重试
                 logger.error("[TaskCallBacker _url_callback] task_id=%s host is not allowed", self.task_id)
-                return False
+                self.update_record(
+                    extra_info=json.dumps(
+                        {**self.record_extra_info, "callback_error": "callback_url host is not allowed"}
+                    ),
+                    status=CallbackStatus.FAIL.value,
+                    callback_time=timezone.now(),
+                )
+                return None
             callback_version = self.record_extra_info.get("callback_version")
             response = None
             try:

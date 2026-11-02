@@ -26,7 +26,7 @@ from webhook.utils import process_sensitive_info
 from gcloud.constants import WebhookEventType, WebhookScopeType
 from gcloud.utils.dates import format_datetime
 from gcloud.utils.local import thread_local
-from gcloud.utils.validate import DomainValidator
+from gcloud.utils.validate import OutboundCallbackValidator
 
 logger = logging.getLogger("root")
 
@@ -104,7 +104,7 @@ def clear_scope_webhooks(scope_code: list):
 
 def apply_webhook_configs(webhook_configs, scope_code):
     endpoint = webhook_configs.get("endpoint")
-    valid_url, _allowed_domains = DomainValidator.validate(endpoint)
+    valid_url, _allowed_domains = OutboundCallbackValidator.validate(endpoint)
     if not valid_url:
         return {"result": False, "message": "webhook host is not allowed", "data": {}, "code": "500"}
 

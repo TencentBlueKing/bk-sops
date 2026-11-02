@@ -44,7 +44,7 @@ from gcloud.taskflow3.models import (
     TimeoutNodesRecord,
 )
 from gcloud.utils import crypto
-from gcloud.utils.validate import DomainValidator
+from gcloud.utils.validate import OutboundCallbackValidator
 
 logger = logging.getLogger("celery")
 
@@ -646,7 +646,7 @@ def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type
 
         chat_id = crypto.decrypt(group_notify_config.get("chat_id"))
         url = group_notify_config.get("web_hook")
-        valid_url, _allowed_domains = DomainValidator.validate(url)
+        valid_url, _allowed_domains = OutboundCallbackValidator.validate_ai_notify_webhook(url)
         if not valid_url:
             logger.error("[get_ai_analysis_notify_group_config] webhook host is not allowed")
             return None, None, None

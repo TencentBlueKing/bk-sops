@@ -47,7 +47,7 @@ from gcloud.taskflow3.models import TaskCallBackRecord, TaskFlowInstance, Timeou
 from gcloud.tasktmpl3.models import TaskTemplate
 from gcloud.utils.decorators import request_validate
 from gcloud.utils.strings import standardize_pipeline_node_name
-from gcloud.utils.validate import DomainValidator
+from gcloud.utils.validate import OutboundCallbackValidator
 from pipeline_web.parser.validator import validate_web_pipeline_tree
 
 
@@ -76,7 +76,7 @@ def create_task(request, template_id, project_id):
 
     callback_url = params.pop("callback_url", None)
     if callback_url:
-        valid_url, _allowed_domains = DomainValidator.validate(callback_url)
+        valid_url, _allowed_domains = OutboundCallbackValidator.validate(callback_url)
         if not valid_url:
             return {
                 "result": False,
