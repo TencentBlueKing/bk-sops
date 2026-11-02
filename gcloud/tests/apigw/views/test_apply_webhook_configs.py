@@ -38,7 +38,6 @@ class ApplyWebhookConfigsAPITest(APITest):
     @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
     @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.filter")
     @mock.patch("gcloud.apigw.views.apply_webhook_configs.Scope.objects.bulk_create")
-    @mock.patch(OUTBOUND_VALIDATE, MagicMock(return_value=(False, ["bk.example.com"])))
     def test_apply_webhook_configs__endpoint_not_allowed(
         self, mock_scope_bulk_create, mock_webhook_filter, mock_serializer
     ):
@@ -53,7 +52,8 @@ class ApplyWebhookConfigsAPITest(APITest):
         }
         mock_serializer.return_value = mock_serializer_instance
 
-        with mock.patch(
+        # 类上的放行补丁最后生效，这里在函数内覆盖为拒绝
+        with mock.patch(OUTBOUND_VALIDATE, MagicMock(return_value=(False, ["bk.example.com"]))), mock.patch(
             "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter"
         ) as mock_task_filter:
             mock_task_filter.return_value.values_list.return_value = TEST_TEMPLATE_IDS
