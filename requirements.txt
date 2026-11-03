@@ -52,7 +52,9 @@ prometheus-client==0.9.0
 # 恢复任务按类型开关与项目白名单自动重放，含限次、每轮上限与熔断，默认只预演。
 # 正式版包含 S7 同步节点推进中断检测与安全恢复，两个 S7 开关默认全关。
 # 即使不开 S7，也须成功执行 eri.0006_syncadvancecheckpoint 迁移后再启动新版 worker/cleaner。
-bamboo-pipeline==3.24.21
+# 3.24.22（依赖 bamboo-engine==2.6.9）：修复 S7 检查点开关打开后的两处问题——同步节点运行中暂停/撤销任务后
+# 进程正确标记暂停或结束；输出检查点 READY 后遇数据库中断重试不再丢消息。无新迁移，开关关闭时行为与 3.24.21 一致。
+bamboo-pipeline==3.24.22
 drf-yasg==1.20.0
 typing-extensions==3.7.4.3
 pyyaml==5.4.1
