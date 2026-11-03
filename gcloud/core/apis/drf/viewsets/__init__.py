@@ -20,8 +20,9 @@ from .component_model import *  # noqa
 from .user_project import *  # noqa
 from .common_project import *  # noqa
 from .label import *  # noqa
-from .package_source import *  # noqa
-from .sync_task import *  # noqa
+# 远程插件加载功能已下架 - 2026-11-03 安全漏洞修复
+# from .package_source import *  # noqa - 已删除
+# from .sync_task import *  # noqa - 已删除
 from .collection import *  # noqa
 from .function_task import *  # noqa
 from .variable import *  # noqa

@@ -24,6 +24,8 @@
     import bus from '@/utils/bus.js'
     import i18n from '@/config/i18n/index.js'
     import PageHeader from '@/components/layout/PageHeader.vue'
+    // 远程插件加载功能已下架 - 2026-11-02 安全漏洞修复
+    // 已移除: '远程插件包源管理' (sourceManage), '远程插件同步' (sourceSync)
     const ROUTERS = [
         {
             name: i18n.t('搜索'),
@@ -36,14 +38,6 @@
         {
             name: i18n.t('计划任务'),
             routerName: 'adminClocked'
-        },
-        {
-            name: i18n.t('远程插件包源管理'),
-            routerName: 'sourceManage'
-        },
-        {
-            name: i18n.t('远程插件同步'),
-            routerName: 'sourceSync'
         }
     ]
 

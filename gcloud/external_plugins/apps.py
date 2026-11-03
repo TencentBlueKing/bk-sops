@@ -24,7 +24,8 @@ class ExternalPluginsConfig(AppConfig):
 
     def ready(self):
         self._patch_django4_compat()
-        from gcloud.external_plugins.signals.handlers import sync_task_post_save_handler  # noqa
+        # 远程插件加载功能已下架 - 2026-11-03 安全漏洞修复
+        # 移除: from gcloud.external_plugins.signals.handlers import sync_task_post_save_handler
 
     @staticmethod
     def _patch_django4_compat():

@@ -63,13 +63,14 @@ class TenantBoundaryDatabaseTest(TestCase):
         with self.assertRaises(ObjectDoesNotExistException):
             view.get_object()
 
-    def test_f03_package_sources_are_isolated_by_tenant(self):
-        own = CachePackageSource.objects.create(type="git", tenant_id="t1")
-        CachePackageSource.objects.create(type="git", tenant_id="t2")
-        from gcloud.core.apis.drf.viewsets.package_source import get_all_source_objects
-
-        visible_ids = {item.id for item in get_all_source_objects("t1") if isinstance(item, CachePackageSource)}
-        self.assertEqual(visible_ids, {own.id})
+    # 远程插件加载功能已下架 - 2026-11-03 安全漏洞修复
+    # def test_f03_package_sources_are_isolated_by_tenant(self):
+    #     own = CachePackageSource.objects.create(type="git", tenant_id="t1")
+    #     CachePackageSource.objects.create(type="git", tenant_id="t2")
+    #     from gcloud.core.apis.drf.viewsets.package_source import get_all_source_objects
+    #
+    #     visible_ids = {item.id for item in get_all_source_objects("t1") if isinstance(item, CachePackageSource)}
+    #     self.assertEqual(visible_ids, {own.id})
 
     def test_f04_callback_count_and_page_are_tenant_scoped(self):
         cache.clear()

@@ -9,56 +9,14 @@
 * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 * specific language governing permissions and limitations under the License.
 */
-import axios from 'axios'
-import store from '@/store/index.js'
+
+// 远程插件加载功能已下架 - 2026-11-03 安全漏洞修复
+// 原有的插件包源相关 API 方法已全部删除
 
 const manage = {
     namespaced: true,
     actions: {
-        /**
-         * 加载插件包源配置
-         * @param {Object} fields 包源查询字段
-         */
-        loadPackageSource () {
-            return axios.get('api/v3/package_source/').then(response => response.data.data)
-        },
-        /**
-         * 新增插件包源配置
-         * @param {Object} data 插件包源配置
-         */
-        createPackageSource ({ commit }, data) {
-            return axios.post('api/v3/package_source/', data).then(response => response.data)
-        },
-        /**
-         * 删除所有插件包源
-         */
-        deletePackageSource ({ commit }, data) {
-            return axios.delete('api/v3/package_source/', data).then(response => response.data)
-        },
-        /**
-         * 更新插件包源配置
-         * @param {Object} data 插件包源配置
-         */
-        updatePackageSource ({ commit }, data) {
-            return axios.patch('api/v3/package_source/', data).then(response => response.data)
-        },
-        /**
-         * 加载远程包源同步任务列表
-         */
-        loadSyncTask ({ commit }, data) {
-            const { limit, offset } = data
-            return axios.get('api/v3/sync_task/', {
-                params: { limit, offset }
-            }).then(response => response.data.data)
-        },
-        /**
-         * 创建远程包源同步
-         */
-        createSyncTask () {
-            const creator = store.state.username
-            const create_method = 'manual'
-            return axios.post('api/v3/sync_task/', { creator, create_method }).then(response => response.data)
-        }
+        // 所有远程插件包源相关的 action 已删除
     }
 }
 
