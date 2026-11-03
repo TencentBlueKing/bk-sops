@@ -9,3 +9,4 @@ python manage.py sync_saas_apigw
 python manage.py register_bksops_notice
 python manage.py sync_webhook_events ./config webhook_resources.yaml
 python manage.py sync_agent
+python manage.py init_tenant --tenant_id system

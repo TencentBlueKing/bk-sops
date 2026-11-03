@@ -20,6 +20,14 @@ https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/
 
 import os
 
+# ============ KMS解密：Web服务入口 ============
+# 说明：当BKPAAS_KMS_ENABLED=true时，从/etc/secrets解密敏感配置
+# 影响范围：default/web, callback/web, api/web 三个模块的Web进程
+# 文档参考：Python SaaS 接入 KMS - blueapps多租户版(2.2节)
+if os.getenv('BKPAAS_KMS_ENABLED', '').lower() == 'true':
+    from blueapps.contrib.encrypt import decrypt_encrypted_environment
+    decrypt_encrypted_environment()
+
 from blueapps.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
