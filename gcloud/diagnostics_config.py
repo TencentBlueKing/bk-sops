@@ -72,7 +72,14 @@ def _fence(environ, result):
         return
     mode = _choice(environ, control, ("off", "observe", "enforce"))
     result["PIPELINE_FENCE_MODE"] = mode
-    for name, value in (("PIPELINE_FENCE_EMIT_ENABLED", mode != "off"), ("PIPELINE_FENCE_ENFORCE", mode == "enforce")):
+    # Record synchronous progress in observe/enforce, independently of periodic
+    # detection. Pausing scans must not drop ownership checks for in-flight work.
+    for name, value in (
+        ("PIPELINE_FENCE_EMIT_ENABLED", mode != "off"),
+        ("PIPELINE_FENCE_ENFORCE", mode == "enforce"),
+        ("PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED", mode != "off"),
+        ("DIAGNOSTICS_SYNC_ADVANCE_ENABLED", mode != "off"),
+    ):
         _check_legacy(environ, "BKAPP_" + name, value, control)
         result[name] = value
 
@@ -103,6 +110,18 @@ def _manual_apply(environ, result):
     result["DIAGNOSTICS_APPLY_ENABLED"] = enabled
 
 
+def _observability(environ, result):
+    control = "BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE"
+    result["DIAGNOSTICS_OBSERVABILITY_MODE"] = None
+    if control not in environ:
+        return
+    mode = _choice(environ, control, ("off", "alerts", "full"))
+    result["DIAGNOSTICS_OBSERVABILITY_MODE"] = mode
+    for name, enabled in (("DIAGNOSTICS_EVENT_ENABLED", mode == "full"), ("DIAGNOSTICS_ALERT_ENABLED", mode != "off")):
+        _check_legacy(environ, "BKAPP_" + name, enabled, control)
+        result[name] = enabled
+
+
 def resolve_switches(environ):
     names = (
         "DIAGNOSTICS_SCAN_ENABLED",
@@ -113,6 +132,10 @@ def resolve_switches(environ):
         "PIPELINE_FENCE_ENFORCE",
         "DIAGNOSTICS_RECOVERY_ENABLED",
         "DIAGNOSTICS_APPLY_ENABLED",
+        "PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED",
+        "DIAGNOSTICS_SYNC_ADVANCE_ENABLED",
+        "DIAGNOSTICS_EVENT_ENABLED",
+        "DIAGNOSTICS_ALERT_ENABLED",
     )
     result = {name: _legacy_bool(environ, name) for name in names}
     result["DIAGNOSTICS_RECOVERY_MODE"] = environ.get("BKAPP_DIAGNOSTICS_RECOVERY_MODE", "preview").strip().lower()
@@ -120,4 +143,5 @@ def resolve_switches(environ):
     _fence(environ, result)
     _recovery(environ, result)
     _manual_apply(environ, result)
+    _observability(environ, result)
     return result
