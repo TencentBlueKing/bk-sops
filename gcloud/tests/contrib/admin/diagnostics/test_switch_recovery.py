@@ -106,6 +106,26 @@ class SwitchRecoveryIntegrationTest(DiagnosticsDataMixin, TestCase):
         self.assertEqual((row.mode, row.status), ("preview", "previewed"))
         self.assertEqual(row.message["node_id"], "a-next")
 
+    def test_manual_alias_allows_manual_replay_while_automatic_recovery_is_off(self):
+        with self.configured(policy="off", BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED="1"):
+            tasks.run_stuck_recovery()
+            self.assertEqual(DiagnosticRecovery.objects.count(), 0)
+            result = replay_case(self.case.pk, operator="tester", mode="apply")
+        self.assertTrue(result.result)
+        self.runtime.execute.assert_called_once()
+        row = DiagnosticRecovery.objects.get(case=self.case)
+        self.assertEqual((row.trigger, row.mode, row.status), ("manual", "apply", "dispatched"))
+
+    def test_manual_alias_off_does_not_disable_automatic_recovery(self):
+        with self.configured(BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED="0"):
+            result = replay_case(self.case.pk, operator="tester", mode="apply")
+            self.assertIn(BLOCKER_APPLY_DISABLED, result.blockers)
+            self.runtime.execute.assert_not_called()
+            tasks.run_stuck_recovery()
+        self.runtime.execute.assert_called_once()
+        row = DiagnosticRecovery.objects.get(case=self.case)
+        self.assertEqual((row.trigger, row.mode, row.status), ("auto", "apply", "dispatched"))
+
     def test_auto_preserves_project_and_type_restrictions(self):
         for overrides in (
             {"BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS": ""},
