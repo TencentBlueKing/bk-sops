@@ -234,3 +234,116 @@ class RecoveryTaskTest(TestCase):
         ) as m_lock:
             tasks.run_stuck_recovery()
         m_lock.assert_not_called()
+
+
+class UnifiedDetectionTaskTest(TestCase):
+    @override_settings(
+        DIAGNOSTICS_DETECTION_ENABLED=False,
+        PIPELINE_DIAGNOSTICS_SCAN_ENABLED=True,
+        PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=True,
+        PIPELINE_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED=True,
+        PIPELINE_DIAGNOSTICS_CALLBACK_SCAN_ENABLED=True,
+        DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED=True,
+    )
+    def test_master_off_skips_every_scanner_before_redis_or_database_access(self):
+        supp, close = _supplement_patches()
+        with mock.patch.object(tasks, "_acquire_singleflight") as lock, mock.patch.object(
+            tasks, "scan_stalled_roots"
+        ) as sampling, mock.patch.object(tasks, "scan_silence_windows") as window, mock.patch.object(
+            tasks, "scan_signatures"
+        ) as signature, mock.patch.object(
+            tasks, "scan_callbacks"
+        ) as callback, supp as supplement, close as closer:
+            with self.assertNumQueries(0):
+                tasks.scan_stuck_diagnostics()
+                tasks.scan_stuck_signatures()
+                tasks.scan_stuck_callbacks()
+            for operation in (lock, sampling, window, signature, callback, supplement, closer):
+                operation.assert_not_called()
+
+    @override_settings(
+        DIAGNOSTICS_DETECTION_ENABLED=True,
+        DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED=False,
+        PIPELINE_DIAGNOSTICS_SCAN_ENABLED=False,
+        PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=False,
+    )
+    def test_selecting_no_root_scanners_skips_root_task(self):
+        supp, close = _supplement_patches()
+        with mock.patch.object(tasks, "_acquire_singleflight") as lock, supp as supplement, close as closer:
+            with self.assertNumQueries(0):
+                tasks.scan_stuck_diagnostics()
+        lock.assert_not_called()
+        supplement.assert_not_called()
+        closer.assert_not_called()
+
+    @override_settings(
+        redis_inst=FakeRedis(),
+        DIAGNOSTICS_DETECTION_ENABLED=True,
+        DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED=False,
+        PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=True,
+    )
+    def test_window_can_run_without_supplement(self):
+        supp, close = _supplement_patches()
+        with mock.patch.object(
+            tasks, "scan_silence_windows", return_value=[]
+        ) as window, supp as supplement, close as closer:
+            tasks.scan_stuck_diagnostics()
+        window.assert_called_once_with()
+        supplement.assert_not_called()
+        closer.assert_not_called()
+
+    @override_settings(
+        redis_inst=FakeRedis(),
+        DIAGNOSTICS_DETECTION_ENABLED=True,
+        DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED=True,
+        PIPELINE_DIAGNOSTICS_SCAN_ENABLED=False,
+        PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=False,
+    )
+    def test_supplement_can_run_without_window_or_sampling(self):
+        supp, close = _supplement_patches()
+        with mock.patch.object(tasks, "_scan_roots") as roots, supp as supplement, close as closer:
+            tasks.scan_stuck_diagnostics()
+        roots.assert_not_called()
+        supplement.assert_called_once_with()
+        closer.assert_called_once_with()
+
+
+class UnifiedRecoveryTaskTest(TestCase):
+    @override_settings(
+        redis_inst=FakeRedis(), DIAGNOSTICS_RECOVERY_POLICY="off", PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED=False
+    )
+    def test_off_only_settles_existing_records(self):
+        with mock.patch.object(tasks, "settle_recoveries", return_value={"applied": 1}) as settle, mock.patch.object(
+            tasks, "run_recovery"
+        ) as run:
+            tasks.run_stuck_recovery()
+        settle.assert_called_once_with()
+        run.assert_not_called()
+
+    @override_settings(redis_inst=FakeRedis(), DIAGNOSTICS_RECOVERY_POLICY="off")
+    def test_settlement_failure_releases_shared_recovery_lock(self):
+        from django.conf import settings
+
+        with mock.patch.object(tasks, "settle_recoveries", side_effect=RuntimeError("database unavailable")):
+            tasks.run_stuck_recovery()
+        self.assertIsNone(settings.redis_inst.get(tasks._RECOVERY_LOCK_KEY))
+
+    @override_settings(redis_inst=FakeRedis(), DIAGNOSTICS_RECOVERY_POLICY="off")
+    def test_off_respects_the_same_lock_as_normal_recovery(self):
+        from django.conf import settings
+
+        settings.redis_inst.set(tasks._RECOVERY_LOCK_KEY, "busy", ex=60)
+        with mock.patch.object(tasks, "settle_recoveries") as settle:
+            tasks.run_stuck_recovery()
+        settle.assert_not_called()
+
+    @override_settings(
+        redis_inst=FakeRedis(),
+        DIAGNOSTICS_DETECTION_ENABLED=False,
+        DIAGNOSTICS_RECOVERY_POLICY="preview",
+        PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED=True,
+    )
+    def test_detection_off_does_not_stop_existing_case_recovery(self):
+        with mock.patch.object(tasks, "run_recovery") as run:
+            tasks.run_stuck_recovery()
+        run.assert_called_once_with()
