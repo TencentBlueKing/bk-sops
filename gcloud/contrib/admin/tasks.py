@@ -20,13 +20,13 @@ from django.conf import settings
 
 logger = logging.getLogger("celery")
 
-# 诊断能力随 bamboo-pipeline>=3.24.12 提供；未升级依赖时相关周期任务惰性降级为 no-op。
+# Detect the diagnostics package independently of its legacy sampler.
 try:
-    from pipeline.contrib.diagnostics.scanner import scan_stalled_roots
+    import pipeline.contrib.diagnostics as pipeline_diagnostics
 except ImportError:  # pragma: no cover - depends on engine version
-    scan_stalled_roots = None
+    pipeline_diagnostics = None
 
-# 三期检测扫描器随 bamboo-pipeline>=3.24.20 提供；旧版本下窗口扫描回落到 M1 取样，另两个周期任务为 no-op。
+# Three scanners require bamboo-pipeline>=3.24.20; never fall back to sampling.
 try:
     from pipeline.contrib.diagnostics.callback_scan import scan_callbacks
     from pipeline.contrib.diagnostics.signature_scan import scan_signatures
@@ -69,10 +69,10 @@ def _release_singleflight(key, token):
 
 
 def _scan_roots():
-    """窗口扫描开启后替代 M1 取样扫描：两者判定的是同一件事（root 静默），同时跑只会重复立案。"""
-    if scan_silence_windows is not None and settings.PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED:
-        return sum(report.cases for report in scan_silence_windows())
-    return len(scan_stalled_roots())
+    """All periodic root detection uses the same window scanner and progress."""
+    if scan_silence_windows is None:
+        raise RuntimeError("window scanning requires bamboo-pipeline>=3.24.20; sampling fallback is disabled")
+    return sum(report.cases for report in scan_silence_windows())
 
 
 def _run_singleflight(name, key, enabled, scan):
@@ -94,17 +94,11 @@ def _run_singleflight(name, key, enabled, scan):
 @periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_SCAN_CRON)), ignore_result=True, queue="task_data_clean")
 def scan_stuck_diagnostics():
     """周期扫描停滞 root，只读产出诊断案例（写操作默认关闭）。"""
-    if getattr(settings, "DIAGNOSTICS_DETECTION_ENABLED", None) is False or scan_stalled_roots is None:
+    if getattr(settings, "DIAGNOSTICS_DETECTION_ENABLED", None) is False or pipeline_diagnostics is None:
         return
 
     supplement_enabled = getattr(settings, "DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED", True)
-    # Keep the legacy fallback, but do not call the sampler in unified mode when
-    # only callback/signature scanning was selected.
-    root_enabled = (
-        getattr(settings, "DIAGNOSTICS_DETECTION_ENABLED", None) is None
-        or settings.PIPELINE_DIAGNOSTICS_SCAN_ENABLED
-        or settings.PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED
-    )
+    root_enabled = settings.PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED
     if not (root_enabled or supplement_enabled):
         return
 
@@ -196,7 +190,7 @@ def _settle_stuck_recovery():
 @periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_CLEANUP_CRON)), ignore_result=True, queue="task_data_clean")
 def cleanup_diagnostics():
     """按保留期清理诊断事件/案例/审计/恢复台账（复用引擎侧 cleanup_diagnostics 命令）。"""
-    if scan_stalled_roots is None:
+    if pipeline_diagnostics is None:
         return
 
     from django.core.management import call_command

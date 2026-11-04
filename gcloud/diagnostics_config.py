@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Normalize opt-in governance controls without changing legacy environment semantics."""
+"""Normalize governance controls and retain legacy environment aliases."""
 
 TRUE_VALUES = ("1", "true", "yes", "on")
 FALSE_VALUES = ("0", "false", "no", "off")
@@ -36,11 +36,15 @@ def _detection(environ, result):
     selection = "BKAPP_DIAGNOSTICS_SCANNERS"
     result["DIAGNOSTICS_DETECTION_ENABLED"] = None
     result["DIAGNOSTICS_SCANNERS"] = None
+    legacy_scan = result["DIAGNOSTICS_SCAN_ENABLED"]
+    # Retire sampling; its old environment flag now enables window scanning.
+    result["DIAGNOSTICS_SCAN_ENABLED"] = False
     # Legacy supplemental detection runs even when all the old scan flags are off.
     result["DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED"] = True
     if control not in environ:
         if selection in environ:
             raise ValueError("{} requires {}".format(selection, control))
+        result["DIAGNOSTICS_WINDOW_SCAN_ENABLED"] = result["DIAGNOSTICS_WINDOW_SCAN_ENABLED"] or legacy_scan
         return
     enabled = _choice(environ, control, TRUE_VALUES + FALSE_VALUES) in TRUE_VALUES
     selected = tuple(
@@ -50,9 +54,10 @@ def _detection(environ, result):
         raise ValueError("{} only accepts: {}".format(selection, ", ".join(SCANNERS)))
     result["DIAGNOSTICS_DETECTION_ENABLED"] = enabled
     result["DIAGNOSTICS_SCANNERS"] = selected
-    # Unified detection uses window scanning; the old sampler remains legacy-only.
-    _check_legacy(environ, "BKAPP_DIAGNOSTICS_SCAN_ENABLED", False, control)
-    result["DIAGNOSTICS_SCAN_ENABLED"] = False
+    # Old SCAN=0 never vetoed WINDOW=1. Only an explicitly enabled alias conflicts
+    # with new controls that disable windows.
+    if legacy_scan:
+        _check_legacy(environ, "BKAPP_DIAGNOSTICS_SCAN_ENABLED", enabled and "window" in selected, control)
     for scanner, name in SCAN_FLAGS.items():
         value = enabled and scanner in selected
         if scanner != "supplement":
@@ -87,6 +92,17 @@ def _recovery(environ, result):
     result["DIAGNOSTICS_RECOVERY_MODE"] = mode
 
 
+def _manual_apply(environ, result):
+    control = "BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED"
+    enabled = result["DIAGNOSTICS_APPLY_ENABLED"]
+    if control in environ:
+        enabled = _choice(environ, control, TRUE_VALUES + FALSE_VALUES) in TRUE_VALUES
+        _check_legacy(environ, "BKAPP_DIAGNOSTICS_APPLY_ENABLED", enabled, control)
+    result["DIAGNOSTICS_MANUAL_APPLY_ENABLED"] = enabled
+    # The runtime and existing console operations still consume this setting.
+    result["DIAGNOSTICS_APPLY_ENABLED"] = enabled
+
+
 def resolve_switches(environ):
     names = (
         "DIAGNOSTICS_SCAN_ENABLED",
@@ -96,10 +112,12 @@ def resolve_switches(environ):
         "PIPELINE_FENCE_EMIT_ENABLED",
         "PIPELINE_FENCE_ENFORCE",
         "DIAGNOSTICS_RECOVERY_ENABLED",
+        "DIAGNOSTICS_APPLY_ENABLED",
     )
     result = {name: _legacy_bool(environ, name) for name in names}
     result["DIAGNOSTICS_RECOVERY_MODE"] = environ.get("BKAPP_DIAGNOSTICS_RECOVERY_MODE", "preview").strip().lower()
     _detection(environ, result)
     _fence(environ, result)
     _recovery(environ, result)
+    _manual_apply(environ, result)
     return result

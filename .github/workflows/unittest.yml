@@ -77,6 +77,9 @@ jobs:
         rm -rf pipeline/tests
         # run unittest
         python3.6 -m coverage run manage.py test
+        # contrib is a namespace package, so default discovery skips diagnostics.
+        # Run its regressions explicitly and include them in the same coverage report.
+        python3.6 -m coverage run --append manage.py test gcloud.tests.contrib.admin.diagnostics
     - name: Coverage export
       run: |
         # export xml

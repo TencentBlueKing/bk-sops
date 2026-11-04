@@ -19,10 +19,11 @@ from fakeredis import FakeRedis
 from gcloud.contrib.admin import tasks
 
 
+@override_settings(PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=True)
 class ScanTaskTest(TestCase):
     @override_settings(redis_inst=FakeRedis())
     def test_scan_calls_scanner_when_lock_acquired(self):
-        with mock.patch.object(tasks, "scan_stalled_roots", return_value=[]) as m_scan, mock.patch(
+        with mock.patch.object(tasks, "scan_silence_windows", return_value=[]) as m_scan, mock.patch(
             "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
             return_value=[],
         ) as m_supp, mock.patch(
@@ -39,7 +40,7 @@ class ScanTaskTest(TestCase):
         from django.conf import settings
 
         settings.redis_inst.set(name=tasks._SCAN_LOCK_KEY, value="other", nx=True, ex=60)
-        with mock.patch.object(tasks, "scan_stalled_roots", return_value=[]) as m_scan:
+        with mock.patch.object(tasks, "scan_silence_windows", return_value=[]) as m_scan:
             tasks.scan_stuck_diagnostics()
         self.assertFalse(m_scan.called)
 
@@ -47,7 +48,7 @@ class ScanTaskTest(TestCase):
     def test_scan_releases_lock_after_run(self):
         from django.conf import settings
 
-        with mock.patch.object(tasks, "scan_stalled_roots", return_value=[]), mock.patch(
+        with mock.patch.object(tasks, "scan_silence_windows", return_value=[]), mock.patch(
             "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
             return_value=[],
         ), mock.patch("gcloud.contrib.admin.diagnostics.supplement.close_recovered_cases", return_value=(0, 0)):
@@ -56,13 +57,13 @@ class ScanTaskTest(TestCase):
         self.assertIsNone(settings.redis_inst.get(tasks._SCAN_LOCK_KEY))
 
     def test_scan_noop_when_scanner_unavailable(self):
-        with mock.patch.object(tasks, "scan_stalled_roots", None):
+        with mock.patch.object(tasks, "pipeline_diagnostics", None):
             # scanner 不可用时应直接返回，不触碰 redis
             tasks.scan_stuck_diagnostics()
 
     @override_settings(redis_inst=FakeRedis())
     def test_supplement_failure_does_not_break_scan(self):
-        with mock.patch.object(tasks, "scan_stalled_roots", return_value=[]) as m_scan, mock.patch(
+        with mock.patch.object(tasks, "scan_silence_windows", return_value=[]) as m_scan, mock.patch(
             "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
             side_effect=Exception("boom"),
         ):
@@ -71,7 +72,7 @@ class ScanTaskTest(TestCase):
 
     @override_settings(redis_inst=FakeRedis())
     def test_case_close_failure_does_not_break_scan(self):
-        with mock.patch.object(tasks, "scan_stalled_roots", return_value=[]) as m_scan, mock.patch(
+        with mock.patch.object(tasks, "scan_silence_windows", return_value=[]) as m_scan, mock.patch(
             "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
             return_value=[],
         ), mock.patch(
@@ -84,7 +85,7 @@ class ScanTaskTest(TestCase):
     def test_root_scan_failure_still_runs_supplement_and_close(self):
         from django.conf import settings
 
-        with mock.patch.object(tasks, "scan_stalled_roots", side_effect=Exception("boom")), mock.patch(
+        with mock.patch.object(tasks, "scan_silence_windows", side_effect=Exception("boom")), mock.patch(
             "gcloud.contrib.admin.diagnostics.supplement.scan_running_tasks_without_live_process",
             return_value=[],
         ) as m_supp, mock.patch(
@@ -106,38 +107,64 @@ def _supplement_patches():
 
 
 class RootScanSelectionTest(TestCase):
+    @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=False)
+    def test_default_scan_runs_only_supplement(self):
+        supp, close = _supplement_patches()
+        with mock.patch.object(tasks, "scan_silence_windows") as window, supp as supplement, close as closer:
+            tasks.scan_stuck_diagnostics()
+        window.assert_not_called()
+        supplement.assert_called_once_with()
+        closer.assert_called_once_with()
+
     @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=True)
-    def test_window_scan_replaces_sampling_when_enabled(self):
+    def test_window_scan_never_calls_sampling(self):
         supp, close = _supplement_patches()
         with mock.patch.object(
             tasks, "scan_silence_windows", return_value=[SimpleNamespace(cases=2)]
-        ) as m_window, mock.patch.object(
-            tasks, "scan_stalled_roots", return_value=[]
-        ) as m_scan, supp as m_supp, close as m_close:
+        ) as window, mock.patch("pipeline.contrib.diagnostics.scanner.scan_stalled_roots") as sampling, supp, close:
             tasks.scan_stuck_diagnostics()
-        self.assertTrue(m_window.called)
-        self.assertFalse(m_scan.called)
-        self.assertTrue(m_supp.called)
-        self.assertTrue(m_close.called)
+        window.assert_called_once_with()
+        sampling.assert_not_called()
 
-    @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=False)
-    def test_sampling_scan_is_kept_when_window_disabled(self):
+    @override_settings(
+        redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_SCAN_ENABLED=True, PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=False
+    )
+    def test_old_runtime_setting_cannot_reintroduce_periodic_sampling(self):
         supp, close = _supplement_patches()
-        with mock.patch.object(tasks, "scan_silence_windows") as m_window, mock.patch.object(
-            tasks, "scan_stalled_roots", return_value=[]
-        ) as m_scan, supp, close:
+        with mock.patch.object(tasks, "scan_silence_windows") as window, mock.patch(
+            "pipeline.contrib.diagnostics.scanner.scan_stalled_roots"
+        ) as sampling, supp, close:
             tasks.scan_stuck_diagnostics()
-        self.assertFalse(m_window.called)
-        self.assertTrue(m_scan.called)
+        window.assert_not_called()
+        sampling.assert_not_called()
 
     @override_settings(redis_inst=FakeRedis(), PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED=True)
-    def test_falls_back_to_sampling_on_old_engine(self):
+    def test_unavailable_window_scanner_does_not_fall_back_to_sampling(self):
         supp, close = _supplement_patches()
-        with mock.patch.object(tasks, "scan_silence_windows", None), mock.patch.object(
-            tasks, "scan_stalled_roots", return_value=[]
-        ) as m_scan, supp, close:
+        with mock.patch.object(tasks, "scan_silence_windows", None), mock.patch(
+            "pipeline.contrib.diagnostics.scanner.scan_stalled_roots"
+        ) as sampling, supp as supplement, close as closer:
             tasks.scan_stuck_diagnostics()
-        self.assertTrue(m_scan.called)
+        sampling.assert_not_called()
+        supplement.assert_called_once_with()
+        closer.assert_called_once_with()
+
+
+class DiagnosticsCleanupAvailabilityTest(TestCase):
+    @override_settings(DIAGNOSTICS_DETECTION_ENABLED=False)
+    def test_cleanup_does_not_depend_on_scanner_or_detection_switch(self):
+        with mock.patch.object(tasks, "scan_silence_windows", None), mock.patch(
+            "pipeline.contrib.diagnostics.scanner.scan_stalled_roots", side_effect=AssertionError("must not scan")
+        ), mock.patch("django.core.management.call_command") as command:
+            tasks.cleanup_diagnostics()
+        command.assert_called_once_with("cleanup_diagnostics")
+
+    def test_cleanup_skips_if_diagnostics_package_is_absent(self):
+        with mock.patch.object(tasks, "pipeline_diagnostics", None), mock.patch(
+            "django.core.management.call_command"
+        ) as command:
+            tasks.cleanup_diagnostics()
+        command.assert_not_called()
 
 
 class SignatureTaskTest(TestCase):
@@ -247,8 +274,8 @@ class UnifiedDetectionTaskTest(TestCase):
     )
     def test_master_off_skips_every_scanner_before_redis_or_database_access(self):
         supp, close = _supplement_patches()
-        with mock.patch.object(tasks, "_acquire_singleflight") as lock, mock.patch.object(
-            tasks, "scan_stalled_roots"
+        with mock.patch.object(tasks, "_acquire_singleflight") as lock, mock.patch(
+            "pipeline.contrib.diagnostics.scanner.scan_stalled_roots"
         ) as sampling, mock.patch.object(tasks, "scan_silence_windows") as window, mock.patch.object(
             tasks, "scan_signatures"
         ) as signature, mock.patch.object(

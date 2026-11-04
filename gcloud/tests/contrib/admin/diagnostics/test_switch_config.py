@@ -107,14 +107,15 @@ class SwitchConfigTest(TestCase):
         self.assertIsNone(result["DIAGNOSTICS_RECOVERY_POLICY"])
         self.assertEqual(result["DIAGNOSTICS_RECOVERY_MODE"], "preview")
 
-    def test_every_legacy_scan_combination_is_preserved(self):
+    def test_every_legacy_scan_combination_maps_to_window_without_enabling_other_scanners(self):
         names = [
             "DIAGNOSTICS_{}_ENABLED".format(name) for name in ("SCAN", "WINDOW_SCAN", "SIGNATURE_SCAN", "CALLBACK_SCAN")
         ]
         for values in itertools.product(("0", "1"), repeat=4):
             with self.subTest(values=values):
                 result = resolve_switches(dict(zip(["BKAPP_" + name for name in names], values)))
-                self.assertEqual([result[name] for name in names], [value == "1" for value in values])
+                expected = [False, values[0] == "1" or values[1] == "1", values[2] == "1", values[3] == "1"]
+                self.assertEqual([result[name] for name in names], expected)
                 self.assertTrue(result["DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED"])
 
     def test_all_legacy_fence_combinations_including_enforce_without_emit(self):
@@ -141,7 +142,8 @@ class SwitchConfigTest(TestCase):
     def test_legacy_boolean_parsing_is_unchanged(self):
         for value in ("1", "TRUE", "yes", "on", "0", "false", "", " true ", "typo"):
             result = resolve_switches({"BKAPP_DIAGNOSTICS_SCAN_ENABLED": value})
-            self.assertEqual(result["DIAGNOSTICS_SCAN_ENABLED"], value.lower() in ("1", "true", "yes", "on"))
+            self.assertFalse(result["DIAGNOSTICS_SCAN_ENABLED"])
+            self.assertEqual(result["DIAGNOSTICS_WINDOW_SCAN_ENABLED"], value.lower() in ("1", "true", "yes", "on"))
 
     def test_detection_enables_all_modern_scanners_but_not_legacy_sampling(self):
         result = resolve_switches({"BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "1"})
@@ -203,7 +205,7 @@ class SwitchConfigTest(TestCase):
         pairs = (
             ({"BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "0"}, "BKAPP_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED", "1"),
             ({"BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "1"}, "BKAPP_DIAGNOSTICS_WINDOW_SCAN_ENABLED", "0"),
-            ({"BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "1"}, "BKAPP_DIAGNOSTICS_SCAN_ENABLED", "1"),
+            ({"BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "0"}, "BKAPP_DIAGNOSTICS_SCAN_ENABLED", "1"),
             ({"BKAPP_PIPELINE_FENCE_MODE": "enforce"}, "BKAPP_PIPELINE_FENCE_EMIT_ENABLED", "0"),
             ({"BKAPP_PIPELINE_FENCE_MODE": "observe"}, "BKAPP_PIPELINE_FENCE_ENFORCE", "1"),
             ({"BKAPP_DIAGNOSTICS_RECOVERY_POLICY": "preview"}, "BKAPP_DIAGNOSTICS_RECOVERY_ENABLED", "0"),
@@ -236,6 +238,76 @@ class SwitchConfigTest(TestCase):
                 "BKAPP_DIAGNOSTICS_RECOVERY_POLICY": "auto",
             }
         )
-        for name in ("APPLY", "EVENT", "ALERT", "SYNC_ADVANCE"):
+        self.assertFalse(result["DIAGNOSTICS_APPLY_ENABLED"])
+        self.assertFalse(result["DIAGNOSTICS_MANUAL_APPLY_ENABLED"])
+        for name in ("EVENT", "ALERT", "SYNC_ADVANCE"):
             self.assertNotIn("DIAGNOSTICS_{}_ENABLED".format(name), result)
         self.assertNotIn("PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED", result)
+
+    def test_enabled_legacy_scan_alias_is_accepted_with_unified_window(self):
+        settings = load_switch_settings(
+            {
+                "BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "1",
+                "BKAPP_DIAGNOSTICS_SCANNERS": "window",
+                "BKAPP_DIAGNOSTICS_SCAN_ENABLED": "1",
+            }
+        )
+        self.assertTrue(settings["PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED"])
+        self.assertFalse(settings["PIPELINE_DIAGNOSTICS_SCAN_ENABLED"])
+
+    def test_legacy_scan_alias_conflicts_with_scanner_selection_excluding_window(self):
+        with self.assertRaisesRegex(ValueError, "BKAPP_DIAGNOSTICS_SCAN_ENABLED"):
+            resolve_switches(
+                {
+                    "BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "1",
+                    "BKAPP_DIAGNOSTICS_SCANNERS": "callback",
+                    "BKAPP_DIAGNOSTICS_SCAN_ENABLED": "1",
+                }
+            )
+
+    def test_manual_apply_alias_preserves_legacy_boolean_parsing(self):
+        for value in ("1", "TRUE", "yes", "on", "0", "false", "", " true ", "typo"):
+            with self.subTest(value=value):
+                result = resolve_switches({"BKAPP_DIAGNOSTICS_APPLY_ENABLED": value})
+                expected = value.lower() in ("1", "true", "yes", "on")
+                self.assertEqual(result["DIAGNOSTICS_MANUAL_APPLY_ENABLED"], expected)
+                self.assertEqual(result["DIAGNOSTICS_APPLY_ENABLED"], expected)
+
+    def test_manual_apply_alias_reaches_runtime_settings_independently_of_recovery(self):
+        for enabled in ("0", "1"):
+            for policy in ("off", "preview", "auto"):
+                with self.subTest(enabled=enabled, policy=policy):
+                    settings = load_switch_settings(
+                        {
+                            "BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED": enabled,
+                            "BKAPP_DIAGNOSTICS_RECOVERY_POLICY": policy,
+                        }
+                    )
+                    self.assertEqual(settings["PIPELINE_DIAGNOSTICS_APPLY_ENABLED"], enabled == "1")
+                    self.assertEqual(settings["DIAGNOSTICS_MANUAL_APPLY_ENABLED"], enabled == "1")
+                    self.assertEqual(settings["DIAGNOSTICS_RECOVERY_POLICY"], policy)
+
+    def test_manual_apply_new_and_old_matching_values_are_accepted(self):
+        for value in ("0", "1"):
+            result = resolve_switches(
+                {
+                    "BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED": value,
+                    "BKAPP_DIAGNOSTICS_APPLY_ENABLED": value,
+                }
+            )
+            self.assertEqual(result["DIAGNOSTICS_APPLY_ENABLED"], value == "1")
+
+    def test_manual_apply_conflicts_fail_in_both_directions(self):
+        for new, old in (("0", "1"), ("1", "0")):
+            with self.assertRaisesRegex(ValueError, "BKAPP_DIAGNOSTICS_APPLY_ENABLED conflicts"):
+                resolve_switches(
+                    {
+                        "BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED": new,
+                        "BKAPP_DIAGNOSTICS_APPLY_ENABLED": old,
+                    }
+                )
+
+    def test_invalid_manual_apply_alias_fails(self):
+        for value in ("", "manual", "2"):
+            with self.assertRaisesRegex(ValueError, "BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED"):
+                resolve_switches({"BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED": value})

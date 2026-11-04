@@ -124,27 +124,24 @@ ENABLE_ARCHIVE_EXPIRED_V2_TASK = bool(os.getenv("BKAPP_ENABLE_ARCHIVE_EXPIRED_V2
 ARCHIVE_EXPIRED_V2_TASK_CRON = tuple(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK_CRON", "30 0 * * *").split())
 ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM = int(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM", 100))
 
-# 流程卡住治理（诊断检测打底 M1）
-# 诊断能力随 bamboo-pipeline>=3.24.12 提供；下列开关默认全关，需按运维 checklist 显式开启。
-# SCAN 默认关的原因：Layer0 分组查询（WHERE dead=0 GROUP BY root_pipeline_id）在大 eri_process
-# 表上开销不可忽略。长等待节点（人工确认 / 长作业）心跳停摆产生噪音的问题已在 3.24.15/3.24.16 收敛：
-# 判据会识别等待外部回调、人工暂停、失败等人工、并行网关等失败分支这类设计内停车，不再判为卡住。
-# 开 SCAN 前务必先到 3.24.16——3.24.15 只改了专属判据，兜底 stalled_no_progress 仍会报出同一批流程。
-# EVENT 与 SCAN 是两个独立开关：仅关 SCAN 不足以关热点路径事件写，务必同时关 EVENT。
+# Governance controls and legacy aliases; see docs/zh_hans/ops/stuck_governance_switches.md.
+# Old SCAN=1 now enables window detection. History requires explicit backfill.
+# Event recording is independent of detection and may add hot-path database writes.
 _DIAG_TRUE = ("1", "true", "yes", "on")
 _diagnostics_switches = resolve_switches(os.environ)
-# Unset unified controls preserve legacy behavior, including supplemental scans.
+# Unset unified controls use legacy aliases; supplemental detection stays enabled.
 DIAGNOSTICS_DETECTION_ENABLED = _diagnostics_switches["DIAGNOSTICS_DETECTION_ENABLED"]
 DIAGNOSTICS_SCANNERS = _diagnostics_switches["DIAGNOSTICS_SCANNERS"]
 DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED"]
+# Compatibility output stays false; the old SCAN environment flag enables WINDOW instead.
 DIAGNOSTICS_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_SCAN_ENABLED"]
 DIAGNOSTICS_EVENT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_EVENT_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_ALERT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_ALERT_ENABLED", "0").lower() in _DIAG_TRUE
-DIAGNOSTICS_APPLY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_APPLY_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_MANUAL_APPLY_ENABLED = _diagnostics_switches["DIAGNOSTICS_MANUAL_APPLY_ENABLED"]
+DIAGNOSTICS_APPLY_ENABLED = _diagnostics_switches["DIAGNOSTICS_APPLY_ENABLED"]
 DIAGNOSTICS_STALL_THRESHOLD_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_STALL_THRESHOLD_SECONDS", 3600))
+# Legacy values remain parseable; periodic windows use their own limits and progress.
 DIAGNOSTICS_SCAN_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SCAN_BATCH", 200))
-# Layer0 取样池的静默上界：心跳停在数百天前的历史遗留 root 会长期占满 batch，
-# 让新出现的停滞永远排不进候选池（实测队头静默 1771 天）。0 表示不设上界。
 DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SCAN_MAX_SILENT_SECONDS", 7 * 24 * 3600))
 DIAGNOSTICS_SECOND_CONFIRM_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SECOND_CONFIRM_SECONDS", 3))
 DIAGNOSTICS_SUPPLEMENT_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT_BATCH", 200))
@@ -157,7 +154,7 @@ DIAGNOSTICS_SUPPLEMENT_CLOSE_BATCH = int(os.getenv("BKAPP_DIAGNOSTICS_SUPPLEMENT
 DIAGNOSTICS_SCAN_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_SCAN_CRON", "*/10 * * * *").split())
 DIAGNOSTICS_CLEANUP_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_CLEANUP_CRON", "30 3 * * *").split())
 # 流程卡住治理三期 P3-1（检测全覆盖，需 bamboo-pipeline>=3.24.20）：三个扫描器各一个开关，默认全关，只立案不重放。
-# 窗口扫描开启后替代上面 M1 的取样扫描（同一件事，同时跑只会重复立案）。
+# The old SCAN flag is folded into WINDOW; periodic sampling has been removed.
 DIAGNOSTICS_WINDOW_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_WINDOW_SCAN_ENABLED"]
 DIAGNOSTICS_WINDOW_TIERS = tuple(
     int(value) for value in os.getenv("BKAPP_DIAGNOSTICS_WINDOW_TIERS", "3600,86400").split(",") if value.strip()
