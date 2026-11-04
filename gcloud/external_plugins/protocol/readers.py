@@ -11,6 +11,8 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
+import ipaddress
+import logging
 import os
 import re
 import shutil
@@ -23,6 +25,8 @@ from git import Repo
 from pipeline.contrib.external_plugins.models.base import GIT, S3
 
 from gcloud.external_plugins.exceptions import ForbiddenExternalPluginSourceError
+
+logger = logging.getLogger(__name__)
 
 reader_cls_factory = {}
 
@@ -125,6 +129,118 @@ class GitReader(SourceReader):
         shutil.rmtree(os.path.join(self.to_path, ".idea"))
 
 
+def validate_s3_service_address(service_address):
+    """校验 S3 包源地址, 防止 SSRF 攻击。
+
+    始终拒绝:
+      * 非 HTTP/HTTPS 协议;
+      * 本地地址 (127.0.0.1, localhost, ::1);
+      * 元数据服务 (169.254.169.254);
+      * IP 地址 (公网/私网均拒绝, 只允许域名);
+      * 不在 ``settings.S3_ALLOWED_DOMAINS`` 白名单中的域名。
+    """
+    if not isinstance(service_address, str):
+        raise ForbiddenExternalPluginSourceError("service_address must be a string")
+
+    address = service_address.strip()
+    if not address:
+        raise ForbiddenExternalPluginSourceError("service_address cannot be empty")
+
+    # 1. 解析 URL
+    try:
+        parsed = urlparse(address)
+    except Exception as e:
+        raise ForbiddenExternalPluginSourceError(f"Invalid service_address: {address}") from e
+
+    # 2. 协议检查：允许 HTTPS 和 HTTP（内网场景需要 HTTP）
+    scheme = parsed.scheme.lower()
+    if scheme not in ('https', 'http'):
+        raise ForbiddenExternalPluginSourceError(
+            f"Only HTTPS or HTTP is allowed for S3 service_address, got: {scheme}://"
+        )
+
+    # 3. 主机名检查
+    hostname = parsed.hostname
+    if not hostname:
+        raise ForbiddenExternalPluginSourceError("Missing hostname in service_address")
+
+    # 4. 禁止本地地址
+    if hostname.lower() in ['localhost', '127.0.0.1', '::1', '[::1]']:
+        raise ForbiddenExternalPluginSourceError("Localhost addresses are not allowed")
+
+    # 5. 禁止元数据服务
+    if hostname == '169.254.169.254':
+        raise ForbiddenExternalPluginSourceError("Metadata service address (169.254.169.254) is not allowed")
+
+    # 6. 拒绝所有 IP 地址（只允许域名）
+    try:
+        ipaddress.ip_address(hostname)
+        # 如果能解析为 IP 地址（无论公网/私网），直接拒绝
+        raise ForbiddenExternalPluginSourceError(
+            f"IP addresses are not allowed for S3 service_address. "
+            f"Please use domain names instead: {hostname}"
+        )
+    except ValueError:
+        # 不是 IP 地址，是域名，继续进行域名白名单检查
+        pass
+    except ForbiddenExternalPluginSourceError:
+        # 重新抛出已有的 ForbiddenExternalPluginSourceError
+        raise
+
+    # 7. 白名单检查
+    allowed_domains = getattr(settings, 'S3_ALLOWED_DOMAINS', [
+        's3.amazonaws.com',
+        's3.*.amazonaws.com',
+        's3-*.amazonaws.com',
+    ])
+
+    # 支持通配符的域名匹配
+    domain_allowed = False
+    for allowed_pattern in allowed_domains:
+        if allowed_pattern == '*':
+            # 通配符允许所有（不推荐用于生产环境）
+            domain_allowed = True
+            break
+
+        if allowed_pattern.startswith('*.'):
+            # 后缀通配符匹配 (e.g., *.amazonaws.com)
+            suffix = allowed_pattern[2:]  # "amazonaws.com"
+
+            # 检查两种情况:
+            # 1. 精确匹配 suffix: amazonaws.com
+            if hostname == suffix:
+                domain_allowed = True
+                break
+
+            # 2. 子域名匹配 (需要完整的标签分隔)
+            if hostname.endswith('.' + suffix):
+                domain_allowed = True
+                break
+
+        elif '*' in allowed_pattern:
+            # 中间通配符匹配 (e.g., s3.*.amazonaws.com, s3-*.amazonaws.com)
+            pattern_re = allowed_pattern.replace('.', r'\.').replace('*', '[a-zA-Z0-9-]+')
+            pattern_re = f"^{pattern_re}$"
+            if re.match(pattern_re, hostname):
+                domain_allowed = True
+                break
+        elif hostname == allowed_pattern or hostname.endswith('.' + allowed_pattern):
+            # 精确匹配或子域名匹配
+            domain_allowed = True
+            break
+
+    if not domain_allowed:
+        logger.warning(
+            f"S3 service_address domain not in allowed list: {hostname}, "
+            f"allowed_domains: {allowed_domains}"
+        )
+        raise ForbiddenExternalPluginSourceError(
+            f"S3 域名 '{hostname}' 不在白名单中，请联系管理员将其添加到 S3_ALLOWED_DOMAINS 配置中"
+        )
+
+    return True
+
+
 @reader
 class S3Reader(SourceReader):
     type = S3
@@ -158,9 +274,13 @@ class S3Reader(SourceReader):
                 client.download_file(Bucket=bucket, Key=key, Filename=full_path)
 
     def read(self):
+        # SSRF 防护：校验 service_address
+        service_address = self.source_info.get("service_address")
+        validate_s3_service_address(service_address)
+
         client = boto3.client(
             "s3",
-            endpoint_url=self.source_info["service_address"],
+            endpoint_url=service_address,
             aws_access_key_id=self.source_info["access_key"],
             aws_secret_access_key=self.source_info["secret_key"],
         )

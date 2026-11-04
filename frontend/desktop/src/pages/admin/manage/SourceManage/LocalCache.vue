@@ -15,7 +15,17 @@
             <tbody>
                 <tr>
                     <th class="cache-label">{{$t('名称')}}</th>
-                    <td class="cache-content-item">{{value.name}}</td>
+                    <td class="cache-content-item">
+                        {{value.name}}
+                        <i
+                            v-if="value.is_valid === false"
+                            class="bk-icon icon-exclamation-circle-shape validation-warning-icon"
+                            v-bk-tooltips="{
+                                content: value.validation_message || $t('包源验证失败'),
+                                placements: ['top']
+                            }">
+                        </i>
+                    </td>
                 </tr>
                 <tr>
                     <th class="cache-label">{{$t('类型')}}</th>
@@ -108,6 +118,13 @@
             th {
                 width: 25%;
             }
+        }
+        .validation-warning-icon {
+            margin-left: 8px;
+            color: #ff5656;
+            font-size: 16px;
+            cursor: help;
+            vertical-align: middle;
         }
     }
 </style>

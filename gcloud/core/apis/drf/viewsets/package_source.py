@@ -15,6 +15,7 @@ from itertools import chain
 
 import jsonschema
 import ujson as json
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from rest_framework import permissions, status
 from rest_framework.exceptions import NotAcceptable
@@ -113,6 +114,17 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                     message = "Invalid cache source params: %s" % e
                     logger.error(message)
                     raise NotAcceptable(message)
+
+                # SSRF 防护：对 S3 类型的缓存包源进行域名白名单校验
+                if cache["type"].upper() == "S3" and "service_address" in cache.get("details", {}):
+                    from gcloud.external_plugins.protocol.readers import validate_s3_service_address
+                    try:
+                        validate_s3_service_address(cache["details"]["service_address"])
+                    except exceptions.ForbiddenExternalPluginSourceError as e:
+                        message = "Create cache source validation failed: %s" % e
+                        logger.error(message)
+                        raise NotAcceptable(message)
+
                 try:
                     CachePackageSource.objects.add_cache_source(
                         cache["name"], cache["type"], cache_packages, cache.get("desc", ""), **cache["details"]
@@ -132,9 +144,14 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                 source_model = source_cls_factory[source_type]
                 original_kwargs, base_kwargs = source_model.objects.divide_details_parts(source_type, details)
                 original_kwargs["desc"] = origin.get("desc", "")
-                source_model.objects.add_original_source(
-                    origin["name"], source_type, origin["packages"], original_kwargs, **base_kwargs
-                )
+                try:
+                    source_model.objects.add_original_source(
+                        origin["name"], source_type, origin["packages"], original_kwargs, **base_kwargs
+                    )
+                except ValidationError as e:
+                    message = "Create source validation failed: %s" % e
+                    logger.error(message)
+                    raise NotAcceptable(message)
         return Response(status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -172,6 +189,17 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                         message = "Invalid cache source params: %s" % e
                         logger.error(message)
                         raise NotAcceptable(message)
+
+                    # SSRF 防护：对 S3 类型的缓存包源进行域名白名单校验
+                    if cache["type"].upper() == "S3" and "service_address" in cache.get("details", {}):
+                        from gcloud.external_plugins.protocol.readers import validate_s3_service_address
+                        try:
+                            validate_s3_service_address(cache["details"]["service_address"])
+                        except exceptions.ForbiddenExternalPluginSourceError as e:
+                            message = "Update cache source validation failed: %s" % e
+                            logger.error(message)
+                            raise NotAcceptable(message)
+
                     if "id" in cache:
                         try:
                             CachePackageSource.objects.update_base_source(
@@ -212,14 +240,19 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                 original_kwargs, base_kwargs = source_model.objects.divide_details_parts(source_type, details)
                 if origin.get("desc", ""):
                     original_kwargs["desc"] = origin["desc"]
-                if "id" in origin:
-                    source_model.objects.update_original_source(
-                        origin["id"], origin["packages"], original_kwargs, **base_kwargs
-                    )
-                else:
-                    source_model.objects.add_original_source(
-                        origin["name"], source_type, origin["packages"], original_kwargs, **base_kwargs
-                    )
+                try:
+                    if "id" in origin:
+                        source_model.objects.update_original_source(
+                            origin["id"], origin["packages"], original_kwargs, **base_kwargs
+                        )
+                    else:
+                        source_model.objects.add_original_source(
+                            origin["name"], source_type, origin["packages"], original_kwargs, **base_kwargs
+                        )
+                except ValidationError as e:
+                    message = "Update source validation failed: %s" % e
+                    logger.error(message)
+                    raise NotAcceptable(message)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def destroy(self, request, *args, **kwargs):
