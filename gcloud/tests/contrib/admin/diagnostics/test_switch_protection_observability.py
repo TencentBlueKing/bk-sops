@@ -31,9 +31,9 @@ def configured(**environ):
         yield
 
 
-class S7SwitchRuntimeTest(DiagnosticsDataMixin, TestCase):
+class ProtectionSwitchRuntimeTest(DiagnosticsDataMixin, TestCase):
     def setUp(self):
-        self.root = "s7-switch-root"
+        self.root = "protection-switch-root"
         self.task = self.create_task(self.root)
         self.process = Process.objects.create(
             root_pipeline_id=self.root,
@@ -58,7 +58,6 @@ class S7SwitchRuntimeTest(DiagnosticsDataMixin, TestCase):
             "BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "1",
             "BKAPP_DIAGNOSTICS_SCANNERS": "signature",
             "BKAPP_DIAGNOSTICS_SECOND_CONFIRM_SECONDS": "0",
-            "BKAPP_DIAGNOSTICS_S7_ENABLED": "1",
             "BKAPP_PIPELINE_FENCE_MODE": "enforce",
         }
 
@@ -77,7 +76,7 @@ class S7SwitchRuntimeTest(DiagnosticsDataMixin, TestCase):
         self.assertEqual(SyncAdvanceCheckpoint.objects.get(process_id=self.process.pk).phase, "READY")
         self.assertFalse(Process.objects.get(pk=self.process.pk).asleep)
 
-    def test_s7_enables_detection_and_real_checkpoint_takeover(self):
+    def test_enforce_supports_detection_and_real_checkpoint_takeover(self):
         self.environ.update(
             BKAPP_DIAGNOSTICS_RECOVERY_POLICY="auto",
             BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS=str(self.task.project_id),
@@ -94,18 +93,42 @@ class S7SwitchRuntimeTest(DiagnosticsDataMixin, TestCase):
         self.assertTrue(Process.objects.get(pk=self.process.pk).asleep)
         self.assertEqual(DiagnosticRecovery.objects.get(case=case).status, "dispatched")
 
-    def test_s7_off_rejects_previously_built_plan_without_changing_checkpoint(self):
+    def test_recovery_off_settles_sync_takeover_while_protection_remains_enabled(self):
+        self.environ.update(
+            BKAPP_DIAGNOSTICS_RECOVERY_POLICY="auto",
+            BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS=str(self.task.project_id),
+            BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES="sync_advance_stalled",
+        )
+        with configured(**self.environ), mock.patch.object(BambooDjangoRuntime, "execute"):
+            case = self.prepare_and_detect()
+            tasks.run_stuck_recovery()
+        row = DiagnosticRecovery.objects.get(case=case)
+        self.assertEqual(row.status, "dispatched")
+        DiagnosticRecovery.objects.filter(pk=row.pk).update(created_at=timezone.now() - timedelta(seconds=600))
+        Process.objects.filter(pk=self.process.pk).update(current_node_id="a-next", asleep=False)
+        self.environ.update(BKAPP_DIAGNOSTICS_DETECTION_ENABLED="0", BKAPP_DIAGNOSTICS_RECOVERY_POLICY="off")
+        with configured(**self.environ), mock.patch.object(BambooDjangoRuntime, "execute") as send:
+            tasks.run_stuck_recovery()
+            self.assertTrue(BambooSettings.SYNC_ADVANCE_CHECKPOINT_ENABLED)
+            self.assertTrue(BambooSettings.FENCE_ENFORCE)
+        row.refresh_from_db()
+        self.assertEqual(row.status, "applied")
+        self.assertIsNotNone(row.settled_at)
+        self.assertEqual(DiagnosticRecovery.objects.count(), 1)
+        send.assert_not_called()
+
+    def test_protection_off_rejects_previously_built_plan_without_changing_checkpoint(self):
         with configured(**self.environ):
             plan = plan_replay(self.prepare_and_detect())
             self.assertEqual(plan.blockers, [])
-        self.environ["BKAPP_DIAGNOSTICS_S7_ENABLED"] = "0"
+        self.environ["BKAPP_PIPELINE_FENCE_MODE"] = "off"
         with configured(**self.environ), mock.patch.object(BambooDjangoRuntime, "execute") as send:
             with self.assertRaisesRegex(ValueError, "sync advance recovery switches are off"):
                 dispatch(plan.message)
         send.assert_not_called()
         self.assert_checkpoint_ready()
 
-    def test_s7_alone_does_not_enable_automatic_or_manual_recovery(self):
+    def test_protection_alone_does_not_enable_automatic_or_manual_recovery(self):
         with configured(**self.environ), mock.patch.object(BambooDjangoRuntime, "execute") as send:
             case = self.prepare_and_detect()
             tasks.run_stuck_recovery()
@@ -115,16 +138,16 @@ class S7SwitchRuntimeTest(DiagnosticsDataMixin, TestCase):
         send.assert_not_called()
         self.assert_checkpoint_ready()
 
-    def test_s7_off_excludes_awake_sync_process_from_detection(self):
+    def test_protection_off_excludes_awake_sync_process_from_detection(self):
         with configured(**self.environ):
             self.prepare_checkpoint()
-        self.environ["BKAPP_DIAGNOSTICS_S7_ENABLED"] = "0"
+        self.environ["BKAPP_PIPELINE_FENCE_MODE"] = "off"
         with configured(**self.environ):
             tasks.scan_stuck_signatures()
         self.assertFalse(DiagnosticCase.objects.exists())
         self.assert_checkpoint_ready()
 
-    def test_s7_still_requires_fence_enforcement(self):
+    def test_observe_detects_but_refuses_sync_recovery_even_with_risk_confirmation(self):
         self.environ.update(BKAPP_PIPELINE_FENCE_MODE="observe", BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED="1")
         with configured(**self.environ), mock.patch.object(BambooDjangoRuntime, "execute") as send:
             case = self.prepare_and_detect()
@@ -133,6 +156,27 @@ class S7SwitchRuntimeTest(DiagnosticsDataMixin, TestCase):
         self.assertIn("sync advance checkpoint and both fence switches must be enabled", result.blockers)
         send.assert_not_called()
         self.assert_checkpoint_ready()
+
+    def test_detection_off_keeps_existing_case_recovery_and_late_worker_protection(self):
+        with configured(**self.environ):
+            case = self.prepare_and_detect()
+        self.environ.update(
+            BKAPP_DIAGNOSTICS_DETECTION_ENABLED="0",
+            BKAPP_DIAGNOSTICS_RECOVERY_POLICY="auto",
+            BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS=str(self.task.project_id),
+            BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES="sync_advance_stalled",
+        )
+        with configured(**self.environ), mock.patch.object(BambooDjangoRuntime, "execute") as send:
+            with self.assertNumQueries(0):
+                tasks.scan_stuck_signatures()
+            tasks.run_stuck_recovery()
+            self.assertTrue(BambooSettings.SYNC_ADVANCE_CHECKPOINT_ENABLED)
+            self.assertFalse(self.runtime.claim_sync_advance(self.process.pk, "a", "v1"))
+            self.assertFalse(self.runtime.wake_sync_recovery(self.process.pk, "a", "v1"))
+        send.assert_called_once()
+        self.assertEqual(SyncAdvanceCheckpoint.objects.get(process_id=self.process.pk).phase, "RELEASED")
+        self.assertTrue(Process.objects.get(pk=self.process.pk).asleep)
+        self.assertEqual(DiagnosticRecovery.objects.get(case=case).status, "dispatched")
 
 
 class ObservabilitySwitchRuntimeTest(TestCase):

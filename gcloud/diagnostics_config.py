@@ -72,7 +72,14 @@ def _fence(environ, result):
         return
     mode = _choice(environ, control, ("off", "observe", "enforce"))
     result["PIPELINE_FENCE_MODE"] = mode
-    for name, value in (("PIPELINE_FENCE_EMIT_ENABLED", mode != "off"), ("PIPELINE_FENCE_ENFORCE", mode == "enforce")):
+    # Record synchronous progress in observe/enforce, independently of periodic
+    # detection. Pausing scans must not drop ownership checks for in-flight work.
+    for name, value in (
+        ("PIPELINE_FENCE_EMIT_ENABLED", mode != "off"),
+        ("PIPELINE_FENCE_ENFORCE", mode == "enforce"),
+        ("PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED", mode != "off"),
+        ("DIAGNOSTICS_SYNC_ADVANCE_ENABLED", mode != "off"),
+    ):
         _check_legacy(environ, "BKAPP_" + name, value, control)
         result[name] = value
 
@@ -101,18 +108,6 @@ def _manual_apply(environ, result):
     result["DIAGNOSTICS_MANUAL_APPLY_ENABLED"] = enabled
     # The runtime and existing console operations still consume this setting.
     result["DIAGNOSTICS_APPLY_ENABLED"] = enabled
-
-
-def _s7(environ, result):
-    control = "BKAPP_DIAGNOSTICS_S7_ENABLED"
-    result["DIAGNOSTICS_S7_ENABLED"] = None
-    if control not in environ:
-        return
-    enabled = _choice(environ, control, TRUE_VALUES + FALSE_VALUES) in TRUE_VALUES
-    result["DIAGNOSTICS_S7_ENABLED"] = enabled
-    for name in ("PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED", "DIAGNOSTICS_SYNC_ADVANCE_ENABLED"):
-        _check_legacy(environ, "BKAPP_" + name, enabled, control)
-        result[name] = enabled
 
 
 def _observability(environ, result):
@@ -148,6 +143,5 @@ def resolve_switches(environ):
     _fence(environ, result)
     _recovery(environ, result)
     _manual_apply(environ, result)
-    _s7(environ, result)
     _observability(environ, result)
     return result

@@ -162,7 +162,6 @@ DIAGNOSTICS_WINDOW_TIERS = tuple(
 # 窗口扫描每档每轮最多处理的静默 root 数，高于实测单个 10 分钟分桶的峰值 470，只在长时间关闭后重开时限速
 DIAGNOSTICS_WINDOW_MAX_ROOTS = int(os.getenv("BKAPP_DIAGNOSTICS_WINDOW_MAX_ROOTS", 1000))
 DIAGNOSTICS_SIGNATURE_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_SIGNATURE_SCAN_ENABLED"]
-DIAGNOSTICS_S7_ENABLED = _diagnostics_switches["DIAGNOSTICS_S7_ENABLED"]
 DIAGNOSTICS_SYNC_ADVANCE_ENABLED = _diagnostics_switches["DIAGNOSTICS_SYNC_ADVANCE_ENABLED"]
 DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS", 300))
 DIAGNOSTICS_SIGNATURE_SLOW_THRESHOLD_SECONDS = int(
@@ -176,12 +175,13 @@ DIAGNOSTICS_CALLBACK_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_CALLBACK_
 DIAGNOSTICS_CALLBACK_CONFIRM_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_CALLBACK_CONFIRM_SECONDS", 120))
 DIAGNOSTICS_SIGNATURE_SCAN_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_SIGNATURE_SCAN_CRON", "* * * * *").split())
 DIAGNOSTICS_CALLBACK_SCAN_INTERVAL = int(os.getenv("BKAPP_DIAGNOSTICS_CALLBACK_SCAN_INTERVAL", 30))
-# 流程卡住治理三期 P3-2（引擎门禁，需 bamboo-pipeline>=3.24.21），两个开关默认全关。
-# 所有引擎 worker 都升级后才能打开 EMIT；观察无误后再打开 ENFORCE。回退先停所有 apply；S7 在途接管须先处理完。
+# Execution protection defaults off; observe/enforce also record synchronous progress.
+# Upgrade all workers to bamboo-pipeline>=3.24.22 and migrate before enabling.
+# Stop recovery and drain in-flight takeovers before switching protection off.
 PIPELINE_FENCE_MODE = _diagnostics_switches["PIPELINE_FENCE_MODE"]
 PIPELINE_FENCE_EMIT_ENABLED = _diagnostics_switches["PIPELINE_FENCE_EMIT_ENABLED"]
 PIPELINE_FENCE_ENFORCE = _diagnostics_switches["PIPELINE_FENCE_ENFORCE"]
-# S7: migrate and upgrade every worker before enabling; leave recovery in preview first.
+# Legacy checkpoint flag remains available when FENCE_MODE is unset.
 PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED = _diagnostics_switches["PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED"]
 # 流程卡住治理三期 P3-3（恢复台账，需 bamboo-pipeline>=3.24.21）：恢复任务默认关闭；打开后按 BKAPP_DIAGNOSTICS_RECOVERY_CRON
 # （默认每分钟）复核到期的台账记录并预演，不重放。控制台人工重放需要 BKAPP_DIAGNOSTICS_APPLY_ENABLED，执行类和轮询类重放
