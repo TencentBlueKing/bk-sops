@@ -13,6 +13,8 @@ specific language governing permissions and limitations under the License.
 
 import os
 
+from gcloud.diagnostics_config import resolve_switches
+
 RUN_VER = os.getenv("RUN_VER", "open")
 
 IS_PAAS_V3 = int(os.getenv("BKPAAS_MAJOR_VERSION", False)) == 3
@@ -130,7 +132,12 @@ ARCHIVE_EXPIRED_V2_TASK_BATCH_NUM = int(os.getenv("BKAPP_ARCHIVE_EXPIRED_V2_TASK
 # 开 SCAN 前务必先到 3.24.16——3.24.15 只改了专属判据，兜底 stalled_no_progress 仍会报出同一批流程。
 # EVENT 与 SCAN 是两个独立开关：仅关 SCAN 不足以关热点路径事件写，务必同时关 EVENT。
 _DIAG_TRUE = ("1", "true", "yes", "on")
-DIAGNOSTICS_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SCAN_ENABLED", "0").lower() in _DIAG_TRUE
+_diagnostics_switches = resolve_switches(os.environ)
+# Unset unified controls preserve legacy behavior, including supplemental scans.
+DIAGNOSTICS_DETECTION_ENABLED = _diagnostics_switches["DIAGNOSTICS_DETECTION_ENABLED"]
+DIAGNOSTICS_SCANNERS = _diagnostics_switches["DIAGNOSTICS_SCANNERS"]
+DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED"]
+DIAGNOSTICS_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_SCAN_ENABLED"]
 DIAGNOSTICS_EVENT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_EVENT_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_ALERT_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_ALERT_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_APPLY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_APPLY_ENABLED", "0").lower() in _DIAG_TRUE
@@ -151,13 +158,13 @@ DIAGNOSTICS_SCAN_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_SCAN_CRON", "*/10 * *
 DIAGNOSTICS_CLEANUP_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_CLEANUP_CRON", "30 3 * * *").split())
 # 流程卡住治理三期 P3-1（检测全覆盖，需 bamboo-pipeline>=3.24.20）：三个扫描器各一个开关，默认全关，只立案不重放。
 # 窗口扫描开启后替代上面 M1 的取样扫描（同一件事，同时跑只会重复立案）。
-DIAGNOSTICS_WINDOW_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_WINDOW_SCAN_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_WINDOW_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_WINDOW_SCAN_ENABLED"]
 DIAGNOSTICS_WINDOW_TIERS = tuple(
     int(value) for value in os.getenv("BKAPP_DIAGNOSTICS_WINDOW_TIERS", "3600,86400").split(",") if value.strip()
 )
 # 窗口扫描每档每轮最多处理的静默 root 数，高于实测单个 10 分钟分桶的峰值 470，只在长时间关闭后重开时限速
 DIAGNOSTICS_WINDOW_MAX_ROOTS = int(os.getenv("BKAPP_DIAGNOSTICS_WINDOW_MAX_ROOTS", 1000))
-DIAGNOSTICS_SIGNATURE_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_SIGNATURE_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_SIGNATURE_SCAN_ENABLED"]
 DIAGNOSTICS_SYNC_ADVANCE_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_SYNC_ADVANCE_ENABLED", "0").lower() in _DIAG_TRUE
 DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_SIGNATURE_FAST_THRESHOLD_SECONDS", 300))
 DIAGNOSTICS_SIGNATURE_SLOW_THRESHOLD_SECONDS = int(
@@ -167,14 +174,15 @@ DIAGNOSTICS_SIGNATURE_SLOW_THRESHOLD_SECONDS = int(
 DIAGNOSTICS_POLL_EXCLUDE_CODES = [
     code.strip() for code in os.getenv("BKAPP_DIAGNOSTICS_POLL_EXCLUDE_CODES", "sleep_timer").split(",") if code.strip()
 ]
-DIAGNOSTICS_CALLBACK_SCAN_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_CALLBACK_SCAN_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_CALLBACK_SCAN_ENABLED = _diagnostics_switches["DIAGNOSTICS_CALLBACK_SCAN_ENABLED"]
 DIAGNOSTICS_CALLBACK_CONFIRM_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_CALLBACK_CONFIRM_SECONDS", 120))
 DIAGNOSTICS_SIGNATURE_SCAN_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_SIGNATURE_SCAN_CRON", "* * * * *").split())
 DIAGNOSTICS_CALLBACK_SCAN_INTERVAL = int(os.getenv("BKAPP_DIAGNOSTICS_CALLBACK_SCAN_INTERVAL", 30))
 # 流程卡住治理三期 P3-2（引擎门禁，需 bamboo-pipeline>=3.24.21），两个开关默认全关。
 # 所有引擎 worker 都升级后才能打开 EMIT；观察无误后再打开 ENFORCE。回退先停所有 apply；S7 在途接管须先处理完。
-PIPELINE_FENCE_EMIT_ENABLED = os.getenv("BKAPP_PIPELINE_FENCE_EMIT_ENABLED", "0").lower() in _DIAG_TRUE
-PIPELINE_FENCE_ENFORCE = os.getenv("BKAPP_PIPELINE_FENCE_ENFORCE", "0").lower() in _DIAG_TRUE
+PIPELINE_FENCE_MODE = _diagnostics_switches["PIPELINE_FENCE_MODE"]
+PIPELINE_FENCE_EMIT_ENABLED = _diagnostics_switches["PIPELINE_FENCE_EMIT_ENABLED"]
+PIPELINE_FENCE_ENFORCE = _diagnostics_switches["PIPELINE_FENCE_ENFORCE"]
 # S7: migrate and upgrade every worker before enabling; leave recovery in preview first.
 PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED = (
     os.getenv("BKAPP_PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED", "0").lower() in _DIAG_TRUE
@@ -185,13 +193,14 @@ PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED = (
 # APPLY、EMIT、ENFORCE 三个开关和 BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS 要在 default 和 pipeline 模块设成一样。
 # RECOVERY_ENABLED 只在 pipeline 模块（task_data_clean worker）生效，RECOVERY_CRON 只在 default 模块（celery beat）生效，
 # 两者都设成应用级环境变量。
-DIAGNOSTICS_RECOVERY_ENABLED = os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_ENABLED", "0").lower() in _DIAG_TRUE
+DIAGNOSTICS_RECOVERY_POLICY = _diagnostics_switches["DIAGNOSTICS_RECOVERY_POLICY"]
+DIAGNOSTICS_RECOVERY_ENABLED = _diagnostics_switches["DIAGNOSTICS_RECOVERY_ENABLED"]
 DIAGNOSTICS_RECOVERY_SETTLE_SECONDS = int(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_SETTLE_SECONDS", 180))
 DIAGNOSTICS_RECOVERY_CRON = tuple(os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_CRON", "* * * * *").split())
 # 流程卡住治理三期 P3-4（自动重放，需 bamboo-pipeline>=3.24.21）：默认只预演。RECOVERY_MODE=apply 时，只对 AUTO_REPLAY_TYPES
 # 里的类型、且根流程所属项目在 RECOVERY_PROJECT_IDS 里的案例自动重放（项目 ID 逗号分隔，空表示不放开，* 表示全部）。
 # 这三个变量只在 pipeline 模块（task_data_clean worker）生效，设成应用级环境变量。
-DIAGNOSTICS_RECOVERY_MODE = os.getenv("BKAPP_DIAGNOSTICS_RECOVERY_MODE", "preview").strip().lower()
+DIAGNOSTICS_RECOVERY_MODE = _diagnostics_switches["DIAGNOSTICS_RECOVERY_MODE"]
 DIAGNOSTICS_AUTO_REPLAY_TYPES = [
     item.strip() for item in os.getenv("BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES", "").split(",") if item.strip()
 ]

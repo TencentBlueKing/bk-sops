@@ -36,9 +36,10 @@ except ImportError:  # pragma: no cover - depends on engine version
 
 # 恢复任务随 bamboo-pipeline>=3.24.21 提供；旧版本下为 no-op。
 try:
+    from pipeline.contrib.diagnostics.recovery import settle_recoveries
     from pipeline.contrib.diagnostics.recovery_runner import run_recovery
 except ImportError:  # pragma: no cover - depends on engine version
-    run_recovery = None
+    run_recovery = settle_recoveries = None
 
 _SCAN_LOCK_KEY = "diagnostics_scan_lock"
 _SCAN_LOCK_EXPIRE = 30 * 60
@@ -93,7 +94,18 @@ def _run_singleflight(name, key, enabled, scan):
 @periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_SCAN_CRON)), ignore_result=True, queue="task_data_clean")
 def scan_stuck_diagnostics():
     """周期扫描停滞 root，只读产出诊断案例（写操作默认关闭）。"""
-    if scan_stalled_roots is None:
+    if getattr(settings, "DIAGNOSTICS_DETECTION_ENABLED", None) is False or scan_stalled_roots is None:
+        return
+
+    supplement_enabled = getattr(settings, "DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED", True)
+    # Keep the legacy fallback, but do not call the sampler in unified mode when
+    # only callback/signature scanning was selected.
+    root_enabled = (
+        getattr(settings, "DIAGNOSTICS_DETECTION_ENABLED", None) is None
+        or settings.PIPELINE_DIAGNOSTICS_SCAN_ENABLED
+        or settings.PIPELINE_DIAGNOSTICS_WINDOW_SCAN_ENABLED
+    )
+    if not (root_enabled or supplement_enabled):
         return
 
     token = _acquire_singleflight(_SCAN_LOCK_KEY, _SCAN_LOCK_EXPIRE)
@@ -103,22 +115,24 @@ def scan_stuck_diagnostics():
 
     try:
         try:
-            cases = _scan_roots()
-            logger.info("[diagnostics] scan_stuck_diagnostics upserted cases: %s", cases)
+            if root_enabled:
+                cases = _scan_roots()
+                logger.info("[diagnostics] scan_stuck_diagnostics upserted cases: %s", cases)
         except Exception:
             logger.exception("[diagnostics] root scan failed")
 
         try:
-            from gcloud.contrib.admin.diagnostics.supplement import (
-                close_recovered_cases,
-                scan_running_tasks_without_live_process,
-            )
+            if supplement_enabled:
+                from gcloud.contrib.admin.diagnostics.supplement import (
+                    close_recovered_cases,
+                    scan_running_tasks_without_live_process,
+                )
 
-            supplemented = scan_running_tasks_without_live_process()
-            logger.info("[diagnostics] supplemental cases: %s", len(supplemented))
-            # 与补充检测同轮收敛：任务恢复或跑完后关成 resolved，超出治理窗口的关成 ignored。
-            resolved, aged_out = close_recovered_cases()
-            logger.info("[diagnostics] supplemental cases closed: resolved=%s aged_out=%s", resolved, aged_out)
+                supplemented = scan_running_tasks_without_live_process()
+                logger.info("[diagnostics] supplemental cases: %s", len(supplemented))
+                # 与补充检测同轮收敛：任务恢复或跑完后关成 resolved，超出治理窗口的关成 ignored。
+                resolved, aged_out = close_recovered_cases()
+                logger.info("[diagnostics] supplemental cases closed: resolved=%s aged_out=%s", resolved, aged_out)
         except ImportError:  # pragma: no cover - depends on engine version
             pass
         except Exception:
@@ -135,7 +149,8 @@ def scan_stuck_signatures():
     _run_singleflight(
         "scan_stuck_signatures",
         _SIGNATURE_LOCK_KEY,
-        settings.PIPELINE_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED,
+        getattr(settings, "DIAGNOSTICS_DETECTION_ENABLED", None) is not False
+        and settings.PIPELINE_DIAGNOSTICS_SIGNATURE_SCAN_ENABLED,
         scan_signatures,
     )
 
@@ -150,7 +165,8 @@ def scan_stuck_callbacks():
     _run_singleflight(
         "scan_stuck_callbacks",
         _CALLBACK_LOCK_KEY,
-        settings.PIPELINE_DIAGNOSTICS_CALLBACK_SCAN_ENABLED,
+        getattr(settings, "DIAGNOSTICS_DETECTION_ENABLED", None) is not False
+        and settings.PIPELINE_DIAGNOSTICS_CALLBACK_SCAN_ENABLED,
         scan_callbacks,
     )
 
@@ -158,12 +174,23 @@ def scan_stuck_callbacks():
 @periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_RECOVERY_CRON)), ignore_result=True, queue="task_data_clean")
 def run_stuck_recovery():
     """复核已派发的重放，按开关自动重放范围内的可重放案例，其余只预演。"""
+    if getattr(settings, "DIAGNOSTICS_RECOVERY_POLICY", None) == "off":
+        # Stop new plans/dispatches, but finish accounting for already-created records.
+        _run_singleflight(
+            "settle_stuck_recovery", _RECOVERY_LOCK_KEY, True, _settle_stuck_recovery if settle_recoveries else None
+        )
+        return
     _run_singleflight(
         "run_stuck_recovery",
         _RECOVERY_LOCK_KEY,
         settings.PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED,
         run_recovery,
     )
+
+
+def _settle_stuck_recovery():
+    outcomes = settle_recoveries()
+    logger.info("[pipeline_diagnostics_recovery] settle_only outcomes=%s", dict(outcomes))
 
 
 @periodic_task(run_every=(crontab(*settings.DIAGNOSTICS_CLEANUP_CRON)), ignore_result=True, queue="task_data_clean")
