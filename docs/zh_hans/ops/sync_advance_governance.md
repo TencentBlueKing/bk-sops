@@ -21,18 +21,19 @@
 
 ## 配置与发布顺序
 
-新增配置：
+应用侧统一入口（运行时仍使用原有两个配置）：
 
 | bk-sops 环境变量 | 默认 | 作用 |
 | --- | --- | --- |
-| BKAPP_PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED | 0 | 同步执行路径记录输出检查点并竞争推进权 |
-| BKAPP_DIAGNOSTICS_SYNC_ADVANCE_ENABLED | 0 | 允许 S7 诊断与受控恢复 |
+| BKAPP_DIAGNOSTICS_S7_ENABLED | 0 | 同时启用输出检查点与 S7 检测能力，恢复仍受防重复检查和恢复模式限制 |
+
+旧 `BKAPP_PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED` 和 `BKAPP_DIAGNOSTICS_SYNC_ADVANCE_ENABLED` 保留兼容；未配置新入口时原有组合不变，新旧同时配置时须一致。不配置新旧变量时两项均关闭。旧应用版本不认识新入口，回退前需按对应值恢复旧变量。
 
 仍需启用 signature 扫描、发送与执行预期状态检查（FENCE_EMIT_ENABLED / FENCE_ENFORCE）。人工恢复由 apply 开关控制；自动恢复由恢复模式、类型与项目白名单、限次、自动暂停等原有约束控制，不依赖人工 apply 开关。自动类型名称是 `sync_advance_stalled`。
 
-包含统一开关改动的应用版本，可使用检测总开关（扫描范围包含 `signature`）、`BKAPP_PIPELINE_FENCE_MODE=enforce` 和 `BKAPP_DIAGNOSTICS_RECOVERY_POLICY=preview/auto` 配置上述能力，见 [统一开关与旧配置迁移](stuck_governance_switches.md)。两个 S7 专属开关仍需单独设置；统一入口不会自动开启它们。
+包含统一开关改动的应用版本，配置 `BKAPP_DIAGNOSTICS_S7_ENABLED=1` 后，还需使用检测总开关（扫描范围包含 `signature`）、`BKAPP_PIPELINE_FENCE_MODE=enforce` 和 `BKAPP_DIAGNOSTICS_RECOVERY_POLICY=preview/auto` 配置上述能力，见 [统一开关与旧配置迁移](stuck_governance_switches.md)。S7 入口不会自动放开检测、人工或自动恢复。
 
-1. 使用 `bamboo-pipeline==3.24.22`（精确依赖 `bamboo-engine==2.6.9`）构建应用，保持两个 S7 开关为 `0`。打开检查点开关前，所有 worker 至少为 3.24.22；3.24.21 在开关打开时存在下文所述的暂停/撤销与 READY 重试问题。使用该版本执行 `python manage.py migrate --noinput`，确认命令退出码为 `0`，并通过 `python manage.py showmigrations eri` 确认 `0006_syncadvancecheckpoint` 标记为 `[X]`。迁移失败时停止发布；即使不开 S7，也必须完成此迁移，不能仅以 `bin/pre_release` 最终返回成功作为依据。
+1. 使用 `bamboo-pipeline==3.24.22`（精确依赖 `bamboo-engine==2.6.9`）构建应用，保持 `BKAPP_DIAGNOSTICS_S7_ENABLED=0`（旧变量已移除或同为 `0`）。打开检查点开关前，所有 worker 至少为 3.24.22；3.24.21 在开关打开时存在下文所述的暂停/撤销与 READY 重试问题。使用该版本执行 `python manage.py migrate --noinput`，确认命令退出码为 `0`，并通过 `python manage.py showmigrations eri` 确认 `0006_syncadvancecheckpoint` 标记为 `[X]`。迁移失败时停止发布；即使不开 S7，也必须完成此迁移，不能仅以 `bin/pre_release` 最终返回成功作为依据。
 2. 迁移成功后，再启动新版 worker/cleaner，并升级所有可能处理这些流程的 worker。混合旧 worker 期间禁止 S7 接管；旧 worker 不认识推进权协议。保持开关关闭，验证代表性的历史任务清理成功、耗时与资源开销可接受，再考虑启用 S7。
 3. 评估额外数据库查询、锁、写入吞吐后，开启检查点和诊断，先仅预览；确认样本后再按项目开启 apply。
 4. 回退时先关闭所有恢复 apply，保留新 worker 与执行预期状态检查，处理完在途任务和检查点后，再关闭检查点或退回旧 worker。不要直接删除检查点表。

@@ -28,7 +28,7 @@ def load_switch_settings(environ):
 
     with mock.patch.dict(os.environ, environ, clear=True):
         env = {"os": os, "resolve_switches": resolve_switches}
-        exec(section(root / "env.py", "_DIAG_TRUE", "DIAGNOSTICS_RECOVERY_PROJECT_IDS"), env)
+        exec(section(root / "env.py", "_diagnostics_switches", "DIAGNOSTICS_RECOVERY_PROJECT_IDS"), env)
         settings = {"env": SimpleNamespace(**env), "BambooSettings": SimpleNamespace()}
         exec(
             section(
@@ -241,8 +241,8 @@ class SwitchConfigTest(TestCase):
         self.assertFalse(result["DIAGNOSTICS_APPLY_ENABLED"])
         self.assertFalse(result["DIAGNOSTICS_MANUAL_APPLY_ENABLED"])
         for name in ("EVENT", "ALERT", "SYNC_ADVANCE"):
-            self.assertNotIn("DIAGNOSTICS_{}_ENABLED".format(name), result)
-        self.assertNotIn("PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED", result)
+            self.assertFalse(result["DIAGNOSTICS_{}_ENABLED".format(name)])
+        self.assertFalse(result["PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED"])
 
     def test_enabled_legacy_scan_alias_is_accepted_with_unified_window(self):
         settings = load_switch_settings(
@@ -311,3 +311,100 @@ class SwitchConfigTest(TestCase):
         for value in ("", "manual", "2"):
             with self.assertRaisesRegex(ValueError, "BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED"):
                 resolve_switches({"BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED": value})
+
+
+class S7ObservabilityConfigTest(TestCase):
+    LEGACY_NAMES = (
+        "PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED",
+        "DIAGNOSTICS_SYNC_ADVANCE_ENABLED",
+        "DIAGNOSTICS_EVENT_ENABLED",
+        "DIAGNOSTICS_ALERT_ENABLED",
+    )
+
+    def test_unconfigured_capabilities_remain_off(self):
+        result = resolve_switches({})
+        for name in self.LEGACY_NAMES:
+            self.assertFalse(result[name])
+        settings = load_switch_settings({})
+        self.assertFalse(settings["BambooSettings"].SYNC_ADVANCE_CHECKPOINT_ENABLED)
+        for name in ("SYNC_ADVANCE", "EVENT", "ALERT"):
+            self.assertFalse(settings["PIPELINE_DIAGNOSTICS_{}_ENABLED".format(name)])
+
+    def test_all_legacy_combinations_remain_independent(self):
+        for values in itertools.product(("0", "1"), repeat=4):
+            with self.subTest(values=values):
+                env = dict(zip(["BKAPP_" + name for name in self.LEGACY_NAMES], values))
+                result = resolve_switches(env)
+                self.assertEqual([result[name] for name in self.LEGACY_NAMES], [value == "1" for value in values])
+                settings = load_switch_settings(env)
+                self.assertEqual(settings["BambooSettings"].SYNC_ADVANCE_CHECKPOINT_ENABLED, values[0] == "1")
+                for name, value in zip(("SYNC_ADVANCE", "EVENT", "ALERT"), values[1:]):
+                    self.assertEqual(settings["PIPELINE_DIAGNOSTICS_{}_ENABLED".format(name)], value == "1")
+
+    def test_legacy_boolean_parsing_is_preserved(self):
+        for name in self.LEGACY_NAMES:
+            for value in ("TRUE", "yes", "on", "false", "", " true ", "typo"):
+                with self.subTest(name=name, value=value):
+                    result = resolve_switches({"BKAPP_" + name: value})
+                    self.assertEqual(result[name], value.lower() in ("1", "true", "yes", "on"))
+
+    def test_s7_control_reaches_checkpoint_and_diagnostics_settings(self):
+        for value, enabled in (("1", True), ("0", False), (" TRUE ", True), ("off", False)):
+            with self.subTest(value=value):
+                settings = load_switch_settings({"BKAPP_DIAGNOSTICS_S7_ENABLED": value})
+                self.assertEqual(settings["DIAGNOSTICS_S7_ENABLED"], enabled)
+                self.assertEqual(settings["BambooSettings"].SYNC_ADVANCE_CHECKPOINT_ENABLED, enabled)
+                self.assertEqual(settings["PIPELINE_DIAGNOSTICS_SYNC_ADVANCE_ENABLED"], enabled)
+
+    def test_observability_modes_reach_event_and_alert_settings(self):
+        for mode, event, alert in (("off", False, False), ("alerts", False, True), ("full", True, True)):
+            with self.subTest(mode=mode):
+                settings = load_switch_settings({"BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE": mode.upper()})
+                self.assertEqual(settings["DIAGNOSTICS_OBSERVABILITY_MODE"], mode)
+                self.assertEqual(settings["PIPELINE_DIAGNOSTICS_EVENT_ENABLED"], event)
+                self.assertEqual(settings["PIPELINE_DIAGNOSTICS_ALERT_ENABLED"], alert)
+
+    def test_matching_old_values_are_accepted_and_conflicts_name_the_old_variable(self):
+        controls = (
+            ("BKAPP_DIAGNOSTICS_S7_ENABLED", "0", self.LEGACY_NAMES[:2], (False, False)),
+            ("BKAPP_DIAGNOSTICS_S7_ENABLED", "1", self.LEGACY_NAMES[:2], (True, True)),
+            ("BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE", "off", self.LEGACY_NAMES[2:], (False, False)),
+            ("BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE", "alerts", self.LEGACY_NAMES[2:], (False, True)),
+            ("BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE", "full", self.LEGACY_NAMES[2:], (True, True)),
+        )
+        for key, value, names, expected in controls:
+            for name, enabled in zip(names, expected):
+                with self.subTest(control=value, legacy=name):
+                    env = {key: value, "BKAPP_" + name: str(int(enabled))}
+                    self.assertEqual(resolve_switches(env)[name], enabled)
+                    env["BKAPP_" + name] = str(int(not enabled))
+                    with self.assertRaisesRegex(ValueError, "BKAPP_" + name + " conflicts"):
+                        resolve_switches(env)
+
+    def test_invalid_new_values_fail_at_configuration_loading(self):
+        for name, values in (
+            ("BKAPP_DIAGNOSTICS_S7_ENABLED", ("", "2", "auto")),
+            ("BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE", ("", "1", "events", "ful")),
+        ):
+            for value in values:
+                with self.subTest(name=name, value=value):
+                    with self.assertRaisesRegex(ValueError, name):
+                        load_switch_settings({name: value})
+
+    def test_s7_and_observability_do_not_enable_detection_fence_or_recovery(self):
+        settings = load_switch_settings(
+            {
+                "BKAPP_DIAGNOSTICS_S7_ENABLED": "1",
+                "BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE": "full",
+                "BKAPP_DIAGNOSTICS_DETECTION_ENABLED": "0",
+                "BKAPP_DIAGNOSTICS_RECOVERY_POLICY": "off",
+            }
+        )
+        self.assertFalse(settings["DIAGNOSTICS_DETECTION_ENABLED"])
+        self.assertFalse(settings["DIAGNOSTICS_SUPPLEMENT_SCAN_ENABLED"])
+        self.assertFalse(settings["BambooSettings"].FENCE_EMIT_ENABLED)
+        self.assertFalse(settings["BambooSettings"].FENCE_ENFORCE)
+        self.assertFalse(settings["PIPELINE_DIAGNOSTICS_RECOVERY_ENABLED"])
+        self.assertFalse(settings["PIPELINE_DIAGNOSTICS_APPLY_ENABLED"])
+        self.assertEqual(settings["DIAGNOSTICS_RECOVERY_PROJECT_IDS"], [])
+        self.assertEqual(settings["PIPELINE_DIAGNOSTICS_AUTO_REPLAY_TYPES"], [])

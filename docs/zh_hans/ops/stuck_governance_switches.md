@@ -10,6 +10,8 @@
 | `BKAPP_PIPELINE_FENCE_MODE` | `off` / `observe` / `enforce` | 防重复检查：关闭 / 消息带上预期状态但只观察 / 消息带上预期状态并拦截不匹配消息 |
 | `BKAPP_DIAGNOSTICS_RECOVERY_POLICY` | `off` / `preview` / `auto` | 周期恢复：停止新增恢复计划 / 只预览 / 在允许的项目和类型范围内自动恢复 |
 | `BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED` | `0` / `1` | 禁止 / 允许控制台人工写操作，默认关闭，与自动恢复模式独立 |
+| `BKAPP_DIAGNOSTICS_S7_ENABLED` | `0` / `1` | 同时关闭 / 开启同步节点输出检查点和 S7 检测能力，默认关闭 |
+| `BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE` | `off` / `alerts` / `full` | 关闭事件和告警日志 / 只输出告警日志 / 再记录诊断事件，默认关闭 |
 
 **新配置未设置时继续读取旧配置；旧 `SCAN_ENABLED=1` 现在兼容为开启窗口扫描，不再执行取样扫描。** 其他旧开关的含义保持不变，包括原先不受扫描开关控制的补充检测，以及旧 `RECOVERY_ENABLED=0` 同时停止回查的行为。不要把“不设置新配置”等同于新配置设为 `off`。
 
@@ -49,7 +51,23 @@
 
 人工写操作使用 `BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED`，旧名 `BKAPP_DIAGNOSTICS_APPLY_ENABLED` 继续兼容：新名未设置时沿用旧值；同时设置时须一致，否则启动报错。引擎仍读取同一个人工操作配置，因此权限检查、预检查和操作审计不变。`RECOVERY_POLICY=auto` 不会开启人工操作，`off` 也不会关闭已单独开启的人工操作。要停止所有新增恢复，应同时设置 `RECOVERY_POLICY=off` 和 `BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED=0`，并移除或同步旧 `APPLY_ENABLED`。
 
-S7 的 `BKAPP_PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED`、`BKAPP_DIAGNOSTICS_SYNC_ADVANCE_ENABLED` 保持独立；事件和告警开关也保持独立。关闭恢复时不要同时关闭 S7 检查点或防重复检查，须按 [S7 操作说明](sync_advance_governance.md) 处理完在途任务后再回退。
+## S7 与事件、告警
+
+`BKAPP_DIAGNOSTICS_S7_ENABLED=1` 同时启用同步节点输出检查点和 S7 检测能力，替代原来的两个开关；`0` 同时关闭两者。它不自动开启定时检测、防重复检查或任何恢复操作。定时检测仍需检测总开关启用且扫描范围包含 `signature`；恢复仍需 `FENCE_MODE=enforce`、人工操作开关或自动恢复模式及范围。
+
+`BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE` 统一事件记录和告警日志：
+
+| 模式 | 诊断事件落库 | 诊断告警日志 |
+| --- | --- | --- |
+| `off` | 关闭 | 关闭 |
+| `alerts` | 关闭，不访问事件表 | 开启 |
+| `full` | 开启 | 开启 |
+
+此模式只控制原有 `EVENT_ENABLED` / `ALERT_ENABLED` 的行为，不控制案例、恢复记录、操作审计或 Prometheus 指标，也不会自动配置通知推送。`full` 会增加事件表写入，正常观察可使用 `alerts`。
+
+**不配置上述新入口及对应旧变量时，S7、事件记录和告警日志均保持关闭。** 未配置新入口但显式配置了旧变量时，完整保留原组合，包括仅开启 S7 检测、仅开启检查点、仅记录事件但不输出告警等情况；不是把旧变量做“或”运算后一起开启。新旧同时配置时须一致，否则启动时报错。
+
+关闭恢复时不要同时关闭 S7 或防重复检查：先设置 `RECOVERY_POLICY=off`、`MANUAL_APPLY_ENABLED=0`，保留 `S7_ENABLED=1` 和 `FENCE_MODE=enforce`，按 [S7 操作说明](sync_advance_governance.md) 处理完在途任务后再回退。
 
 ## 从旧配置迁移
 
@@ -63,6 +81,8 @@ S7 的 `BKAPP_PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED`、`BKAPP_DIAGNOSTICS_SYN
 | `PIPELINE_FENCE_MODE` | `PIPELINE_FENCE_EMIT_ENABLED`、`PIPELINE_FENCE_ENFORCE` |
 | `DIAGNOSTICS_RECOVERY_POLICY` | `DIAGNOSTICS_RECOVERY_ENABLED`、`DIAGNOSTICS_RECOVERY_MODE` |
 | `DIAGNOSTICS_MANUAL_APPLY_ENABLED` | `DIAGNOSTICS_APPLY_ENABLED` |
+| `DIAGNOSTICS_S7_ENABLED` | `PIPELINE_SYNC_ADVANCE_CHECKPOINT_ENABLED`、`DIAGNOSTICS_SYNC_ADVANCE_ENABLED` |
+| `DIAGNOSTICS_OBSERVABILITY_MODE` | `DIAGNOSTICS_EVENT_ENABLED`、`DIAGNOSTICS_ALERT_ENABLED` |
 
 例如，迁移后打开检测总开关，但仍显式保留旧 `WINDOW_SCAN_ENABLED=0`，会因默认选中了 `window` 而报错。应删除旧变量，或用 `SCANNERS` 明确排除 `window`。旧 `SCAN_ENABLED=1` 与新配置选中 `window` 可以同时存在；若新配置关闭检测或排除了 `window`，则报冲突。旧 `SCAN_ENABLED=0` 不会阻止窗口扫描开启，保持它原先不约束窗口扫描的用法。
 
@@ -83,6 +103,53 @@ BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED=0
 环境变量在进程启动时读取。建议应用级配置保持一致，并重启实际消费 `task_data_clean` 的 worker、引擎 worker 和提供诊断操作的 web/API 进程；定时周期变化还需重启 beat。部署中队列可能由 cleaner 或 pipeline 模块消费，以实际进程配置为准。仅改配置而不重启，旧进程会继续使用旧值。
 
 若回退到尚不支持新入口的应用版本，须先恢复匹配的旧环境变量；旧版本会忽略这些新变量。新 `off` 下继续回查的能力无法由旧 `RECOVERY_ENABLED=0` 表达。
+
+## stag 全量配置：按模块复制
+
+以下是显式开启全部治理能力的 stag 示例，**不是代码默认值**。全量配置共 8 个不同变量，包含项目和类型两个范围参数；`SCANNERS` 不配置就全选。配置仅应用于 stag，各模块使用同一版本的 bk-sops 和 `bamboo-pipeline==3.24.22`，完成所需迁移后再启用；保存环境变量后需重启相关进程，包含 beat。
+
+先从应用级及对应模块级配置中移除上表中已被新入口替代的旧变量，避免继承旧值产生冲突；应删除变量，不是设为空字符串。未被替代的阈值和周期参数继续使用原值或默认值。
+
+`default`（web / beat / dworker）：
+
+```dotenv
+BKAPP_PIPELINE_FENCE_MODE=enforce
+BKAPP_DIAGNOSTICS_S7_ENABLED=1
+BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE=full
+BKAPP_DIAGNOSTICS_MANUAL_APPLY_ENABLED=1
+```
+
+`api-server` / `api`，以及单独部署的 `callback`：
+
+```dotenv
+BKAPP_PIPELINE_FENCE_MODE=enforce
+BKAPP_DIAGNOSTICS_S7_ENABLED=1
+BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE=full
+```
+
+`pipeline`（包含普通任务、API 任务和周期任务的全部执行 / 轮询 worker）：
+
+```dotenv
+BKAPP_PIPELINE_FENCE_MODE=enforce
+BKAPP_DIAGNOSTICS_S7_ENABLED=1
+BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE=full
+```
+
+独立 `cleaner` 模块（消费 `task_data_clean`）：
+
+```dotenv
+BKAPP_DIAGNOSTICS_DETECTION_ENABLED=1
+BKAPP_PIPELINE_FENCE_MODE=enforce
+BKAPP_DIAGNOSTICS_S7_ENABLED=1
+BKAPP_DIAGNOSTICS_OBSERVABILITY_MODE=full
+BKAPP_DIAGNOSTICS_RECOVERY_POLICY=auto
+BKAPP_DIAGNOSTICS_RECOVERY_PROJECT_IDS=*
+BKAPP_DIAGNOSTICS_AUTO_REPLAY_TYPES=execute_dispatch_lost,poll_dispatch_lost,parent_wakeup_lost,child_start_lost,callback_dispatch_lost,sync_advance_stalled
+```
+
+仓库 `app_desc.yaml` 中 cleaner 是 pipeline 下的进程；这种部署直接将 cleaner 整段配置放到 pipeline 模块，替代上一段 pipeline 配置。S7 和防重复检查在扫描 / 恢复端也必须启用，恢复前会检查这些设置。仅运行独立插件执行进程的 `plugin` 模块无需专门增加本组变量。
+
+`RECOVERY_PROJECT_IDS=*` 表示全部 stag 项目，也可以改成指定项目 ID（逗号分隔）。自动类型必须明确列出，不支持 `*`；上述 6 类是当前运行时支持的全部类型，限次、自动暂停和安全检查继续生效。首次验证可将 `RECOVERY_POLICY` 改成 `preview`，确认后再切为 `auto`。本配置不会自动补扫全部历史任务，补扫方式见下文。
 
 ## 旧取样扫描的替换
 
