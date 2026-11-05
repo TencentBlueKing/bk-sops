@@ -86,7 +86,9 @@ const ADMIN_ROUTE_LIST = [
                 {
                     id: 'manage',
                     name: i18n.t('后台管理'),
-                    subRoutes: ['adminSearch', 'adminPeriodic', 'adminClocked', 'sourceManage', 'packageEdit', 'cacheEdit', 'sourceSync'],
+                    // 远程插件加载功能已下架 - 2026-11-02 安全漏洞修复
+                    // 移除: 'sourceManage', 'packageEdit', 'cacheEdit', 'sourceSync'
+                    subRoutes: ['adminSearch', 'adminPeriodic', 'adminClocked'],
                     url: '/admin/manage/search/'
                 },
                 {

@@ -22,34 +22,42 @@ logger = logging.getLogger("celery")
 
 @current_app.task
 def sync_task(task_id):
-    sync = SyncTask.objects.get(id=task_id)
-    all_origin_dirs = []
-    for origin_model in list(source_cls_factory.values()):
-        origins = origin_model.objects.filter(tenant_id=sync.tenant_id)
-        for origin in origins:
-            try:
-                origin.read()
-                all_origin_dirs.append(origin.name)
-            except Exception as e:
-                message = "Origin package[type={origin_type}, id={origin_id}] read error: {error}".format(
-                    origin_type=origin.type, origin_id=origin.id, error=e
-                )
-                logger.error(message)
-                sync.finish_task(FAILED, message)
-                return False
+    # 远程插件加载功能已下架 - 2026-11-04
+    logger.warning(
+        f"远程插件同步任务被调用但功能已下架。"
+        f"任务ID: {task_id}, 调用被拒绝。"
+    )
+    return False
 
-    caches = CachePackageSource.objects.filter(tenant_id=sync.tenant_id)
-    for cache in caches:
-        try:
-            cache.write(all_origin_dirs)
-        except Exception as e:
-            SyncTask.objects.filter(id=task_id).update(status=FAILED)
-            message = "Cache package[type={origin_type}, id={origin_id}] write error: {error}".format(
-                origin_type=cache.type, origin_id=cache.id, error=e
-            )
-            logger.error(message)
-            sync.finish_task(FAILED, message)
-            return False
-
-    sync.finish_task(SUCCEEDED)
-    return True
+    # 以下代码已禁用 - 远程插件加载功能已下架
+    # sync = SyncTask.objects.get(id=task_id)
+    # all_origin_dirs = []
+    # for origin_model in list(source_cls_factory.values()):
+    #     origins = origin_model.objects.filter(tenant_id=sync.tenant_id)
+    #     for origin in origins:
+    #         try:
+    #             origin.read()
+    #             all_origin_dirs.append(origin.name)
+    #         except Exception as e:
+    #             message = "Origin package[type={origin_type}, id={origin_id}] read error: {error}".format(
+    #                 origin_type=origin.type, origin_id=origin.id, error=e
+    #             )
+    #             logger.error(message)
+    #             sync.finish_task(FAILED, message)
+    #             return False
+    #
+    # caches = CachePackageSource.objects.filter(tenant_id=sync.tenant_id)
+    # for cache in caches:
+    #     try:
+    #         cache.write(all_origin_dirs)
+    #     except Exception as e:
+    #         SyncTask.objects.filter(id=task_id).update(status=FAILED)
+    #         message = "Cache package[type={origin_type}, id={origin_id}] write error: {error}".format(
+    #             origin_type=cache.type, origin_id=cache.id, error=e
+    #         )
+    #         logger.error(message)
+    #         sync.finish_task(FAILED, message)
+    #         return False
+    #
+    # sync.finish_task(SUCCEEDED)
+    # return True

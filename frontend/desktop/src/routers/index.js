@@ -51,11 +51,8 @@ const Manage = () => import('@/pages/admin/manage/index.vue')
 const AdminSearch = () => import('@/pages/admin/manage/AdminSearch/index.vue')
 const AdminPeriodic = () => import('@/pages/admin/manage/AdminPeriodic.vue')
 const AdminClocked = () => import('@/pages/admin/manage/AdminClocked.vue')
-const SourceManage = () => import('@/pages/admin/manage/SourceManage/index.vue')
-const SourceEdit = () => import('@/pages/admin/manage/SourceEdit/index.vue')
-const PackageEdit = () => import('@/pages/admin/manage/SourceEdit/PackageEdit.vue')
-const CacheEdit = () => import('@/pages/admin/manage/SourceEdit/CacheEdit.vue')
-const SourceSync = () => import('@/pages/admin/manage/SourceSync/index.vue')
+// 远程插件加载功能已下架 - 2026-11-03 安全漏洞修复
+// 已删除: SourceManage, SourceEdit, PackageEdit, CacheEdit, SourceSync
 
 const FunctionHome = () => import('@/pages/functor/FunctionList.vue')
 const Functor = () => import('@/pages/functor/index.vue')
@@ -439,37 +436,9 @@ const routers = new VueRouter({
                             name: 'adminClocked',
                             pathToRegexpOptions: { strict: true },
                             component: AdminClocked
-                        },
-                        {
-                            path: 'source_manage/',
-                            name: 'sourceManage',
-                            pathToRegexpOptions: { strict: true },
-                            component: SourceManage
-                        },
-                        {
-                            path: 'source_edit/',
-                            component: SourceEdit,
-                            children: [
-                                {
-                                    path: 'package_edit/',
-                                    name: 'packageEdit',
-                                    pathToRegexpOptions: { strict: true },
-                                    component: PackageEdit
-                                },
-                                {
-                                    path: 'cache_edit/',
-                                    name: 'cacheEdit',
-                                    pathToRegexpOptions: { strict: true },
-                                    component: CacheEdit
-                                }
-                            ]
-                        },
-                        {
-                            path: 'source_sync/',
-                            name: 'sourceSync',
-                            pathToRegexpOptions: { strict: true },
-                            component: SourceSync
                         }
+                        // 远程插件加载功能已下架 - 2026-11-03 安全漏洞修复
+                        // 已删除路由: sourceManage, packageEdit, cacheEdit, sourceSync
                     ]
                 }
             ]

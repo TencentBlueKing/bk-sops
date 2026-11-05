@@ -27,13 +27,11 @@ from gcloud.core.apis.drf.viewsets import (
     ComponentModelSetViewSet,
     FunctionTaskViewSet,
     LabelViewSet,
-    PackageSourceViewSet,
     PeriodicTaskViewSet,
     ProjectConfigViewSet,
     ProjectSetViewSet,
     ResourceConfigViewSet,
     StaffGroupSetViewSet,
-    SyncTaskViewSet,
     TaskFlowInstanceViewSet,
     TaskTemplateViewSet,
     UserProjectSetViewSet,
@@ -61,8 +59,6 @@ drf_router.register(r"project", ProjectSetViewSet)
 drf_router.register(r"user_project", UserProjectSetViewSet, basename="user_project")
 drf_router.register(r"common_project", CommonProjectViewSet)
 drf_router.register(r"label", LabelViewSet, basename="unique_label")
-drf_router.register(r"package_source", PackageSourceViewSet, basename="package_source")
-drf_router.register(r"sync_task", SyncTaskViewSet)
 drf_router.register(r"collection", CollectionViewSet)
 drf_router.register(r"function_task", FunctionTaskViewSet)
 drf_router.register(r"variable", VariableViewSet)
