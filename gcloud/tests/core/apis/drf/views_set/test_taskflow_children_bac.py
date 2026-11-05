@@ -15,6 +15,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
+from rest_framework.exceptions import PermissionDenied
 
 from gcloud.core.apis.drf.viewsets.taskflow import TaskFlowInstanceViewSet
 
@@ -25,7 +26,9 @@ RELATION_FILTER = "gcloud.core.apis.drf.viewsets.taskflow.TaskFlowRelation.objec
 def _build_view(action, query_params):
     view = TaskFlowInstanceViewSet()
     view.action = action
-    view.request = SimpleNamespace(query_params=query_params, user=SimpleNamespace(username="tester"))
+    view.request = SimpleNamespace(
+        query_params=query_params, user=SimpleNamespace(username="tester", tenant_id="tenant-a")
+    )
     view.kwargs = {}
     view.format_kwarg = None
     return view
@@ -134,3 +137,75 @@ class ListChildrenTaskflowProjectScopeTestCase(TestCase):
         self.assertIsNone(filter_kwargs.get("project_id"))
         self.assertEqual(response.data["tasks"], [])
         self.assertEqual(response.data["relations"], {})
+
+
+class TaskflowCrossTenantAccessTestCase(TestCase):
+    def test_root_task_info__filters_by_request_tenant(self):
+        view = _build_view("root_task_info", {"task_ids": "1", "project_id": "10"})
+        instance_filter = MagicMock()
+        instance_filter.return_value.values_list.return_value = []
+        relation_qs = MagicMock()
+        relation_qs.values_list.return_value = []
+
+        with patch(INSTANCE_FILTER, instance_filter):
+            with patch(RELATION_FILTER, MagicMock(return_value=relation_qs)):
+                view.root_task_info(view.request)
+
+        self.assertEqual(instance_filter.call_args.kwargs["project__tenant_id"], "tenant-a")
+
+    def test_user_type_does_not_read_other_users_root_task(self):
+        view = _build_view(
+            "root_task_info",
+            {"task_ids": "1", "project_id": "10", "user_type": "user", "creator_or_executor": "tester"},
+        )
+        owned_qs = MagicMock()
+        owned_qs.filter.return_value.count.return_value = 0
+
+        with patch(INSTANCE_FILTER, MagicMock(return_value=owned_qs)):
+            with self.assertRaises(PermissionDenied):
+                view.root_task_info(view.request)
+
+    def test_user_type_reads_own_root_task(self):
+        view = _build_view(
+            "root_task_info",
+            {"task_ids": "1", "project_id": "10", "user_type": "user", "creator_or_executor": "tester"},
+        )
+        instance_qs = MagicMock()
+        instance_qs.filter.return_value.count.return_value = 1
+        instance_qs.values_list.return_value = [1]
+        relation_qs = MagicMock()
+        relation_qs.values_list.return_value = [1]
+
+        with patch(INSTANCE_FILTER, MagicMock(return_value=instance_qs)):
+            with patch(RELATION_FILTER, MagicMock(return_value=relation_qs)):
+                response = view.root_task_info(view.request)
+
+        self.assertEqual(response.data["has_children_taskflow"], {1: True})
+
+    def test_user_type_with_empty_task_ids_returns_empty_result(self):
+        view = _build_view(
+            "root_task_info",
+            {"task_ids": "", "project_id": "10", "user_type": "user", "creator_or_executor": "tester"},
+        )
+        instance_qs = MagicMock()
+        instance_qs.values_list.return_value = []
+        relation_qs = MagicMock()
+        relation_qs.values_list.return_value = []
+
+        with patch(INSTANCE_FILTER, MagicMock(return_value=instance_qs)):
+            with patch(RELATION_FILTER, MagicMock(return_value=relation_qs)):
+                response = view.root_task_info(view.request)
+
+        self.assertEqual(response.data["has_children_taskflow"], {})
+
+    def test_user_type_cannot_list_other_users_children(self):
+        view = _build_view(
+            "list_children_taskflow",
+            {"root_task_id": "500", "project_id": "10", "user_type": "user", "creator_or_executor": "tester"},
+        )
+        owned_qs = MagicMock()
+        owned_qs.filter.return_value.count.return_value = 0
+
+        with patch(INSTANCE_FILTER, MagicMock(return_value=owned_qs)):
+            with self.assertRaises(PermissionDenied):
+                view.list_children_taskflow(view.request)

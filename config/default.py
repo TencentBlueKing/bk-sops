@@ -14,6 +14,8 @@ import datetime
 import importlib
 import os
 import sys
+from base64 import urlsafe_b64decode, urlsafe_b64encode
+from hashlib import sha256
 from urllib.parse import urljoin, urlparse
 
 from bamboo_engine.config import Settings as BambooSettings
@@ -750,9 +752,26 @@ for _setting in dir(ver_settings):
         locals()[_setting] = getattr(ver_settings, _setting)
 
 # 若用户通过环境变量配置了 BKAPP_CALLBACK_KEY，则覆盖 ver_settings 中的默认值；
-# 未配置时沿用 ver_settings 内置的默认密钥（仅建议本地开发使用，生产部署请务必显式配置）
+# 生产和预发布必须显式配置；测试和本地开发从 SECRET_KEY 派生，不再使用源码中的公开密钥。
 if env.BKAPP_CALLBACK_KEY:
+    try:
+        CALLBACK_KEY = urlsafe_b64decode(env.BKAPP_CALLBACK_KEY.encode("utf-8"))
+    except Exception:
+        raise Exception("BKAPP_CALLBACK_KEY must be a URL-safe base64 Fernet key")
+    if len(CALLBACK_KEY) != 32:
+        raise Exception("BKAPP_CALLBACK_KEY must decode to 32 bytes")
     CALLBACK_KEY = env.BKAPP_CALLBACK_KEY.encode("utf-8")
+elif IS_RUNNING_TESTS or (
+    os.getenv("BKPAAS_ENVIRONMENT") not in ("prod", "stag")
+    and os.getenv("BK_ENV", "development") not in ("production", "testing")
+):
+    CALLBACK_KEY = urlsafe_b64encode(sha256(SECRET_KEY.encode("utf-8")).digest())
+else:
+    raise Exception("BKAPP_CALLBACK_KEY is required outside local development and tests")
+
+# Fernet 外壳自带签发时间。等待类节点的等待时长没有统一上限，默认 0 表示不限制；
+# 配置正整数（秒）后，超过该时长的回调地址会被拒绝。
+NODE_CALLBACK_TOKEN_TTL = int(os.getenv("BKAPP_NODE_CALLBACK_TOKEN_TTL", "0")) or None
 
 # version log config
 VERSION_LOG = {"FILE_TIME_FORMAT": "%Y-%m-%d", "LATEST_VERSION_INFORM": True, "LANGUAGE_MAPPINGS": {"en": "en"}}
@@ -1194,6 +1213,10 @@ IS_GLOBAL_TENANT = True
 # 允许的HTTP插件域名
 ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = env.ENABLE_HTTP_PLUGIN_DOMAINS_CHECK
 ALLOWED_HTTP_PLUGIN_DOMAINS = env.ALLOWED_HTTP_PLUGIN_DOMAINS
+ENABLE_OUTBOUND_CALLBACK_DOMAINS_CHECK = env.ENABLE_OUTBOUND_CALLBACK_DOMAINS_CHECK
+ALLOWED_OUTBOUND_CALLBACK_DOMAINS = env.ALLOWED_OUTBOUND_CALLBACK_DOMAINS
+ALLOW_OUTBOUND_CALLBACK_PRIVATE_IP = env.ALLOW_OUTBOUND_CALLBACK_PRIVATE_IP
+ALLOWED_AI_NOTIFY_WEBHOOK_DOMAINS = env.ALLOWED_AI_NOTIFY_WEBHOOK_DOMAINS
 
 
 # 定义一个补丁来兼容 MySQL 5.7

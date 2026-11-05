@@ -12,6 +12,7 @@ specific language governing permissions and limitations under the License.
 """
 
 import json
+import time
 
 from cryptography.fernet import Fernet
 from django.test import RequestFactory, SimpleTestCase
@@ -48,3 +49,17 @@ class NodeCallbackV4LogTestCase(SimpleTestCase):
         self.assertIn("payload_keys=['job_instance_id', 'secret', 'status']", logs)
         self.assertNotIn(token, logs)
         self.assertNotIn(secret_value, logs)
+
+    def test_expired_callback_token_is_rejected(self):
+        callback_key = Fernet.generate_key()
+        token = Fernet(callback_key).encrypt_at_time(b"2:node_id:node_version", int(time.time()) - 120).decode()
+        request = RequestFactory().post(
+            "/taskflow/api/v4/nodes/callback/{}/".format(token),
+            data=json.dumps({"status": 3}),
+            content_type="application/json",
+        )
+
+        with self.settings(CALLBACK_KEY=callback_key, NODE_CALLBACK_TOKEN_TTL=60):
+            response = node_callback(request, token)
+
+        self.assertEqual(response.status_code, 400)

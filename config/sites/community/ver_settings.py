@@ -19,7 +19,6 @@ REMOTE_API_URL = "%s/console/static/bk_api/api.js" % env.BK_PAAS_HOST
 
 ESB_SDK_NAME = "packages.blueking.component"
 
-CALLBACK_KEY = b"jbSH1_3PFsM8WRZZpUXJPhlJuvuA44A7Ov0nPhFk5ZY="
 DEFAULT_RSA_PRIV_KEY = """
 -----BEGIN RSA PRIVATE KEY-----
 MIICWwIBAAKBgQDA2XZvbf++4M6YLSgS93kYJS34e2TZvq/s6r0yFDz0je38ekW0

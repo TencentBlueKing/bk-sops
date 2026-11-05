@@ -535,12 +535,14 @@ def preview_task_tree(request, project_id):
 
 @require_GET
 @request_validate(LastExecutionConstantsValidator)
+@iam_intercept(ProjectViewInterceptor())
 def last_execution_constants(request, project_id):
     template_id = request.GET.get("template_id")
     template_source = request.GET.get("template_source", PROJECT)
 
     last_task_id = TaskFlowInstance.objects.filter(
         project_id=project_id,
+        project__tenant_id=request.user.tenant_id,
         template_id=str(template_id),
         template_source=template_source,
         is_deleted=Value(0),
@@ -666,7 +668,7 @@ def node_callback(request, token):
 
     try:
         f = Fernet(settings.CALLBACK_KEY)
-        node_id = f.decrypt(bytes(token, encoding="utf8")).decode()
+        node_id = f.decrypt(bytes(token, encoding="utf8"), ttl=settings.NODE_CALLBACK_TOKEN_TTL).decode()
     except Exception:
         logger.warning("invalid token %s" % token)
         return JsonResponse({"result": False, "message": "invalid token"}, status=400)
