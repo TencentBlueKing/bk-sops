@@ -118,9 +118,15 @@ class OriginalPackageSource(PackageSource):
         super(OriginalPackageSource, self).update_base_source(source_type, packages, **kwargs)
 
     def read(self):
-        cache_path = self.prepare_cache_path()
-        reader = reader_cls_factory[self.original_type()](cache_path, **self.details)
-        reader.read()
+        # 远程插件加载功能已下架 - 2026-11-04
+        raise exceptions.ForbiddenExternalPluginSourceError(
+            "远程插件加载功能已下架，read() 方法不可用"
+        )
+
+        # 以下代码已禁用 - 远程插件加载功能已下架
+        # cache_path = self.prepare_cache_path()
+        # reader = reader_cls_factory[self.original_type()](cache_path, **self.details)
+        # reader.read()
 
 
 @original_source

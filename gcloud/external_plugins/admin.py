@@ -11,5 +11,4 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 """
 
-# 远程插件加载功能已下架 - 2026-11-03 安全漏洞修复
-# 原有的 Admin 配置已全部删除
+
