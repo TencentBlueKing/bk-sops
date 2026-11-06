@@ -332,7 +332,7 @@ class TestValidateS3ServiceAddress(TestCase):
         """拒绝缺少主机名的地址"""
         with self.assertRaises(ForbiddenExternalPluginSourceError) as ctx:
             validate_s3_service_address("https://")
-        self.assertIn("Missing hostname", str(ctx.exception))
+        self.assertIn("Missing netloc", str(ctx.exception))
 
     @override_settings(S3_ALLOWED_DOMAINS=['s3.amazonaws.com'])
     def test_reject_empty_address(self):
