@@ -190,15 +190,33 @@ class PackageSourceViewSet(GcloudCommonMixin, UpdateAPIView, ListCreateAPIView, 
                         logger.error(message)
                         raise NotAcceptable(message)
 
-                    # SSRF 防护：对 S3 类型的缓存包源进行域名白名单校验
+                    # SSRF 防护：对 S3 类型的缓存包源进行域名白名单校验（智能验证）
+                    # 只在新建或 service_address 发生变更时进行验证
                     if cache["type"].upper() == "S3" and "service_address" in cache.get("details", {}):
-                        from gcloud.external_plugins.protocol.readers import validate_s3_service_address
-                        try:
-                            validate_s3_service_address(cache["details"]["service_address"])
-                        except exceptions.ForbiddenExternalPluginSourceError as e:
-                            message = "Update cache source validation failed: %s" % e
-                            logger.error(message)
-                            raise NotAcceptable(message)
+                        should_validate = True
+                        new_service_address = cache["details"]["service_address"]
+
+                        # 如果是更新操作，检查 service_address 是否变更
+                        if "id" in cache:
+                            try:
+                                old_cache = CachePackageSource.objects.get(id=cache["id"])
+                                if hasattr(old_cache, 'base_source') and old_cache.base_source:
+                                    old_service_address = getattr(old_cache.base_source, 'service_address', None)
+                                    # service_address 未变更，跳过验证
+                                    if old_service_address == new_service_address:
+                                        should_validate = False
+                            except CachePackageSource.DoesNotExist:
+                                pass  # 新建操作，需要验证
+
+                        # 只在需要时进行校验
+                        if should_validate:
+                            from gcloud.external_plugins.protocol.readers import validate_s3_service_address
+                            try:
+                                validate_s3_service_address(new_service_address)
+                            except exceptions.ForbiddenExternalPluginSourceError as e:
+                                message = "Update cache source validation failed: %s" % e
+                                logger.error(message)
+                                raise NotAcceptable(message)
 
                     if "id" in cache:
                         try:

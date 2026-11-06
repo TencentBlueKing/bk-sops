@@ -186,11 +186,25 @@ class S3OriginalSource(OriginalPackageSource):
         }
 
     def clean(self):
-        # SSRF 防护：在保存前校验 service_address
-        try:
-            validate_s3_service_address(self.service_address)
-        except exceptions.ForbiddenExternalPluginSourceError as e:
-            raise ValidationError({"service_address": str(e)})
+        # SSRF 防护：智能验证机制
+        # 只在新建或 service_address 发生变更时进行验证
+        should_validate = True
+
+        if self.pk:  # 更新操作
+            try:
+                old_instance = S3OriginalSource.objects.get(pk=self.pk)
+                # 如果 service_address 未改变，跳过验证
+                if old_instance.service_address == self.service_address:
+                    should_validate = False
+            except S3OriginalSource.DoesNotExist:
+                pass
+
+        # 只在需要时进行校验
+        if should_validate:
+            try:
+                validate_s3_service_address(self.service_address)
+            except exceptions.ForbiddenExternalPluginSourceError as e:
+                raise ValidationError({"service_address": str(e)})
 
     def save(self, *args, **kwargs):
         # SSRF 防护：只在新建或 service_address 发生变更时进行验证

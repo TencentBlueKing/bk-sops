@@ -146,33 +146,62 @@ def validate_s3_service_address(service_address):
     if not address:
         raise ForbiddenExternalPluginSourceError("service_address cannot be empty")
 
-    # 1. 解析 URL
+    # 1. 预检查：拒绝 URL 中的危险字符（在解析前检查，防止被 urlparse 分割到不同部分）
+    # 排除协议部分的检查（http:// 或 https://）
+    url_without_scheme = address.split('://', 1)[-1] if '://' in address else address
+
+    # 1.1 检查反斜杠
+    if '\\' in url_without_scheme:
+        raise ForbiddenExternalPluginSourceError(
+            "反斜杠字符不允许出现在 URL 中，检测到可能的 URL 解析绕过攻击"
+        )
+
+    # 1.2 检查其他特殊字符（# 等）- 在 @ 之前检查
+    dangerous_chars = ['#', '|', ' ', '\t', '\n', '\r']
+    for char in dangerous_chars:
+        if char in url_without_scheme:
+            raise ForbiddenExternalPluginSourceError(
+                f"URL 中不允许包含特殊字符 {repr(char)}，检测到可能的 URL 解析绕过攻击"
+            )
+
+    # 1.3 检查 @ 符号（userinfo）- 放在最后，因为它有专门的错误信息
+    if '@' in url_without_scheme:
+        raise ForbiddenExternalPluginSourceError(
+            "URL 中不允许包含用户认证信息（username@host），检测到可能的 URL 解析绕过攻击"
+        )
+
+    # 2. 解析 URL
     try:
         parsed = urlparse(address)
     except Exception as e:
         raise ForbiddenExternalPluginSourceError(f"Invalid service_address: {address}") from e
 
-    # 2. 协议检查：允许 HTTPS 和 HTTP（内网场景需要 HTTP）
+    # 3. 协议检查：允许 HTTPS 和 HTTP（内网场景需要 HTTP）
     scheme = parsed.scheme.lower()
     if scheme not in ('https', 'http'):
         raise ForbiddenExternalPluginSourceError(
             f"Only HTTPS or HTTP is allowed for S3 service_address, got: {scheme}://"
         )
 
-    # 3. 主机名检查
+    # 4. netloc 检查
+    netloc = parsed.netloc
+    if not netloc:
+        raise ForbiddenExternalPluginSourceError("Missing netloc in service_address")
+
+    # 5. 主机名检查
     hostname = parsed.hostname
     if not hostname:
         raise ForbiddenExternalPluginSourceError("Missing hostname in service_address")
 
-    # 4. 禁止本地地址
+    # 6. 禁止本地地址
     if hostname.lower() in ['localhost', '127.0.0.1', '::1', '[::1]']:
         raise ForbiddenExternalPluginSourceError("Localhost addresses are not allowed")
 
-    # 5. 禁止元数据服务
+    # 7. 禁止元数据服务
     if hostname == '169.254.169.254':
         raise ForbiddenExternalPluginSourceError("Metadata service address (169.254.169.254) is not allowed")
 
-    # 6. 拒绝所有 IP 地址（只允许域名）
+    # 8. 拒绝所有 IP 地址（只允许域名）
     try:
         ipaddress.ip_address(hostname)
         # 如果能解析为 IP 地址（无论公网/私网），直接拒绝
@@ -187,7 +216,7 @@ def validate_s3_service_address(service_address):
         # 重新抛出已有的 ForbiddenExternalPluginSourceError
         raise
 
-    # 7. 白名单检查
+    # 9. 白名单检查
     allowed_domains = getattr(settings, 'S3_ALLOWED_DOMAINS', [
         's3.amazonaws.com',
         's3.*.amazonaws.com',

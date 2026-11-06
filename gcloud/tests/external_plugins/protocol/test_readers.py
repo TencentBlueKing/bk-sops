@@ -356,6 +356,44 @@ class TestValidateS3ServiceAddress(TestCase):
             validate_s3_service_address("https://s32924a.0a5ef482.dns.iegsec.online")
         self.assertIn("不在白名单中", str(ctx.exception))
 
+    # ========== URL 解析绕过防护测试 ==========
+    @override_settings(S3_ALLOWED_DOMAINS=['s3.amazonaws.com'])
+    def test_reject_backslash_in_url(self):
+        """拒绝包含反斜杠的 URL（防止 URL 解析差异绕过）"""
+        # 不同的 HTTP 客户端对反斜杠的解析不一致，可能导致绕过
+        with self.assertRaises(ForbiddenExternalPluginSourceError) as ctx:
+            validate_s3_service_address(r"http://127.0.0.1:8000\s3.amazonaws.com")
+        self.assertIn("反斜杠", str(ctx.exception))
+
+    @override_settings(S3_ALLOWED_DOMAINS=['s3.amazonaws.com'])
+    def test_reject_userinfo_in_url(self):
+        """拒绝包含 userinfo 的 URL（防止 @ 绕过）"""
+        # urlparse 将 @ 后面作为真实主机，但某些客户端可能不同
+        with self.assertRaises(ForbiddenExternalPluginSourceError) as ctx:
+            validate_s3_service_address("http://evil.com@s3.amazonaws.com/path")
+        self.assertIn("用户认证信息", str(ctx.exception))
+
+    @override_settings(S3_ALLOWED_DOMAINS=['s3.amazonaws.com'])
+    def test_reject_hash_in_netloc(self):
+        """拒绝 netloc 中包含 # 的 URL"""
+        with self.assertRaises(ForbiddenExternalPluginSourceError) as ctx:
+            validate_s3_service_address("http://s3.amazonaws.com#@evil.com")
+        self.assertIn("特殊字符", str(ctx.exception))
+
+    @override_settings(S3_ALLOWED_DOMAINS=['s3.amazonaws.com'])
+    def test_reject_space_in_netloc(self):
+        """拒绝 netloc 中包含空格的 URL"""
+        with self.assertRaises(ForbiddenExternalPluginSourceError) as ctx:
+            validate_s3_service_address("http://s3.amazonaws.com /path")
+        self.assertIn("特殊字符", str(ctx.exception))
+
+    @override_settings(S3_ALLOWED_DOMAINS=['s3.amazonaws.com'])
+    def test_reject_pipe_in_netloc(self):
+        """拒绝 netloc 中包含管道符的 URL"""
+        with self.assertRaises(ForbiddenExternalPluginSourceError) as ctx:
+            validate_s3_service_address("http://s3.amazonaws.com|evil.com")
+        self.assertIn("特殊字符", str(ctx.exception))
+
     # ========== S3Reader 集成测试 ==========
     @patch(OS_PATH_EXISTS, MagicMock(return_value=False))
     @patch(OS_MAKEDIRS, MagicMock(return_value=True))
