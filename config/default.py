@@ -1191,3 +1191,20 @@ APIGW_MCP_SERVER_ID_HEADER = env.APIGW_MCP_SERVER_ID_HEADER
 
 # 监控策略分页大小
 MONITOR_PAGE_SIZE = env.MONITOR_PAGE_SIZE
+
+# S3 插件包源 SSRF 防护：允许的域名白名单
+# 支持通配符: *.amazonaws.com, s3-*.amazonaws.com
+# 设置 ['*'] 表示允许所有（不推荐用于生产环境）
+S3_ALLOWED_DOMAINS = [
+    # AWS S3
+    's3.amazonaws.com',
+    's3.*.amazonaws.com',
+    's3-*.amazonaws.com',
+    # 其他 S3 兼容服务（按需添加）
+]
+
+# 动态添加 BKRepo 域名（从环境变量自动提取）
+if env.BKREPO_ENDPOINT_URL:
+    _parsed = urlparse(env.BKREPO_ENDPOINT_URL)
+    if _parsed.hostname and _parsed.hostname not in S3_ALLOWED_DOMAINS:
+        S3_ALLOWED_DOMAINS.append(_parsed.hostname)
