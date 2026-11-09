@@ -113,14 +113,14 @@ class TestS3OriginalSource(TestCase):
             "root_package_1": {"version": "", "modules": ["test1", "test2"]},
         }
         self.SOURCE_KWARGS = {
-            "service_address": "service_address",
+            "service_address": "https://s3.amazonaws.com",
             "bucket": "bucket",
             "access_key": "access_key",
             "secret_key": "secret_key",
             "source_dir": "",
         }
         self.UPDATED_SOURCE_KWARGS = {
-            "service_address": "new_service_address",
+            "service_address": "https://s3.us-west-2.amazonaws.com",
             "bucket": "new_bucket",
             "access_key": "new_access_key",
             "secret_key": "new_secret_key",

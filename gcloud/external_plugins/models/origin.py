@@ -15,6 +15,7 @@ import os
 import shutil
 from abc import abstractmethod
 
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from pipeline.contrib.external_plugins.models import FILE_SYSTEM, GIT, S3
@@ -24,6 +25,7 @@ from gcloud.external_plugins import CACHE_TEMP_PATH, exceptions
 from gcloud.external_plugins.models.base import PackageSource, PackageSourceManager
 from gcloud.external_plugins.models.cache import CachePackageSource
 from gcloud.external_plugins.protocol.readers import reader_cls_factory, validate_git_branch, validate_git_repo_address
+from gcloud.external_plugins.protocol.readers import validate_s3_service_address
 
 source_cls_factory = {}
 ORIGIN = "origin"
@@ -55,9 +57,8 @@ class OriginalPackageSourceManager(PackageSourceManager):
         if original_kwargs is not None:
             full_kwargs.update(original_kwargs)
         full_kwargs.update(base_kwargs)
-        # use filter instead of get,because it will be updated later
-        package_objs = self.filter(id=package_source_id)
-        package_obj = package_objs[0]
+        # 获取对象实例
+        package_obj = self.get(id=package_source_id)
         # 未开启缓存机制，需要更新 base source
         if not CachePackageSource.objects.get_base_source():
             # 新增时也未开启缓存，直接更新 base source
@@ -74,7 +75,11 @@ class OriginalPackageSourceManager(PackageSourceManager):
         else:
             super(OriginalPackageSourceManager, self).delete_base_source(package_source_id, package_obj.type)
             full_kwargs["base_source_id"] = None
-        package_objs.update(**full_kwargs)
+
+        for key, value in full_kwargs.items():
+            setattr(package_obj, key, value)
+        package_obj.save()
+        return package_obj
 
 
 class OriginalPackageSource(PackageSource):
@@ -114,8 +119,11 @@ class OriginalPackageSource(PackageSource):
         super(OriginalPackageSource, self).update_base_source(source_type, packages, **kwargs)
 
     def read(self):
-        cache_path = self.prepare_cache_path()
-        reader = reader_cls_factory[self.original_type()](cache_path, **self.details)
+        """
+        @summary: 读取远程配置
+        @return:
+        """
+        reader = reader_cls_factory[self.type](to_path=self.prepare_cache_path(), **self.details)
         reader.read()
 
 
@@ -176,6 +184,44 @@ class S3OriginalSource(OriginalPackageSource):
             "access_key": self.access_key,
             "secret_key": self.secret_key,
         }
+
+    def clean(self):
+        # SSRF 防护：智能验证机制
+        # 只在新建或 service_address 发生变更时进行验证
+        should_validate = True
+
+        if self.pk:  # 更新操作
+            try:
+                old_instance = S3OriginalSource.objects.get(pk=self.pk)
+                # 如果 service_address 未改变，跳过验证
+                if old_instance.service_address == self.service_address:
+                    should_validate = False
+            except S3OriginalSource.DoesNotExist:
+                pass
+
+        # 只在需要时进行校验
+        if should_validate:
+            try:
+                validate_s3_service_address(self.service_address)
+            except exceptions.ForbiddenExternalPluginSourceError as e:
+                raise ValidationError({"service_address": str(e)})
+
+    def save(self, *args, **kwargs):
+        # SSRF 防护：只在新建或 service_address 发生变更时进行验证
+        # 这样可以避免更新其他字段时，历史的非法域名阻塞操作
+        if self.pk:  # 更新操作
+            try:
+                old_instance = S3OriginalSource.objects.get(pk=self.pk)
+                # 如果 service_address 未改变，跳过验证
+                if old_instance.service_address == self.service_address:
+                    super().save(*args, **kwargs)
+                    return
+            except S3OriginalSource.DoesNotExist:
+                pass
+
+        # 新建或 service_address 改变时才验证
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 @original_source
