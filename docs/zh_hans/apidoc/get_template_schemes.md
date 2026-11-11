@@ -33,6 +33,7 @@
     "data": [
         {
             "id": "47-1",
+            "scheme_id": 1,
             "name": "1",
             "data": "[\"node7082deed0725aed8c72ecff079ba\",\"node88d9050f288765b94a15cbe023ab\"]",
             "detail": {
@@ -47,6 +48,7 @@
         },
         {
             "id": "47-2",
+            "scheme_id": 2,
             "name": "2",
             "data": "[\"node7082deed0725aed8c72ecff079ba\"]",
             "detail": {
@@ -76,7 +78,8 @@
 #### data说明
 |      名称     |     类型   |               说明             |
 | ------------  | ---------- | ------------------------------ |
-|  id  | string     | 执行方案 ID           |
+|  id  | string     | 执行方案唯一 ID，格式为 `{模板ID}-{方案名}`，保持原有取值不变           |
+|  scheme_id  | int     | 执行方案主键 ID（整型）           |
 |  name  | string     | 执行方案名           |
 |  data  | string     | 执行方案中包含的节点 ID 列表（JSON 字符串）  |
 |  detail  | object     | 执行方案详情，包含输入参数信息。当 with_constants 为 true 时返回  |

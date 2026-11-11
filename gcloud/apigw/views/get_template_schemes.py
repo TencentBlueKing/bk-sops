@@ -54,6 +54,7 @@ def get_template_schemes(request, project_id, template_id):
     for s in schemes:
         scheme_info = {
             "id": s.unique_id,
+            "scheme_id": s.id,
             "name": s.name,
             "data": s.data,
         }
