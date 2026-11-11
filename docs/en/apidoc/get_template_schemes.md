@@ -33,6 +33,7 @@ Get template execution scheme list
     "data": [
         {
             "id": "47-1",
+            "scheme_id": 1,
             "name": "1",
             "data": "[\"node7082deed0725aed8c72ecff079ba\",\"node88d9050f288765b94a15cbe023ab\"]",
             "detail": {
@@ -47,6 +48,7 @@ Get template execution scheme list
         },
         {
             "id": "47-2",
+            "scheme_id": 2,
             "name": "2",
             "data": "[\"node7082deed0725aed8c72ecff079ba\"]",
             "detail": {
@@ -77,7 +79,8 @@ Get template execution scheme list
 #### data
 | Field      | Type      | Description      |
 | ------------  | ---------- | ------------------------------ |
-|  id  | string     | scheme id           |
+|  id  | string     | scheme unique ID in `{template_id}-{scheme_name}` format, unchanged for backward compatibility           |
+|  scheme_id  | int     | scheme primary key ID (integer)           |
 |  name  | string     | scheme name           |
 |  data  | string     | node id list in scheme (JSON string)  |
 |  detail  | object     | scheme detail, contains input parameters info. returned when with_constants is true  |

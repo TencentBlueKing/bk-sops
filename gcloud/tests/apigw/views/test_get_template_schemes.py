@@ -79,8 +79,8 @@ class GetTemplateSchemesAPITest(APITest):
         TEMPLATESCHEME_FILTER,
         MagicMock(
             return_value=[
-                FancyDict(unique_id="id1", name="name1", data=json.dumps(["node1"])),
-                FancyDict(unique_id="id2", name="name2", data=json.dumps(["node2"])),
+                FancyDict(id=1, unique_id="id1", name="name1", data=json.dumps(["node1"])),
+                FancyDict(id=2, unique_id="id2", name="name2", data=json.dumps(["node2"])),
             ]
         ),
     )
@@ -105,6 +105,7 @@ class GetTemplateSchemesAPITest(APITest):
             [
                 {
                     "id": "id1",
+                    "scheme_id": 1,
                     "name": "name1",
                     "data": json.dumps(["node1"]),
                     "detail": {
@@ -113,6 +114,7 @@ class GetTemplateSchemesAPITest(APITest):
                 },
                 {
                     "id": "id2",
+                    "scheme_id": 2,
                     "name": "name2",
                     "data": json.dumps(["node2"]),
                     "detail": {
