@@ -4,7 +4,7 @@ kind: Agent
 
 metadata:
   code: ai-scripting
-  name: 脚本助手
+  name: 标准运维-脚本助手
   description: 脚本助手，负责处理标准运维/蓝鲸 Job 平台的脚本编写、审查与优化类需求
 
 spec:
