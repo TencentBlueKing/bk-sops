@@ -4,7 +4,7 @@ kind: Agent
 
 metadata:
   code: ai-sops
-  name: 标准运维智能助手
+  name: 标准运维-智能助手
   description: 标准运维智能体
 
 spec:
