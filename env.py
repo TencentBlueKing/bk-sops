@@ -77,7 +77,7 @@ BKAPP_INNER_CALLBACK_ENTRY = os.getenv("BKAPP_INNER_CALLBACK_ENTRY", "")
 
 # node_callback 相关安全配置
 # 用于 callback token 加解密的 Fernet 密钥（URL-safe base64 编码的 32 字节随机串）
-# 配置后将覆盖 ver_settings 中的默认 CALLBACK_KEY；未配置则沿用代码内置默认值（仅建议用于本地开发）
+# 生产与预发布必须配置。未配置时，本地开发和测试从 SECRET_KEY 派生。
 BKAPP_CALLBACK_KEY = os.getenv("BKAPP_CALLBACK_KEY", "")
 
 # 插件网关按业务 ID 自动解析项目的 scope_type 列表
@@ -289,6 +289,15 @@ BKPAAS_USER_URL = os.getenv("BKPAAS_USER_URL")
 # 允许的HTTP插件域名
 ENABLE_HTTP_PLUGIN_DOMAINS_CHECK = bool(int(os.getenv("ENABLE_HTTP_PLUGIN_DOMAINS_CHECK", 1)))
 ALLOWED_HTTP_PLUGIN_DOMAINS = os.getenv("ALLOWED_HTTP_PLUGIN_DOMAINS", "")
+
+# 任务回调、模板 webhook、AI 群通知的出站地址白名单，与 HTTP 插件白名单分开配置
+ENABLE_OUTBOUND_CALLBACK_DOMAINS_CHECK = bool(int(os.getenv("BKAPP_ENABLE_OUTBOUND_CALLBACK_DOMAINS_CHECK", 1)))
+# 逗号分隔，如 "example.com,*.example.org"；为空时只允许蓝鲸域名
+ALLOWED_OUTBOUND_CALLBACK_DOMAINS = os.getenv("BKAPP_ALLOWED_OUTBOUND_CALLBACK_DOMAINS", "")
+# 内网部署时白名单域名可能解析到内网地址，开启后允许内网地址，本机和链路本地地址仍会被拒绝
+ALLOW_OUTBOUND_CALLBACK_PRIVATE_IP = bool(int(os.getenv("BKAPP_ALLOW_OUTBOUND_CALLBACK_PRIVATE_IP", 0)))
+# AI 群通知额外允许的机器人域名
+ALLOWED_AI_NOTIFY_WEBHOOK_DOMAINS = os.getenv("BKAPP_ALLOWED_AI_NOTIFY_WEBHOOK_DOMAINS", "qyapi.weixin.qq.com")
 
 BK_DATA_REPORT_API_URL = os.getenv("BK_DATA_REPORT_API_URL", "")
 
