@@ -41,6 +41,9 @@ bk-monitor-report==1.2.2
 
 # version log
 django-versionlog==1.8.1
+# django-versionlog 1.8.1 只声明 mistune>=0.8.4，但其渲染逻辑仍调用 0.8.x 的
+# mistune.Markdown(hard_wrap=True)，装到 2.x/3.x 会导致版本日志页面报 TypeError。
+mistune==0.8.4
 
 # iam sdk
 bk-iam==1.3.6
