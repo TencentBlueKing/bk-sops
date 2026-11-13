@@ -111,6 +111,17 @@ module.exports = {
                 }
             },
             {
+                // 小鲸消息组件（Vue3）：与 @blueking/ai-blueking/vue2 一样从 bkui-library 取 Vue3 运行时
+                test: /\.(mjs|js)$/,
+                include: ['@blueking/chat-x', '@blueking/chat-helper', 'bkui-vue', 'vue-tippy'].map(name => path.join(__dirname, '../node_modules', name)),
+                resolve: {
+                    alias: {
+                        'vue': '@blueking/bkui-library',
+                        'bkui-vue$': 'bkui-vue/dist/index.esm.js'
+                    }
+                }
+            },
+            {
                 test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
                 type: 'asset',
                 generator: {

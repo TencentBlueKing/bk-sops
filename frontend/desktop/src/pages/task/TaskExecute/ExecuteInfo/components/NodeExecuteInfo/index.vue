@@ -390,12 +390,21 @@
                     renderConfig: this.renderConfig,
                     constants,
                     outputsInfo,
+                    outputMediaTypes: this.getOutputMediaTypes(),
                     outputs,
                     inputs: inputsInfo,
                     failInfo,
                     last_time: tools.timeTransform(record.elapsed_time),
                     isExpand: true
                 }
+            },
+            // 第三方插件在输出 schema 中声明的 contentMediaType，决定输出参数的显示方式
+            getOutputMediaTypes () {
+                if (!this.isThirdPartyNode || !this.pluginOutputs) return {}
+                return this.pluginOutputs.reduce((acc, cur) => {
+                    if (cur.mediaType) acc[cur.key] = cur.mediaType
+                    return acc
+                }, {})
             },
             async getNodeConfig (type, version, pluginVersion) {
                 if (
@@ -425,6 +434,7 @@
                                     name: val.title,
                                     key,
                                     type: val.type,
+                                    mediaType: val.contentMediaType,
                                     schema: { description: val.description || '--' }
                                 })
                             }
