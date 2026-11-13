@@ -73,6 +73,7 @@ from gcloud.taskflow3.apis.django.validators import (
     TaskCloneValidator,
     TaskFuncClaimValidator,
 )
+from gcloud.taskflow3.domains.answer_stream import answer_stream_response
 from gcloud.taskflow3.domains.auto_retry import AutoRetryNodeStrategyCreator
 from gcloud.taskflow3.domains.context import TaskContext
 from gcloud.taskflow3.domains.dispatchers import NodeCommandDispatcher, TaskCommandDispatcher
@@ -261,6 +262,22 @@ def detail(request, project_id):
     )
 
     return JsonResponse(ctx)
+
+
+@require_GET
+@request_validate(DetailValidator)
+@iam_intercept(DetailViewInterceptor())
+def answer_stream(request, project_id):
+    """
+    第三方插件节点的只读回答流（SSE）：运行中为实时回答，结束后为会话记录中的思考过程
+    param: instance_id: 任务实例 ID, string, query, required
+    param: node_id: 节点 ID, string, query, required
+    param: loop: 节点重入次数, int, query
+    param: subprocess_stack: 子流程堆栈, string, query
+
+    return: text/event-stream，事件 ready / reset / agui / end；无法提供时只返回一条 unsupported
+    """
+    return answer_stream_response(project_id, request.GET)
 
 
 @require_GET
