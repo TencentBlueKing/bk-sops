@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 from django.db import migrations
 from django.db.models import Q
 
+from gcloud.utils.admin import get_admin_username
+
 
 def reverse_func(apps, schema_editor):
     Project = apps.get_model('core', 'Project')
@@ -48,7 +50,7 @@ def forward_func(apps, schema_editor):
             id=business.cc_id,
             name=business.cc_name,
             time_zone=business.time_zone,
-            creator='admin',
+            creator=get_admin_username(),
             desc='',
             from_cmdb=True,
             cmdb_biz_id=business.cc_id,

@@ -26,6 +26,7 @@ from gcloud.constants import TASK_CATEGORY
 from gcloud.contrib.admin.migration_api.decorators import require_migrate_token
 from gcloud.label.models import Label, TemplateLabelRelation
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.admin import get_admin_username
 
 logger = logging.getLogger("root")
 
@@ -49,7 +50,7 @@ def migrate_template_category(request):
         )
 
     project_id = params.get("project_id")
-    creator = params.get("creator", "admin")
+    creator = params.get("creator", get_admin_username())
 
     MIGRATE_LABEL_COLOR = "#b3eafa"
     category_mappings = {}

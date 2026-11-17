@@ -90,8 +90,11 @@ BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES = tuple(
     if scope_type.strip()
 )
 
-# 网关管理员
-BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", "admin").split(",")
+# 系统默认管理员用户名（支持随机化）
+BK_ADMIN_USERNAME = os.getenv("bkAdminUsername", "admin")
+
+# 网关管理员（使用系统管理员作为默认值）
+BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", BK_ADMIN_USERNAME).split(",")
 
 # 启动节点日志数据源拉取
 NODE_LOG_DATA_SOURCE = os.getenv("NODE_LOG_DATA_SOURCE", "DATABASE")
