@@ -155,7 +155,14 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
                 version_map[tmpl.id] = tmpl.version
         if common_tasks:
             template_ids = list({int(t.template_id) for t in common_tasks})
-            for tmpl in CommonTemplate.objects.filter(id__in=template_ids):
+            tenant_id = self.request.user.tenant_id
+
+            # 支持全租户和单租户公共流程
+            for tmpl in CommonTemplate.objects.filter(
+                Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+                id__in=template_ids,
+                is_deleted=False
+            ):
                 version_map[tmpl.id] = tmpl.version
 
         matching_ids = []

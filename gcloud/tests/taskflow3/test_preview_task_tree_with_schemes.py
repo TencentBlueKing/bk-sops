@@ -32,6 +32,7 @@ class PreviewTaskTreeWithSchemesLastExecutionTest(TestCase):
         mock_filter.return_value.aggregate.return_value = {"max_id": 888}
 
         request = mock.MagicMock()
+        request.user.tenant_id = "test_tenant"  # 设置租户ID以模拟真实场景
         request.data = {
             "project_id": 1,
             "template_id": "10",
@@ -60,6 +61,7 @@ class PreviewTaskTreeWithSchemesLastExecutionTest(TestCase):
         mock_preview.return_value = {"pipeline_tree": {}, "constants_not_referred": {}}
 
         request = mock.MagicMock()
+        request.user.tenant_id = None  # 明确设置为None，触发兼容逻辑使用.get()
         request.data = {
             "template_id": "10",
             "version": "v1",
