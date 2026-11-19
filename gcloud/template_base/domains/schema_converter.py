@@ -17,10 +17,13 @@ from abc import ABCMeta, abstractmethod
 import jsonschema
 import yaml
 from django.apps import apps
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from pipeline.core.data import library
 from pipeline.parser.utils import replace_all_id
 
+from gcloud.constants import TENANT_MODE_GLOBAL
+from gcloud.core.models import Project
 from pipeline_web.drawing_new.drawing import draw_pipeline
 
 logger = logging.getLogger("root")
@@ -582,13 +585,34 @@ class YamlSchemaConverter(BaseSchemaConverter):
             }
 
         # Check for any template_ids not found in the primary model.
-        # Fall back to CommonTemplate (public/global templates shared across all projects).
-        # CommonTemplate is intentionally not filtered by project_id because it is a globally
-        # shared resource — any project is allowed to reference a CommonTemplate subprocess.
+        # Fall back to CommonTemplate (supports both global and single-tenant modes)
         missing_ids = external_ids - set(cache.keys())
         if missing_ids:
             CommonTemplate = apps.get_model("template", "CommonTemplate")
-            for template_obj in CommonTemplate.objects.filter(pk__in=missing_ids):
+
+            # 获取租户ID（从project获取）
+            tenant_id = None
+            if project_id is not None:
+                try:
+                    project = Project.objects.get(id=project_id)
+                    tenant_id = project.tenant_id
+                except Project.DoesNotExist:
+                    pass
+
+            # 支持全租户和单租户公共流程
+            if tenant_id:
+                qs = CommonTemplate.objects.filter(
+                    Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+                    pk__in=missing_ids,
+                    is_deleted=False
+                )
+            else:
+                # 无租户上下文，只查询全局流程
+                qs = CommonTemplate.objects.filter(
+                    tenant_mode=TENANT_MODE_GLOBAL, pk__in=missing_ids, is_deleted=False
+                )
+
+            for template_obj in qs:
                 tree = template_obj.pipeline_tree
                 cache[str(template_obj.pk)] = {
                     key: value

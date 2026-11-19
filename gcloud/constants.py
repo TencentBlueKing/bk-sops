@@ -104,6 +104,15 @@ TEMPLATE_SOURCE = [
     (ONETIME, _("一次性任务")),
 ]
 
+# 租户模式
+TENANT_MODE_SINGLE = "single"
+TENANT_MODE_GLOBAL = "global"
+
+TENANT_MODE_CHOICES = [
+    (TENANT_MODE_SINGLE, _("单租户")),
+    (TENANT_MODE_GLOBAL, _("全租户")),
+]
+
 # 任务可操作的类型
 TASKENGINE_OPERATE_TYPE = {
     "start_task": "create",

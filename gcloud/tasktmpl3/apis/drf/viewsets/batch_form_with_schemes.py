@@ -75,8 +75,12 @@ class BatchTemplateFormWithSchemesView(APIView):
                 id__in=project_template_ids, project_id=project_id, is_deleted=False
             )
         if common_template_ids:
+            # 支持全租户和单租户公共流程
+            tenant_id = request.user.tenant_id
             common_template_queryset = CommonTemplate.objects.select_related("pipeline_template").filter(
-                id__in=common_template_ids, is_deleted=False
+                Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+                id__in=common_template_ids,
+                is_deleted=False
             )
         queryset = itertools.chain(template_queryset, common_template_queryset)
         template_dict = {}

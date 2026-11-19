@@ -17,6 +17,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
+from gcloud.constants import TENANT_MODE_CHOICES, TENANT_MODE_SINGLE
 from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.exceptions import FlowExportError
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
@@ -104,6 +105,14 @@ class CommonTemplate(BaseTemplate):
     """
 
     tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
+    tenant_mode = models.CharField(
+        _("租户模式"),
+        max_length=16,
+        default=TENANT_MODE_SINGLE,
+        choices=TENANT_MODE_CHOICES,
+        db_index=True,
+        help_text=_("single: 单租户（仅本租户可见）; global: 全租户（所有租户可见）")
+    )
     extra_info = models.JSONField(_("额外信息"), default=get_default_project_scope)
 
     objects = CommonTemplateManager()
@@ -111,3 +120,6 @@ class CommonTemplate(BaseTemplate):
     class Meta(BaseTemplate.Meta):
         verbose_name = _("公共流程模板 CommonTemplate")
         verbose_name_plural = _("公共流程模板 CommonTemplate")
+        indexes = [
+            models.Index(fields=["tenant_mode", "tenant_id", "is_deleted"], name="idx_common_tpl_tenant"),
+        ]

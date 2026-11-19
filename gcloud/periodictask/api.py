@@ -143,7 +143,15 @@ def get_period_tasks_with_expired_template(request, project_id):
             template_version_map[tmpl.id] = tmpl.version
     if common_tasks:
         template_ids = list({t.template_id for t in common_tasks})
-        for tmpl in CommonTemplate.objects.filter(id__in=template_ids).select_related("pipeline_template"):
+        first_task = common_tasks[0]
+        tenant_id = first_task.project.tenant_id
+
+        # 支持全租户和单租户公共流程
+        for tmpl in CommonTemplate.objects.filter(
+            Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+            id__in=template_ids,
+            is_deleted=False
+        ).select_related("pipeline_template"):
             template_version_map[tmpl.id] = tmpl.version
 
     expired_task_ids = []
