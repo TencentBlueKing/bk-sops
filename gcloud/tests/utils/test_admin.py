@@ -16,7 +16,7 @@ class TestAdminUtils(TestCase):
 
             if hasattr(settings, "BK_ADMIN_USERNAME"):
                 delattr(settings, "BK_ADMIN_USERNAME")
-            self.assertEqual(get_admin_username(), "admin")
+            self.assertEqual(get_admin_username(), "bk_admin")
 
     @override_settings(BK_ADMIN_USERNAME="bk_admin_test123")
     def test_get_admin_username_configured(self):

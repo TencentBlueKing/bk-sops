@@ -96,11 +96,8 @@ ENABLE_MULTI_TENANT_MODE = (
 )
 
 # 系统默认管理员用户名（支持随机化）
-# 多租户模式默认 "bk_admin"，单租户模式默认 "admin"
-BK_ADMIN_USERNAME = os.getenv(
-    "bkAdminUsername",
-    "bk_admin" if ENABLE_MULTI_TENANT_MODE else "admin"
-)
+# 未配置时默认 "bk_admin"
+BK_ADMIN_USERNAME = os.getenv("BKPAAS_ADMIN_USERNAME",  "bk_admin")
 
 # 网关管理员（使用系统管理员作为默认值）
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", BK_ADMIN_USERNAME).split(",")
