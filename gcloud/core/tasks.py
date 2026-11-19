@@ -79,9 +79,12 @@ def cmdb_business_sync_task():
                         bk_username = get_bk_username_by_tenant(tenant_id=tenant["id"])
                         sync_projects_from_cmdb(username=bk_username, use_cache=False, tenant_id=tenant["id"])
                 else:
+                    # 单租户模式针对随机化admin也采用反查
+                    tenant_id = getattr(settings, "DEFAULT_TENANT_ID", "default")
+                    bk_username = get_bk_username_by_tenant(tenant_id=tenant_id)
                     sync_projects_from_cmdb(
-                        username=settings.SYSTEM_USE_API_ACCOUNT,
-                        tenant_id=getattr(settings, "DEFAULT_TENANT_ID", "default"),
+                        username=bk_username,
+                        tenant_id=tenant_id,
                         use_cache=False,
                     )
             except exceptions.APIError as e:

@@ -17,6 +17,7 @@ from io import BytesIO
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
+from gcloud.utils.admin import get_admin_username
 from packages.bkapi.bk_itsm4.shortcuts import get_client_by_username
 
 logger = logging.getLogger("root")
@@ -29,7 +30,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         tenant_id = options.get("tenant_id")
 
-        client = get_client_by_username("bk_admin", stage=settings.BK_APIGW_STAGE_NAME)
+        client = get_client_by_username(get_admin_username(), stage=settings.BK_APIGW_STAGE_NAME)
         # 注册itsm system
         try:
             client.api.system_create(

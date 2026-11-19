@@ -16,6 +16,7 @@ from gcloud.template_base.domains import (
     reference_scene_data_importer,
 )
 from gcloud.template_base.utils import read_template_data_file
+from gcloud.utils.admin import get_admin_username
 from pipeline_plugins.resource_replacement.base import DBHelper
 
 logging.basicConfig(level=logging.INFO)
@@ -87,7 +88,7 @@ def do_import(
 
     logger.info("[import] start to import templates")
     import_result: typing.Dict[str, typing.Any] = template_model_cls.objects.import_templates(
-        template_data=template_data, override=False, operator="admin", **extra_params
+        template_data=template_data, override=False, operator=get_admin_username(), **extra_params
     )
 
     if not import_result["result"]:

@@ -393,7 +393,10 @@ BK_PAAS_INNER_HOST = env.BK_PAAS_INNER_HOST
 IS_AJAX_PLAIN_MODE = True
 
 # init admin list
-INIT_SUPERUSER = ["admin"]
+INIT_SUPERUSER = [env.BK_ADMIN_USERNAME]
+
+# 系统管理员用户名（导出到 Django settings）
+BK_ADMIN_USERNAME = env.BK_ADMIN_USERNAME
 
 # cc、job、iam、 nodeman域名
 BK_CC_HOST = env.BK_CC_HOST
@@ -741,7 +744,8 @@ CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_A
 BROKER_HEARTBEAT = 60
 BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
 
-SYSTEM_USE_API_ACCOUNT = "bk_admin" if env.ENABLE_MULTI_TENANT_MODE else "admin"
+# 多租户和单租户统一使用 BK_ADMIN_USERNAME（已在 env.py 根据模式设置默认值）
+SYSTEM_USE_API_ACCOUNT = env.BK_ADMIN_USERNAME
 
 # VER settings
 ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER)
