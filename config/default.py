@@ -744,8 +744,8 @@ CELERY_ROUTES.update({"gcloud.clocked_task.tasks.clocked_task_start": PIPELINE_A
 BROKER_HEARTBEAT = 60
 BROKER_POOL_LIMIT = env.CELERY_BROKER_POOL_LIMIT
 
-# 多租户模式使用可配置的管理员用户名，非多租户模式保持原逻辑
-SYSTEM_USE_API_ACCOUNT = env.BK_ADMIN_USERNAME if env.ENABLE_MULTI_TENANT_MODE else "admin"
+# 多租户和单租户统一使用 BK_ADMIN_USERNAME（已在 env.py 根据模式设置默认值）
+SYSTEM_USE_API_ACCOUNT = env.BK_ADMIN_USERNAME
 
 # VER settings
 ver_settings = importlib.import_module("config.sites.%s.ver_settings" % OPEN_VER)

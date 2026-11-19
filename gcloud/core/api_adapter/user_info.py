@@ -58,28 +58,49 @@ def get_all_users(request):
 
 def get_bk_username_by_tenant(tenant_id):
     """
-    @summary: 开启多租户: 获取对应租户bk_admin的bk_useranme ,不开启多租户直接返回 settings.SYSTEM_USE_API_ACCOUNT
+    获取对应租户的 bk_username
+
+    @summary:
+        - 多租户模式：通过 login_name 反查该租户下的 bk_username
+        - 单租户模式：
+          * 如果配置了随机化管理员名（非默认的 admin/bk_admin），需要反查
+          * 如果使用默认值，直接返回 settings.SYSTEM_USE_API_ACCOUNT
     @param tenant_id: 租户ID
-    @return:
+    @return: bk_username
     """
 
-    if settings.ENABLE_MULTI_TENANT_MODE:
-        # 查询环境变量表
-        bk_username = EnvironmentVariables.objects.get_var(tenant_id)
-        if bk_username:
-            return bk_username
+    # 1. 先查询缓存（环境变量表）
+    bk_username = EnvironmentVariables.objects.get_var(tenant_id)
+    if bk_username:
+        return bk_username
 
-        # 调用接口查询
-        client = get_client_by_username(username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
-        result = client.api.batch_lookup_virtual_user(
-            {"lookups": settings.SYSTEM_USE_API_ACCOUNT, "lookup_field": "login_name"},
-            headers={"X-Bk-Tenant-Id": tenant_id},
-        )
+    # 2. 判断是否需要反查
+    # 多租户：始终需要反查
+    # 单租户：配置了随机化管理员名时需要反查
+    need_lookup = (
+        settings.ENABLE_MULTI_TENANT_MODE or
+        settings.SYSTEM_USE_API_ACCOUNT not in ["admin", "bk_admin"]
+    )
 
-        if result["data"]:
-            bk_username = result["data"][0]["bk_username"]
-            # 写入环境变量表
-            EnvironmentVariables.objects.create(key=tenant_id, value=bk_username)
-            return bk_username
+    if need_lookup:
+        try:
+            # 3. 调用 API 反查：通过 login_name 查询 bk_username
+            client = get_client_by_username(username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
+            result = client.api.batch_lookup_virtual_user(
+                {"lookups": settings.SYSTEM_USE_API_ACCOUNT, "lookup_field": "login_name"},
+                headers={"X-Bk-Tenant-Id": tenant_id},
+            )
 
+            if result["data"]:
+                bk_username = result["data"][0]["bk_username"]
+                # 4. 写入缓存（环境变量表）
+                EnvironmentVariables.objects.create(key=tenant_id, value=bk_username)
+                return bk_username
+        except Exception as e:
+            logger.warning(
+                "Failed to lookup virtual user for tenant %s with login_name %s: %s, fallback to SYSTEM_USE_API_ACCOUNT",
+                tenant_id, settings.SYSTEM_USE_API_ACCOUNT, str(e)
+            )
+
+    # 5. 降级或默认值：直接返回 SYSTEM_USE_API_ACCOUNT
     return settings.SYSTEM_USE_API_ACCOUNT

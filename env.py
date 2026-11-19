@@ -90,8 +90,17 @@ BKAPP_PLUGIN_GATEWAY_BIZ_SCOPE_TYPES = tuple(
     if scope_type.strip()
 )
 
+# 多租户模式开关（需要在 BK_ADMIN_USERNAME 之前定义）
+ENABLE_MULTI_TENANT_MODE = (
+    os.getenv("BKPAAS_MULTI_TENANT_MODE", os.getenv("ENABLE_MULTI_TENANT_MODE", "false")).lower() == "true"
+)
+
 # 系统默认管理员用户名（支持随机化）
-BK_ADMIN_USERNAME = os.getenv("bkAdminUsername", "admin")
+# 多租户模式默认 "bk_admin"，单租户模式默认 "admin"
+BK_ADMIN_USERNAME = os.getenv(
+    "bkAdminUsername",
+    "bk_admin" if ENABLE_MULTI_TENANT_MODE else "admin"
+)
 
 # 网关管理员（使用系统管理员作为默认值）
 BK_APIGW_MANAGER_MAINTAINERS = os.getenv("BK_APIGW_MANAGER_MAINTAINERS", BK_ADMIN_USERNAME).split(",")
@@ -275,10 +284,6 @@ TEMPLATE_MARKET_API_URL = os.getenv("TEMPLATE_MARKET_API_URL", "")
 TEMPLATE_MARKET_HOST = os.getenv("TEMPLATE_MARKET_HOST", "")
 # 模板市场文档路由
 TEMPLATE_MARKET_DOC_URL = os.getenv("TEMPLATE_MARKET_DOC_URL", "")
-
-ENABLE_MULTI_TENANT_MODE = (
-    os.getenv("BKPAAS_MULTI_TENANT_MODE", os.getenv("ENABLE_MULTI_TENANT_MODE", "false")).lower() == "true"
-)
 
 # 统计信息清理配置
 CLEAN_EXPIRED_STATISTICS_CRON = tuple(os.getenv("BKAPP_CLEAN_EXPIRED_STATISTICS_CRON", "30 0 * * *").split())
