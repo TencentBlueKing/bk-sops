@@ -75,32 +75,23 @@ def get_bk_username_by_tenant(tenant_id):
         return bk_username
 
     # 2. 判断是否需要反查
-    # 多租户：始终需要反查
-    # 单租户：配置了随机化管理员名时需要反查
-    need_lookup = (
-        settings.ENABLE_MULTI_TENANT_MODE or
-        settings.SYSTEM_USE_API_ACCOUNT not in ["admin", "bk_admin"]
-    )
-
-    if need_lookup:
-        try:
-            # 3. 调用 API 反查：通过 login_name 查询 bk_username
-            client = get_client_by_username(username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
-            result = client.api.batch_lookup_virtual_user(
-                {"lookups": settings.SYSTEM_USE_API_ACCOUNT, "lookup_field": "login_name"},
-                headers={"X-Bk-Tenant-Id": tenant_id},
-            )
-
-            if result["data"]:
-                bk_username = result["data"][0]["bk_username"]
-                # 4. 写入缓存（环境变量表）
-                EnvironmentVariables.objects.create(key=tenant_id, value=bk_username)
-                return bk_username
-        except Exception as e:
-            logger.warning(
-                "Failed to lookup virtual user for tenant %s with login_name %s: %s, fallback to SYSTEM_USE_API_ACCOUNT",
-                tenant_id, settings.SYSTEM_USE_API_ACCOUNT, str(e)
-            )
+    try:
+        # 3. 调用 API 反查：通过 login_name 查询 bk_username
+        client = get_client_by_username(username=settings.SYSTEM_USE_API_ACCOUNT, stage=settings.BK_APIGW_STAGE_NAME)
+        result = client.api.batch_lookup_virtual_user(
+            {"lookups": settings.SYSTEM_USE_API_ACCOUNT, "lookup_field": "login_name"},
+            headers={"X-Bk-Tenant-Id": tenant_id},
+        )
+        if result["data"]:
+            bk_username = result["data"][0]["bk_username"]
+            # 4. 写入缓存（环境变量表）
+            EnvironmentVariables.objects.create(key=tenant_id, value=bk_username)
+            return bk_username
+    except Exception as e:
+        logger.warning(
+            "Failed to lookup virtual user for tenant %s with login_name %s: %s, fallback to SYSTEM_USE_API_ACCOUNT",
+            tenant_id, settings.SYSTEM_USE_API_ACCOUNT, str(e)
+        )
 
     # 5. 降级或默认值：直接返回 SYSTEM_USE_API_ACCOUNT
     return settings.SYSTEM_USE_API_ACCOUNT
