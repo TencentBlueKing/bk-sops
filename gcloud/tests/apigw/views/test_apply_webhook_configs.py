@@ -25,11 +25,57 @@ TEST_TEMPLATE_IDS = ["1", "2"]
 TEST_ENDPOINT = "https://example.com/webhook"
 TEST_EVENTS = ["*"]
 TEST_EXTRA_INFO = {}
+OUTBOUND_VALIDATE = "gcloud.apigw.views.apply_webhook_configs.OutboundCallbackValidator.validate"
 
 
+# 已有用例关注写库流程，统一放行出站地址校验；地址被拒的情况单独覆盖
+@mock.patch(OUTBOUND_VALIDATE, MagicMock(return_value=(True, [])))
 class ApplyWebhookConfigsAPITest(APITest):
     def url(self):
         return "/apigw/apply_webhook_configs/{project_id}/"
+
+    @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookModel.objects.filter")
+    @mock.patch("gcloud.apigw.views.apply_webhook_configs.Scope.objects.bulk_create")
+    def test_apply_webhook_configs__endpoint_not_allowed(
+        self, mock_scope_bulk_create, mock_webhook_filter, mock_serializer
+    ):
+        """endpoint 不在出站白名单时拒绝写入"""
+        mock_serializer_instance = MagicMock()
+        mock_serializer_instance.is_valid.return_value = True
+        mock_serializer_instance.validated_data = {
+            "endpoint": "http://127.0.0.1/webhook",
+            "events": TEST_EVENTS,
+            "extra_info": TEST_EXTRA_INFO,
+            "template_ids": TEST_TEMPLATE_IDS,
+        }
+        mock_serializer.return_value = mock_serializer_instance
+
+        # 类上的放行补丁最后生效，这里在函数内覆盖为拒绝
+        with mock.patch(OUTBOUND_VALIDATE, MagicMock(return_value=(False, ["bk.example.com"]))), mock.patch(
+            "gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs.TaskTemplate.objects.filter"
+        ) as mock_task_filter:
+            mock_task_filter.return_value.values_list.return_value = TEST_TEMPLATE_IDS
+            response = self.client.post(
+                path=self.url().format(project_id=TEST_PROJECT_ID),
+                data=json.dumps(
+                    {
+                        "endpoint": "http://127.0.0.1/webhook",
+                        "events": TEST_EVENTS,
+                        "extra_info": TEST_EXTRA_INFO,
+                        "template_ids": TEST_TEMPLATE_IDS,
+                    }
+                ),
+                content_type="application/json",
+                HTTP_BK_APP_CODE=TEST_APP_CODE,
+            )
+
+        data = json.loads(response.content)
+        self.assertFalse(data["result"])
+        self.assertEqual(data["message"], "webhook endpoint host is not allowed")
+        mock_scope_bulk_create.assert_not_called()
+        self.assertFalse(mock_webhook_filter.return_value.update.called)
 
     @mock.patch(PROJECT_GET, MagicMock(return_value=MockProject(project_id=TEST_PROJECT_ID, name="test_project")))
     @mock.patch("gcloud.apigw.views.apply_webhook_configs.WebhookSerializer")

@@ -14,6 +14,7 @@ specific language governing permissions and limitations under the License.
 import io
 import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -92,6 +93,8 @@ class SyncSaasApigwTest(unittest.TestCase):
 
 
 class PreReleaseTest(unittest.TestCase):
+    # 仅用于测试的合法 Fernet 密钥：44 位 URL-safe Base64，解码后 32 字节
+    callback_key = "A" * 43 + "="
     commands = [
         "migrate",
         "createcachetable",
@@ -104,40 +107,60 @@ class PreReleaseTest(unittest.TestCase):
         "init_tenant",
     ]
 
-    def run_pre_release(self, fail_command=""):
+    def run_pre_release(self, fail_command="", callback_key=callback_key):
         # Replace python so no real migration, gateway or notification can run.
+        # 密钥检查通过 `python -` 执行，交给真实解释器运行，确保测的是脚本里的检查逻辑。
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             python = root / "python"
             python.write_text(
                 "#!/bin/bash\n"
+                'if [ "$1" = "-" ]; then exec "$TEST_REAL_PYTHON" -; fi\n'
                 'printf "%s\\n" "$2" >> "$TEST_COMMAND_LOG"\n'
                 'if [ "$2" = "$TEST_FAIL_COMMAND" ]; then exit 23; fi\n'
             )
             python.chmod(0o755)
             log = root / "commands.log"
+            env = {
+                "PATH": directory + os.pathsep + os.defpath,
+                "TEST_COMMAND_LOG": str(log),
+                "TEST_FAIL_COMMAND": fail_command,
+                "TEST_REAL_PYTHON": sys.executable,
+            }
+            if callback_key is not None:
+                env["BKAPP_CALLBACK_KEY"] = callback_key
             result = subprocess.run(
                 ["/bin/bash", str(Path(__file__).resolve().parents[3] / "bin/pre_release")],
                 cwd=directory,
-                env={
-                    "PATH": directory + os.pathsep + os.defpath,
-                    "TEST_COMMAND_LOG": str(log),
-                    "TEST_FAIL_COMMAND": fail_command,
-                },
+                env=env,
                 capture_output=True,
                 text=True,
                 timeout=10,
             )
-            return result.returncode, log.read_text().splitlines()
+            commands = log.read_text().splitlines() if log.exists() else []
+            return result.returncode, commands, result.stderr
 
     def test_success_runs_all_initialization_steps(self):
-        code, commands = self.run_pre_release()
+        code, commands, _stderr = self.run_pre_release()
         self.assertEqual(code, 0)
         self.assertEqual(commands, self.commands)
 
     def test_failure_stops_at_failed_step_and_preserves_exit_code(self):
         for index, command in enumerate(self.commands):
             with self.subTest(command=command):
-                code, commands = self.run_pre_release(command)
+                code, commands, _stderr = self.run_pre_release(command)
                 self.assertEqual(code, 23)
                 self.assertEqual(commands, self.commands[: index + 1])
+
+    def test_missing_callback_key_stops_before_migrate(self):
+        code, commands, stderr = self.run_pre_release(callback_key=None)
+        self.assertEqual(code, 1)
+        self.assertEqual(commands, [])
+        self.assertIn("BKAPP_CALLBACK_KEY", stderr)
+        self.assertIn("Fernet.generate_key()", stderr)
+
+    def test_invalid_callback_key_stops_before_migrate(self):
+        code, commands, stderr = self.run_pre_release(callback_key="not-a-fernet-key")
+        self.assertEqual(code, 1)
+        self.assertEqual(commands, [])
+        self.assertIn("32", stderr)

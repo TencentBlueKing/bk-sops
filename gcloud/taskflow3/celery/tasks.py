@@ -44,6 +44,7 @@ from gcloud.taskflow3.models import (
     TimeoutNodesRecord,
 )
 from gcloud.utils import crypto
+from gcloud.utils.validate import OutboundCallbackValidator
 
 logger = logging.getLogger("celery")
 
@@ -645,6 +646,10 @@ def get_ai_analysis_notify_group_config(ai_analysis_notify_group: dict, msg_type
 
         chat_id = crypto.decrypt(group_notify_config.get("chat_id"))
         url = group_notify_config.get("web_hook")
+        valid_url, _allowed_domains = OutboundCallbackValidator.validate_ai_notify_webhook(url)
+        if not valid_url:
+            logger.error("[get_ai_analysis_notify_group_config] webhook host is not allowed")
+            return None, None, None
         mentioned_str = " ".join(
             ["<@{}>".format(mentioned) for mentioned in group_notify_config.get("mentioned_member_list", [])]
         )
@@ -673,6 +678,7 @@ def ai_wechat_group_notify_request(
                 "at_short_name": True,
             },
             timeout=5,
+            allow_redirects=False,
         )
         if not resp.ok:
             logger.error(

@@ -36,6 +36,7 @@ from gcloud.iam_auth import IAMMeta
 from gcloud.iam_auth.intercept import iam_intercept
 from gcloud.iam_auth.view_interceptors.apigw.apply_webhook_configs import ApplyWebhookConfigs
 from gcloud.tasktmpl3.models import TaskTemplate
+from gcloud.utils.validate import OutboundCallbackValidator
 
 
 def _get_webhook_audit_context(project_id, template_ids):
@@ -137,6 +138,15 @@ def apply_webhook_configs(request, project_id):
             {scope_code: origin["event_types"] for scope_code, origin in audit_origins.items()},
         )
         return {"result": True, "message": "success", "code": err_code.SUCCESS.code}
+
+    # 发送端不会再校验地址，写入前必须拦下不在白名单内的 endpoint
+    valid_url, _allowed_domains = OutboundCallbackValidator.validate(webhook_configs.get("endpoint"))
+    if not valid_url:
+        return {
+            "result": False,
+            "message": "webhook endpoint host is not allowed",
+            "code": err_code.REQUEST_PARAM_INVALID.code,
+        }
 
     events = webhook_configs.pop("events")
 

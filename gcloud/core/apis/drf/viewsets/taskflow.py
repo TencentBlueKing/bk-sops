@@ -27,7 +27,7 @@ from pipeline.exceptions import PipelineException
 from pipeline.models import PipelineInstance, Snapshot
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.response import Response
 
 from gcloud import err_code
@@ -726,6 +726,7 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
     @action(methods=["GET"], detail=False)
     def list_children_taskflow(self, request, *args, **kwargs):
         root_task_id = request.query_params.get("root_task_id")
+        self._ensure_taskflow_project_access(request, root_task_id)
         # 鉴权(IamUserTypeBasedValidator)接受 project__id / project_id，但 TaskFlowFilterSet 仅识别
         # project__id，导致仅传 project_id 时子任务未按项目收敛，可跨项目读取他人任务的子任务数据(IDOR)。
         # 这里显式按已鉴权项目过滤子任务及关系，确保数据作用域与鉴权作用域一致。
@@ -737,7 +738,11 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         )
         children_task_ids = [info["task_id"] for info in children_task_info]
         queryset = TaskFlowInstance.objects.filter(
-            id__in=children_task_ids, project_id=project_id, pipeline_instance__isnull=False, is_deleted=Value(0)
+            id__in=children_task_ids,
+            project_id=project_id,
+            project__tenant_id=request.user.tenant_id,
+            pipeline_instance__isnull=False,
+            is_deleted=Value(0),
         )
         queryset = self.filter_queryset(queryset)
         serializer = self.get_serializer(queryset, many=True)
@@ -762,17 +767,56 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
         task_ids = request.query_params.get("task_ids") or []
         if task_ids:
             task_ids = [int(task_id) for task_id in task_ids.split(",")]
+        self._ensure_taskflow_project_access(request, *task_ids)
         # 仅统计属于已鉴权项目的任务，避免跨项目探测他人任务的子流程结构(IDOR)；
         # 不属于该项目的 task_id 一律返回 False。空串归一化为 None 避免 filter(project_id="") 触发 500。
         project_id = request.query_params.get("project__id") or request.query_params.get("project_id") or None
         valid_task_ids = set(
-            TaskFlowInstance.objects.filter(id__in=task_ids, project_id=project_id).values_list("id", flat=True)
+            TaskFlowInstance.objects.filter(
+                id__in=task_ids, project_id=project_id, project__tenant_id=request.user.tenant_id
+            ).values_list("id", flat=True)
         )
         root_task_ids = set(
             TaskFlowRelation.objects.filter(root_task_id__in=valid_task_ids).values_list("root_task_id", flat=True)
         )
         root_task_info = {task_id: task_id in root_task_ids for task_id in task_ids}
         return Response({"has_children_taskflow": root_task_info})
+
+    @staticmethod
+    def _ensure_taskflow_project_access(request, *task_ids):
+        """user_type=user 只证明请求者是自己，不能代替项目权限和任务归属。
+
+        未传 user_type 时由 IamUserTypeBasedValidator 校验项目查看权限，auditor 由审计角色校验，
+        这里只补上 user_type=user 时的任务归属校验。
+        """
+        if request.query_params.get("user_type") != "user":
+            return
+        project_id = request.query_params.get("project__id") or request.query_params.get("project_id")
+        normalized_ids = []
+        for task_id in task_ids:
+            if task_id in (None, ""):
+                continue
+            try:
+                normalized_ids.append(int(task_id))
+            except (TypeError, ValueError):
+                raise PermissionDenied(detail=ErrorDetail("invalid task id", code="INVALID_TASK_ID"))
+        # 没有项目或任务时，后续查询按 project_id=None / 空列表返回空结果，沿用原有行为
+        if not project_id or not normalized_ids:
+            return
+        owned_count = (
+            TaskFlowInstance.objects.filter(
+                id__in=normalized_ids,
+                project_id=project_id,
+                project__tenant_id=request.user.tenant_id,
+            )
+            .filter(
+                Q(pipeline_instance__executor=request.user.username)
+                | Q(pipeline_instance__creator=request.user.username)
+            )
+            .count()
+        )
+        if owned_count != len(set(normalized_ids)):
+            raise PermissionDenied(detail=ErrorDetail("task owner mismatch", code="TASK_OWNER_MISMATCH"))
 
     @swagger_auto_schema(
         methods=["GET"],

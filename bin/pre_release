@@ -1,6 +1,34 @@
 #!/bin/bash
 set -e
 
+python - <<'PY'
+import os
+import sys
+from base64 import urlsafe_b64decode
+
+key = os.getenv("BKAPP_CALLBACK_KEY", "")
+if not key:
+    sys.stderr.write(
+        "缺少环境变量 BKAPP_CALLBACK_KEY。\n"
+        "请在当前环境执行一次下面的命令生成密钥，写入该环境变量后重新发布：\n"
+        "python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"\n"
+        "同一个环境保持这一份密钥不变，不要写入仓库或日志。\n"
+    )
+    sys.exit(1)
+
+try:
+    raw_key = urlsafe_b64decode(key.encode("utf-8"))
+except Exception:
+    raw_key = b""
+if len(raw_key) != 32:
+    sys.stderr.write(
+        "BKAPP_CALLBACK_KEY 格式错误，必须是 44 位 URL-safe Base64，解码后为 32 字节。\n"
+        "请重新生成并替换当前环境变量：\n"
+        "python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"\n"
+    )
+    sys.exit(1)
+PY
+
 python manage.py migrate
 python manage.py createcachetable django_cache
 python manage.py update_component_models
