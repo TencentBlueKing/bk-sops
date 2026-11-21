@@ -16,6 +16,8 @@ from abc import ABCMeta, abstractmethod
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
+import env
+from api.collections.nodemgr import BKNodemgrClient
 from gcloud.constants import GseAgentStatus
 from gcloud.core.models import Project
 from gcloud.exceptions import ApiRequestError
@@ -108,26 +110,33 @@ class GseAgentStatusIpFilter(IpFilterBase):
     def match_gse_v1(self, gse_agent_status, username, bk_biz_id, origin_ip_list):
         match_ip = origin_ip_list
         if gse_agent_status in [GseAgentStatus.ONlINE.value, GseAgentStatus.OFFLINE.value]:
-            client = get_client_by_username(username=username)
-            host_list = chunk_data(origin_ip_list, 1000, self.format_origin_ip, bk_biz_id=bk_biz_id)
-            agent_kwargs = [
-                {
-                    "data": {"all_scope": True, "host_list": host},
-                    "headers": {"X-Bk-Tenant-Id": self.tenant_id},
-                }
-                for host in host_list
-            ]
-            results = batch_execute_func(client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True)
-            agent_data = []
-            for result in results:
-                agent_result = result["result"]
-                if not agent_result["result"]:
-                    message = handle_api_error(
-                        _("节点管理(nodeman)"), "nodeman.get_ipchooser_host_details", agent_kwargs, agent_result
-                    )
-                    raise ApiRequestError(f"ERROR:{message}")
-                agent_data.extend(agent_result["data"])
-            agent_data = format_agent_data(agent_data)
+            if env.BK_NODEMGR_ENABLE:
+                networkarea_ip_map = {}
+                for host in origin_ip_list:
+                    networkarea_ip_map.setdefault(host["bk_cloud_id"], []).append(host["ip"])
+                client = BKNodemgrClient(username=username, tenant_id=self.tenant_id)
+                agent_data = client.host_agent_status(biz_id=bk_biz_id, networkarea_ip_map=networkarea_ip_map)
+            else:
+                client = get_client_by_username(username=username)
+                host_list = chunk_data(origin_ip_list, 1000, self.format_origin_ip, bk_biz_id=bk_biz_id)
+                agent_kwargs = [
+                    {
+                        "data": {"all_scope": True, "host_list": host},
+                        "headers": {"X-Bk-Tenant-Id": self.tenant_id},
+                    }
+                    for host in host_list
+                ]
+                results = batch_execute_func(client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True)
+                agent_data = []
+                for result in results:
+                    agent_result = result["result"]
+                    if not agent_result["result"]:
+                        message = handle_api_error(
+                            _("节点管理(nodeman)"), "nodeman.get_ipchooser_host_details", agent_kwargs, agent_result
+                        )
+                        raise ApiRequestError(f"ERROR:{message}")
+                    agent_data.extend(agent_result["data"])
+                agent_data = format_agent_data(agent_data)
             agent_online_ip_list = []
             agent_offline_ip_list = []
             for plat_ip, info in agent_data.items():

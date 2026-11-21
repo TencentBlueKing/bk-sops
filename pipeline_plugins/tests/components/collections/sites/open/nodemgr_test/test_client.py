@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 from django.test import TestCase, override_settings
 
 from api.collections.nodemgr import BKNodemgrClient
+from gcloud.exceptions import ApiRequestError
 
 ENDPOINT_TMPL = "http://bkapi.test/api/{api_name}"
 
@@ -115,6 +116,83 @@ class BKNodemgrClientMethodsTestCase(TestCase):
             kwargs["data"]["fuzzy_include_conditions"],
             {"bk_host_innerip": [], "bk_host_innerip_v6": []},
         )
+
+    def test_host_agent_status_by_host_id(self):
+        client = self._make_client()
+        client.api.host_list.return_value = {
+            "code": 0,
+            "data": {
+                "items": [
+                    {
+                        "info": {"bk_networkarea_id": 0, "bk_host_innerip_list": ["1.1.1.1"]},
+                        "state": {"node_status": "running"},
+                    },
+                    {
+                        "info": {"bk_networkarea_id": 1, "bk_host_innerip_list": ["2.2.2.2"]},
+                        "state": {"node_status": "damaged"},
+                    },
+                ]
+            },
+        }
+        result = client.host_agent_status(biz_id=2, host_id_list=[10, 11])
+        client.api.host_list.assert_called_once_with(
+            data={
+                "page": {"offset": 0, "limit": 1000},
+                "exact_include_conditions": {"bk_biz_id": [2], "bk_host_id": [10, 11]},
+            }
+        )
+        self.assertEqual(
+            result,
+            {
+                "0:1.1.1.1": {"ip": "1.1.1.1", "bk_cloud_id": 0, "bk_agent_alive": 1},
+                "1:2.2.2.2": {"ip": "2.2.2.2", "bk_cloud_id": 1, "bk_agent_alive": 0},
+            },
+        )
+
+    def test_host_agent_status_by_networkarea_ip(self):
+        client = self._make_client()
+        client.api.host_list.return_value = {
+            "code": 0,
+            "data": {
+                "items": [
+                    {
+                        "info": {"bk_networkarea_id": 3, "bk_host_innerip_v6_list": ["fe80::1"]},
+                        "state": {"node_status": "unknown"},
+                    }
+                ]
+            },
+        }
+        result = client.host_agent_status(
+            biz_id=2, networkarea_ip_map={3: ["1.1.1.1", "fe80::1"]}
+        )
+        _, kwargs = client.api.host_list.call_args
+        self.assertEqual(
+            kwargs["data"]["exact_include_conditions"],
+            {
+                "bk_biz_id": [2],
+                "bk_networkarea_id": [3],
+                "bk_host_innerip": ["1.1.1.1"],
+                "bk_host_innerip_v6": ["fe80::1"],
+            },
+        )
+        self.assertEqual(
+            result,
+            {"3:fe80::1": {"ip": "fe80::1", "bk_cloud_id": 3, "bk_agent_alive": -1}},
+        )
+
+    def test_host_agent_status_no_biz_id(self):
+        client = self._make_client()
+        client.api.host_list.return_value = {"code": 0, "data": {"items": []}}
+        client.host_agent_status(biz_id="", host_id_list=[1])
+        _, kwargs = client.api.host_list.call_args
+        self.assertNotIn("bk_biz_id", kwargs["data"]["exact_include_conditions"])
+
+    @patch("api.collections.nodemgr.handle_api_error", return_value="mocked error")
+    def test_host_agent_status_error_raises(self, _):
+        client = self._make_client()
+        client.api.host_list.return_value = {"code": 100, "message": "boom"}
+        with self.assertRaises(ApiRequestError):
+            client.host_agent_status(biz_id=2, host_id_list=[1])
 
     def test_package_list_with_plugin_name(self):
         client = self._make_client()
