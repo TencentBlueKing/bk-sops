@@ -118,7 +118,11 @@ class CreateAndStartTaskAPITest(APITest):
         self.assertEqual(resolver_kwargs, {})
 
         TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-            tmpl, {"name": "name", "creator": "", "description": ""}, {}, resolved_exclude_task_nodes_id
+            tmpl,
+            {"name": "name", "creator": "", "description": ""},
+            {},
+            resolved_exclude_task_nodes_id,
+            appointed_pipeline_tree=pipeline_tree,
         )
 
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
@@ -208,7 +212,11 @@ class CreateAndStartTaskAPITest(APITest):
         data = json.loads(response.content)
         self.assertTrue(data["result"], msg=data)
         TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-            tmpl, {"name": "name", "creator": "", "description": ""}, {}, ["node_1"]
+            tmpl,
+            {"name": "name", "creator": "", "description": ""},
+            {},
+            ["node_1"],
+            appointed_pipeline_tree=tmpl.pipeline_tree,
         )
 
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=TEST_DATA))
@@ -294,7 +302,11 @@ class CreateAndStartTaskAPITest(APITest):
                     )
 
                     TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.assert_called_once_with(
-                        tmpl, {"name": "name", "creator": "", "description": ""}, {}, "exclude_task_nodes_id"
+                        tmpl,
+                        {"name": "name", "creator": "", "description": ""},
+                        {},
+                        "exclude_task_nodes_id",
+                        appointed_pipeline_tree=tmpl.pipeline_tree,
                     )
 
                     TaskFlowInstance.objects.create.assert_called_once_with(
