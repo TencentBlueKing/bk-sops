@@ -12,6 +12,7 @@
 import Vue from 'vue'
 import axios from 'axios'
 import transAtom from '@/utils/transAtom.js'
+import { executePluginFormScript } from '@/utils/pluginFormScript.js'
 
 /**
  * 异步获取插件配置列表
@@ -30,8 +31,7 @@ const asyncGetAtomConfig = async function (atomUrl, isEmbedded, atomType, isOutp
 
     let list
     if (isEmbedded) {
-        /* eslint-disable-next-line */
-        eval(atomUrl)
+        executePluginFormScript(atomUrl, type)
         const configData = transAtom($.atoms, type)
         $.atoms[type] = configData
         list = $.atoms[type]

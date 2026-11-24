@@ -335,6 +335,7 @@
     import bus from '@/utils/bus.js'
     import permission from '@/mixins/permission.js'
     import formSchema from '@/utils/formSchema.js'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
 
     export default {
         name: 'NodeConfig',
@@ -662,8 +663,7 @@
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
-                        /* eslint-disable-next-line */
-                        eval(renderFrom)
+                        executePluginFormScript(renderFrom, plugin, this)
                     } else {
                         $.atoms[plugin] = inputs
                     }

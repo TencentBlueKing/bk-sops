@@ -156,6 +156,7 @@
     import InputParams from './NodeConfig/InputParams.vue'
     import OutputParams from './NodeConfig/OutputParams.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
 
     export default {
         name: 'BatchUpdateDialog',
@@ -386,8 +387,7 @@
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
-                        /* eslint-disable-next-line */
-                        eval(renderFrom)
+                        executePluginFormScript(renderFrom, plugin, this)
                     } else {
                         await this.loadAtomConfig({ atom: plugin, version, classify, name, project_id })
                     }
