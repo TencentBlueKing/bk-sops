@@ -240,6 +240,7 @@
     import atomFilter from '@/utils/atomFilter.js'
     import formSchema from '@/utils/formSchema.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
 
     export default {
         name: 'VariableEdit',
@@ -549,8 +550,7 @@
                         // 输入参数
                         $.atoms[plugin_code] = {}
                         const renderFrom = resp.data.forms.renderform
-                        /* eslint-disable-next-line */
-                        eval(renderFrom)
+                        executePluginFormScript(renderFrom, plugin_code, this)
                         const config = $.atoms[plugin_code]
                         const { source_tag } = this.theEditingData
                         const tag = source_tag.split('.')[1]

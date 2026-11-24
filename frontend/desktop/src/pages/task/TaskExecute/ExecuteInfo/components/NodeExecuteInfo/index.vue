@@ -107,6 +107,7 @@
     import ExecuteInfoForm from './components/ExecuteInfoForm.vue'
     import TaskCondition from './components/TaskCondition.vue'
     import { mapState, mapActions } from 'vuex'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
     export default {
         name: 'nodeExecuteInfo',
         components: {
@@ -437,8 +438,7 @@
                             if (forms.renderform) {
                                 // 输入参数
                                 const renderFrom = forms.renderform
-                                /* eslint-disable-next-line */
-                                eval(renderFrom)
+                                executePluginFormScript(renderFrom, this.thirdPartyNodeCode, this)
                                 const config = $.atoms[this.thirdPartyNodeCode]
                                 this.renderConfig = config || []
                             } else {
@@ -549,8 +549,7 @@
                             // 输入参数
                             $.atoms[plugin] = {}
                             const renderFrom = forms.renderform
-                            /* eslint-disable-next-line */
-                            eval(renderFrom)
+                            executePluginFormScript(renderFrom, plugin, this)
                         } else {
                             $.atoms[plugin] = inputs
                         }

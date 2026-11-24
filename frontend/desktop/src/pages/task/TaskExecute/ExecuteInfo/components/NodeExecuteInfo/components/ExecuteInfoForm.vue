@@ -142,6 +142,7 @@
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import JsonschemaForm from './common/JsonschemaForm.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
 
     export default {
         components: {
@@ -481,8 +482,7 @@
                         // 输入参数
                         $.atoms[plugin] = {}
                         const renderFrom = forms.renderform
-                        /* eslint-disable-next-line */
-                        eval(renderFrom)
+                        executePluginFormScript(renderFrom, plugin, this)
                     } else {
                         $.atoms[plugin] = inputs
                     }

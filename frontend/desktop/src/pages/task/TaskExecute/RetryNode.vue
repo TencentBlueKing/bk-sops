@@ -46,6 +46,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import atomFilter from '@/utils/atomFilter.js'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
     export default {
         name: 'RetryNode',
         components: {
@@ -133,8 +134,7 @@
                             $.context.bk_plugin_api_host[pluginCode] = hostUrl
                             // 输入参数
                             const renderFrom = resp.data.forms.renderform
-                            /* eslint-disable-next-line */
-                            eval(renderFrom)
+                            executePluginFormScript(renderFrom, pluginCode, this)
                             const config = $.atoms[pluginCode]
                             this.renderConfig = config || []
                         } else if (type === 'subprocess_plugin') {
