@@ -30,6 +30,7 @@
     import tools from '@/utils/tools.js'
     import RenderForm from '@/components/common/RenderForm/RenderForm.vue'
     import NoData from '@/components/common/base/NoData.vue'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
     export default {
         name: 'TaskParamEdit',
         components: {
@@ -303,8 +304,7 @@
                     // 输入参数
                     $.atoms[code] = {}
                     const renderFrom = resp.data.forms.renderform
-                    /* eslint-disable-next-line */
-                    eval(renderFrom)
+                    executePluginFormScript(renderFrom, code, this)
                     const atomConfig = $.atoms[code]
                     return atomConfig
                 } catch (error) {
