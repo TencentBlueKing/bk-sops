@@ -2003,7 +2003,13 @@ const en = {
     '参数加载成功': 'Parameters loaded successfully',
     '输入关键词搜索,批量搜索使用逗号分隔': 'Enter keywords to search, batch search using commas to separate',
     '个周期任务涉及到流程的更新，请及时处理。': 'scheduled tasks involving process updates, please handle them in time.',
-    '流程更新': 'Process Update'
+    '流程更新': 'Process Update',
+    '生成中，最终结果以节点完成后的输出为准': 'Generating. The final output after the node finishes prevails',
+    '生成完毕，等待节点结束': 'Generated, waiting for the node to finish',
+    '连接中断，正在重连': 'Connection lost, reconnecting',
+    '连接中断，节点结束后将显示最终输出': 'Connection lost, the final output will be shown when the node finishes',
+    '原文': 'Raw',
+    '复制原文': 'Copy raw text'
 }
 
 export default en

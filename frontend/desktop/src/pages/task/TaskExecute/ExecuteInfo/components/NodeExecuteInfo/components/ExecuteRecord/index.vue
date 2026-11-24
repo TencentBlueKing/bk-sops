@@ -55,6 +55,9 @@
                     :is-executed="isExecuted"
                     :admin-view="adminView"
                     :outputs="executeInfo.outputsInfo"
+                    :output-media-types="executeInfo.outputMediaTypes"
+                    :streaming-output="streamingOutput"
+                    :finished-stream="finishedStream"
                     :node-detail-config="nodeDetailConfig">
                 </OutputParams>
             </template>
@@ -70,6 +73,7 @@
     import NoData from '@/components/common/base/NoData.vue'
     import { TASK_STATE_DICT } from '@/constants/index.js'
     import bus from '@/utils/bus.js'
+    import answerStreamOutput from '@/mixins/answerStreamOutput.js'
     import { mapState } from 'vuex'
 
     export default {
@@ -79,6 +83,7 @@
             OutputParams,
             NoData
         },
+        mixins: [answerStreamOutput],
         props: {
             adminView: {
                 type: Boolean,

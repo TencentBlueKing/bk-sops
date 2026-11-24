@@ -346,6 +346,12 @@
                     if (oldState === 'READY' && state !== oldState) {
                         this.loadNodeInfo()
                     }
+
+                    // 第三方插件节点进入（如失败后重试）或离开执行态时刷新详情：开始/结束流式预览，结束后显示正式输出
+                    const isRunningChanged = state !== oldState && [state, oldState].includes('RUNNING') && oldState !== 'READY'
+                    if (isRunningChanged && this.nodeDetailConfig.component_code === 'remote_plugin') {
+                        this.loadNodeInfo()
+                    }
                 },
                 deep: true
             }

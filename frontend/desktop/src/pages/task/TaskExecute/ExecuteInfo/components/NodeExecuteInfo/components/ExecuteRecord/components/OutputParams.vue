@@ -22,7 +22,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(output, index) in outputsInfo" :key="index">
+                    <!-- 第三方插件长文本（含流式输出）排在最前：本行放参数名、Key 和流式状态，下一行整行显示内容 -->
+                    <template v-for="output in longTextOutputs">
+                        <tr :key="output.key" class="long-text-head">
+                            <td class="output-name">{{ getOutputName(output) }}</td>
+                            <td class="output-key">{{ output.key }}</td>
+                            <td class="output-value">
+                                <p v-if="output.streaming" :class="['streaming-status', streamingOutput.status]">
+                                    <i v-if="['streaming', 'reconnecting'].includes(streamingOutput.status)" class="common-icon-loading"></i>
+                                    {{ streamingStatusText }}
+                                </p>
+                            </td>
+                        </tr>
+                        <tr :key="`${output.key}-text`" class="long-text-row">
+                            <td colspan="3">
+                                <LongTextViewer
+                                    :text="output.streaming ? streamingOutput.text : output.value"
+                                    :events="getOutputEvents(output)"
+                                    :format="getTextFormat(output)"
+                                    :follow="!!output.streaming">
+                                </LongTextViewer>
+                            </td>
+                        </tr>
+                    </template>
+                    <tr v-for="(output, index) in plainOutputs" :key="index">
                         <td class="output-name">{{ getOutputName(output) }}</td>
                         <td class="output-key">{{ output.key }}</td>
                         <td
@@ -33,7 +56,7 @@
                         </td>
                         <td v-else class="output-value" v-bk-overflow-tips>{{ getOutputValue(output) }}</td>
                     </tr>
-                    <tr v-if="Object.keys(outputsInfo).length === 0">
+                    <tr v-if="Object.keys(plainOutputs).length === 0 && !longTextOutputs.length">
                         <td colspan="3"><no-data></no-data></td>
                     </tr>
                 </tbody>
@@ -53,12 +76,14 @@
     import FullCodeEditor from '@/components/common/FullCodeEditor.vue'
     import { URL_REG } from '@/constants/index.js'
     import tools from '@/utils/tools.js'
+    import longTextOutputs from '@/mixins/longTextOutputs.js'
     export default {
         components: {
             VueJsonPretty,
             NoData,
             FullCodeEditor
         },
+        mixins: [longTextOutputs],
         props: {
             adminView: {
                 type: Boolean,
@@ -168,5 +193,25 @@
     }
     .no-data-wrapper {
         margin-top: 32px;
+    }
+    .outputs-section .operation-table {
+        .long-text-head td {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .long-text-row td {
+            padding-top: 8px;
+        }
+        .streaming-status {
+            color: #979ba5;
+            &.reconnecting,
+            &.broken {
+                color: #ff9c01;
+            }
+            .common-icon-loading {
+                display: inline-block;
+                animation: loading 1.4s infinite linear;
+            }
+        }
     }
 </style>
