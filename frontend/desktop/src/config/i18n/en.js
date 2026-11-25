@@ -1970,7 +1970,8 @@ const en = {
     '参数加载成功': 'Parameters loaded successfully',
     '输入关键词搜索,批量搜索使用逗号分隔': 'Enter keywords to search, batch search using commas to separate',
     '个周期任务涉及到流程的更新，请及时处理。': 'scheduled tasks involving process updates, please handle them in time.',
-    '流程更新': 'Process Update'
+    '流程更新': 'Process Update',
+    '请输入ID/流程名': 'Please enter ID/Process Name'
 }
 
 export default en
