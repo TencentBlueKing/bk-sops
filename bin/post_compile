@@ -1,4 +1,5 @@
 #!/bin/bash
+bash "$(dirname "$0")/fix_python_runpath.sh" || exit $?
 echo "current module: $BKPAAS_APP_MODULE_NAME"
 
 if [ "$BKPAAS_APP_MODULE_NAME" == "default" ]; then
