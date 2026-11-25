@@ -182,7 +182,7 @@
                                 if (cur.type === 'number') {
                                     acc[cur.key] = Number(cur.value)
                                 } else if (cur.type === 'object') {
-                                    acc[cur.key] = eval('(' + cur.value + ')')
+                                    acc[cur.key] = JSON.parse(cur.value)
                                 } else {
                                     acc[cur.key] = cur.value
                                 }

@@ -240,6 +240,7 @@
     import NodeLog from './ExecuteInfo/NodeLog.vue'
     import ExecuteInfoForm from './ExecuteInfo/ExecuteInfoForm.vue'
     import taskCondition from './taskCondition.vue'
+    import { executePluginFormScript } from '@/utils/pluginFormScript.js'
 
     const CancelToken = axios.CancelToken
     let source = CancelToken.source()
@@ -882,8 +883,7 @@
                             if (forms.renderform) {
                                 // 输入参数
                                 const renderFrom = forms.renderform
-                                /* eslint-disable-next-line */
-                                eval(renderFrom)
+                                executePluginFormScript(renderFrom, this.thirdPartyNodeCode, this)
                                 const config = $.atoms[this.thirdPartyNodeCode]
                                 this.renderConfig = config || []
                             } else {
@@ -993,8 +993,7 @@
                             // 输入参数
                             $.atoms[plugin] = {}
                             const renderFrom = forms.renderform
-                            /* eslint-disable-next-line */
-                            eval(renderFrom)
+                            executePluginFormScript(renderFrom, plugin, this)
                         } else {
                             $.atoms[plugin] = inputs
                         }
