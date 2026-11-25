@@ -117,7 +117,11 @@ class TaskTemplateFilter(PropertyFilterSet):
         property_fields = [("subprocess_has_update", BooleanPropertyFilter, ["exact"])]
 
     def filter_by_label_ids(self, query, name, value):
-        label_ids = [int(label_id) for label_id in value.strip().split("|")]
+        label_ids = [
+            int(label_id)
+            for label_id in value.strip().replace(",", "|").split("|")
+            if label_id.strip()
+        ]
         template_ids = list(
             TemplateLabelRelation.objects.filter(label_id__in=label_ids).values_list("template_id", flat=True)
         )
