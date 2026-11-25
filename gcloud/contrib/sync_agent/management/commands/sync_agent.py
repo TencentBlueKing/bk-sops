@@ -22,6 +22,7 @@ class Command(BaseCommand):
             return
 
         BKAI_TENANT_ID = os.environ.get("BKAI_TENANT_ID", "system")
+        GENERATE_TYPE = "global" if settings.ENABLE_MULTI_TENANT_MODE else "space"
 
         initializer = BkaiInit(
             base_url=f"{settings.BK_API_URL_TMPL.format(api_name='bk-aidev')}/{settings.BK_APIGW_STAGE_NAME}",
@@ -31,7 +32,10 @@ class Command(BaseCommand):
             bk_user_base_url=f"{settings.BK_API_URL_TMPL.format(api_name='bk-user')}/{settings.BK_APIGW_STAGE_NAME}",
             tenant_id=BKAI_TENANT_ID,
             space=os.environ.get("BKAI_SPACE_ID", "system-bkaidev"),
-            variables={"SKILL_BASE_IMAGE": "registry.example.com/team/skill:1.0"},
+            variables={
+                "SKILL_BASE_IMAGE": "registry.example.com/team/skill:1.0",
+                "GENERATE_TYPE": GENERATE_TYPE,
+            },
         )
 
         package = os.environ.get("BKAI_PACKAGE") or os.path.join(settings.BASE_DIR, "ai-agent", "bkai.yaml")
