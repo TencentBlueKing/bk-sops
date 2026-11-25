@@ -71,7 +71,7 @@ class CreateAndStartTaskAPITest(APITest):
         pipeline_tree = {"activities": {"node_1": {}, "node_2": {}}, "constants": {}}
         resolved_exclude_task_nodes_id = ["node_2"]
         pt = MockPipelineTemplate(id=1, name="pt")
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt, pipeline_tree=pipeline_tree)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt, pipeline_tree=pipeline_tree, tenant_id="system")
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
             name=TEST_PROJECT_NAME,
@@ -83,7 +83,7 @@ class CreateAndStartTaskAPITest(APITest):
         TaskFlowInstance.objects.create.reset_mock()
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
-            with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+            with mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
                 with mock.patch(APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK, TEST_PRE_PARE_AND_START_TASK):
                     with mock.patch.object(
                         create_and_start_task,
@@ -128,7 +128,7 @@ class CreateAndStartTaskAPITest(APITest):
         pipeline_tree = {"activities": {"node_1": {}, "node_2": {}}, "constants": {}}
         resolved_exclude_task_nodes_id = ["node_2"]
         pt = MockPipelineTemplate(id=1, name="pt")
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt, pipeline_tree=pipeline_tree)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt, pipeline_tree=pipeline_tree, tenant_id="system")
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
             name=TEST_PROJECT_NAME,
@@ -140,7 +140,7 @@ class CreateAndStartTaskAPITest(APITest):
         TaskFlowInstance.objects.create.reset_mock()
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
-            with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+            with mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
                 with mock.patch(APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK, TEST_PRE_PARE_AND_START_TASK):
                     with mock.patch.object(
                         create_and_start_task,
@@ -176,7 +176,7 @@ class CreateAndStartTaskAPITest(APITest):
     @mock.patch(APIGW_CREATE_ADN_STATRT_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_and_start_task__success_with_direct_exclude_task_nodes_id_list(self):
         pt = MockPipelineTemplate(id=1, name="pt")
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt, tenant_id="system")
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
             name=TEST_PROJECT_NAME,
@@ -188,7 +188,7 @@ class CreateAndStartTaskAPITest(APITest):
         TaskFlowInstance.objects.create.reset_mock()
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
-            with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+            with mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
                 with mock.patch(APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK, TEST_PRE_PARE_AND_START_TASK):
                     response = self.client.post(
                         path=self.url().format(template_id=TEST_TEMPLATE_ID, project_id=TEST_PROJECT_ID),
@@ -216,7 +216,7 @@ class CreateAndStartTaskAPITest(APITest):
     @mock.patch(APIGW_CREATE_ADN_STATRT_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_and_start_task__template_schemes_id_validation_error(self):
         pt = MockPipelineTemplate(id=1, name="pt")
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt, tenant_id="system")
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
             name=TEST_PROJECT_NAME,
@@ -227,7 +227,7 @@ class CreateAndStartTaskAPITest(APITest):
         TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes.reset_mock()
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
-            with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+            with mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
                 with mock.patch.object(
                     create_and_start_task,
                     "resolve_exclude_task_nodes_id",
@@ -261,7 +261,7 @@ class CreateAndStartTaskAPITest(APITest):
 
         pt = MockPipelineTemplate(id=1, name="pt")
 
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt, tenant_id="system")
 
         proj = MockProject(
             project_id=TEST_PROJECT_ID,
@@ -271,7 +271,7 @@ class CreateAndStartTaskAPITest(APITest):
         )
 
         with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
-            with mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
+            with mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet(get_result=tmpl))):
                 with mock.patch(APIGW_CREATE_AND_START_TASK_PREPARE_AND_START_TASK, TEST_PRE_PARE_AND_START_TASK):
                     assert_data = {
                         "task_id": TEST_TASKFLOW_ID,
@@ -327,7 +327,7 @@ class CreateAndStartTaskAPITest(APITest):
             )
         ),
     )
-    @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
+    @mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet()))
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock(side_effect=jsonschema.ValidationError("")))
     def test_create_and_start_task__validate_fail(self):
         response = self.client.post(
@@ -353,7 +353,7 @@ class CreateAndStartTaskAPITest(APITest):
             )
         ),
     )
-    @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
+    @mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet()))
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(side_effect=Exception()))
     @mock.patch(APIGW_CREATE_ADN_STATRT_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_and_start_task__create_pipeline_raise(self):

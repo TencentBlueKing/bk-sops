@@ -24,17 +24,17 @@ from gcloud.tests.test_data import TEST_PIPELINE_TREE
 
 
 class MockRequest(object):
-    def __init__(self, method, data, username="a_user"):
+    def __init__(self, method, data, username="a_user", tenant_id="default"):
         self.method = method
         setattr(self, method, data)
-        self.user = MagicMock(username=username)
+        self.user = MagicMock(username=username, tenant_id=tenant_id)
 
 
 class MockJsonBodyRequest(object):
-    def __init__(self, method, data, username="a_user"):
+    def __init__(self, method, data, username="a_user", tenant_id="default"):
         self.method = method
         self.body = json.dumps(data)
-        self.user = MagicMock(username=username)
+        self.user = MagicMock(username=username, tenant_id=tenant_id)
         self.GET = {}  # 添加GET属性支持
 
 
@@ -100,6 +100,9 @@ class MockBaseTemplate(object):
             "pipeline_tree", {"line": "line", "location": "location", "activities": {}, "constants": {}}
         )
         self.get_pipeline_tree_by_version = MagicMock(return_value=self.pipeline_tree)
+        # 多租户字段支持
+        self.tenant_id = kwargs.get("tenant_id", "default")
+        self.tenant_mode = kwargs.get("tenant_mode", "single")
 
 
 class MockTaskTemplate(MockBaseTemplate):
@@ -196,10 +199,13 @@ class MockPipelinePeriodicTaskHistory(object):
 class MockQuerySet(object):
     def __init__(self, get_result=None, get_raise=None, filter_result=None, exist_return=True):
         self.get = MagicMock(return_value=get_result) if get_result else MagicMock(side_effect=get_raise)
-        self.filter = MagicMock(return_value=filter_result)
+        self.filter = MagicMock(return_value=filter_result if filter_result is not None else self)
         self.exist = MagicMock(return_value=exist_return)
         self.delete = MagicMock(return_value=None)
         self.update = MagicMock(return_value=None)
+        self.select_related = MagicMock(return_value=self)
+        self.tenant_filter = MagicMock(return_value=self)
+        self.prefetch_related = MagicMock(return_value=self)
 
 
 class MockCache(object):

@@ -24,6 +24,8 @@ TASKTEMPLATE_MODEL = "gcloud.tasktmpl3.models.TaskTemplate.objects.model"
 TEMPLATESCHEME_FILTER = "pipeline.models.TemplateScheme.objects.filter"
 
 COMMONTEMPLATE_GET = "gcloud.common_template.models.CommonTemplate.objects.get"
+COMMONTEMPLATE_TENANT_GET = "gcloud.common_template.models.CommonTemplate.objects.tenant_get"
+COMMONTEMPLATE_TENANT_FILTER = "gcloud.common_template.models.CommonTemplate.objects.tenant_filter"
 COMMONTEMPLATE_SELECT_RELATE = "gcloud.common_template.models.CommonTemplate.objects.select_related"
 COMMONTEMPLATE_IMPORT_TEMPLATES = "gcloud.common_template.models.CommonTemplate.objects.import_templates"
 
