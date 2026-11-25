@@ -12,20 +12,17 @@
                 <bk-option id="business" :name="$t('项目流程')"></bk-option>
                 <bk-option id="common" :name="$t('公共流程')"></bk-option>
             </bk-select>
-            <bk-input
-                v-model="searchStr"
-                class="search-text-input"
-                :placeholder="$t('请输入流程名称')"
-                :clearable="true"
-                right-icon="bk-icon icon-search"
-                @paste="handleSearchPaste"
-                @change="handleSearchEmpty"
-                @clear="handleSearch"
-                @enter="handleSearch">
-            </bk-input>
+            <search-select
+                id="subflowSelect"
+                :placeholder="$t('请输入ID/流程名')"
+                v-model="searchSelectValue"
+                :search-list="searchList"
+                @change="handleSearchValueChange">
+            </search-select>
         </div>
         <div class="list-table">
             <div class="table-head">
+                <div class="th-item tpl-id">ID</div>
                 <div class="th-item tpl-name">{{ $t('流程名称') }}</div>
                 <div class="th-item tpl-label">
                     <span>{{ $t('标签') }}</span>
@@ -70,6 +67,9 @@
                             }]"
                             :key="item.id"
                             @click="onSelectTpl(item)">
+                            <div class="tpl-id id-content">
+                                <span>{{ item.id }}</span>
+                            </div>
                             <div class="tpl-name name-content">
                                 <div class="name" v-if="item.highlightName" v-html="item.highlightName"></div>
                                 <div class="name" v-else>{{ item.name }}</div>
@@ -92,9 +92,9 @@
                     </template>
                     <NoData
                         v-else
-                        :type="searchStr ? 'search-empty' : 'empty'"
-                        :message="searchStr ? $t('搜索结果为空') : ''"
-                        @searchClear="handleSearch('')">
+                        :type="searchSelectValue.length ? 'search-empty' : 'empty'"
+                        :message="searchSelectValue.length ? $t('搜索结果为空') : ''"
+                        @searchClear="handleSearchClear">
                     </NoData>
                 </div>
             </div>
@@ -102,14 +102,29 @@
     </div>
 </template>
 <script>
+    import i18n from '@/config/i18n/index.js'
     import permission from '@/mixins/permission.js'
     import { DARK_COLOR_LIST } from '@/constants/index.js'
     import NoData from '@/components/common/base/NoData.vue'
+    import SearchSelect from '@/components/common/searchSelect/index.vue'
+
+    const SEARCH_LIST = [
+        {
+            id: 'template_id',
+            name: 'ID'
+        },
+        {
+            id: 'flowName',
+            name: i18n.t('流程名称'),
+            isDefaultOption: true
+        }
+    ]
 
     export default {
         name: 'Subflow',
         components: {
-            NoData
+            NoData,
+            SearchSelect
         },
         mixins: [permission],
         props: {
@@ -129,7 +144,8 @@
                 isLabelSelectorOpen: false,
                 isCompleteLoading: false,
                 selectedLabelName: '',
-                searchStr: '',
+                searchList: SEARCH_LIST,
+                searchSelectValue: [],
                 labels: [],
                 limit: 20, // 每页的条数，默认值，在mounted会根据屏幕高度动态计算
                 crtPage: 1 // 分页加载当前页数
@@ -176,10 +192,12 @@
                 }
                 try {
                     this.listLoading = true
-                    const searchStr = this.escapeRegExp(this.searchStr)
+                    const { templateId, flowName } = this.getSearchParams()
+                    const searchStr = this.escapeRegExp(flowName)
                     const data = {
                         label_ids: this.labels.join(','),
-                        pipeline_template__name__icontains: this.searchStr || undefined,
+                        pipeline_template__name__icontains: flowName || undefined,
+                        id: templateId || undefined,
                         limit: this.limit,
                         offset: (this.crtPage - 1) * this.limit
                     }
@@ -199,7 +217,7 @@
                         if (searchStr !== '') {
                             const reg = new RegExp(searchStr, 'i')
                             if (reg.test(tpl.name)) {
-                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${this.searchStr}</span>`)
+                                tplCopy.highlightName = tplCopy.name.replace(reg, `<span style="color: #ff9c01;">${flowName}</span>`)
                             }
                         }
                         result.push(tplCopy)
@@ -249,24 +267,34 @@
                 }
                 return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&')
             },
-            handleSearchPaste (value, event) {
-                const paste = (event.clipboardData || window.clipboardData).getData('text')
-                this.searchStr = value + paste
-                this.crtPage = 1
-                this.tplList = []
-                this.getTplList()
+            // 从 SearchSelect 的选中值中解析流程 ID 和流程名称
+            getSearchParams () {
+                return this.searchSelectValue.reduce((acc, cur) => {
+                    const value = cur.values && cur.values[0]
+                    if (value === undefined || value === '') {
+                        return acc
+                    }
+                    if (cur.id === 'template_id') {
+                        acc.templateId = value
+                    } else if (cur.id === 'flowName') {
+                        acc.flowName = value
+                    }
+                    return acc
+                }, { templateId: '', flowName: '' })
             },
-            // 搜索框清空后触发搜索
-            handleSearchEmpty (val) {
-                if (val === '') {
-                    this.handleSearch('')
+            // SearchSelect 搜索条件变更
+            handleSearchValueChange (val) {
+                if (val) {
+                    this.searchSelectValue = val
                 }
-            },
-            handleSearch (val) {
-                this.searchStr = val
                 this.crtPage = 1
                 this.tplList = []
                 this.getTplList()
+            },
+            // 清空搜索条件
+            handleSearchClear () {
+                this.searchSelectValue = []
+                this.handleSearchValueChange()
             },
             // 选择标签
             onSelectLabel () {
@@ -354,12 +382,21 @@
 }
 .type-select-wrapper {
     position: relative;
-    height: 32px;
-    .search-text-input {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 240px;
+    display: flex;
+    align-items: flex-start;
+    min-height: 32px;
+    ::v-deep .search-select {
+        // 组件自身为 position: absolute，脱离文档流导致容器无法随内容撑高、搜索框覆盖下方表格
+        // 改为相对定位进入文档流，靠右对齐，让容器高度自适应
+        position: relative;
+        right: auto;
+        margin-left: auto;
+        width: 320px;
+        .search-input {
+            // 解除组件内联 maxHeight（聚焦 120px / 失焦 32px），超长 tag 换行完整显示
+            max-height: none !important;
+            min-height: 30px;
+        }
     }
 }
 .list-table {
@@ -376,6 +413,10 @@
             color: #313238;
             font-size: 12px;
             font-weight: 500;
+        }
+        .tpl-id {
+            flex: 0 0 auto;
+            width: 100px;
         }
         .tpl-name {
             flex: 0 0 auto;
@@ -428,6 +469,14 @@
     }
     &:first-of-type {
         border: none;
+    }
+    .id-content {
+        display: flex;
+        align-items: center;
+        flex: 0 0 auto;
+        width: 100px;
+        font-size: 12px;
+        margin-left: 8px;
     }
     .name-content {
         display: flex;
