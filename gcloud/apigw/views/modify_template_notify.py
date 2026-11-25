@@ -209,7 +209,7 @@ def modify_template_notify(request, template_id, project_id):
     try:
         # 获取模板信息
         if is_common:
-            template = CommonTemplate.objects.get(id=template_id, is_deleted=False, tenant_id=tenant_id)
+            template = CommonTemplate.objects.tenant_get(tenant_id, id=template_id, is_deleted=False)
         else:
             template = TaskTemplate.objects.get(
                 id=template_id, project_id=project.id, is_deleted=False, project__tenant_id=tenant_id

@@ -10,10 +10,10 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific lan
 """
-
 import logging
 
-from django.db.models import Max, Value
+from gcloud.core.models import Project
+from django.db.models import Max, Q, Value
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, serializers
@@ -22,7 +22,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import PROJECT
+from gcloud.constants import PROJECT, TENANT_MODE_GLOBAL
+from gcloud.template_base.utils import replace_biz_id_value
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.creator import is_flow_creator
 from gcloud.iam_auth.models import Action, Subject
@@ -100,7 +101,18 @@ class PreviewTaskTreeWithSchemesView(APIView):
             if template_source == PROJECT:
                 template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
             else:
-                template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+                # 支持全租户和单租户公共流程
+                if tenant_id is not None:
+                    template = CommonTemplate.objects.filter(
+                        Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+                        pk=template_id,
+                        is_deleted=False
+                    ).first()
+                    if not template:
+                        raise CommonTemplate.DoesNotExist()
+                else:
+                    # 兼容测试场景：tenant_id为None时使用原有逻辑
+                    template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
         except TaskTemplate.DoesNotExist:
             message = _(f"请求任务数据失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project_id}] 请检查 | preview_task_tree")
             logger.error(message)
@@ -112,6 +124,16 @@ class PreviewTaskTreeWithSchemesView(APIView):
 
         try:
             data = preview_template_tree_with_schemes(template, version, scheme_id_list)
+
+            # 公共流程预填充业务ID
+            if template_source != PROJECT and project_id:
+                try:
+                    project = Project.objects.get(id=project_id)
+                    # 替换业务ID为当前项目的业务ID
+                    replace_biz_id_value(data['pipeline_tree'], project.bk_biz_id)
+                except Project.DoesNotExist:
+                    logger.warning(f"项目[id={project_id}]不存在，跳过业务ID预填充")
+
         except Exception as e:
             message = _(f"任务数据请求失败: 获取带执行方案流程树数据失败, 错误信息: {e}, 请重试. 如多次失败可联系管理员处理 | preview_task_tree")
             logger.exception(message)

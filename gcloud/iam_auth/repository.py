@@ -25,7 +25,7 @@ def local_resource_queryset(resource_type, tenant_id):
     if resource_type == "common_flow":
         from gcloud.common_template.models import CommonTemplate
 
-        return CommonTemplate.objects.filter(tenant_id=tenant_id, is_deleted=False)
+        return CommonTemplate.objects.tenant_filter(tenant_id).filter(is_deleted=False)
     if resource_type == "mini_app":
         from gcloud.contrib.appmaker.models import AppMaker
 

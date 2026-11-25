@@ -54,7 +54,9 @@ class TemplatePreviewAPIView(APIView):
         if template_source == PROJECT:
             instance = self.queryset.get(id=template_id, project_id=project_id)
         else:
-            instance = CommonTemplate.objects.filter(pk=template_id, is_deleted=False).first()
+            instance = CommonTemplate.objects.tenant_filter(request.user.tenant_id).filter(
+                pk=template_id, is_deleted=False
+            ).first()
 
         serializer = self.serializer_class(instance)
         return Response({"result": True, "data": serializer.data, "code": err_code.SUCCESS.code})

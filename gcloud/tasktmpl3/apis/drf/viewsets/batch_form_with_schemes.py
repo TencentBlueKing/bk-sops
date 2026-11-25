@@ -14,6 +14,7 @@ specific lan
 import itertools
 import logging
 
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateScheme
@@ -23,7 +24,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import PROJECT
+from gcloud.constants import COMMON, PROJECT, TENANT_MODE_GLOBAL
 from gcloud.tasktmpl3.apis.drf.permissions import BatchTemplateFormWithSchemesPermissions
 from gcloud.tasktmpl3.apis.drf.serilaziers.batch_form_with_schemes import (
     BatchTemplateFormResponseSerializer,
@@ -75,8 +76,12 @@ class BatchTemplateFormWithSchemesView(APIView):
                 id__in=project_template_ids, project_id=project_id, is_deleted=False
             )
         if common_template_ids:
+            # 支持全租户和单租户公共流程
+            tenant_id = request.user.tenant_id
             common_template_queryset = CommonTemplate.objects.select_related("pipeline_template").filter(
-                id__in=common_template_ids, is_deleted=False
+                Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+                id__in=common_template_ids,
+                is_deleted=False
             )
         queryset = itertools.chain(template_queryset, common_template_queryset)
         template_dict = {}

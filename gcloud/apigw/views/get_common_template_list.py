@@ -38,9 +38,9 @@ def get_common_template_list(request):
             "code": err_code.REQUEST_PARAM_INVALID.code,
         }
     include_notify = serializer.validated_data["include_notify"]
-    templates = CommonTemplate.objects.select_related("pipeline_template").filter(
-        is_deleted=False, tenant_id=request.user.tenant_id
-    )
+    templates = CommonTemplate.objects.tenant_filter(
+        request.user.tenant_id
+    ).select_related("pipeline_template").filter(is_deleted=False)
     templates_data, common_templates_id_list = format_template_list_data(
         templates, return_id_list=True, tz=request.tz, include_notify=include_notify
     )

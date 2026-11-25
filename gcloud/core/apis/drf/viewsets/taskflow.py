@@ -329,8 +329,8 @@ class TaskFlowInstancePermission(IamPermission, IAMMixin):
                     self.iam_auth_check(request=request, action=iam_action, resources=resources)
                 else:
                     try:
-                        template = CommonTemplate.objects.get(
-                            id=template_id, tenant_id=request.user.tenant_id, is_deleted=False
+                        template = CommonTemplate.objects.tenant_get(
+                            request.user.tenant_id, id=template_id, is_deleted=False
                         )
                     except CommonTemplate.DoesNotExist:
                         return False
@@ -518,7 +518,9 @@ class TaskFlowInstanceViewSet(GcloudReadOnlyViewSet, generics.CreateAPIView, gen
             project_id,
             request.user.tenant_id,
         )
-        common_template_info = CommonTemplate.objects.filter(id__in=common_template_ids, tenant_id=tenant_id).values(
+        common_template_info = CommonTemplate.objects.tenant_filter(tenant_id).filter(
+            id__in=common_template_ids
+        ).values(
             "id", "pipeline_template__name", "is_deleted"
         )
         common_template_info_map = {
