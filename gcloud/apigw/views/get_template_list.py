@@ -73,8 +73,9 @@ def get_template_list(request, project_id):
         filter_kwargs["project_id"] = project.id
         templates = TaskTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
     else:
-        filter_kwargs["tenant_id"] = tenant_id
-        templates = CommonTemplate.objects.select_related("pipeline_template").filter(**filter_kwargs)
+        templates = CommonTemplate.objects.tenant_filter(tenant_id).select_related("pipeline_template").filter(
+            **filter_kwargs
+        )
 
     template_list, template_id_list = format_template_list_data(
         templates,

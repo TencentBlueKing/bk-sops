@@ -21,7 +21,7 @@ from drf_yasg.utils import swagger_auto_schema
 from pipeline.models import TemplateScheme
 from rest_framework import permissions, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ErrorDetail
+from rest_framework.exceptions import ErrorDetail, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
@@ -116,7 +116,15 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     filterset_class = CommonTemplateFilter
     permission_classes = [permissions.IsAuthenticated, CommonTemplatePermission]
     ordering = ["-id"]
-    model_multi_tenant_filter = True
+    model_multi_tenant_filter = True  # 启用多租户过滤，使用自定义逻辑
+
+    def apply_model_tenant_filter(self, queryset, tenant_id):
+        """
+        公共流程的多租户过滤逻辑：
+        - tenant_mode='global': 所有租户可见（读共享）
+        - tenant_mode='single': 只有对应租户可见（租户隔离）
+        """
+        return queryset.filter(Q(tenant_mode='global') | Q(tenant_id=tenant_id))
 
     @staticmethod
     def iam_resource_helper(tenant_id):
@@ -270,6 +278,15 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop("partial", False)
         template = self.get_object()
+
+        # 安全检查：全局流程只能由创建者租户编辑
+        # 理念：全局流程"读共享、写隔离"
+        if template.tenant_mode == 'global' and template.tenant_id != request.user.tenant_id:
+            raise PermissionDenied(
+                "Cannot edit global template created by other tenant. "
+                "Global templates can only be edited by the creator tenant."
+            )
+
         serializer = CreateCommonTemplateSerializer(
             template, data=request.data, partial=partial, context={"request": request}
         )
@@ -319,6 +336,14 @@ class CommonTemplateViewSet(GcloudModelViewSet):
     @action(detail=True, methods=["POST"])
     def update_specific_fields(self, request, *args, **kwargs):
         template = self.get_object()
+
+        # 安全检查：全局流程只能由创建者租户编辑
+        if template.tenant_mode == 'global' and template.tenant_id != request.user.tenant_id:
+            raise PermissionDenied(
+                "Cannot edit global template created by other tenant. "
+                "Global templates can only be edited by the creator tenant."
+            )
+
         editor = request.user.username
         serializer = PatchCommonTemplateSerializer(template, data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
@@ -346,6 +371,15 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         template = self.get_object()
+
+        # 安全检查：全局流程只能由创建者租户删除
+        # 理念：全局流程"读共享、写隔离"
+        if template.tenant_mode == 'global' and template.tenant_id != request.user.tenant_id:
+            raise PermissionDenied(
+                "Cannot delete global template created by other tenant. "
+                "Global templates can only be deleted by the creator tenant."
+            )
+
         can_delete, message = manager.can_delete(template)
         if not can_delete:
             return Response({"detail": ErrorDetail(message, err_code.REQUEST_PARAM_INVALID.code)}, exception=True)

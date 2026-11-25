@@ -26,7 +26,13 @@ from rest_framework.response import Response
 
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES, PERIOD_TASK_NAME_MAX_LENGTH, PROJECT
+from gcloud.constants import (
+    COMMON,
+    NON_COMMON_TEMPLATE_TYPES,
+    PERIOD_TASK_NAME_MAX_LENGTH,
+    PROJECT,
+    TENANT_MODE_GLOBAL,
+)
 from gcloud.contrib.audit.mappings import get_periodic_task_create_action
 from gcloud.contrib.audit.utils import (
     bk_audit_add_event,
@@ -155,7 +161,14 @@ class PeriodicTaskFilter(AllLookupSupportFilterSet):
                 version_map[tmpl.id] = tmpl.version
         if common_tasks:
             template_ids = list({int(t.template_id) for t in common_tasks})
-            for tmpl in CommonTemplate.objects.filter(id__in=template_ids):
+            tenant_id = self.request.user.tenant_id
+
+            # 支持全租户和单租户公共流程
+            for tmpl in CommonTemplate.objects.filter(
+                Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+                id__in=template_ids,
+                is_deleted=False
+            ):
                 version_map[tmpl.id] = tmpl.version
 
         matching_ids = []

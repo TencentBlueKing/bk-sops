@@ -13,6 +13,7 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.conf import settings
+from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -69,7 +70,18 @@ class ProjectTemplateViewSet(TemplateViewSet):
 
 
 class CommonTemplateViewSet(TemplateViewSet):
-    queryset = CommonTemplate.objects.all()
+    queryset = CommonTemplate.objects.filter(pipeline_template__isnull=False, is_deleted=False)
     permission_classes = [CommonTemplatePermission]
     template_type = "common"
     tmpl_model = CommonTemplate
+
+    def get_queryset(self):
+        """
+        IAM V4 的多租户过滤逻辑
+        支持全局模式（tenant_mode='global'）和单租户模式（tenant_mode='single'）
+        """
+        queryset = super().get_queryset()
+        tenant_id = self.request.user.tenant_id
+        # 支持全局流程：返回 global 流程 + 本租户的流程
+        queryset = queryset.filter(Q(tenant_mode='global') | Q(tenant_id=tenant_id))
+        return queryset

@@ -36,7 +36,9 @@ class TemplatePreviewPermission(permissions.BasePermission):
         if template_source == PROJECT:
             record = TemplateSharedRecord.objects.filter(project_id=project_id, template_id=template_id).first()
         else:
-            record = CommonTemplate.objects.filter(id=template_id, is_deleted=False).first()
+            record = CommonTemplate.objects.tenant_filter(request.user.tenant_id).filter(
+                id=template_id, is_deleted=False
+            ).first()
 
         if record is None:
             logging.warning("The specified template could not be found")

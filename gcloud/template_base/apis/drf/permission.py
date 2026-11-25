@@ -53,11 +53,31 @@ class TemplatePermissionMixin:
         template_ids = serializer.validated_data["template_ids"]
         tenant_id = request.user.tenant_id
         config = self.iam_mapping_config[self.template_type]
-        templates = list(
-            config["model"]
-            .objects.select_related("pipeline_template")
-            .filter(id__in=template_ids, is_deleted=False, **{config["tenant_filter"]: tenant_id})
-        )
+
+        # 对公共流程使用 tenant_filter 方法以支持 tenant_mode（global/single）
+        if config["model"] == CommonTemplate:
+            templates = list(
+                config["model"]
+                .objects.select_related("pipeline_template")
+                .tenant_filter(tenant_id)
+                .filter(id__in=template_ids, is_deleted=False)
+            )
+
+            # 🔒 安全检查：全局流程只能由创建者租户删除
+            # 理念：全局流程"读共享、写隔离"
+            for template in templates:
+                if template.tenant_mode == 'global' and template.tenant_id != tenant_id:
+                    raise PermissionDenied(
+                        "Cannot delete global template created by other tenant. "
+                        "Global templates can only be deleted by the creator tenant."
+                    )
+        else:
+            templates = list(
+                config["model"]
+                .objects.select_related("pipeline_template")
+                .filter(id__in=template_ids, is_deleted=False, **{config["tenant_filter"]: tenant_id})
+            )
+
         if len(templates) != len(template_ids):
             # Do not expose whether an ID belongs to another tenant or does not exist.
             raise PermissionDenied("template does not exist in current tenant")

@@ -25,7 +25,7 @@ def preview_template_tree(project_id, template_source, template_id, version, exc
     if template_source == PROJECT:
         template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
     else:
-        template = CommonTemplate.objects.get(pk=template_id, is_deleted=False, tenant_id=tenant_id)
+        template = CommonTemplate.objects.tenant_get(tenant_id, pk=template_id, is_deleted=False)
     pipeline_tree = template.get_pipeline_tree_by_version(version)
     template_constants = deepcopy(pipeline_tree["constants"])
     PipelineTemplateWebPreviewer.preview_pipeline_tree_exclude_task_nodes(pipeline_tree, exclude_task_nodes_id)

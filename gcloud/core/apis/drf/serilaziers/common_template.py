@@ -181,8 +181,8 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
                 continue
             try:
-                common_template = CommonTemplate.objects.get(
-                    id=activity["template_id"], tenant_id=tenant_id, is_deleted=False
+                common_template = CommonTemplate.objects.tenant_get(
+                    tenant_id, id=activity["template_id"], is_deleted=False
                 )
             except CommonTemplate.DoesNotExist as error:
                 raise serializers.ValidationError(_("子流程不存在")) from error
