@@ -50,12 +50,16 @@ class TemplateBatchDeletePermissionTestCase(SimpleTestCase):
     @patch("gcloud.template_base.apis.drf.permission.PermissionService")
     @patch("gcloud.template_base.apis.drf.permission.CommonTemplate.objects.select_related")
     def test_common_template_invalid_id_stops_before_iam(self, select_related, permission_service):
-        select_related.return_value.filter.return_value = []
+        # Mock the chain: select_related -> tenant_filter -> filter
+        mock_queryset = MagicMock()
+        mock_queryset.filter.return_value = []
+        select_related.return_value.tenant_filter.return_value = mock_queryset
 
         with self.assertRaises(PermissionDenied):
             CommonTemplatePermission().has_permission(self.request([99]), self.view())
 
-        select_related.return_value.filter.assert_called_once_with(id__in=[99], is_deleted=False, tenant_id="tenant-a")
+        select_related.return_value.tenant_filter.assert_called_once_with("tenant-a")
+        mock_queryset.filter.assert_called_once_with(id__in=[99], is_deleted=False)
         permission_service.assert_not_called()
 
     @patch("gcloud.template_base.apis.drf.permission.PermissionService")
