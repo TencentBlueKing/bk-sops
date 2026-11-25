@@ -6,7 +6,7 @@ metadata:
   name: 通用基础知识
   description: 经公开来源核验并重新编写的基础内容
 spec:
-  generate_type: space
+  generate_type: {{ GENERATE_TYPE }}
   is_public: false
   config: {}
   tag_names: []
