@@ -33,6 +33,7 @@ class BusinessFilter(AllLookupSupportFilterSet):
 
 
 class BusinessSetViewSet(GcloudReadOnlyViewSet):
+    model_multi_tenant_filter = True
     queryset = Business.objects.exclude(status="disabled").exclude(
         life_cycle__in=[Business.LIFE_CYCLE_CLOSE_DOWN, _("停运")]
     )
