@@ -90,6 +90,8 @@ class CreateTaskTemplateSerializer(BaseTaskTemplateSerializer):
     def validate(self, attrs):
         pipeline_tree = json.loads(attrs["pipeline_tree"])
         project_id = attrs["project"].id
+        if self.instance and project_id != self.instance.project_id:
+            raise serializers.ValidationError(_("流程所属项目与请求项目不一致，不允许更新"))
 
         for activity in pipeline_tree.get("activities").values():
             if activity.get("type") != "SubProcess" or activity.get("template_source") != "common":
