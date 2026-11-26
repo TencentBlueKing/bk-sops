@@ -282,7 +282,8 @@ def resources_for_clocked_task_obj(task_obj, tenant_id=None):
 
 def resources_for_common_flow(common_flow_id, tenant_id):
     template_info = (
-        CommonTemplate.objects.filter(id=common_flow_id, tenant_id=tenant_id, is_deleted=False)
+        CommonTemplate.objects.tenant_filter(tenant_id)
+        .filter(id=common_flow_id, is_deleted=False)
         .values("pipeline_template__creator", "pipeline_template__name")
         .first()
     )
@@ -316,7 +317,9 @@ def resources_for_common_flow_obj(common_flow_obj, tenant_id=None):
 
 
 def resources_list_for_common_flows(common_flow_id_list, tenant_id):
-    qs = CommonTemplate.objects.filter(id__in=common_flow_id_list, tenant_id=tenant_id, is_deleted=False).values(
+    qs = CommonTemplate.objects.tenant_filter(tenant_id).filter(
+        id__in=common_flow_id_list, is_deleted=False
+    ).values(
         "id", "pipeline_template__creator", "pipeline_template__name"
     )
 
@@ -394,7 +397,9 @@ def resources_for_function_task_obj(task_obj, tenant_id=None):
 
 
 def resources_list_for_common_flows_project(common_flow_id_list, project_id, tenant_id):
-    qs = CommonTemplate.objects.filter(id__in=common_flow_id_list, tenant_id=tenant_id, is_deleted=False).values(
+    qs = CommonTemplate.objects.tenant_filter(tenant_id).filter(
+        id__in=common_flow_id_list, is_deleted=False
+    ).values(
         "id", "pipeline_template__creator", "pipeline_template__name"
     )
 

@@ -14,9 +14,11 @@ specific language governing permissions and limitations under the License.
 import logging
 
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
+from gcloud.constants import TENANT_MODE_CHOICES, TENANT_MODE_SINGLE
 from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.exceptions import FlowExportError
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
@@ -31,6 +33,43 @@ def get_default_project_scope():
 
 
 class CommonTemplateManager(BaseTemplateManager):
+    def tenant_filter(self, tenant_id, include_global=True):
+        """
+        多租户过滤查询集
+
+        :param tenant_id: 租户ID
+        :param include_global: 是否包含全局模式的流程（默认 True）
+        :return: 过滤后的查询集
+
+        使用示例:
+            # 获取租户可见的所有流程（包括 global）
+            CommonTemplate.objects.tenant_filter(tenant_id).filter(is_deleted=False)
+
+            # 只获取租户自己的流程（不包括 global）
+            CommonTemplate.objects.tenant_filter(tenant_id, include_global=False).filter(is_deleted=False)
+        """
+        if include_global:
+            return self.filter(Q(tenant_mode='global') | Q(tenant_id=tenant_id))
+        else:
+            return self.filter(tenant_id=tenant_id)
+
+    def tenant_get(self, tenant_id, include_global=True, **kwargs):
+        """
+        多租户获取单个对象
+
+        :param tenant_id: 租户ID
+        :param include_global: 是否包含全局模式的流程（默认 True）
+        :param kwargs: 其他过滤条件
+        :return: 单个模板对象
+        :raises: CommonTemplate.DoesNotExist
+
+        使用示例:
+            # 获取指定 ID 的流程（租户可见）
+            template = CommonTemplate.objects.tenant_get(tenant_id, id=123, is_deleted=False)
+        """
+        queryset = self.tenant_filter(tenant_id, include_global)
+        return queryset.get(**kwargs)
+
     def import_operation_check(self, template_data):
         data = super(CommonTemplateManager, self).import_operation_check(template_data)
 
@@ -104,6 +143,14 @@ class CommonTemplate(BaseTemplate):
     """
 
     tenant_id = models.CharField(_("租户ID"), default="default", max_length=64, db_index=True)
+    tenant_mode = models.CharField(
+        _("租户模式"),
+        max_length=16,
+        default=TENANT_MODE_SINGLE,
+        choices=TENANT_MODE_CHOICES,
+        db_index=True,
+        help_text=_("single: 单租户（仅本租户可见）; global: 全租户（所有租户可见）")
+    )
     extra_info = models.JSONField(_("额外信息"), default=get_default_project_scope)
 
     objects = CommonTemplateManager()
@@ -111,3 +158,6 @@ class CommonTemplate(BaseTemplate):
     class Meta(BaseTemplate.Meta):
         verbose_name = _("公共流程模板 CommonTemplate")
         verbose_name_plural = _("公共流程模板 CommonTemplate")
+        indexes = [
+            models.Index(fields=["tenant_mode", "tenant_id", "is_deleted"], name="idx_common_tpl_tenant"),
+        ]

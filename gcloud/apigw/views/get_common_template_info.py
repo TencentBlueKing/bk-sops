@@ -44,9 +44,9 @@ def get_common_template_info(request, template_id):
     include_constants = serializer.validated_data["include_constants"]
     include_notify = serializer.validated_data["include_notify"]
     try:
-        tmpl = CommonTemplate.objects.select_related("pipeline_template").get(
-            id=template_id, is_deleted=False, tenant_id=request.user.tenant_id
-        )
+        tmpl = CommonTemplate.objects.tenant_filter(
+            request.user.tenant_id
+        ).select_related("pipeline_template").get(id=template_id, is_deleted=False)
     except CommonTemplate.DoesNotExist:
         result = {
             "result": False,

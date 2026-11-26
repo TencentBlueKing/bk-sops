@@ -77,9 +77,9 @@ def get_template_info(request, template_id, project_id):
             return result
     else:
         try:
-            tmpl = CommonTemplate.objects.select_related("pipeline_template").get(
-                id=template_id, is_deleted=False, tenant_id=tenant_id
-            )
+            tmpl = CommonTemplate.objects.tenant_filter(
+                tenant_id
+            ).select_related("pipeline_template").get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,

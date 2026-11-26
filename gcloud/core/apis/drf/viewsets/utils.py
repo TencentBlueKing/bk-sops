@@ -165,11 +165,20 @@ class MultiTenantMixin:
     project_id_multi_tenant_filter = False
     taskflow_multi_tenant_filter = False
 
+    def apply_model_tenant_filter(self, queryset, tenant_id):
+        """
+        应用模型级别的多租户过滤
+        子类可以重写此方法来自定义过滤逻辑（如支持 global 模式）
+
+        默认实现：只返回当前租户的数据
+        """
+        return queryset.filter(tenant_id=tenant_id)
+
     def get_queryset(self):
         queryset = super().get_queryset()
         tenant_id = self.request.user.tenant_id
         if self.model_multi_tenant_filter:
-            queryset = queryset.filter(tenant_id=tenant_id)
+            queryset = self.apply_model_tenant_filter(queryset, tenant_id)
         elif self.project_multi_tenant_filter:
             queryset = queryset.filter(project__tenant_id=tenant_id)
         elif self.project_id_multi_tenant_filter:

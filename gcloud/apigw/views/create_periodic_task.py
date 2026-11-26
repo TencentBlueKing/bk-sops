@@ -91,7 +91,7 @@ def create_periodic_task(request, template_id, project_id):
 
     else:
         try:
-            template = CommonTemplate.objects.get(id=template_id, is_deleted=False, tenant_id=tenant_id)
+            template = CommonTemplate.objects.tenant_get(tenant_id, id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,

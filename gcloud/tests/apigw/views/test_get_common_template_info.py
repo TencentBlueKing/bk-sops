@@ -33,10 +33,10 @@ class GetCommonTemplateInfoAPITest(APITest):
 
     def test_get_common_template_info(self):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
-        tmpl = MockCommonTemplate(id=TEST_TEMPLATE_ID, pipeline_template=pt1)
+        tmpl = MockCommonTemplate(id=TEST_TEMPLATE_ID, pipeline_template=pt1, tenant_id="system")
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)

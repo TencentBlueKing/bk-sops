@@ -193,10 +193,10 @@ class CreateTaskAPITest(APITest):
 
             pt1 = MockPipelineTemplate(id=1, name="pt1")
 
-            tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+            tmpl = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
 
             with mock.patch(
-                COMMONTEMPLATE_SELECT_RELATE,
+                COMMONTEMPLATE_TENANT_FILTER,
                 MagicMock(return_value=MockQuerySet(get_result=tmpl)),
             ):
                 assert_data = {
@@ -562,7 +562,7 @@ class CreateTaskAPITest(APITest):
         ),
     )
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
+    @mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet()))
     @mock.patch(
         APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE,
         MagicMock(side_effect=jsonschema.ValidationError("")),
@@ -619,7 +619,7 @@ class CreateTaskAPITest(APITest):
         ),
     )
     @mock.patch(TASKTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
-    @mock.patch(COMMONTEMPLATE_SELECT_RELATE, MagicMock(return_value=MockQuerySet()))
+    @mock.patch(COMMONTEMPLATE_TENANT_FILTER, MagicMock(return_value=MockQuerySet()))
     @mock.patch(TASKINSTANCE_CREATE_PIPELINE, MagicMock(return_value=""))
     @mock.patch(APIGW_CREATE_TASK_JSON_SCHEMA_VALIDATE, MagicMock())
     def test_create_task__without_app_code(self):
@@ -705,10 +705,10 @@ class CreateTaskAPITest(APITest):
 
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
@@ -768,10 +768,10 @@ class CreateTaskAPITest(APITest):
 
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
@@ -844,10 +844,10 @@ class CreateTaskAPITest(APITest):
 
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
@@ -932,10 +932,10 @@ class CreateTaskAPITest(APITest):
 
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(
@@ -1026,10 +1026,10 @@ class CreateTaskAPITest(APITest):
 
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             response = self.client.post(

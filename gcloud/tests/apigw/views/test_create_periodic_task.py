@@ -124,11 +124,11 @@ class CreatePeriodicTaskAPITest(APITest):
             bk_biz_id=TEST_BIZ_CC_ID,
             from_cmdb=True,
         )
-        template = MockCommonTemplate()
+        template = MockCommonTemplate(tenant_id="system")
         template.version = "version"
         replace_template_id_mock = MagicMock()
 
-        with mock.patch(COMMONTEMPLATE_GET, MagicMock(return_value=template)):
+        with mock.patch(COMMONTEMPLATE_TENANT_GET, MagicMock(return_value=template)):
             with mock.patch(PROJECT_GET, MagicMock(return_value=proj)):
                 with mock.patch(PERIODIC_TASK_CREATE, MagicMock(return_value=task)):
                     with mock.patch(

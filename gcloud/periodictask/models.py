@@ -16,6 +16,7 @@ import logging
 import ujson as json
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from pipeline.contrib.periodic_task.models import BAMBOO_ENGINE_TRIGGER_TASK
 from pipeline.contrib.periodic_task.models import PeriodicTask as PipelinePeriodicTask
@@ -23,7 +24,7 @@ from pipeline.contrib.periodic_task.models import PeriodicTaskHistory as Pipelin
 from pipeline.models import PipelineTemplate, Snapshot
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES, PROJECT, TEMPLATE_SOURCE
+from gcloud.constants import COMMON, NON_COMMON_TEMPLATE_TYPES, PROJECT, TEMPLATE_SOURCE, TENANT_MODE_GLOBAL
 from gcloud.core.models import EngineConfig, Project, StaffGroupSet
 from gcloud.periodictask.exceptions import InvalidOperationException
 from gcloud.shortcuts.cmdb import get_business_group_members
@@ -239,9 +240,21 @@ class PeriodicTask(models.Model):
                 name = template.name
         elif self.template_source == COMMON:
             try:
-                template = CommonTemplate.objects.get(id=self.template_id)
+                # 支持全租户和单租户公共流程
+                template = CommonTemplate.objects.filter(
+                    Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=self.project.tenant_id),
+                    id=self.template_id,
+                    is_deleted=False
+                ).first()
+
+                if not template:
+                    raise CommonTemplate.DoesNotExist()
             except CommonTemplate.DoesNotExist:
-                logger.warning(_("公共流程模板[id={template_id}]不存在").format(template_id=self.template_id))
+                logger.warning(
+                    _("公共流程模板[id={template_id}]不存在或无权访问").format(
+                        template_id=self.template_id
+                    )
+                )
             else:
                 name = template.name
         return name
@@ -251,7 +264,19 @@ class PeriodicTask(models.Model):
         if self.template_source in NON_COMMON_TEMPLATE_TYPES:
             return TaskTemplate.objects.get(pk=self.template_id)
         elif self.template_source == COMMON:
-            return CommonTemplate.objects.get(pk=self.template_id)
+            # 支持全租户和单租户公共流程
+            template = CommonTemplate.objects.filter(
+                Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=self.project.tenant_id),
+                pk=self.template_id,
+                is_deleted=False
+            ).first()
+
+            if not template:
+                logger.warning(
+                    f"周期任务[id={self.id}]引用的公共流程[id={self.template_id}]不存在或无权访问"
+                )
+
+            return template
 
     @property
     def template_expired(self):

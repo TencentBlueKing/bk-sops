@@ -46,6 +46,7 @@ from gcloud.constants import (
     TASK_FLOW_TYPE,
     TASKFLOW_NODE_TIMEOUT_CONFIG_BATCH_CREAT_COUNT,
     TEMPLATE_SOURCE,
+    TENANT_MODE_GLOBAL,
     TaskCreateMethod,
 )
 from gcloud.contrib.appmaker.models import AppMaker
@@ -880,7 +881,19 @@ class TaskFlowInstance(models.Model):
         elif self.template_source in NON_COMMON_TEMPLATE_TYPES:
             return TaskTemplate.objects.get(pk=self.template_id)
         else:
-            return CommonTemplate.objects.get(pk=self.template_id)
+            # 支持全租户和单租户公共流程
+            template = CommonTemplate.objects.filter(
+                Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=self.project.tenant_id),
+                pk=self.template_id,
+                is_deleted=False
+            ).first()
+
+            if not template:
+                logger.warning(
+                    f"任务实例[id={self.id}]引用的公共流程[id={self.template_id}]不存在或无权访问"
+                )
+
+            return template
 
     @property
     def executor_proxy(self):

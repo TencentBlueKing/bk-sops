@@ -116,10 +116,10 @@ class GetTemplateInfoAPITest(APITest):
     def test_get_template_info__for_common_template(self):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
 
-        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1)
+        tmpl = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
 
         with mock.patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(get_result=tmpl)),
         ):
             pipeline_tree = copy.deepcopy(tmpl.pipeline_tree)
@@ -152,7 +152,7 @@ class GetTemplateInfoAPITest(APITest):
             self.assertEqual(assert_data, data["data"])
 
     @mock.patch(
-        COMMONTEMPLATE_SELECT_RELATE,
+        COMMONTEMPLATE_TENANT_FILTER,
         MagicMock(return_value=MockQuerySet(get_raise=CommonTemplate.DoesNotExist())),
     )
     @mock.patch(

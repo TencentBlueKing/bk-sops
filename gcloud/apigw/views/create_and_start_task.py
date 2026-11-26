@@ -105,7 +105,9 @@ def create_and_start_task(request, template_id, project_id):
             return result
     else:
         try:
-            tmpl = CommonTemplate.objects.select_related("pipeline_template").get(id=template_id, is_deleted=False)
+            tmpl = CommonTemplate.objects.tenant_filter(
+                request.user.tenant_id
+            ).select_related("pipeline_template").get(id=template_id, is_deleted=False)
         except CommonTemplate.DoesNotExist:
             result = {
                 "result": False,

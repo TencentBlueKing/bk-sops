@@ -13,6 +13,7 @@ specific lan
 
 import logging
 
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions
@@ -21,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import PROJECT
+from gcloud.constants import PROJECT, TENANT_MODE_GLOBAL
 from gcloud.tasktmpl3.apis.drf.permissions import TemplateFormWithSchemesPermissions
 from gcloud.tasktmpl3.apis.drf.serilaziers.form_with_schemes import (
     TemplateFormResponseSerializer,
@@ -57,7 +58,16 @@ class TemplateFormWithSchemesView(APIView):
             if template_source == PROJECT:
                 template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
             else:
-                template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+                # 支持全租户和单租户公共流程
+                tenant_id = request.user.tenant_id
+                template = CommonTemplate.objects.filter(
+                    Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
+                    pk=template_id,
+                    is_deleted=False
+                ).first()
+
+                if not template:
+                    raise CommonTemplate.DoesNotExist()
         except TaskTemplate.DoesNotExist:
             message = _(
                 f"请求参数信息失败: 项目[ID: {project_id}], 模板[ID: {template_id}] 不存在, 请重试. 如持续失败可联系管理员处理 | form_with_schemes"

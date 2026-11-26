@@ -434,7 +434,7 @@ class ModifyTemplateNotifyTmpAPITest(APITest):
 
         with contextlib.ExitStack() as stack:
             stack.enter_context(mock.patch(PROJECT_GET, MagicMock(return_value=proj)))
-            stack.enter_context(mock.patch(COMMONTEMPLATE_GET, MagicMock(return_value=template)))
+            stack.enter_context(mock.patch(COMMONTEMPLATE_TENANT_GET, MagicMock(return_value=template)))
             for patcher in self._common_patches(
                 post_save=mock_post_save,
                 operate_record=mock_operate_record,

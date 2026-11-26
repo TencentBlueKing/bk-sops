@@ -105,7 +105,7 @@ class NewLabelViewSet(ApiMixin, ModelViewSet):
         self.perform_destroy(label)
         return Response({"result": True, "message": "success"})
 
-    @swagger_auto_schema(methods=["get"], auto_schema=AnnotationAutoSchema, ignore_filter_query=True)
+    @swagger_auto_schema(method="get", auto_schema=AnnotationAutoSchema, ignore_filter_query=True)
     @action(methods=["get"], detail=False)
     def list_with_default_labels(self, request, *args, **kwargs):
         """

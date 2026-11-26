@@ -154,13 +154,13 @@ class GetTemplateListAPITest(APITest):
         pt1 = MockPipelineTemplate(id=1, name="pt1")
         pt2 = MockPipelineTemplate(id=2, name="pt2")
 
-        task_tmpl1 = MockCommonTemplate(id=1, pipeline_template=pt1)
-        task_tmpl2 = MockCommonTemplate(id=2, pipeline_template=pt2)
+        task_tmpl1 = MockCommonTemplate(id=1, pipeline_template=pt1, tenant_id="system")
+        task_tmpl2 = MockCommonTemplate(id=2, pipeline_template=pt2, tenant_id="system")
 
         task_templates = [task_tmpl1, task_tmpl2]
 
         with patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(filter_result=task_templates)),
         ), patch(
             MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS, MagicMock(return_value=TEST_ALLOWED_ACTIONS)
@@ -208,8 +208,10 @@ class GetTemplateListAPITest(APITest):
             self.assertEqual(data["data"], assert_data)
 
         with patch(
-            COMMONTEMPLATE_SELECT_RELATE,
+            COMMONTEMPLATE_TENANT_FILTER,
             MagicMock(return_value=MockQuerySet(filter_result=[])),
+        ), patch(
+            MOCK_GET_COMMON_FLOW_ALLOWED_ACTIONS, MagicMock(return_value={})
         ):
             assert_data = []
 
