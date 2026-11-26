@@ -18,7 +18,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from gcloud import err_code
-from gcloud.constants import TENANT_MODE_CHOICES, TENANT_MODE_SINGLE
+from gcloud.constants import TENANT_MODE_CHOICES, TENANT_MODE_GLOBAL, TENANT_MODE_SINGLE
 from gcloud.core.utils.sites.open.tenant_tools import get_current_tenant_id
 from gcloud.exceptions import FlowExportError
 from gcloud.template_base.models import BaseTemplate, BaseTemplateManager
@@ -37,21 +37,23 @@ class CommonTemplateManager(BaseTemplateManager):
         """
         多租户过滤查询集
 
+        仅返回「租户可见且未删除」的流程，内部已强制过滤 is_deleted=False，调用方无需重复添加。
+
         :param tenant_id: 租户ID
         :param include_global: 是否包含全局模式的流程（默认 True）
         :return: 过滤后的查询集
 
         使用示例:
             # 获取租户可见的所有流程（包括 global）
-            CommonTemplate.objects.tenant_filter(tenant_id).filter(is_deleted=False)
+            CommonTemplate.objects.tenant_filter(tenant_id)
 
             # 只获取租户自己的流程（不包括 global）
-            CommonTemplate.objects.tenant_filter(tenant_id, include_global=False).filter(is_deleted=False)
+            CommonTemplate.objects.tenant_filter(tenant_id, include_global=False)
         """
         if include_global:
-            return self.filter(Q(tenant_mode='global') | Q(tenant_id=tenant_id))
+            return self.filter(Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id), is_deleted=False)
         else:
-            return self.filter(tenant_id=tenant_id)
+            return self.filter(tenant_id=tenant_id, is_deleted=False)
 
     def tenant_get(self, tenant_id, include_global=True, **kwargs):
         """

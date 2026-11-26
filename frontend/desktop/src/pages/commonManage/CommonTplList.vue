@@ -131,6 +131,7 @@
                                         @click.prevent="getJumpUrl('view', row.id)">
                                         {{row.name}}
                                     </a>
+                                    <span v-if="row.tenant_mode === 'global'" class="global-tag">{{ $t('全局') }}</span>
                                 </div>
                                 <!--子流程更新-->
                                 <div v-else-if="item.id === 'subprocess_has_update'" :class="['subflow-update', { 'subflow-has-update': row.subprocess_has_update }]">
@@ -1556,6 +1557,18 @@ a {
     }
     a.template-name {
         color: $blueDefault;
+    }
+    .global-tag {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 0 6px;
+        height: 18px;
+        line-height: 18px;
+        font-size: 12px;
+        color: #3a84ff;
+        background: #edf4ff;
+        border-radius: 2px;
+        vertical-align: middle;
     }
     .template-operation > .text-permission-disable {
         padding: 5px;

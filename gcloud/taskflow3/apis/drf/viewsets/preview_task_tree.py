@@ -12,8 +12,7 @@ specific lan
 """
 import logging
 
-from gcloud.core.models import Project
-from django.db.models import Max, Q, Value
+from django.db.models import Max, Value
 from django.utils.translation import gettext_lazy as _
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import permissions, serializers
@@ -22,12 +21,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import PROJECT, TENANT_MODE_GLOBAL
-from gcloud.template_base.utils import replace_biz_id_value
+from gcloud.constants import PROJECT
+from gcloud.core.models import Project
 from gcloud.iam_auth import IAMMeta, get_iam_client, res_factory
 from gcloud.iam_auth.creator import is_flow_creator
 from gcloud.iam_auth.models import Action, Subject
 from gcloud.iam_auth.shortcuts import allow_or_raise_auth_failed
+from gcloud.template_base.utils import replace_biz_id_value
 from gcloud.taskflow3.models import TaskFlowInstance
 from gcloud.tasktmpl3.models import TaskTemplate
 from pipeline_web.preview import preview_template_tree_with_schemes
@@ -101,18 +101,10 @@ class PreviewTaskTreeWithSchemesView(APIView):
             if template_source == PROJECT:
                 template = TaskTemplate.objects.get(pk=template_id, is_deleted=False, project_id=project_id)
             else:
-                # 支持全租户和单租户公共流程
-                if tenant_id is not None:
-                    template = CommonTemplate.objects.filter(
-                        Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id),
-                        pk=template_id,
-                        is_deleted=False
-                    ).first()
-                    if not template:
-                        raise CommonTemplate.DoesNotExist()
-                else:
-                    # 兼容测试场景：tenant_id为None时使用原有逻辑
-                    template = CommonTemplate.objects.get(pk=template_id, is_deleted=False)
+                # 支持全租户和单租户公共流程；未命中时抛出 DoesNotExist
+                template = CommonTemplate.objects.tenant_get(
+                    tenant_id, pk=template_id, is_deleted=False
+                )
         except TaskTemplate.DoesNotExist:
             message = _(f"请求任务数据失败: 任务关联的流程[ID: {template_id}]已不存在, 项目[ID: {project_id}] 请检查 | preview_task_tree")
             logger.error(message)

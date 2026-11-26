@@ -116,6 +116,15 @@
                             }">
                         </i>
                     </bk-form-item>
+                    <bk-form-item v-if="common && isMultiTenantMode && isSuperUser"
+                        :label="$t('全局共享')"
+                        data-test-id="tabTemplateConfig_form_tenantMode">
+                        <bk-switcher
+                            v-model="isGlobalTenantMode"
+                            :disabled="isViewMode">
+                        </bk-switcher>
+                        <span class="tenant-mode-tip">{{ $t('开启后该公共流程对所有租户可见（读共享），仅创建者租户可编辑/删除') }}</span>
+                    </bk-form-item>
                     <bk-form-item v-if="common"
                         property="project_scope"
                         :label="$t('可见范围')"
@@ -331,7 +340,8 @@
             const {
                 name, category, notify_type, notify_receivers, description,
                 executor_proxy, template_labels, default_flow_type, project_scope, template_id,
-                webhook_configs, enable_webhook, ai_analysis_notify_group, ai_analysis_notify_type
+                webhook_configs, enable_webhook, ai_analysis_notify_group, ai_analysis_notify_type,
+                tenant_mode
             } = this.$store.state.template
             const { extra_info: extraInfo = {} } = notify_receivers
             // 将数组转换为字符串用于表单显示
@@ -349,6 +359,7 @@
                     labels: template_labels,
                     defaultFlowType: default_flow_type,
                     project_scope: project_scope,
+                    tenant_mode: tenant_mode || 'single',
                     template_id: template_id,
                     webhookConfigs: tools.deepClone(webhook_configs),
                     aiAnalysisNotifyType: tools.deepClone(ai_analysis_notify_type),
@@ -429,7 +440,9 @@
             ...mapState({
                 'username': state => state.username,
                 'timeout': state => state.template.time_out,
-                'infoBasicConfig': state => state.infoBasicConfig
+                'infoBasicConfig': state => state.infoBasicConfig,
+                'isSuperUser': state => state.isSuperUser,
+                'isMultiTenantMode': state => state.isMultiTenantMode
             }),
             ...mapState('project', {
                 'projectId': state => state.project_id,
@@ -445,6 +458,14 @@
                 return {
                     isAllScope: this.isOutermostBaseInfoAllProjectScope,
                     projectIds: this.baseInfoProjectScopeList.slice()
+                }
+            },
+            isGlobalTenantMode: {
+                get () {
+                    return this.formData.tenant_mode === 'global'
+                },
+                set (val) {
+                    this.formData.tenant_mode = val ? 'global' : 'single'
                 }
             }
         },
@@ -586,6 +607,7 @@
                     notify_type_extra_info: notifyTypeExtraInfo,
                     default_flow_type: defaultFlowType,
                     project_scope: localProjectList,
+                    tenant_mode: this.formData.tenant_mode,
                     webhookConfigs: webhookConfigs,
                     enable_webhook: this.enable_webhook,
                     ai_analysis_notify_type: aiAnalysisNotifyType,
@@ -667,7 +689,7 @@
                     this.closeTab()
                     return true
                 }
-                const { name, category, description, template_labels, executor_proxy, notify_receivers, notify_type, default_flow_type } = this.$store.state.template
+                const { name, category, description, template_labels, executor_proxy, notify_receivers, notify_type, default_flow_type, tenant_mode } = this.$store.state.template
                 const originData = {
                     name,
                     category,
@@ -676,7 +698,8 @@
                     executor_proxy,
                     receiver_group: notify_receivers.receiver_group,
                     notify_type,
-                    default_flow_type
+                    default_flow_type,
+                    tenant_mode
                 }
                 const editingData = this.getTemplateConfig()
                 if (tools.isDataEqual(originData, editingData)) {
@@ -859,6 +882,11 @@
             }
         }
     }
+}
+.tenant-mode-tip {
+    margin-left: 10px;
+    font-size: 12px;
+    color: #979ba5;
 }
 
 </style>

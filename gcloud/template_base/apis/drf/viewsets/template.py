@@ -21,6 +21,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import TENANT_MODE_GLOBAL
 from gcloud.contrib.audit.operations import audit_deleted_templates
 from gcloud.core.apis.drf.viewsets import ApiMixin
 from gcloud.tasktmpl3.models import TaskTemplate
@@ -83,5 +84,5 @@ class CommonTemplateViewSet(TemplateViewSet):
         queryset = super().get_queryset()
         tenant_id = self.request.user.tenant_id
         # 支持全局流程：返回 global 流程 + 本租户的流程
-        queryset = queryset.filter(Q(tenant_mode='global') | Q(tenant_id=tenant_id))
+        queryset = queryset.filter(Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id))
         return queryset

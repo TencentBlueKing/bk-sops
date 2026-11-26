@@ -16,7 +16,14 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from gcloud.common_template.models import CommonTemplate
-from gcloud.constants import COMMON, DATETIME_FORMAT, TASK_CATEGORY
+from gcloud.constants import (
+    COMMON,
+    DATETIME_FORMAT,
+    TASK_CATEGORY,
+    TENANT_MODE_CHOICES,
+    TENANT_MODE_GLOBAL,
+    TENANT_MODE_SINGLE,
+)
 from gcloud.core.apis.drf.serilaziers.template import BaseTemplateSerializer
 from gcloud.core.models import Project
 
@@ -88,6 +95,11 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
         help_text="pipeline模板ID", source="pipeline_template.id", read_only=True
     )
     tenant_id = serializers.CharField(help_text="租户ID", required=False)
+    tenant_mode = serializers.ChoiceField(
+        choices=TENANT_MODE_CHOICES,
+        help_text="租户模式：single 单租户（默认）；global 全租户（读共享、写隔离，仅平台管理员可设置）",
+        required=False,
+    )
     project_scope = serializers.ListSerializer(
         child=serializers.CharField(), help_text="流程使用范围", allow_empty=False, source="extra_info.project_scope"
     )
@@ -215,6 +227,15 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
         user = getattr(self.context.get("request"), "user", None)
         attrs["tenant_id"] = user.tenant_id
 
+        # 多租户模式校验：global（读共享）仅平台管理员可设置，避免任意租户污染全平台公共流程
+        tenant_mode = attrs.get("tenant_mode")
+        if tenant_mode == TENANT_MODE_GLOBAL:
+            if not getattr(user, "is_superuser", False):
+                raise serializers.ValidationError(_("仅平台管理员可将公共流程设置为全局共享模式"))
+        elif tenant_mode is None and self.instance is None:
+            # 新建且未显式指定时，默认单租户模式；更新时未指定则保持原值
+            attrs["tenant_mode"] = TENANT_MODE_SINGLE
+
         project_scope = attrs.get("extra_info").get("project_scope")
         request = self.context.get("request")
         if project_scope != ["*"]:
@@ -257,6 +278,7 @@ class CreateCommonTemplateSerializer(BaseTemplateSerializer):
             "version",
             "pipeline_template",
             "tenant_id",
+            "tenant_mode",
             "project_scope",
         ]
 

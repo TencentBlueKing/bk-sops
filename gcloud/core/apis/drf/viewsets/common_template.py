@@ -27,6 +27,7 @@ from rest_framework.response import Response
 
 from gcloud import err_code
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import TENANT_MODE_GLOBAL
 from gcloud.common_template.signals import post_template_save_commit
 from gcloud.contrib.audit.utils import bk_audit_add_event
 from gcloud.contrib.collection.models import Collection
@@ -124,7 +125,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         - tenant_mode='global': 所有租户可见（读共享）
         - tenant_mode='single': 只有对应租户可见（租户隔离）
         """
-        return queryset.filter(Q(tenant_mode='global') | Q(tenant_id=tenant_id))
+        return queryset.filter(Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=tenant_id))
 
     @staticmethod
     def iam_resource_helper(tenant_id):
@@ -281,7 +282,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
         # 安全检查：全局流程只能由创建者租户编辑
         # 理念：全局流程"读共享、写隔离"
-        if template.tenant_mode == 'global' and template.tenant_id != request.user.tenant_id:
+        if template.tenant_mode == TENANT_MODE_GLOBAL and template.tenant_id != request.user.tenant_id:
             raise PermissionDenied(
                 "Cannot edit global template created by other tenant. "
                 "Global templates can only be edited by the creator tenant."
@@ -338,7 +339,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
         template = self.get_object()
 
         # 安全检查：全局流程只能由创建者租户编辑
-        if template.tenant_mode == 'global' and template.tenant_id != request.user.tenant_id:
+        if template.tenant_mode == TENANT_MODE_GLOBAL and template.tenant_id != request.user.tenant_id:
             raise PermissionDenied(
                 "Cannot edit global template created by other tenant. "
                 "Global templates can only be edited by the creator tenant."
@@ -374,7 +375,7 @@ class CommonTemplateViewSet(GcloudModelViewSet):
 
         # 安全检查：全局流程只能由创建者租户删除
         # 理念：全局流程"读共享、写隔离"
-        if template.tenant_mode == 'global' and template.tenant_id != request.user.tenant_id:
+        if template.tenant_mode == TENANT_MODE_GLOBAL and template.tenant_id != request.user.tenant_id:
             raise PermissionDenied(
                 "Cannot delete global template created by other tenant. "
                 "Global templates can only be deleted by the creator tenant."
