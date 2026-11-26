@@ -89,6 +89,7 @@
                                         @click.prevent="getJumpUrl('view', row.id)">
                                         {{row.name}}
                                     </a>
+                                    <span v-if="row.tenant_mode === 'global'" class="global-tag">{{ $t('全局') }}</span>
                                 </div>
                                 <template v-else-if="['creator_name', 'editor_name'].includes(item.id)">
                                     <UserDisplayName :name="row[item.id]" />
@@ -855,6 +856,18 @@ a {
     }
     a.template-name {
         color: $blueDefault;
+    }
+    .global-tag {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 0 6px;
+        height: 18px;
+        line-height: 18px;
+        font-size: 12px;
+        color: #3a84ff;
+        background: #edf4ff;
+        border-radius: 2px;
+        vertical-align: middle;
     }
     .template-operation > .text-permission-disable {
         padding: 5px;

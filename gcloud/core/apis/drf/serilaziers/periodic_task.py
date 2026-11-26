@@ -14,6 +14,7 @@ import logging
 
 import ujson as json
 from croniter import croniter
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import CrontabSchedule as DjangoCeleryBeatCrontabSchedule
@@ -81,7 +82,14 @@ class PeriodicTaskReadOnlySerializer(serializers.ModelSerializer):
     template_expired = serializers.BooleanField(allow_null=True, read_only=True, help_text="周期任务的流程是否已过时")
 
     def get_is_latest(self, obj):
-        return obj.template_version == obj.template.version if obj.template_version else None
+        if not obj.template_version:
+            return None
+        try:
+            return obj.template_version == obj.template.version
+        except ObjectDoesNotExist:
+            # 关联流程模板已被删除或当前租户不可见（如 global 流程被切回 single），
+            # 降级返回 None，避免整个列表接口报错
+            return None
 
     def get_template_scheme_ids(self, obj):
         try:
