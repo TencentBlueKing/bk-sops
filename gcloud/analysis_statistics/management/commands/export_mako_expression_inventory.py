@@ -537,8 +537,8 @@ class Command(BaseCommand):
                 pipeline_id = str(row["pipeline_template_id"])
                 parent_key_to_pipeline_id[key] = pipeline_id
                 pipeline_to_parent_keys[pipeline_id].append(key)
-            for row in CommonTemplate.objects.filter(
-                tenant_id=self.tenant_id, pipeline_template_id__in=id_chunk, is_deleted=False
+            for row in CommonTemplate.objects.tenant_filter(self.tenant_id).filter(
+                pipeline_template_id__in=id_chunk
             ).values("id", "pipeline_template_id"):
                 key = (COMMON, str(row["id"]))
                 pipeline_id = str(row["pipeline_template_id"])

@@ -14,6 +14,7 @@ from rest_framework import permissions
 from rest_framework.exceptions import PermissionDenied
 
 from gcloud.common_template.models import CommonTemplate
+from gcloud.constants import TENANT_MODE_GLOBAL
 from gcloud.iam_auth import IAMMeta, PermissionService, get_iam_client, res_factory
 from gcloud.iam_auth.creator import is_flow_creator
 from gcloud.iam_auth.models import Action, Subject
@@ -63,10 +64,10 @@ class TemplatePermissionMixin:
                 .filter(id__in=template_ids, is_deleted=False)
             )
 
-            # 🔒 安全检查：全局流程只能由创建者租户删除
+            # 安全检查：全局流程只能由创建者租户删除
             # 理念：全局流程"读共享、写隔离"
             for template in templates:
-                if template.tenant_mode == 'global' and template.tenant_id != tenant_id:
+                if template.tenant_mode == TENANT_MODE_GLOBAL and template.tenant_id != tenant_id:
                     raise PermissionDenied(
                         "Cannot delete global template created by other tenant. "
                         "Global templates can only be deleted by the creator tenant."

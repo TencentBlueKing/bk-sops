@@ -14,10 +14,8 @@ import logging
 
 from django.apps import apps
 from django.db import transaction
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from gcloud.constants import TENANT_MODE_GLOBAL
 from ...common_template.models import CommonTemplate
 from ..utils import replace_biz_id_value
 from .template_manager import TemplateManager
@@ -95,17 +93,10 @@ class TemplateImporter:
 
                             project = Project.objects.get(id=project_id)
 
-                            # 支持全租户和单租户公共流程
-                            template = CommonTemplate.objects.filter(
-                                Q(tenant_mode=TENANT_MODE_GLOBAL) | Q(tenant_id=project.tenant_id),
-                                id=template_id,
-                                is_deleted=False
-                            ).first()
-
-                            if not template:
-                                raise Exception(
-                                    f"公共流程[id={template_id}]不存在或租户[{project.tenant_id}]无权访问"
-                                )
+                            # 支持全租户和单租户公共流程；未命中时抛出 DoesNotExist 以匹配外层异常契约
+                            template = CommonTemplate.objects.tenant_get(
+                                project.tenant_id, id=template_id, is_deleted=False
+                            )
 
                             # 检查项目可见范围
                             result = CommonTemplate.objects.check_template_project_scope(project_id, template_id)

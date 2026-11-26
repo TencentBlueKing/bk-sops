@@ -96,7 +96,12 @@ def get_default_project_for_user(username, tenant_id):
     if not username:
         return None
 
-    projects = get_user_projects(username, tenant_id).filter(is_disable=False)
+    # IAM 鉴权接口异常时兜底返回 None，避免异常冒泡到 context_processor 打挂主页
+    try:
+        projects = get_user_projects(username, tenant_id).filter(is_disable=False)
+    except Exception:
+        logger.exception("get user projects for default project failed")
+        return None
 
     try:
         default_project_id = UserDefaultProject.objects.get(username=username).default_project_id

@@ -205,6 +205,7 @@ const template = {
         internalVariable: [],
         default_flow_type: 'common',
         project_scope: [],
+        tenant_mode: 'single',
         webhook_configs: {},
         enable_webhook: false,
         ai_analysis_notify_type: {},
@@ -249,13 +250,14 @@ const template = {
             state.template_labels = []
             state.default_flow_type = 'common'
             state.outputs = []
+            state.tenant_mode = 'single'
             state.webhook_configs = {}
             state.ai_analysis_notify_group = {}
             state.ai_analysis_notify_type = {}
         },
         setTplConfig (state, data) {
             const { name, category, notify_type, receiver_group, description, executor_proxy,
-                template_labels, default_flow_type, notify_type_extra_info, project_scope,
+                template_labels, default_flow_type, notify_type_extra_info, project_scope, tenant_mode,
                 webhookConfigs, enable_webhook, ai_analysis_notify_type, ai_analysis_notify_group } = data
             state.name = name
             state.category = category
@@ -267,6 +269,7 @@ const template = {
             state.template_labels = template_labels
             state.default_flow_type = default_flow_type
             state.project_scope = project_scope
+            state.tenant_mode = tenant_mode
             state.webhook_configs = webhookConfigs
             state.enable_webhook = enable_webhook
             state.ai_analysis_notify_type = ai_analysis_notify_type || {}
@@ -363,7 +366,7 @@ const template = {
         setTemplateData (state, data) {
             const {
                 name, template_id, pipeline_tree, notify_receivers, template_labels, notify_type, description,
-                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope,
+                executor_proxy, time_out, category, subprocess_info, default_flow_type, project_scope, tenant_mode,
                 webhook_configs, enable_webhook, ai_notify_group, ai_notify_type
             } = data
 
@@ -383,6 +386,7 @@ const template = {
             state.subprocess_info = subprocess_info
             state.default_flow_type = default_flow_type
             state.project_scope = project_scope
+            state.tenant_mode = tenant_mode
             state.webhook_configs = webhook_configs
             state.enable_webhook = enable_webhook
             state.ai_analysis_notify_group = ai_notify_group || {}
@@ -427,6 +431,7 @@ const template = {
             state.init_executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
+            state.tenant_mode = 'single'
             state.webhook_configs = {}
             state.ai_analysis_notify_group = {}
             state.ai_analysis_notify_type = {}
@@ -457,6 +462,7 @@ const template = {
             state.init_executor_proxy = ''
             state.template_labels = []
             state.default_flow_type = 'common'
+            state.tenant_mode = 'single'
         },
         // 增加全局变量
         addVariable (state, variable) {
@@ -1016,7 +1022,7 @@ const template = {
             const { activities, constants, end_event, flows, gateways, line,
                 location, outputs, start_event, notify_receivers, notify_type,
                 time_out, category, description, executor_proxy, template_labels, default_flow_type,
-                init_executor_proxy, project_scope, webhook_configs, enable_webhook,
+                init_executor_proxy, project_scope, tenant_mode, webhook_configs, enable_webhook,
                 ai_analysis_notify_group, ai_analysis_notify_type
             } = state
             // 剔除 location 的冗余字段
@@ -1099,7 +1105,7 @@ const template = {
             }
             // 新增用post, 编辑用patch
             const method = templateId === undefined ? 'post' : common ? 'put' : 'patch'
-            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: project_scope.length > 0 ? project_scope : ['*'] } : { ...params, project_scope }) : { ...params, webhook_configs, enable_webhook }, {
+            return axios[method](url, common ? (templateId === undefined ? { ...params, project_scope: project_scope.length > 0 ? project_scope : ['*'], tenant_mode } : { ...params, project_scope, tenant_mode }) : { ...params, webhook_configs, enable_webhook }, {
                 headers
             }).then(response => {
                 if (common && templateId === undefined) {

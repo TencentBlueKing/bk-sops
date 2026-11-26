@@ -136,3 +136,12 @@ class GetDefaultProjectForUserTestCase(TestCase):
             project = get_default_project_for_user(self.username, "default")
 
         self.assertEqual(project.id, self.allowed_project.id)
+
+    def test_get_default_project_returns_none_when_iam_query_fails(self):
+        with patch(
+            "gcloud.core.project.get_user_projects",
+            side_effect=Exception("iam unavailable"),
+        ):
+            project = get_default_project_for_user(self.username, "default")
+
+        self.assertIsNone(project)
