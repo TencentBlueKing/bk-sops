@@ -5,6 +5,6 @@ metadata:
   name: 标准运维-脚本审查
   description: 审查用户在 Job 自动化运维平台上编写的业务逻辑代码
 spec:
-  generate_type: {{ GENERATE_TYPE }}
+  generate_type: '{{ GENERATE_TYPE | default("global") }}'
   is_public: true
   tag_names: []
