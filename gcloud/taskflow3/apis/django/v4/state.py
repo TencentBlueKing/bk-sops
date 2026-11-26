@@ -18,8 +18,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_GET
 
 from gcloud import err_code
-from gcloud.iam_auth.intercept import iam_intercept
-from gcloud.iam_auth.view_interceptors.taskflow import StatusViewInterceptor
 from gcloud.taskflow3.apis.django.validators import StatusValidator
 from gcloud.taskflow3.domains.dispatchers import TaskCommandDispatcher
 from gcloud.taskflow3.models import TaskFlowInstance
@@ -30,7 +28,6 @@ logger = logging.getLogger("root")
 
 @require_GET
 @request_validate(StatusValidator)
-@iam_intercept(StatusViewInterceptor())
 def root_state(request, project_id):
     instance_id = request.GET.get("instance_id")
     subprocess_id = request.GET.get("subprocess_id")
