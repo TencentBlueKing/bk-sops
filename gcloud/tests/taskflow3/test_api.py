@@ -257,10 +257,15 @@ class APITest(TestCase):
             self.assertTrue(result["result"])
             self.assertIsNone(result["data"]["last_execution_id"])
 
-    @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
-    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.select_related")
-    @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
-    def test_last_execution_constants__success(self, mock_filter, mock_select_related):
+    @patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
+    @patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.select_related")
+    @patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    @patch("gcloud.iam_auth.view_interceptors.project.allow_or_raise_auth_failed")
+    @patch(
+        "gcloud.iam_auth.view_interceptors.project.res_factory.resources_for_project",
+        MagicMock(return_value=["project"]),
+    )
+    def test_last_execution_constants__success(self, _allow_auth, mock_filter, mock_select_related):
         mock_pipeline_instance = MagicMock()
         mock_pipeline_instance.execution_data = {
             "constants": {
@@ -295,7 +300,7 @@ class APITest(TestCase):
 
         request = MockJsonBodyRequest("GET", {})
         request.GET = {"template_id": "1", "template_source": "project"}
-        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+        result = api.last_execution_constants(request, project_id=TEST_PROJECT_ID)
 
         self.assertTrue(result["result"])
         self.assertEqual(result["data"]["task_id"], 123)
@@ -309,17 +314,23 @@ class APITest(TestCase):
         self.assertEqual(returned_ip["custom_type"], "input")
         mock_filter.return_value.aggregate.assert_called_once()
         self.assert_last_execution_boolean_filters(mock_filter)
+        self.assertEqual(mock_filter.call_args.kwargs["project__tenant_id"], request.user.tenant_id)
         mock_select_related.assert_called_once_with("pipeline_instance")
         mock_select_related.return_value.get.assert_called_once_with(id=123)
 
     @mock.patch("gcloud.taskflow3.apis.django.api.JsonResponse", MockJsonResponse())
     @mock.patch("gcloud.taskflow3.apis.django.api.TaskFlowInstance.objects.filter")
+    @mock.patch("gcloud.iam_auth.view_interceptors.project.allow_or_raise_auth_failed", MagicMock())
+    @mock.patch(
+        "gcloud.iam_auth.view_interceptors.project.res_factory.resources_for_project",
+        MagicMock(return_value=["project"]),
+    )
     def test_last_execution_constants__no_history(self, mock_filter):
         mock_filter.return_value.aggregate.return_value = {"max_id": None}
 
         request = MockJsonBodyRequest("GET", {})
         request.GET = {"template_id": "1", "template_source": "project"}
-        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+        result = api.last_execution_constants(request, project_id=TEST_PROJECT_ID)
 
         self.assertFalse(result["result"])
 
@@ -433,7 +444,7 @@ class APITest(TestCase):
     def test_last_execution_constants__invalid_template_source(self):
         request = MockJsonBodyRequest("GET", {})
         request.GET = {"template_id": "1", "template_source": "onetime"}
-        result = api.last_execution_constants(request, TEST_PROJECT_ID)
+        result = api.last_execution_constants(request, project_id=TEST_PROJECT_ID)
 
         self.assertFalse(result["result"])
         self.assertIn("template_source", result["message"])

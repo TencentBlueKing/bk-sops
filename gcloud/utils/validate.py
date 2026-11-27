@@ -25,6 +25,8 @@ logger = logging.getLogger("root")
 
 HTTP_PLUGIN_ALLOWED_SCHEMES = {"http", "https"}
 UNSAFE_IP_ATTRS = ("is_private", "is_loopback", "is_link_local", "is_multicast", "is_reserved", "is_unspecified")
+# 允许内网地址时仍然拒绝本机、链路本地（含云厂商元数据地址）等目标
+ALWAYS_UNSAFE_IP_ATTRS = ("is_loopback", "is_link_local", "is_multicast", "is_reserved", "is_unspecified")
 
 
 def get_top_level_domain(url):
@@ -79,11 +81,12 @@ def host_match_allowed_domains(hostname, allowed_domains):
     return False
 
 
-def is_safe_ip_address(ip):
+def is_safe_ip_address(ip, allow_private=False):
     if getattr(ip, "ipv4_mapped", None):
-        return is_safe_ip_address(ip.ipv4_mapped)
+        return is_safe_ip_address(ip.ipv4_mapped, allow_private)
 
-    for attr in UNSAFE_IP_ATTRS:
+    unsafe_attrs = ALWAYS_UNSAFE_IP_ATTRS if allow_private else UNSAFE_IP_ATTRS
+    for attr in unsafe_attrs:
         if getattr(ip, attr):
             return False
     return True
@@ -114,16 +117,38 @@ def resolve_host_ips(hostname):
     return list(ips)
 
 
-def host_resolves_to_safe_ips(hostname):
+def host_resolves_to_safe_ips(hostname, allow_private=False):
     ip = parse_ip_address(hostname)
     if ip:
-        return is_safe_ip_address(ip)
+        return is_safe_ip_address(ip, allow_private)
 
     ips = resolve_host_ips(hostname)
     if not ips:
         return False
 
-    return all(is_safe_ip_address(ip) for ip in ips)
+    return all(is_safe_ip_address(ip, allow_private) for ip in ips)
+
+
+def split_domains(domains):
+    if not domains:
+        return []
+    if isinstance(domains, str):
+        domains = domains.split(",")
+    return [normalize_domain(domain) for domain in domains if domain and domain.strip()]
+
+
+def validate_url_with_domains(url, allowed_domains, allow_private=False):
+    hostname = get_url_hostname(url)
+    if not hostname:
+        return False, allowed_domains
+
+    if not host_match_allowed_domains(hostname, allowed_domains):
+        return False, allowed_domains
+
+    if not host_resolves_to_safe_ips(hostname, allow_private):
+        return False, allowed_domains
+
+    return True, []
 
 
 class RequestValidator(object, metaclass=ABCMeta):
@@ -171,14 +196,35 @@ class DomainValidator(object):
         else:
             allowed_domains = [normalize_domain(domain) for domain in settings.ALLOWED_HTTP_PLUGIN_DOMAINS.split(",")]
 
-        hostname = get_url_hostname(url)
-        if not hostname:
-            return False, allowed_domains
+        return validate_url_with_domains(url, allowed_domains)
 
-        if not host_match_allowed_domains(hostname, allowed_domains):
-            return False, allowed_domains
 
-        if not host_resolves_to_safe_ips(hostname):
-            return False, allowed_domains
+class OutboundCallbackValidator(object):
+    """任务回调、模板 webhook、AI 群通知等由服务端主动发出的请求地址校验。
 
-        return True, []
+    与 HTTP 插件白名单分开配置，避免为了放行回调地址而放宽插件可访问的范围。
+    """
+
+    @staticmethod
+    def validate(url, extra_allowed_domains=None):
+        """
+        return is_valid(bool), allowed_domains(list)
+        """
+        if not getattr(settings, "ENABLE_OUTBOUND_CALLBACK_DOMAINS_CHECK", True):
+            return True, []
+
+        allowed_domains = split_domains(getattr(settings, "ALLOWED_OUTBOUND_CALLBACK_DOMAINS", ""))
+        if not allowed_domains:
+            # 未配置时只允许访问蓝鲸域名
+            allowed_domains = [get_top_level_domain(settings.BK_URL)]
+        allowed_domains.extend(split_domains(extra_allowed_domains))
+
+        return validate_url_with_domains(
+            url,
+            allowed_domains,
+            allow_private=getattr(settings, "ALLOW_OUTBOUND_CALLBACK_PRIVATE_IP", False),
+        )
+
+    @classmethod
+    def validate_ai_notify_webhook(cls, url):
+        return cls.validate(url, extra_allowed_domains=getattr(settings, "ALLOWED_AI_NOTIFY_WEBHOOK_DOMAINS", ""))
