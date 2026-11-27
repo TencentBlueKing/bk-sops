@@ -17,6 +17,10 @@ spec:
         force_check:
           value: true
       version: legacy
+    ignore_error: false
+    can_retry: true
+    can_skip: true
+    stage_name: ''
     auto_retry:
       enable: false
       interval: 0
@@ -26,10 +30,15 @@ spec:
         name: 执行结果
         key: ${_result}
         hide: true
+    timeout_config:
+      enable: false
+      seconds: 10
+      action: forced_fail
   - id: t1_node3
     type: SubProcess
     name: yaml导出样例子流程
     template_id: template3
+    always_use_latest: false
     data:
       ${description}:
         value: ''
@@ -66,10 +75,18 @@ spec:
         force_check:
           value: true
       version: legacy
+    ignore_error: false
+    can_retry: true
+    can_skip: true
+    stage_name: ''
     auto_retry:
       enable: false
       interval: 0
       times: 1
+    timeout_config:
+      enable: false
+      seconds: 10
+      action: forced_fail
     output:
       _loop:
         name: 循环次数
@@ -86,10 +103,18 @@ spec:
         force_check:
           value: true
       version: legacy
+    ignore_error: false
+    can_retry: true
+    can_skip: true
+    stage_name: ''
     auto_retry:
       enable: false
       interval: 0
       times: 1
+    timeout_config:
+      enable: false
+      seconds: 10
+      action: forced_fail
   - id: t2_node4
     type: ExclusiveGateway
     conditions:
@@ -142,10 +167,18 @@ spec:
           key: ${description}
           source_tag: "pause_node.description"
       version: legacy
+    ignore_error: false
+    can_retry: true
+    can_skip: true
+    stage_name: ''
     auto_retry:
       enable: false
       interval: 0
       times: 1
+    timeout_config:
+      enable: false
+      seconds: 10
+      action: forced_fail
     next:
     - t3_node5
   - id: t3_node4
@@ -159,10 +192,18 @@ spec:
         force_check:
           value: true
       version: legacy
+    ignore_error: false
+    can_retry: true
+    can_skip: true
+    stage_name: ''
     auto_retry:
       enable: false
       interval: 0
       times: 1
+    timeout_config:
+      enable: false
+      seconds: 10
+      action: forced_fail
     output:
       _result:
         name: 执行结果
@@ -185,10 +226,18 @@ spec:
         description:
           value: ''
       version: legacy
+    ignore_error: false
+    can_retry: true
+    can_skip: true
+    stage_name: ''
     auto_retry:
       enable: false
       interval: 0
       times: 1
+    timeout_config:
+      enable: false
+      seconds: 10
+      action: forced_fail
     next:
     - t3_node8
   - id: t3_node7
@@ -200,10 +249,18 @@ spec:
         description:
           value: ''
       version: legacy
+    ignore_error: false
+    can_retry: true
+    can_skip: true
+    stage_name: ''
     auto_retry:
       enable: false
       interval: 0
       times: 1
+    timeout_config:
+      enable: false
+      seconds: 10
+      action: forced_fail
     next:
     - t3_node8
   - id: t3_node8
