@@ -19,8 +19,11 @@ from django.utils.translation import gettext_lazy as _
 from iam.contrib.http import HTTP_AUTH_FORBIDDEN_CODE
 from iam.exceptions import RawAuthFailedException
 
+import env
+from api.collections.nodemgr import BKNodemgrClient
 from api.utils.request import batch_request
 from gcloud.conf import settings
+from gcloud.exceptions import ApiRequestError
 from gcloud.utils import cmdb
 from gcloud.utils.data_handler import chunk_data
 from gcloud.utils.handlers import handle_api_error
@@ -172,30 +175,40 @@ def cmdb_search_host(request, bk_biz_id):
                         bk_agent_id = "{}:{}".format(host["bk_cloud_id"], host["bk_host_innerip"])
                     host["agent"] = agent_id_status_map.get(bk_agent_id, -1)
             else:
-                nodeman_client = get_nodeman_client_by_username(request.user.username)
-                host_list = chunk_data(data, 1000, format_agent_ip, bk_biz_id=bk_biz_id)
-                agent_kwargs = [
-                    {
-                        "data": {"all_scope": True, "host_list": host},
-                        "headers": {"X-Bk-Tenant-Id": request.user.tenant_id},
-                    }
-                    for host in host_list
-                ]
-                results = batch_execute_func(
-                    nodeman_client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True
-                )
-
-                agent_data = []
-                for result in results:
-                    agent_result = result["result"]
-                    if not agent_result["result"]:
-                        message = handle_api_error(
-                            _("节点管理(nodeman)"), "nodeman.get_ipchooser_host_details", agent_kwargs, agent_result
+                if env.BK_NODEMGR_ENABLE:
+                    try:
+                        client = BKNodemgrClient(username=request.user.username, tenant_id=request.user.tenant_id)
+                        agent_data = client.host_agent_status(
+                            biz_id=bk_biz_id, host_id_list=[host["bk_host_id"] for host in data]
                         )
-                        result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
+                    except ApiRequestError as e:
+                        result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": str(e)}
                         return JsonResponse(result)
-                    agent_data.extend(agent_result["data"])
-                agent_data = format_agent_data(agent_data)
+                else:
+                    nodeman_client = get_nodeman_client_by_username(request.user.username)
+                    host_list = chunk_data(data, 1000, format_agent_ip, bk_biz_id=bk_biz_id)
+                    agent_kwargs = [
+                        {
+                            "data": {"all_scope": True, "host_list": host},
+                            "headers": {"X-Bk-Tenant-Id": request.user.tenant_id},
+                        }
+                        for host in host_list
+                    ]
+                    results = batch_execute_func(
+                        nodeman_client.api.ipchooser_host_details, agent_kwargs, interval_enabled=True
+                    )
+
+                    agent_data = []
+                    for result in results:
+                        agent_result = result["result"]
+                        if not agent_result["result"]:
+                            message = handle_api_error(
+                                _("节点管理(nodeman)"), "nodeman.get_ipchooser_host_details", agent_kwargs, agent_result
+                            )
+                            result = {"result": False, "code": ERROR_CODES.API_GSE_ERROR, "message": message}
+                            return JsonResponse(result)
+                        agent_data.extend(agent_result["data"])
+                    agent_data = format_agent_data(agent_data)
                 for host in data:
                     # agent在线状态，0为不在线，1为在线，-1为未知
                     agent_info = agent_data.get(
