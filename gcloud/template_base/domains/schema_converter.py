@@ -42,8 +42,19 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "description": "",
     }
     NODE_NECESSARY_FIELDS = {
-        "ServiceActivity": ["id", "type", "name", "component", "auto_retry"],
-        "SubProcess": ["id", "type", "name", "template_id"],
+        "ServiceActivity": [
+            "id",
+            "type",
+            "name",
+            "component",
+            "auto_retry",
+            "stage_name",
+            "ignore_error",
+            "can_retry",
+            "can_skip",
+            "timeout_config",
+        ],
+        "SubProcess": ["id", "type", "name", "template_id", "always_use_latest"],
         "EmptyEndEvent": ["id", "type"],
         "EmptyStartEvent": ["id", "type"],
         "ExclusiveGateway": ["id", "type", "conditions"],
@@ -60,11 +71,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
             "retryable": True,
             "skippable": True,
             "stage_name": "",
-            "auto_retry": {
-                "enable": False,
-                "times": 0,
-                "interval": 0,
-            },
+            "auto_retry": {"enable": False, "times": 0, "interval": 0},
+            "timeout_config": {"enable": False, "seconds": 10, "action": "forced_fail"},
         },
         "SubProcess": {
             "error_ignorable": False,
@@ -75,6 +83,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
             "isSkipped": True,
             "stage_name": "",
             "hooked_constants": [],
+            "always_use_latest": False,
         },
         "Gateway": {"labels": [], "name": ""},
     }
@@ -107,8 +116,11 @@ class YamlSchemaConverter(BaseSchemaConverter):
         "show_type": "show",
         "value": "",
         "source_tag": "",
+        "is_condition_hide": "false",
+        "pre_render_mako": False,
+        "hide_condition": [],
     }
-    CONSTANT_EXPORT_OPTION_FIELD = ["plugin_code"]
+    CONSTANT_EXPORT_OPTION_FIELD = ["plugin_code", "is_condition_hide", "pre_render_mako"]
     YAML_DOC_SCHEMA = {
         "type": "object",
         "required": ["meta", "spec", "schema_version"],
@@ -128,9 +140,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 template_id = yaml_doc["meta"].get("id")
                 yaml_data[template_id] = yaml_doc
         except jsonschema.ValidationError as e:
-            message = _(
-                f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data"
-            )
+            message = _(f"Yaml数据格式校验失败: Yaml文件解析异常, 可能内容不合法. 请重试或联系管理员处理. {e} | validate_data")
             logger.error(message)
             return {"result": False, "data": yaml_data, "message": message}
         # 检查流程间是否有环引用的情况
@@ -157,21 +167,22 @@ class YamlSchemaConverter(BaseSchemaConverter):
                 missing_fields = set(self.NODE_NECESSARY_FIELDS[node["type"]]) - set(node.keys())
                 if missing_fields:
                     node_defaults = self.NODE_DEFAULT_FIELD_VALUE.get(node["type"], {})
+                    yaml_to_raw = {yaml_field: raw_field for raw_field, yaml_field in self.NODE_FIELD_MAPPING.items()}
                     filled_fields = set()
 
                     for field in missing_fields:
                         if field in node_defaults:
                             node[field] = node_defaults[field]
                             filled_fields.add(field)
+                        elif field in yaml_to_raw and yaml_to_raw[field] in node_defaults:
+                            # 映射后字段名：从原始名取默认值，但补回时仍用映射后名
+                            node[field] = node_defaults[yaml_to_raw[field]]
+                            filled_fields.add(field)
 
                     missing_fields -= filled_fields
 
                     if missing_fields:
-                        error.append(
-                            "节点{}所属的节点类型{}需缺少必须字段：{}".format(
-                                node["id"], node["type"], sorted(missing_fields)
-                            )
-                        )
+                        error.append("节点{}所属的节点类型{}需缺少必须字段：{}".format(node["id"], node["type"], sorted(missing_fields)))
                         continue
                 if node["type"] in ["ExclusiveGateway", "ConditionalParallelGateway"]:
                     for condition in node["conditions"].keys():
@@ -188,11 +199,54 @@ class YamlSchemaConverter(BaseSchemaConverter):
                         for next_node in node["next"]:
                             if next_node not in nodes_set:
                                 error.append("节点{}无法找到下一个节点{}".format(node["id"], next_node))
+                if node["type"] == "ServiceActivity":
+                    self._validate_service_activity_config(node["id"], node, error)
             if error:
                 errors[template_id] = error
         if errors:
             return {"result": False, "data": yaml_data, "message": errors}
         return {"result": True, "data": yaml_data, "message": {}}
+
+    def _validate_service_activity_config(self, node_id: str, node: dict, error: list):
+        """校验点的控制类字段配置"""
+        activity_defaults = self.NODE_DEFAULT_FIELD_VALUE.get("ServiceActivity", {})
+
+        # 互斥的策略开关：优先取映射后名，回退原始名兜底
+        ignore_error = bool(node.get("ignore_error", activity_defaults.get("error_ignorable", False)))
+
+        auto_retry = node.get("auto_retry", activity_defaults.get("auto_retry", {}))
+        auto_retry_enabled = bool(auto_retry.get("enable", False))
+
+        timeout_config = node.get("timeout_config", activity_defaults.get("timeout_config", {}))
+        timeout_config_enabled = bool(timeout_config.get("enable", False))
+
+        enabled_strategy_nodes = []
+        if ignore_error:
+            enabled_strategy_nodes.append("自动跳过(ignore_error)")
+        if auto_retry_enabled:
+            enabled_strategy_nodes.append("自动重试(auto_retry)")
+        if timeout_config_enabled:
+            enabled_strategy_nodes.append("超时控制(timeout_config)")
+        if len(enabled_strategy_nodes) >= 2:
+            error.append(
+                "节点{}配置不合法：自动跳过、自动重试和超时控制不能同时开启两个或两个以上，" "当前同时开启了{}".format(node_id, "、".join(enabled_strategy_nodes))
+            )
+
+        # 开启自动跳过后，不允许再配置可重试和自动重试
+        has_retry_conflict = False
+        if ignore_error:
+            retryable = node.get("can_retry", node.get("retryable", activity_defaults.get("retryable")))
+            if retryable is True or auto_retry_enabled is True:
+                has_retry_conflict = True
+        if has_retry_conflict:
+            error.append("节点{}配置不合法：开启自动跳过后，不允许再配置可重试(can_retry)和自动重试(auto_retry)".format(node_id))
+
+        # can_retry / can_skip 仅做类型合法性校验（不参与互斥）
+        # 仅当字段存在且非 None 时才校验，兼容历史 YAML 未携带的情况
+        for field in ("can_retry", "can_skip"):
+            value = node.get(field, node.get({"can_retry": "retryable", "can_skip": "skippable"}[field]))
+            if value is not None and not isinstance(value, bool):
+                error.append("节点{}配置不合法：字段{}必须为布尔类型".format(node_id, field))
 
     def convert(self, full_data: dict):
         """将原始流程数据转换成只保留YAML字段的数据"""
@@ -339,9 +393,7 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     if template_id not in external_constants_cache:
                         raise ValueError(
                             "SubProcess references template_id '{}' which was not found or does not belong "
-                            "to the current project. Please verify the template_id is correct.".format(
-                                template_id
-                            )
+                            "to the current project. Please verify the template_id is correct.".format(template_id)
                         )
                     constants = external_constants_cache[template_id]
                 constants = copy.deepcopy(constants)
@@ -715,11 +767,21 @@ class YamlSchemaConverter(BaseSchemaConverter):
     def _convert_node(self, node: dict, param_constants: dict):
         """将节点数据从原始字段转换为YAML字段"""
         converted_node = {}
+        yaml_to_raw = {yaml_field: raw_field for raw_field, yaml_field in self.NODE_FIELD_MAPPING.items()}
         for field in self.NODE_NECESSARY_FIELDS.get(node["type"], []):
             converted_field = field if field not in self.NODE_FIELD_MAPPING else self.NODE_FIELD_MAPPING[field]
-            converted_node[converted_field] = (
-                node[field] if field in node else self.NODE_DEFAULT_FIELD_VALUE[node["type"]].get(field, "")
-            )
+            # field 既可能是原始字段名，也可能是映射后字段名，统一回源到原始字段名去 node 中取值
+            source_field = yaml_to_raw.get(field, field)
+            default_value = self.NODE_DEFAULT_FIELD_VALUE.get(node["type"], {})
+            if source_field in node:
+                converted_node[converted_field] = node[source_field]
+            elif converted_field in node:
+                # 兼容 node 中已经是映射后名的情况
+                converted_node[converted_field] = node[converted_field]
+            elif field in node:
+                converted_node[converted_field] = node[field]
+            else:
+                converted_node[converted_field] = default_value.get(source_field, default_value.get(field, ""))
         if node["type"] == "ServiceActivity":
             # 处理component和outputs
             component_data = converted_node["component"]["data"]
@@ -792,6 +854,8 @@ class YamlSchemaConverter(BaseSchemaConverter):
                     elif field == "source_tag":
                         if not constant["custom_type"]:
                             cur_constant["source_tag"] = value
+                    elif field == "is_condition_hide" and "hide_condition" in constant:
+                        cur_constant["hide_condition"] = constant["hide_condition"]
                     else:
                         cur_constant[field] = value
                 if field in self.CONSTANT_EXPORT_OPTION_FIELD and value:
