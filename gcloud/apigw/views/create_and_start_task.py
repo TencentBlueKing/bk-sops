@@ -142,6 +142,7 @@ def create_and_start_task(request, template_id, project_id):
         "creator": request.user.username,
         "description": params.get("description", ""),
     }
+    # tmpl.pipeline_tree不能重复执行
     pipeline_tree = tmpl.pipeline_tree
     try:
         exclude_task_nodes_id = resolve_exclude_task_nodes_id(tmpl, pipeline_tree, params)
@@ -154,7 +155,11 @@ def create_and_start_task(request, template_id, project_id):
 
     try:
         data = TaskFlowInstance.objects.create_pipeline_instance_exclude_task_nodes(
-            tmpl, pipeline_instance_kwargs, params["constants"], exclude_task_nodes_id
+            tmpl,
+            pipeline_instance_kwargs,
+            params["constants"],
+            exclude_task_nodes_id,
+            appointed_pipeline_tree=pipeline_tree,
         )
     except Exception as e:
         return {"result": False, "message": str(e), "code": err_code.UNKNOWN_ERROR.code}
